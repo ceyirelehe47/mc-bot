@@ -31,7 +31,7 @@ class InstallerTest(unittest.TestCase):
         with self.assertRaises(ValueError):module.transform('OLD OLD',[('OLD','NEW',1)])
     def test_planning_never_writes_original(self):
         path,changes=self.one_fixture()
-        with patch.object(module,'CHANGES',changes):old,writes=module.plan(self.root,validate_head=False)
+        with patch.object(module,'CHANGES',changes),patch.object(module,'EXTRA_CHANGES',{}):old,writes=module.plan(self.root,validate_head=False)
         self.assertEqual(path.read_bytes(),b'original_anchor\n');self.assertEqual(writes[path],b'replacement_anchor\n')
         self.assertEqual(len(old),1);self.assertGreater(len(writes),1)
     def test_blob_drift_fails_before_writes(self):
@@ -40,7 +40,7 @@ class InstallerTest(unittest.TestCase):
         self.assertEqual(path.read_text(),'changed\n')
     def test_existing_overlay_file_not_overwritten(self):
         path,changes=self.one_fixture();target=self.root/(module.PREFIX+'external/BridgeKernel.java');target.parent.mkdir();target.write_text('user implementation')
-        with patch.object(module,'CHANGES',changes),self.assertRaisesRegex(ValueError,'already exists'):module.plan(self.root,validate_head=False)
+        with patch.object(module,'CHANGES',changes),patch.object(module,'EXTRA_CHANGES',{}),self.assertRaisesRegex(ValueError,'already exists'):module.plan(self.root,validate_head=False)
         self.assertEqual(target.read_text(),'user implementation');self.assertEqual(path.read_text(),'original_anchor\n')
     def test_wrong_head_refuses_without_touching_worktree(self):
         self.repo()
@@ -51,7 +51,8 @@ class InstallerTest(unittest.TestCase):
         with patch.object(module,'BASE',head),self.assertRaisesRegex(ValueError,'dirty'):module.plan(self.root)
         self.assertEqual((self.root/'keep.txt').read_text(),'local change')
     def test_all_modification_manifests_have_valid_blob_ids_and_counts(self):
-        self.assertEqual(len(module.CHANGES),10)
+        # f7dc7ba 基线 10 → R1 后 12 → MC-1C-A 后 15(上游锚点文件数)
+        self.assertEqual(len(module.CHANGES),16)
         for name,(sha,rules) in module.CHANGES.items():
             self.assertRegex(sha,r'^[a-f0-9]{40}$');self.assertGreater(len(rules),0)
             for old,new,count in rules:self.assertTrue(old);self.assertNotEqual(old,new);self.assertGreater(count,0)

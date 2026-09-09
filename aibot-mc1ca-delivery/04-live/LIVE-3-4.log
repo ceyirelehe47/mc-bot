@@ -1,0 +1,23 @@
+[02:56:53] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=farm, origin=LLM_TOOL, params=farm crop=Block{minecraft:wheat} center=4,112,8 radius=4 done=0 phase=SURVEY, origin_reason=external_dsh}
+[02:56:53] [Server thread/INFO]: [AIBot] ACTION event=plant bot=Bob {pos=class_2338{x=5, y=113, z=8}, crop=Block{minecraft:wheat}, seed=minecraft:wheat_seeds}
+[02:56:53] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {elapsed_ticks=6, name=farm}
+[02:57:06] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=evade, origin=SAFETY, params=Evading HOSTILE toward 16,112,5, origin_reason=threat:HOSTILE}
+[02:57:08] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {elapsed_ticks=42, name=evade}
+[02:57:14] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=evade, origin=SAFETY, params=Evading HOSTILE toward 26,112,9, origin_reason=threat:HOSTILE}
+[02:57:16] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {elapsed_ticks=40, name=evade}
+[02:57:17] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=evade, origin=SAFETY, params=Evading HOSTILE toward 36,112,12, origin_reason=threat:HOSTILE}
+[02:57:19] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {elapsed_ticks=38, name=evade}
+[02:57:20] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=evade, origin=SAFETY, params=Evading HOSTILE toward 47,112,14, origin_reason=threat:HOSTILE}
+[02:57:25] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {elapsed_ticks=107, name=evade}
+[02:57:28] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=evade, origin=SAFETY, params=Evading HOSTILE toward 54,112,20, origin_reason=threat:HOSTILE}
+[02:57:30] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {elapsed_ticks=43, name=evade}
+[02:58:37] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=farm, origin=LLM_TOOL, params=farm crop=Block{minecraft:wheat} center=4,112,8 radius=4 done=0 phase=SURVEY, origin_reason=external_dsh}
+[02:58:37] [Server thread/INFO]: [AIBot] ACTION event=plant bot=Bob {pos=class_2338{x=5, y=113, z=8}, crop=Block{minecraft:wheat}, seed=minecraft:wheat_seeds}
+[02:58:37] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {elapsed_ticks=6, name=farm}
+[03:00:52] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=farm, origin=LLM_TOOL, params=farm crop=Block{minecraft:wheat} center=4,112,8 radius=4 done=0 phase=SURVEY, origin_reason=external_dsh}
+[03:00:52] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {elapsed_ticks=2, name=farm}
+[03:04:34] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=farm, origin=LLM_TOOL, params=farm crop=Block{minecraft:wheat} center=4,112,8 radius=4 done=0 phase=SURVEY, origin_reason=external_dsh}
+[03:04:34] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {elapsed_ticks=2, name=farm}
+[03:06:54] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=farm, origin=LLM_TOOL, params=farm crop=Block{minecraft:wheat} center=3,112,7 radius=4 done=0 phase=SURVEY, origin_reason=external_dsh}
+[03:06:54] [Server thread/INFO]: [AIBot] ACTION event=plant bot=Bob {pos=class_2338{x=4, y=113, z=7}, crop=Block{minecraft:wheat}, seed=minecraft:wheat_seeds}
+[03:06:54] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {elapsed_ticks=6, name=farm}

@@ -1,0 +1,7 @@
+== mc-bot HEAD at branch creation
+f7dc7ba mc-bot: AIBot 外接大脑 M0 集成交付(aibot-dsh-m0)
+== 上游 aibot = a029fa6a3760fd0f83834c104051b041d986da60
+== dsh = 5dda764
+== JDK = D:/mc-server/jdk-21.0.12.1+1 (java 21)
+== gradle 9.4 / Minecraft 1.21.3 / fabric
+== Windows 10, Git Bash

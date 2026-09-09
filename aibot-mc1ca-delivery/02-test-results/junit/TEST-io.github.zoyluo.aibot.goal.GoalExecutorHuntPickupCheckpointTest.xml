@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.goal.GoalExecutorHuntPickupCheckpointTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-09T17:15:51.439Z" hostname="FORST" time="0.021">
+  <properties/>
+  <testcase name="closedNoRawNeedsEmptyBindingAndFullRecoveryAge()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntPickupCheckpointTest" time="0.01"/>
+  <testcase name="legacyAbsenceStillPasses()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntPickupCheckpointTest" time="0.001"/>
+  <testcase name="openClockRollbackIsCheckedOnlyInReceiptDimension()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntPickupCheckpointTest" time="0.0"/>
+  <testcase name="closedCollectedNeedsLiveInventoryOrPickupStatCoverage()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntPickupCheckpointTest" time="0.001"/>
+  <testcase name="malformedOrMislabeledHuntNamespaceFailsTypedPreflight()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntPickupCheckpointTest" time="0.001"/>
+  <testcase name="validHuntPickupNamespacePassesMissionPreflight()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntPickupCheckpointTest" time="0.001"/>
+  <testcase name="openHuntDebtPrecedesCompoundObsidianTailFailure()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntPickupCheckpointTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

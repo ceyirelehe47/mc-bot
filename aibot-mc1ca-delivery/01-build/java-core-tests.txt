@@ -1,0 +1,58 @@
+PASS JSON escaping
+PASS lease active
+PASS body_controlled
+PASS only existing token holder may repeat claim for same owner
+PASS body_controlled
+PASS control_lease_invalid
+PASS HTTP admission cannot run world action
+PASS accepted distinct from completed
+PASS idempotent duplicate returns original receipt
+PASS idempotency_conflict
+PASS execution_in_progress
+PASS one physical dispatch
+PASS running state
+PASS controls are queued not run in HTTP thread
+PASS pause preserves execution
+PASS resume existing task
+PASS terminal completion
+PASS terminal state monotonic
+PASS retry after completion does not repeat world action
+PASS completed retry no re-execution
+PASS old cancel cannot cancel replacement execution
+PASS release pauses body without enabling internal brain
+PASS control_lease_invalid
+PASS expired queued command never runs
+PASS expired accepted receipt settles cancelled
+PASS lease expiry pauses normal work
+PASS control_lease_invalid
+PASS new controller does not automatically restart work
+PASS death attributed to current execution
+PASS observe_required
+PASS fresh observe enables deliberate replan after death
+PASS start exception not silently retried
+PASS partial start cleanup attempted
+PASS observe_required
+PASS pause before dispatch never starts or cancels work
+PASS resume after early pause dispatches once
+PASS same owner reacquire does not revive old-lease accepted command
+PASS shutdown records unknown before unloading external work
+PASS shutdown pauses and cancels external work before upstream snapshot
+PASS body identity change interrupts execution as unknown
+PASS body identity change revokes controller
+PASS queued old-token control rejected after same owner reacquires
+PASS rejected stale resume leaves physical task paused
+PASS concurrent admission converges to one durable receipt
+PASS concurrent duplicate admission dispatches exactly one action
+PASS restart invalidates in-flight execution
+PASS idempotency survives process restart
+PASS restart never replays physical actions
+PASS observe_required
+PASS cursor event read
+PASS epoch mismatch signals gap
+PASS future cursor signals gap
+PASS long polling awakened without model loop
+PASS incomplete crash tail truncated to last verified frame
+PASS corrupt complete frame fails closed
+PASS second writer rejected
+PASS body_not_ready
+TOTAL 57 checks passed

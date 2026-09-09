@@ -1,0 +1,7 @@
+[02:51:24] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=gather, origin=LLM_TOOL, params=Gathering minecraft:oak_log 0/1 phase=SURVEY, origin_reason=external_dsh}
+[02:51:24] [Server thread/INFO]: [AIBot] PROFILE event=profile_slow_section bot=- {section=task_tick, bot=Bob, elapsed_ms=119.16}
+[02:51:24] [Server thread/INFO]: [AIBot] PROFILE event=profile_slow_section bot=- {section=task_tick, bot=Bob, elapsed_ms=120.37}
+[02:51:25] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {reason=DENIED_STRICT_SURVIVAL, allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=ore_prospector}
+[02:51:25] [Server thread/INFO]: [AIBot] ACTION event=gather_prospect_empty bot=Bob {blacklisted=0, item=minecraft:oak_log, range=96}
+[02:51:25] [Server thread/INFO]: [AIBot] PROFILE event=profile_slow_section bot=- {section=task_tick, bot=Bob, elapsed_ms=243.49}
+[02:51:25] [Server thread/WARN]: [AIBot] TASK event=task_failed bot=Bob {reason=no_resource_nearby, elapsed_ticks=21, name=gather}

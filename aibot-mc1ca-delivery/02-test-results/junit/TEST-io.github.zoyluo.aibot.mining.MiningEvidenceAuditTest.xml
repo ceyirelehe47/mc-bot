@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-09T17:15:51.625Z" hostname="FORST" time="0.043">
+  <properties/>
+  <testcase name="oneExactDiamondBreakCreditsAtMostOnePickupAndCannotBeReplayed()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.001"/>
+  <testcase name="oneExactObsidianBreakCannotAmplifyAnUnrelatedInventoryDelta()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.001"/>
+  <testcase name="globalVanillaMinedCountCannotCreateAnExactDiamondBreak()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.003"/>
+  <testcase name="runtimeHooksBindFactsAtTheActualDecisionAndTransactionBoundaries()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.004"/>
+  <testcase name="obsidianRequiresWaterConversionBreakAndPickupAt32()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.001"/>
+  <testcase name="nextWaterPlacementCannotInheritPriorGenerationCandidates()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.026"/>
+  <testcase name="diamondRequiresEveryPhysicalAndSurvivalBoundaryAt64()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.001"/>
+  <testcase name="obsidianRequiresACompleteExactCellChainAndRejectsReplay()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.001"/>
+  <testcase name="oneWaterPlacementCanCreditOnlyItsPreObservedBatch()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.0"/>
+  <testcase name="fromZeroAuditStartsAfterScenarioPreparation()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.001"/>
+  <testcase name="closedWaterPlacementCannotCreditALateUnrelatedConversion()" classname="io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

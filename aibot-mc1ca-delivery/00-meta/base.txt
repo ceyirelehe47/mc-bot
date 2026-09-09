@@ -1,0 +1,2 @@
+f7dc7ba8061e18a5f314d7bfeba5970e1c01c903
+f7dc7ba mc-bot: AIBot 外接大脑 M0 集成交付(aibot-dsh-m0)

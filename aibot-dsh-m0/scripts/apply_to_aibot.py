@@ -58,7 +58,7 @@ CHANGES = {
                 // 无 @ 前缀:对保留身体(外部大脑控制)放宽为免 @ 直聊;授权门与控制短语语义不变
                 String plainSender = sender.getGameProfile().getName();
                 for (var bot : AIPlayerManager.INSTANCE.all()) {
-                    if (!''+'ACCESS'+'''.reserved(bot)) continue;
+                    if (!'''+ACCESS+'''.reserved(bot)) continue;
                     if (!BotAuthorizationGate.INSTANCE.authorize(
                             sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:@bot")) {
                         return;
@@ -74,12 +74,55 @@ CHANGES = {
                 return;
             }
 ''', 1),
+  ('''                    if (!BotAuthorizationGate.INSTANCE.authorize(
+                            sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:@bot")) {
+                        return;
+                    }
+                    BotLog.comm(bot, "chat_in", "sender", plainSender, "text", text);
+                    if (io.github.zoyluo.aibot.runtime.IntentController.INSTANCE.routePlayerControlPhrase(
+                            bot, io.github.zoyluo.aibot.runtime.IntentController.ControlOrigin.PLAYER_COMMAND, text)) {
+                        return;
+                    }
+                    BrainCoordinator.INSTANCE.handleMessage(bot, plainSender, text);
+                    return;
+''',
+   '''                    if (!BotAuthorizationGate.INSTANCE.authorize(
+                            sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:plain_external")) {
+                        return;
+                    }
+                    BotLog.comm(bot, "chat_in", "sender", plainSender, "text", text);
+                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
+                            bot, sender.getUuid(), plainSender, "chat:plain", true, text);
+                    return;
+''', 1),
+  ('''                BotLog.comm(bot, "chat_in", "sender", sender.getGameProfile().getName(), "text", body);
+                if (io.github.zoyluo.aibot.runtime.IntentController.INSTANCE.routePlayerControlPhrase(
+                        bot, io.github.zoyluo.aibot.runtime.IntentController.ControlOrigin.PLAYER_COMMAND, body)) {
+                    return;
+                }
+                BrainCoordinator.INSTANCE.handleMessage(bot, sender.getGameProfile().getName(), body);
+''',
+   '''                String senderName = sender.getGameProfile().getName();
+                BotLog.comm(bot, "chat_in", "sender", senderName, "text", body);
+                if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
+                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
+                            bot, sender.getUuid(), senderName, "chat:@bot", true, body);
+                    return;
+                }
+                if (io.github.zoyluo.aibot.runtime.IntentController.INSTANCE.routePlayerControlPhrase(
+                        bot, io.github.zoyluo.aibot.runtime.IntentController.ControlOrigin.PLAYER_COMMAND, body)) {
+                    return;
+                }
+                BrainCoordinator.INSTANCE.handleMessage(bot, senderName, body);
+''', 1),
  ]),
  'task/DangerWatcher.java': ('16b7aeb058b2b557e4af9ad514d2736c318884fd', [
   ('private boolean maybeResupply(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {',
    'private boolean maybeResupply(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {\n        if ('+ACCESS+'.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响', 1),
-  ('private boolean maybeEat(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {',
-   'private boolean maybeEat(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {\n        if ('+ACCESS+'.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响', 1),
+  ('boolean urgent = critical || healingEmergency;',
+   'boolean urgent = critical || healingEmergency;\n        if ('+ACCESS+'.reserved(bot) && !urgent) return false; // 外部身体只保留 critical hunger / healing 的 SAFETY EatTask', 1),
+  ('if (InventoryAction.findFoodSlot(bot) < 0) {\n            // 第2层 饥饿链:没有任何食物 → 若周围有可猎动物,主动猎杀获取生肉,而非干等饿死。',
+   'if (InventoryAction.findFoodSlot(bot) < 0) {\n            if ('+ACCESS+'.reserved(bot)) {\n                '+RUNTIME+'.survivalAlert(bot, "critical_hunger_no_food");\n                nextEatAttemptTick.put(bot.getUuid(), now + 100);\n                return false;\n            }\n            // 第2层 饥饿链:没有任何食物 → 若周围有可猎动物,主动猎杀获取生肉,而非干等饿死。', 1),
   ('private boolean maybeStartNightTask(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {',
    'private boolean maybeStartNightTask(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {\n        if ('+ACCESS+'.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响', 1),
   ('private boolean maybeLightDarkArea(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {',
@@ -98,14 +141,102 @@ CHANGES = {
  'network/AIBotServerNetworking.java': ('baa72f575d832fbfa200d02af610104fd0018535', [
   ('String action = payload.action().toLowerCase(Locale.ROOT);',
    'String action = payload.action().toLowerCase(Locale.ROOT);\n        if ('+ACCESS+'.reserved(bot) && !"chat".equals(action)) {\n            sendSystem(player, bot.getGameProfile().getName(), "External body: use DSH controls; legacy panel mutation is disabled.");\n            return;\n        }', 1),
+  ('''            case "chat" -> {
+                sendBotChat(bot, "user", payload.arg1());
+                if (!IntentController.INSTANCE.routePlayerControlPhrase(
+                        bot, IntentController.ControlOrigin.PLAYER_PANEL, payload.arg1())) {
+                    BrainCoordinator.INSTANCE.handleMessage(bot, player.getGameProfile().getName(), payload.arg1());
+                }
+            }
+''',
+   '''            case "chat" -> {
+                sendBotChat(bot, "user", payload.arg1());
+                if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
+                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
+                            bot, player.getUuid(), player.getGameProfile().getName(),
+                            "network:panel_chat", true, payload.arg1());
+                } else if (!IntentController.INSTANCE.routePlayerControlPhrase(
+                        bot, IntentController.ControlOrigin.PLAYER_PANEL, payload.arg1())) {
+                    BrainCoordinator.INSTANCE.handleMessage(bot, player.getGameProfile().getName(), payload.arg1());
+                }
+            }
+''', 1),
  ]),
  'runtime/IntentController.java': ('69878ada6beca2e502dc4bd05d351d8682f902a7', [
   ('Objects.requireNonNull(origin, "origin");',
    'Objects.requireNonNull(origin, "origin");\n        if (origin != ControlOrigin.SYSTEM) '+ACCESS+'.checkTool(bot);', 1),
   ('String normalized = normalizeReason(origin, reason);',
    'if (origin != ControlOrigin.SYSTEM) '+ACCESS+'.checkTool(bot);\n        String normalized = normalizeReason(origin, reason);', 2),
-  ('public boolean routePlayerControlPhrase(AIPlayerEntity bot, ControlOrigin origin, String text) {',
-   'public boolean routePlayerControlPhrase(AIPlayerEntity bot, ControlOrigin origin, String text) {\n        if ('+ACCESS+'.reserved(bot)) {\n            '+ACCESS+'.message(bot, "authorized_player_control", text);\n            return true;\n        }', 1),
+ ]),
+ 'task/GatherQuotaTask.java': ('f3b4d48379024e859a8844dc6b870de9dccf4d16', [
+  # MC-1C-A 补口:OreProspector 的 prospect/explore 选目标路径也要过自然树分类器,
+  # 否则保护区原木/ambiguous log 会被选为 harvest 目标(挖掘层硬门仍会拦,但会
+  # 反复 prospect→pathfinding 超时→拉黑好树,实测导致配额无法达成)。
+  ('''        BlockPos found = OreProspector.nearest(bot, PROSPECT_RANGE,
+                state -> harvestBlocks.contains(state.getBlock()),
+                pos -> !EpisodeMemory.INSTANCE.isExcluded(botId, pos, now));''',
+   '''        BlockPos found = OreProspector.nearest(bot, PROSPECT_RANGE,
+                state -> harvestBlocks.contains(state.getBlock()),
+                pos -> !EpisodeMemory.INSTANCE.isExcluded(botId, pos, now)
+                        && io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos));''', 1),
+  ('''            BlockPos seen = OreProspector.nearest(bot, 16,
+                    state -> harvestBlocks.contains(state.getBlock()));''',
+   '''            BlockPos seen = OreProspector.nearest(bot, 16,
+                    state -> harvestBlocks.contains(state.getBlock()),
+                    pos -> io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos));''', 1),
+ ]),
+ 'action/MiningAction.java': ('5316998b8c65d69052a1d5e20e0c1ad033ad8805', [
+  ('''public static ActionResult startMining(AIPlayerEntity player, BlockPos pos, Direction face) {
+        return player.getActionPack().startMining(pos, face);
+    }''',
+   '''public static ActionResult startMining(AIPlayerEntity player, BlockPos pos, Direction face) {
+        var decision = io.github.zoyluo.aibot.external.BreakPolicy.decide(player, pos);
+        if (!decision.allowed()) return ActionResult.failed(decision.reason());
+        return player.getActionPack().startMining(pos, face);
+    }''', 1),
+  ('''public static ActionResult mineOnceInstant(AIPlayerEntity player, BlockPos pos, Direction face) {
+        player.interactionManager.processBlockBreakingAction(''',
+   '''public static ActionResult mineOnceInstant(AIPlayerEntity player, BlockPos pos, Direction face) {
+        var decision = io.github.zoyluo.aibot.external.BreakPolicy.decide(player, pos);
+        if (!decision.allowed()) return ActionResult.failed(decision.reason());
+        player.interactionManager.processBlockBreakingAction(''', 1),
+ ]),
+ 'action/HarvestCore.java': ('582535c114b1c444ec1bbfb7f35665da62061db0', [
+  ('''.filter(pos -> ObservableWorldQuery.canObserveBlock(bot, pos))
+                        .filter(pos -> bot.getServerWorld().getBlockState(pos).isOf(targetBlock))''',
+   '''.filter(pos -> ObservableWorldQuery.canObserveBlock(bot, pos))
+                        .filter(pos -> bot.getServerWorld().getBlockState(pos).isOf(targetBlock))
+                        .filter(pos -> io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos))''', 1),
+  ('''.filter(pos -> targetBlocks.contains(bot.getServerWorld().getBlockState(pos).getBlock()))
+                        .filter(pos -> posFilter == null || posFilter.test(pos))''',
+   '''.filter(pos -> targetBlocks.contains(bot.getServerWorld().getBlockState(pos).getBlock()))
+                        .filter(pos -> io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos))
+                        .filter(pos -> posFilter == null || posFilter.test(pos))''', 1),
+ ]),
+ 'perception/PerceptionCollector.java': ('aed2328a8f73a33f70f7c46c09c476f80766be8e', [
+  ('''addHighlights(highlights, state, pos, round(distance), water);''',
+   '''addHighlights(bot, highlights, state, pos, round(distance), water);''', 1),
+  ('''private static void addHighlights(Map<String, List<PerceptionSnapshot.NearbyBlock>> highlights,
+                                      BlockState state,''',
+   '''private static void addHighlights(AIPlayerEntity bot,
+                                      Map<String, List<PerceptionSnapshot.NearbyBlock>> highlights,
+                                      BlockState state,''', 1),
+  ('''if (state.isIn(BlockTags.LOGS)) {
+            addHighlight(highlights, "nearest_tree", Registries.BLOCK.getId(state.getBlock()).toString(), pos, distance);
+        }''',
+   '''if (state.isIn(BlockTags.LOGS)
+                && io.github.zoyluo.aibot.external.NaturalTreeClassifier.isNaturalTreeLog(bot, pos)) {
+            addHighlight(highlights, "nearest_tree", Registries.BLOCK.getId(state.getBlock()).toString(), pos, distance);
+        }''', 1),
+ ]),
+}
+
+# 不在 PREFIX 下的补充锚点补丁(带同样的 blob 校验)。MC-1C-A:把专项 GameTest 注册进 gametest 入口,
+# 否则 fabric-gametest 不会发现它,干净重建后测试静默消失。
+EXTRA_CHANGES={
+ 'src/gametest/resources/fabric.mod.json': ('25ecb31ca127ed2e9d57ccb9b5c223066092f3e5', [
+  ('"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",',
+   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",', 1),
  ]),
 }
 
@@ -131,6 +262,12 @@ def plan(repo: pathlib.Path, *, validate_head: bool=True) -> tuple[dict[pathlib.
     old_files: dict[pathlib.Path,bytes]={}; writes: dict[pathlib.Path,bytes]={}
     for relative,(expected,rules) in CHANGES.items():
         path=repo/(PREFIX+relative)
+        original=path.read_bytes()
+        if blob_id(original)!=expected: raise ValueError(f'Frozen blob mismatch: {path}')
+        old_files[path]=original
+        writes[path]=transform(original.decode('utf-8'),rules).encode('utf-8')
+    for relative,(expected,rules) in EXTRA_CHANGES.items():
+        path=repo/relative
         original=path.read_bytes()
         if blob_id(original)!=expected: raise ValueError(f'Frozen blob mismatch: {path}')
         old_files[path]=original

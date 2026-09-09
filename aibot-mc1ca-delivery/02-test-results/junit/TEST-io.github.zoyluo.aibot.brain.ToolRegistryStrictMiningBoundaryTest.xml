@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.brain.ToolRegistryStrictMiningBoundaryTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-09T17:15:50.261Z" hostname="FORST" time="0.022">
+  <properties/>
+  <testcase name="everyPublicRouteRejectsBeforeReplacingTheCurrentTask()" classname="io.github.zoyluo.aibot.brain.ToolRegistryStrictMiningBoundaryTest" time="0.009"/>
+  <testcase name="strictProfileDoesNotPublishLegacyMiningTools()" classname="io.github.zoyluo.aibot.brain.ToolRegistryStrictMiningBoundaryTest" time="0.013"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

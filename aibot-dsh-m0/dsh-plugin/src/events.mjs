@@ -1,7 +1,7 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const TERMINAL = new Set(['completed','failed','cancelled','outcome_unknown']);
-const IMPORTANT = new Set(['death','respawn','player_message','control_lost','body_changed','runtime_started','runtime_stopped']);
+const IMPORTANT = new Set(['death','respawn','player_message','survival_alert','control_lost','body_changed','runtime_started','runtime_stopped']);
 export function shouldDeliver(event) {
   if (IMPORTANT.has(event.kind)) return true;
   if (event.kind === 'execution') {
@@ -33,7 +33,7 @@ export function enqueueEvents(agent, api, epoch, events, { autoWake = true } = {
   if (!events.length) return;
   const message = createEventMessage(api, epoch, events);
   if (!autoWake) { agent.inject(message); return; }
-  const urgent = events.some(e => ['death','damage','player_message','control_lost','body_changed'].includes(e.kind));
+  const urgent = events.some(e => ['death','damage','player_message','survival_alert','control_lost','body_changed'].includes(e.kind));
   if (urgent && agent.status === 'running') agent.steer(message);
   else agent.followup(message); // queues a guaranteed new turn even if currently running
 }

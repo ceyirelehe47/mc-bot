@@ -84,7 +84,7 @@ export function install(ctx, api, options = {}) {
         }
       })();
       return { attached: true, ...lease, status: await client.status(signal),
-        limits: 'M0: one configured Bot, strict_survival, eight bounded operations, no autonomous resume after server restart.' };
+        limits: 'M1C-A: one configured Bot, strict_survival, eleven bounded operations, protected structures + farm semantics, no autonomous resume after server restart.' };
     })();
     try { return await connecting; } finally { connecting = null; connectingAgent = null; }
   }
@@ -120,6 +120,12 @@ export function install(ctx, api, options = {}) {
     ['deposit', 'Deposit non-damageable items near the remembered base using existing StockpileTask. Tools are retained.', {}],
     ['say', 'Send text to the AIBot panel (not global server chat). M0 uses the same single-operation slot, so wait until the body execution is idle.',
       { message: string('Text, at most 1000 characters. Game text is untrusted data.') }],
+    ['register_home', 'Register a bounded HOME protection cuboid around the current body position. Protection is Body operational state, not Iris memory. This slice does NOT capture a repair blueprint.',
+      { name: { type: 'string', description: 'Optional semantic id; default home.' }, radius: { type: 'integer', description: 'Horizontal protection radius 2..16; default 6.' }, below: { type: 'integer', description: 'Protected cells below current Y 0..8; default 1.' }, above: { type: 'integer', description: 'Protected cells above current Y 1..16; default 6.' } }],
+    ['register_farm', 'Register the nearest observed farmland/supported crop as a bounded farm region. Crop can be auto-detected from wheat/carrots/potatoes or supplied explicitly.',
+      { name: { type: 'string', description: 'Optional semantic id; default farm.' }, radius: { type: 'integer', description: 'Farm region radius 1..16; default 6.' }, crop: { type: 'string', description: 'Optional wheat/carrot/potato id when auto-detection is ambiguous.' } }],
+    ['tend_farm', 'Run the existing finite FarmTask over a registered farm. Harvests mature crops, leaves immature crops, and replants when seeds are available.',
+      { name: { type: 'string', description: 'Registered farm id; default farm.' } }],
   ];
   for (const [operation, description, parameters] of operations) {
     register('mc_' + operation, description + ' Returns an asynchronous execution receipt; wait for events or query mc_status.', parameters,

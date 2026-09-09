@@ -15,11 +15,14 @@ public final class ExternalBodyRuntime {
     private static UUID observedBody;
     private static float previousHealth=Float.NaN;
     private static boolean previousAlive;
+    private static final Map<String,Integer> nextSurvivalAlertTick=new HashMap<>();
     private ExternalBodyRuntime() {}
     public static void start(MinecraftServer server) {
         if(!ExternalBodyAccess.enabled())return;
+        ExternalBodyAccess.activateReservation(); // after persistence restore; before any tick/network control
         if(!ExternalBodyAccess.BOT_NAME.matches("[A-Za-z0-9_]{1,16}"))throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BOT");
         try {
+            SemanticWorldRegistry.start(server, ExternalBodyAccess.BOT_NAME);
             String token=System.getenv("AIBOT_BRIDGE_TOKEN");
             int port=Integer.parseInt(System.getenv().getOrDefault("AIBOT_BRIDGE_PORT","8765"));
             if(port<1024 || port>65535)throw new IllegalArgumentException("invalid_bridge_port");
@@ -27,11 +30,12 @@ public final class ExternalBodyRuntime {
             kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME));
             kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
             http=new BridgeHttpServer(kernel,port,token);http.start();
-            observedBody=null;previousHealth=Float.NaN;previousAlive=false;
+            observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();
             AIBotMod.LOGGER.info("AIBot external-body bridge bound to loopback port {} for {}",port,ExternalBodyAccess.BOT_NAME);
         }catch(Exception failure){
             if(http!=null)http.close();
             try{if(journal!=null)journal.close();}catch(Exception ignored){}
+            SemanticWorldRegistry.stop();
             http=null;journal=null;kernel=null;
             // Reservation remains in force. Invalid config must never silently reactivate the old brain.
             throw new IllegalStateException("external_bridge_start_failed_closed",failure);
@@ -57,17 +61,44 @@ public final class ExternalBodyRuntime {
         previousAlive=false;previousHealth=0;
     }
     public static void message(AIPlayerEntity bot,String sender,String text) {
+        playerMessage(bot,null,sender,"legacy_brain_handle",false,text);
+    }
+    public static void playerMessage(AIPlayerEntity bot,UUID senderUuid,String senderName,
+                                     String channel,boolean authorizedControl,String text) {
         if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
-        kernel.publish("player_message",Map.of("sender",bounded(sender,80),"text",bounded(text,2000),"trust","untrusted_game_text"));
+        Map<String,Object> payload=new LinkedHashMap<>();
+        payload.put("actor_kind","player");
+        payload.put("sender_uuid",senderUuid==null?"":senderUuid.toString());
+        payload.put("sender_name",bounded(senderName,80));
+        payload.put("sender",bounded(senderName,80)); // M0 compatibility alias; never a synthetic authority label
+        payload.put("channel",bounded(channel,80));
+        payload.put("authorized_control",authorizedControl);
+        payload.put("text",bounded(text,2000));
+        payload.put("trust","untrusted_game_text");
+        kernel.publish("player_message",payload);
+    }
+    public static void survivalAlert(AIPlayerEntity bot,String reason) {
+        if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+        int now=bot.getServer().getTicks();
+        String key=bot.getUuid()+":"+bounded(reason,80);
+        if(now<nextSurvivalAlertTick.getOrDefault(key,0))return;
+        nextSurvivalAlertTick.put(key,now+200);
+        kernel.publish("survival_alert",Map.of(
+                "reason",bounded(reason,80),
+                "body_id",bot.getUuid().toString(),
+                "health",bot.getHealth(),
+                "food",bot.getHungerManager().getFoodLevel(),
+                "action","observe_and_replan"));
     }
     private static String bounded(String s,int length){return s==null?"":s.length()<=length?s:s.substring(0,length);}
     public static void stop() {
         try{if(kernel!=null)kernel.shutdown();}
         catch(RuntimeException e){AIBotMod.LOGGER.error("external body shutdown requires reconciliation",e);}
         finally {
+            SemanticWorldRegistry.stop();
             if(http!=null)http.close();
             try{if(journal!=null)journal.close();}catch(Exception e){AIBotMod.LOGGER.error("external journal close failed",e);}
-            http=null;journal=null;kernel=null;observedBody=null;previousHealth=Float.NaN;previousAlive=false;
+            http=null;journal=null;kernel=null;observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();
         }
     }
 }

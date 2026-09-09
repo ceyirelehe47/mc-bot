@@ -20,8 +20,9 @@ function setup(){
 }
 test('native tools return canonical output values and expose bounded operations only',async()=>{
   const f=setup();try{
-    assert.equal(f.tools.size,16);for(const t of f.tools.values()){assert.equal(t.output.schema.type,'json');assert.equal(typeof t.execute,'function');}
+    assert.equal(f.tools.size,19);for(const t of f.tools.values()){assert.equal(t.output.schema.type,'json');assert.equal(typeof t.execute,'function');}
     assert.ok(!f.tools.has('mc_shell'));assert.ok(!f.tools.has('mc_achieve_goal'));
+    assert.ok(f.tools.has('mc_register_home'));assert.ok(f.tools.has('mc_register_farm'));assert.ok(f.tools.has('mc_tend_farm'));
     await assert.rejects(()=>f.call('mc_observe'),/not attached/);
     await f.call('mc_connect');assert.equal((await f.call('mc_observe')).health,20);
     assert.equal((await f.call('mc_gather',{item:'minecraft:oak_log',count:4})).state,'accepted');

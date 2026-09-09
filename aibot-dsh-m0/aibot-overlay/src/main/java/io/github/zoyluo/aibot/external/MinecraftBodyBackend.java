@@ -2,6 +2,7 @@ package io.github.zoyluo.aibot.external;
 
 import com.google.gson.*;
 import io.github.zoyluo.aibot.AIBotConfig;
+import io.github.zoyluo.aibot.action.FarmAction;
 import io.github.zoyluo.aibot.brain.BrainCoordinator;
 import io.github.zoyluo.aibot.entity.AIPlayerEntity;
 import io.github.zoyluo.aibot.manager.AIPlayerManager;
@@ -56,6 +57,7 @@ public final class MinecraftBodyBackend implements BodyBackend {
         out.addProperty("dimension",bot.getServerWorld().getRegistryKey().getValue().toString());
         JsonObject position=new JsonObject(); position.addProperty("x",bot.getX());position.addProperty("y",bot.getY());position.addProperty("z",bot.getZ());out.add("position",position);
         out.add("inventory",GSON.toJsonTree(inventory()));
+        out.add("semantic_world",SemanticWorldRegistry.observe(bot));
         String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
         int tick=server.getTicks();
         if(perception==null || tick-perceptionTick>=10 || tick<perceptionTick || !dimension.equals(perceptionDimension)) {
@@ -88,6 +90,9 @@ public final class MinecraftBodyBackend implements BodyBackend {
             case "gather","craft" -> Set.of("item","count");
             case "smelt" -> Set.of("input_item","output_item","count");
             case "say" -> Set.of("message");
+            case "register_home" -> Set.of("name","radius","below","above");
+            case "register_farm" -> Set.of("name","radius","crop");
+            case "tend_farm" -> Set.of("name");
             case "eat","set_base","deposit" -> Set.of();
             default -> throw new BridgeFault(400,"unsupported_operation");
         };
@@ -106,6 +111,35 @@ public final class MinecraftBodyBackend implements BodyBackend {
             case "craft" -> {target=item(args,"item");count=integer(args,"count",1,64);task=new CraftTask(target,count);}
             case "smelt" -> {target=item(args,"output_item");count=integer(args,"count",1,64);task=new SmeltTask(item(args,"input_item"),target,count);}
             case "eat" -> task=new EatTask();
+            case "register_home" -> {
+                try {
+                    var registration=SemanticWorldRegistry.registerHome(bot,
+                            optionalString(args,"name","home",32),
+                            optionalInt(args,"radius",6,2,16),
+                            optionalInt(args,"below",1,0,8),
+                            optionalInt(args,"above",6,1,16));
+                    return semanticRegistrationHandle(registration);
+                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
+                    throw semanticFault(semanticFailure);
+                }
+            }
+            case "register_farm" -> {
+                try {
+                    var registration=SemanticWorldRegistry.registerFarm(bot,
+                            optionalString(args,"name","farm",32),
+                            optionalInt(args,"radius",6,1,16),
+                            optionalString(args,"crop","",64));
+                    return semanticRegistrationHandle(registration);
+                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
+                    throw semanticFault(semanticFailure);
+                }
+            }
+            case "tend_farm" -> {
+                String farmId=optionalString(args,"name","farm",32);
+                var farm=SemanticWorldRegistry.farm(bot,farmId)
+                        .orElseThrow(()->new BridgeFault(404,"farm_not_registered_or_wrong_dimension"));
+                task=new FarmTask(farm.center(),farm.radius(),farm.seed(),farm.crop(),false,false);
+            }
             case "deposit" -> task=new StockpileTask(true);
             case "set_base" -> {
                 BotMemoryStore.INSTANCE.of(bot.getUuid()).markPlace("base",bot.getServerWorld(),bot.getBlockPos());
@@ -168,6 +202,32 @@ public final class MinecraftBodyBackend implements BodyBackend {
     @Override public void cancel(String reason) {
         onThread();if(bot!=null)ExternalBodyAccess.dispatch(()->IntentController.INSTANCE.cancelAll(bot,IntentController.ControlOrigin.SYSTEM,reason));
     }
+    private static Handle semanticRegistrationHandle(SemanticWorldRegistry.Registration registration) {
+        return () -> {
+            if (!registration.persisted().isDone()) return new Snapshot("running",0.5D,"persisting_semantic_registry");
+            try {
+                registration.persisted().join();
+                return new Snapshot("completed",1.0D,registration.payload());
+            } catch (RuntimeException persistenceFailure) {
+                return new Snapshot("failed",0.5D,"semantic_registry_persistence_failed:"+persistenceFailure.getClass().getSimpleName());
+            }
+        };
+    }
+    private static BridgeFault semanticFault(RuntimeException failure) {
+        String reason=failure.getMessage()==null?failure.getClass().getSimpleName():failure.getMessage();
+        int status=reason.startsWith("semantic_registry_failed_closed") || reason.equals("semantic_registry_not_started") ? 503 : 400;
+        return new BridgeFault(status,reason.replaceAll("[^A-Za-z0-9:._-]","_"));
+    }
+    private static int optionalInt(JsonObject o,String key,int fallback,int min,int max) {
+        return o.has(key)?integer(o,key,min,max):fallback;
+    }
+    private static String optionalString(JsonObject o,String key,String fallback,int max) {
+        if(!o.has(key))return fallback;
+        JsonElement v=o.get(key);
+        if(v==null || !v.isJsonPrimitive() || !v.getAsJsonPrimitive().isString())throw new BridgeFault(400,"string_required:"+key);
+        String s=v.getAsString().trim();if(s.isEmpty() || s.length()>max)throw new BridgeFault(400,"invalid_string_length:"+key);return s;
+    }
+
     private static JsonObject parse(String raw) {
         try { JsonElement value=JsonParser.parseString(raw);if(!value.isJsonObject())throw new IllegalArgumentException();return value.getAsJsonObject(); }
         catch(RuntimeException bad){throw new BridgeFault(400,"invalid_arguments_json_object");}
