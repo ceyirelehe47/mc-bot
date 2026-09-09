@@ -1,0 +1,3 @@
+aibot 基线 commit: a029fa6a3760fd0f83834c104051b041d986da60
+dsh 基线 commit: 5dda764ed3aa172535a7967b06ff95d9cbfe536a
+构建环境: Windows 11 / JDK 21.0.12.1 (Adoptium) / Gradle 9.4.0 / Fabric Loom 1.16.2 / Node 22.19.0 / pnpm 11.7.0 / Python 3.13.7

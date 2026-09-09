@@ -1,0 +1,279 @@
+diff --git a/src/main/java/io/github/zoyluo/aibot/AIBotMod.java b/src/main/java/io/github/zoyluo/aibot/AIBotMod.java
+index 0a9c0f25..63c12bdf 100644
+--- a/src/main/java/io/github/zoyluo/aibot/AIBotMod.java
++++ b/src/main/java/io/github/zoyluo/aibot/AIBotMod.java
+@@ -60,12 +60,17 @@ public class AIBotMod implements ModInitializer {
+         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+             BotLog.lifecycle("server_started", "motd", server.getServerMotd());
+             RuntimeLifecycleCoordinator.INSTANCE.onServerStarted(server, config);
++            io.github.zoyluo.aibot.external.ExternalBodyRuntime.start(server);
++        });
++        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
++            io.github.zoyluo.aibot.external.ExternalBodyRuntime.stop();
++            RuntimeLifecycleCoordinator.INSTANCE.onServerStopping(server);
+         });
+-        ServerLifecycleEvents.SERVER_STOPPING.register(RuntimeLifecycleCoordinator.INSTANCE::onServerStopping);
+         ServerTickEvents.END_SERVER_TICK.register(server -> {
+             TpsGuard.INSTANCE.tick(server);
+             TaskManager.INSTANCE.tickAll(server);
+             BotTickCoordinator.INSTANCE.tick(server);
++            io.github.zoyluo.aibot.external.ExternalBodyRuntime.tick(server);
+             AIBotServerNetworking.INSTANCE.tick(server);
+             io.github.zoyluo.aibot.log.DiagnosticLogger.INSTANCE.tick(server);
+             if (server.getTicks() > 0 && server.getTicks() % 6000 == 0) {
+diff --git a/src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java b/src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java
+index 43e1c1b2..6c6d10ad 100644
+--- a/src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java
++++ b/src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java
+@@ -69,7 +69,7 @@ public final class BotAuthorizationGate {
+         if (!decision.allowed()) {
+             auditDenied(actor, source.getName(), bot, operation, channel, decision);
+         }
+-        return decision.allowed();
++        return decision.allowed() && io.github.zoyluo.aibot.external.ExternalBodyAccess.permitsLegacyOperation(bot, operation.name(), channel);
+     }
+ 
+     public boolean authorize(ServerPlayerEntity player,
+@@ -81,7 +81,7 @@ public final class BotAuthorizationGate {
+         if (!decision.allowed()) {
+             auditDenied(actor, player.getGameProfile().getName(), bot, operation, channel, decision);
+         }
+-        return decision.allowed();
++        return decision.allowed() && io.github.zoyluo.aibot.external.ExternalBodyAccess.permitsLegacyOperation(bot, operation.name(), channel);
+     }
+ 
+     public boolean authorizeBot(AIPlayerEntity actorBot,
+@@ -93,7 +93,7 @@ public final class BotAuthorizationGate {
+         if (!decision.allowed()) {
+             auditDenied(actor, actorBot.getGameProfile().getName(), targetBot, operation, channel, decision);
+         }
+-        return decision.allowed();
++        return decision.allowed() && io.github.zoyluo.aibot.external.ExternalBodyAccess.permitsLegacyOperation(targetBot, operation.name(), channel);
+     }
+ 
+     public boolean requireGlobalAdmin(ServerCommandSource source, String channel) {
+diff --git a/src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java b/src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java
+index 140280e3..552dec30 100644
+--- a/src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java
+@@ -51,6 +51,10 @@ public final class BrainCoordinator {
+     }
+ 
+     public boolean handleMessage(AIPlayerEntity bot, String senderName, String text) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++            io.github.zoyluo.aibot.external.ExternalBodyAccess.message(bot, senderName, text);
++            return true;
++        }
+         ensureConfigured();
+         BotConversation conversation = conversations.computeIfAbsent(bot.getUuid(), BotConversation::new);
+         boolean supersededDecision = conversation.decision.busy();
+@@ -85,6 +89,7 @@ public final class BrainCoordinator {
+     }
+ 
+     private void onResponse(AIPlayerEntity bot, DecisionLease lease, ChatResponse response) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return;
+         BotConversation conversation = conversations.get(lease.botId());
+         if (conversation == null || !conversation.decision.tryAcceptResponse(lease)) {
+             logStaleDecision(lease, "response");
+@@ -263,6 +268,7 @@ public final class BrainCoordinator {
+     }
+ 
+     public boolean maybeWakeForFailureOrGoal(AIPlayerEntity bot) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false;
+         // GOALFIX-GF1 P0-A:bot 有活跃的确定性目标计划时,自动唤醒(FLOW-2/失败注入)一律让位给
+         // GoalExecutor,避免两个编排器在步骤间隙抢 assign。awaitingTask 不清除:目标计划自身完成、
+         // 从 activePlans 移除后,下一次本方法才会据 awaitingTask 唤醒大脑判断整体意图是否达成。
+@@ -352,6 +358,10 @@ public final class BrainCoordinator {
+     }
+ 
+     private void submit(AIPlayerEntity bot, BotConversation conversation, DecisionLease lease) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++            invalidateDecision(bot, "external_mode");
++            return;
++        }
+         try {
+             List<ChatMessage> historySnapshot = MemoryStore.INSTANCE.prepareHistory(bot, List.copyOf(conversation.history));
+             AIBotConfig.Brain brainConfig = AIBotConfig.get().brain();
+diff --git a/src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java b/src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java
+index 87775610..24d9431f 100644
+--- a/src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java
++++ b/src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java
+@@ -19,6 +19,22 @@ public final class ChatCaptureListener {
+             String text = message.getContent().getString();
+             var matcher = MENTION.matcher(text);
+             if (!matcher.find()) {
++                // 无 @ 前缀:对保留身体(外部大脑控制)放宽为免 @ 直聊;授权门与控制短语语义不变
++                String plainSender = sender.getGameProfile().getName();
++                for (var bot : AIPlayerManager.INSTANCE.all()) {
++                    if (!io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) continue;
++                    if (!BotAuthorizationGate.INSTANCE.authorize(
++                            sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:@bot")) {
++                        return;
++                    }
++                    BotLog.comm(bot, "chat_in", "sender", plainSender, "text", text);
++                    if (io.github.zoyluo.aibot.runtime.IntentController.INSTANCE.routePlayerControlPhrase(
++                            bot, io.github.zoyluo.aibot.runtime.IntentController.ControlOrigin.PLAYER_COMMAND, text)) {
++                        return;
++                    }
++                    BrainCoordinator.INSTANCE.handleMessage(bot, plainSender, text);
++                    return;
++                }
+                 return;
+             }
+             String targetName = matcher.group(1);
+diff --git a/src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java b/src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java
+index 2ef8ee3f..6954aca7 100644
+--- a/src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java
++++ b/src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java
+@@ -83,7 +83,11 @@ public final class ToolRegistry {
+     }
+ 
+     public Optional<ToolDefinition> get(String name) {
+-        return Optional.ofNullable(tools.get(name));
++        return Optional.ofNullable(tools.get(name)).map(tool -> new ToolDefinition(
++                tool.name(), tool.description(), tool.parametersSchema(), (bot, args) -> {
++                    io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
++                    return tool.handler().invoke(bot, args);
++                }, tool.group()));
+     }
+ 
+     public List<ToolDefinition> allTools() {
+diff --git a/src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java b/src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java
+index 50e04e05..431eb5bc 100644
+--- a/src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java
+@@ -45,6 +45,7 @@ public final class IdleCoordinator {
+     }
+ 
+     public boolean tickBot(AIPlayerEntity bot) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false;
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+         }
+diff --git a/src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java b/src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java
+index baa72f57..aa5e1fc5 100644
+--- a/src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java
++++ b/src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java
+@@ -303,6 +303,10 @@ public final class AIBotServerNetworking {
+ 
+     private void dispatch(ServerPlayerEntity player, AIPlayerEntity bot, BotCommandC2S payload) {
+         String action = payload.action().toLowerCase(Locale.ROOT);
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot) && !"chat".equals(action)) {
++            sendSystem(player, bot.getGameProfile().getName(), "External body: use DSH controls; legacy panel mutation is disabled.");
++            return;
++        }
+         switch (action) {
+             case "move" -> assign(bot, new MoveTask(bot, parseBlockPos(payload.arg1())));
+             case "mine" -> assign(bot, new MineTask(requiredBlock(payload.arg1()), count(payload)));
+diff --git a/src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java b/src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java
+index 69878ada..e7ab3340 100644
+--- a/src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java
++++ b/src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java
+@@ -63,6 +63,7 @@ public final class IntentController {
+ 
+     public boolean pause(AIPlayerEntity bot, ControlOrigin origin, String reason) {
+         requireServerThread(bot);
++        if (origin != ControlOrigin.SYSTEM) io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
+         String normalized = normalizeReason(origin, reason);
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+@@ -85,6 +86,7 @@ public final class IntentController {
+ 
+     public boolean resume(AIPlayerEntity bot, ControlOrigin origin, String reason) {
+         requireServerThread(bot);
++        if (origin != ControlOrigin.SYSTEM) io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
+         String normalized = normalizeReason(origin, reason);
+         if (!TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+@@ -104,6 +106,10 @@ public final class IntentController {
+ 
+     /** Returns true when an exact player phrase was handled without sending an LLM request. */
+     public boolean routePlayerControlPhrase(AIPlayerEntity bot, ControlOrigin origin, String text) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++            io.github.zoyluo.aibot.external.ExternalBodyAccess.message(bot, "authorized_player_control", text);
++            return true;
++        }
+         String normalized = text == null ? "" : text.trim().toLowerCase(Locale.ROOT)
+                 .replaceAll("[。.!！?？]+$", "");
+         if (java.util.Set.of("暂停", "暂停一下", "先停一下", "等一下", "pause", "hold").contains(normalized)) {
+@@ -125,6 +131,7 @@ public final class IntentController {
+                                                     String reason,
+                                                     IntentControlTransaction.Scope scope) {
+         Objects.requireNonNull(origin, "origin");
++        if (origin != ControlOrigin.SYSTEM) io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
+         String normalizedReason = reason == null || reason.isBlank() ? origin.name().toLowerCase() : reason;
+         IntentControlTransaction.Port port = new MinecraftPort(bot, origin, normalizedReason);
+         return IntentControlTransaction.cancel(port, scope, origin.invalidatesDecision());
+diff --git a/src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java b/src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java
+index 4bf50391..c24e374d 100644
+--- a/src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java
+@@ -73,6 +73,7 @@ public final class RuntimeLifecycleCoordinator {
+     }
+ 
+     public void onBotDeath(AIPlayerEntity bot) {
++        io.github.zoyluo.aibot.external.ExternalBodyRuntime.death(bot);
+         BrainCoordinator.INSTANCE.invalidateDecision(bot, "bot_death");
+         BrainCoordinator.INSTANCE.clearIntentWakeSources(bot);
+         // A death interrupts but does not erase a long-running Mission. GoalExecutor persists the
+diff --git a/src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java b/src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java
+index 0a6bfc2f..23d33624 100644
+--- a/src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java
+@@ -25,7 +25,7 @@ public final class BotTickCoordinator {
+             }
+             StuckWatcher.INSTANCE.tickBot(server, bot);
+             boolean handled = runDanger && DangerWatcher.INSTANCE.scanBot(server, bot);
+-            if (!handled && GoalExecutor.INSTANCE.tickBot(server, bot)) {
++            if (!handled && !io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot) && GoalExecutor.INSTANCE.tickBot(server, bot)) {
+                 continue;
+             }
+             if (!handled && runBackground) {
+diff --git a/src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java b/src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java
+index 16b7aeb0..a451419a 100644
+--- a/src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java
+@@ -464,6 +464,7 @@ public final class DangerWatcher {
+     }
+ 
+     private boolean maybeResupply(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响
+         boolean criticalStarvation = bot.getHungerManager().getFoodLevel()
+                 <= AIBotConfig.get().survival().hungerCriticalThreshold();
+         if (TaskManager.INSTANCE.isUserPaused(bot) && !criticalStarvation) {
+@@ -555,6 +556,7 @@ public final class DangerWatcher {
+     }
+ 
+     private boolean maybeEat(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响
+         int foodLevel = bot.getHungerManager().getFoodLevel();
+         AIBotConfig.Survival survival = AIBotConfig.get().survival();
+         boolean healingEmergency = isHealingEatTransaction(bot);
+@@ -837,6 +839,7 @@ public final class DangerWatcher {
+     }
+ 
+     private boolean maybeStartNightTask(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+         }
+@@ -883,6 +886,7 @@ public final class DangerWatcher {
+     // 规避加固:地下/黑暗处(方块光照<8)只要 idle 且有火把,就先点亮——从源头减少怪物在身边刷新。
+     // 不限夜晚(地下白天 light=0 同样刷怪)。仅 active 为空(idle/目标步骤间隙)时派,避免打断挖矿。
+     private boolean maybeLightDarkArea(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+         }
+diff --git a/src/main/java/io/github/zoyluo/aibot/task/TaskManager.java b/src/main/java/io/github/zoyluo/aibot/task/TaskManager.java
+index 1d27e8dd..e233a8e7 100644
+--- a/src/main/java/io/github/zoyluo/aibot/task/TaskManager.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/TaskManager.java
+@@ -46,6 +46,7 @@ public final class TaskManager {
+ 
+     private void assign(AIPlayerEntity bot, Task task, TaskOrigin origin,
+                         boolean publishStatus) {
++        io.github.zoyluo.aibot.external.ExternalBodyAccess.checkAssignment(bot, origin);
+         if (isUserPaused(bot) && !origin.safety()) {
+             throw new IllegalStateException("mission_user_paused");
+         }

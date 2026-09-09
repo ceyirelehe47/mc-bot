@@ -1,0 +1,13 @@
+ M src/main/java/io/github/zoyluo/aibot/AIBotMod.java
+ M src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java
+ M src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java
+ M src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java
+ M src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java
+ M src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java
+ M src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java
+ M src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java
+ M src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java
+ M src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java
+ M src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java
+ M src/main/java/io/github/zoyluo/aibot/task/TaskManager.java
+?? src/main/java/io/github/zoyluo/aibot/external/

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.pathfinding.PathSupportMaterialSourceContractTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-09T13:56:22.096Z" hostname="FORST" time="0.004">
+  <properties/>
+  <testcase name="pathExecutorDoesNotReuseTheFluidSealSelector()" classname="io.github.zoyluo.aibot.pathfinding.PathSupportMaterialSourceContractTest" time="0.002"/>
+  <testcase name="pathPillarsUseTheirOwnOrderedStableSupportPalette()" classname="io.github.zoyluo.aibot.pathfinding.PathSupportMaterialSourceContractTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

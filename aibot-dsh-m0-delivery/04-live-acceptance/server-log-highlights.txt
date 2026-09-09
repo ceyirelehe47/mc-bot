@@ -1,0 +1,12 @@
+[22:08:16] [Server thread/INFO]: [Rcon: [AIBot] Spawned Bob role=worker]
+[22:09:03] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=gather, origin=LLM_TOOL, params=Gathering minecraft:oak_log 0/16 phase=SURVEY, origin_reason=external_dsh}
+[22:13:02] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=craft, origin=LLM_TOOL, params=Crafting minecraft:oak_planks x16 phase=PLANNING, origin_reason=external_dsh}
+[22:13:08] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=craft, origin=LLM_TOOL, params=Crafting minecraft:crafting_table x1 phase=PLANNING, origin_reason=external_dsh}
+[22:13:12] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=craft, origin=LLM_TOOL, params=Crafting minecraft:wooden_pickaxe x1 phase=PLANNING, origin_reason=external_dsh}
+[22:13:38] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=craft, origin=LLM_TOOL, params=Crafting minecraft:wooden_axe x1 phase=PLANNING, origin_reason=external_dsh}
+[22:13:46] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=move, origin=LLM_TOOL, params=Walking to 80,113,80, origin_reason=external_dsh}
+[22:16:10] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=craft, origin=LLM_TOOL, params=Crafting minecraft:stone_pickaxe x1 phase=PLANNING, origin_reason=external_dsh}
+[22:16:13] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=craft, origin=LLM_TOOL, params=Crafting minecraft:stone_sword x1 phase=PLANNING, origin_reason=external_dsh}
+[22:16:25] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=move, origin=LLM_TOOL, params=Walking to 80,113,80, origin_reason=external_dsh}
+[22:17:08] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=craft, origin=LLM_TOOL, params=Crafting minecraft:furnace x1 phase=PLANNING, origin_reason=external_dsh}
+[22:17:12] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=smelt, origin=LLM_TOOL, params=Smelting minecraft:oak_log -> minecraft:charcoal 0/4 phase=FINDING_FURNACE, origin_reason=external_dsh}

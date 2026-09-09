@@ -1,0 +1,4 @@
+Public source transport check (no credentials):
+fatal: unable to access 'https://github.com/zoyluoblue/mc_aiplayer.git/': Could not resolve host: github.com
+git_ls_remote_exit=128
+Full Minecraft and DSH dependency downloads were not attempted after this transport failure.

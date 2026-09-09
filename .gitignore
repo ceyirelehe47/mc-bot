@@ -1,0 +1,10 @@
+# 敏感信息与本地杂物,绝不入库
+numen-llm-config.txt
+*.zip
+.bin/
+aibot-dsh-m0/.build/
+# 本地临时文件
+*.pyc
+__pycache__/
+Thumbs.db
+neoforge-installer.jar.log

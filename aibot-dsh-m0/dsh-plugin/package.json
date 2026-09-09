@@ -1,0 +1,9 @@
+{
+  "name": "dsh-aibot-body-m0",
+  "version": "0.1.0-experimental",
+  "private": true,
+  "type": "module",
+  "description": "Pinned DSH external controller for an AIBot experimental body bridge",
+  "scripts": {"test":"node --test test/*.test.mjs"},
+  "engines": {"node": ">=22"}
+}

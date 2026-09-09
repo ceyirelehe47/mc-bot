@@ -1,0 +1,27 @@
+{
+  "note": "Selected public-source interfaces and exact blob anchors were inspected through GitHub connector. This is not a complete runtime audit.",
+  "aibot_commit": "a029fa6a3760fd0f83834c104051b041d986da60",
+  "dsh_commit": "5dda764ed3aa172535a7967b06ff95d9cbfe536a",
+  "aibot_patch_targets": {
+    "src/main/java/io/github/zoyluo/aibot/AIBotMod.java": "0a9c0f2568d4f5ea334335e2ff2c1f4138e8a639",
+    "src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java": "140280e3a0a93fc7381843a3ee262a448e43197c",
+    "src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java": "2ef8ee3f685a4d5e85d7fc5fbd93b281186881e8",
+    "src/main/java/io/github/zoyluo/aibot/task/TaskManager.java": "1d27e8dd977886814113216ca1ba453a944b7225",
+    "src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java": "50e04e05734541fc1828ed6ae1c144aa3cc4e2d7",
+    "src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java": "0a6bfc2f38814433e5c930cdfec37616a7e0dfd1",
+    "src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java": "4bf50391b4dabff1501c97f01344cd8d0d859ff2",
+    "src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java": "43e1c1b20eecc6f10af9e747f6dbd1599320e1ae",
+    "src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java": "baa72f575d832fbfa200d02af610104fd0018535",
+    "src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java": "69878ada6beca2e502dc4bd05d351d8682f902a7"
+  },
+  "dsh_reviewed_public_interfaces": [
+    "docs/cookbook/adding-a-tool.md",
+    "docs/user/develop/basic/index.md",
+    "docs/user/develop/basic/tool.md",
+    "packages/core/agent-loop/src/agent.ts",
+    "packages/llm/llm/src/message.ts",
+    "docs/subsystems/tools.md",
+    "packages/session/session-persistence/src/index.ts"
+  ],
+  "dsh_barrier": "SessionPersistence.flush() documented as durability barrier for active owned write handles; actual assembled use remains NOT_RUN."
+}

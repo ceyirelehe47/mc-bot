@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.runtime.ExecutionStackTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-09T13:56:22.202Z" hostname="FORST" time="0.011">
+  <properties/>
+  <testcase name="userPauseAllowsSafetyUnwindButKeepsMissionPaused()" classname="io.github.zoyluo.aibot.runtime.ExecutionStackTest" time="0.008"/>
+  <testcase name="cancellationDrainsEveryFrameTopFirst()" classname="io.github.zoyluo.aibot.runtime.ExecutionStackTest" time="0.001"/>
+  <testcase name="nestedSafetyFramesResumeInLifoOrder()" classname="io.github.zoyluo.aibot.runtime.ExecutionStackTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.pathfinding.PathExecutorRouteContractTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-09T13:56:22.087Z" hostname="FORST" time="0.009">
+  <properties/>
+  <testcase name="exactOutboundAboveFloorIsAcceptedWithoutReturnProof()" classname="io.github.zoyluo.aibot.pathfinding.PathExecutorRouteContractTest" time="0.004"/>
+  <testcase name="failedOrMissingReturnProofIsRejected()" classname="io.github.zoyluo.aibot.pathfinding.PathExecutorRouteContractTest" time="0.001"/>
+  <testcase name="runtimeReturnLeaseRequiresFreshExactCurrentAnchorAndFloor()" classname="io.github.zoyluo.aibot.pathfinding.PathExecutorRouteContractTest" time="0.0"/>
+  <testcase name="unrestrictedContractPreservesLegacySnappedAndLowRoutes()" classname="io.github.zoyluo.aibot.pathfinding.PathExecutorRouteContractTest" time="0.001"/>
+  <testcase name="exactConstrainedRouteRejectsSnappedOriginGoalAndBelowFloorNodes()" classname="io.github.zoyluo.aibot.pathfinding.PathExecutorRouteContractTest" time="0.0"/>
+  <testcase name="roundTripRequiresExactStartAnchorAndFloor()" classname="io.github.zoyluo.aibot.pathfinding.PathExecutorRouteContractTest" time="0.0"/>
+  <testcase name="outboundMustResolveExactlyAndNeverCrossFloor()" classname="io.github.zoyluo.aibot.pathfinding.PathExecutorRouteContractTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
