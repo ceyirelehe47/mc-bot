@@ -1,0 +1,6 @@
+$ node --import tsx/esm apps/cli/src/bin.ts "web" "--patch" "D:/code/mc-experiment/dsh/scratch-aibot-body/cordis.yml"
+dsh web: http://127.0.0.1:3080/?token=xTRVL7dr2CWhWUbRjj0ESmYijsu3qJV-WXh5EZANykY
+dsh web: opening the default browser; pass --no-open to disable
+[aibot-body] Transport/delivery problem. Body status and journal must be reconciled.
+[aibot-body] Transport/delivery problem. Body status and journal must be reconciled.
+[ELIFECYCLE] Command failed with exit code 1.

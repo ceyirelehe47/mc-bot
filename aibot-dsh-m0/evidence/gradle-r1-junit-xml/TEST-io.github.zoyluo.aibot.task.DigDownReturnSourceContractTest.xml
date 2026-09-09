@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.task.DigDownReturnSourceContractTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-09T15:37:19.435Z" hostname="FORST" time="0.01">
+  <properties/>
+  <testcase name="returnDebtIsExactIndependentAndCheckpointed()" classname="io.github.zoyluo.aibot.task.DigDownReturnSourceContractTest" time="0.002"/>
+  <testcase name="missionRestoreReplaysMineBeforeSatisfiedShortCircuit()" classname="io.github.zoyluo.aibot.task.DigDownReturnSourceContractTest" time="0.002"/>
+  <testcase name="completedTaskCursorIsClearedWithoutErasingDedicatedMiningState()" classname="io.github.zoyluo.aibot.task.DigDownReturnSourceContractTest" time="0.002"/>
+  <testcase name="failedDescentCannotFeedItsOriginalBatchCheckpointIntoRemainingQuota()" classname="io.github.zoyluo.aibot.task.DigDownReturnSourceContractTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

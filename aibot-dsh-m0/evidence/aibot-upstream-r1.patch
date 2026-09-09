@@ -1,0 +1,1346 @@
+--- a/src/main/java/io/github/zoyluo/aibot/AIBotMod.java
++++ b/src/main/java/io/github/zoyluo/aibot/AIBotMod.java
+@@ -60,12 +60,17 @@
+         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+             BotLog.lifecycle("server_started", "motd", server.getServerMotd());
+             RuntimeLifecycleCoordinator.INSTANCE.onServerStarted(server, config);
++            io.github.zoyluo.aibot.external.ExternalBodyRuntime.start(server);
+         });
+-        ServerLifecycleEvents.SERVER_STOPPING.register(RuntimeLifecycleCoordinator.INSTANCE::onServerStopping);
++        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
++            io.github.zoyluo.aibot.external.ExternalBodyRuntime.stop();
++            RuntimeLifecycleCoordinator.INSTANCE.onServerStopping(server);
++        });
+         ServerTickEvents.END_SERVER_TICK.register(server -> {
+             TpsGuard.INSTANCE.tick(server);
+             TaskManager.INSTANCE.tickAll(server);
+             BotTickCoordinator.INSTANCE.tick(server);
++            io.github.zoyluo.aibot.external.ExternalBodyRuntime.tick(server);
+             AIBotServerNetworking.INSTANCE.tick(server);
+             io.github.zoyluo.aibot.log.DiagnosticLogger.INSTANCE.tick(server);
+             if (server.getTicks() > 0 && server.getTicks() % 6000 == 0) {
+--- a/src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java
+@@ -51,6 +51,10 @@
+     }
+ 
+     public boolean handleMessage(AIPlayerEntity bot, String senderName, String text) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++            io.github.zoyluo.aibot.external.ExternalBodyAccess.message(bot, senderName, text);
++            return true;
++        }
+         ensureConfigured();
+         BotConversation conversation = conversations.computeIfAbsent(bot.getUuid(), BotConversation::new);
+         boolean supersededDecision = conversation.decision.busy();
+@@ -85,6 +89,7 @@
+     }
+ 
+     private void onResponse(AIPlayerEntity bot, DecisionLease lease, ChatResponse response) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return;
+         BotConversation conversation = conversations.get(lease.botId());
+         if (conversation == null || !conversation.decision.tryAcceptResponse(lease)) {
+             logStaleDecision(lease, "response");
+@@ -263,6 +268,7 @@
+     }
+ 
+     public boolean maybeWakeForFailureOrGoal(AIPlayerEntity bot) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false;
+         // GOALFIX-GF1 P0-A:bot 有活跃的确定性目标计划时,自动唤醒(FLOW-2/失败注入)一律让位给
+         // GoalExecutor,避免两个编排器在步骤间隙抢 assign。awaitingTask 不清除:目标计划自身完成、
+         // 从 activePlans 移除后,下一次本方法才会据 awaitingTask 唤醒大脑判断整体意图是否达成。
+@@ -352,6 +358,10 @@
+     }
+ 
+     private void submit(AIPlayerEntity bot, BotConversation conversation, DecisionLease lease) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++            invalidateDecision(bot, "external_mode");
++            return;
++        }
+         try {
+             List<ChatMessage> historySnapshot = MemoryStore.INSTANCE.prepareHistory(bot, List.copyOf(conversation.history));
+             AIBotConfig.Brain brainConfig = AIBotConfig.get().brain();
+--- a/src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java
++++ b/src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java
+@@ -83,7 +83,11 @@
+     }
+ 
+     public Optional<ToolDefinition> get(String name) {
+-        return Optional.ofNullable(tools.get(name));
++        return Optional.ofNullable(tools.get(name)).map(tool -> new ToolDefinition(
++                tool.name(), tool.description(), tool.parametersSchema(), (bot, args) -> {
++                    io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
++                    return tool.handler().invoke(bot, args);
++                }, tool.group()));
+     }
+ 
+     public List<ToolDefinition> allTools() {
+--- a/src/main/java/io/github/zoyluo/aibot/task/TaskManager.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/TaskManager.java
+@@ -46,6 +46,7 @@
+ 
+     private void assign(AIPlayerEntity bot, Task task, TaskOrigin origin,
+                         boolean publishStatus) {
++        io.github.zoyluo.aibot.external.ExternalBodyAccess.checkAssignment(bot, origin);
+         if (isUserPaused(bot) && !origin.safety()) {
+             throw new IllegalStateException("mission_user_paused");
+         }
+--- a/src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java
+@@ -45,6 +45,7 @@
+     }
+ 
+     public boolean tickBot(AIPlayerEntity bot) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false;
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+         }
+--- a/src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java
+@@ -25,7 +25,7 @@
+             }
+             StuckWatcher.INSTANCE.tickBot(server, bot);
+             boolean handled = runDanger && DangerWatcher.INSTANCE.scanBot(server, bot);
+-            if (!handled && GoalExecutor.INSTANCE.tickBot(server, bot)) {
++            if (!handled && !io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot) && GoalExecutor.INSTANCE.tickBot(server, bot)) {
+                 continue;
+             }
+             if (!handled && runBackground) {
+--- a/src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java
++++ b/src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java
+@@ -19,6 +19,19 @@
+             String text = message.getContent().getString();
+             var matcher = MENTION.matcher(text);
+             if (!matcher.find()) {
++                // 无 @ 前缀:对保留身体(外部大脑控制)放宽为免 @ 直聊;授权门与控制短语语义不变
++                String plainSender = sender.getGameProfile().getName();
++                for (var bot : AIPlayerManager.INSTANCE.all()) {
++                    if (!io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) continue;
++                    if (!BotAuthorizationGate.INSTANCE.authorize(
++                            sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:plain_external")) {
++                        return;
++                    }
++                    BotLog.comm(bot, "chat_in", "sender", plainSender, "text", text);
++                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
++                            bot, sender.getUuid(), plainSender, "chat:plain", true, text);
++                    return;
++                }
+                 return;
+             }
+             String targetName = matcher.group(1);
+@@ -28,12 +41,18 @@
+                         sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:@bot")) {
+                     return;
+                 }
+-                BotLog.comm(bot, "chat_in", "sender", sender.getGameProfile().getName(), "text", body);
++                String senderName = sender.getGameProfile().getName();
++                BotLog.comm(bot, "chat_in", "sender", senderName, "text", body);
++                if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
++                            bot, sender.getUuid(), senderName, "chat:@bot", true, body);
++                    return;
++                }
+                 if (io.github.zoyluo.aibot.runtime.IntentController.INSTANCE.routePlayerControlPhrase(
+                         bot, io.github.zoyluo.aibot.runtime.IntentController.ControlOrigin.PLAYER_COMMAND, body)) {
+                     return;
+                 }
+-                BrainCoordinator.INSTANCE.handleMessage(bot, sender.getGameProfile().getName(), body);
++                BrainCoordinator.INSTANCE.handleMessage(bot, senderName, body);
+             });
+         });
+     }
+--- a/src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java
+@@ -464,6 +464,7 @@
+     }
+ 
+     private boolean maybeResupply(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响
+         boolean criticalStarvation = bot.getHungerManager().getFoodLevel()
+                 <= AIBotConfig.get().survival().hungerCriticalThreshold();
+         if (TaskManager.INSTANCE.isUserPaused(bot) && !criticalStarvation) {
+@@ -563,6 +564,7 @@
+         }
+         boolean critical = foodLevel <= survival.hungerCriticalThreshold();
+         boolean urgent = critical || healingEmergency;
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot) && !urgent) return false; // 外部身体只保留 critical hunger / healing 的 SAFETY EatTask
+         if (TaskManager.INSTANCE.isUserPaused(bot) && !urgent) {
+             return false;
+         }
+@@ -585,6 +587,11 @@
+             return false;
+         }
+         if (InventoryAction.findFoodSlot(bot) < 0) {
++            if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++                io.github.zoyluo.aibot.external.ExternalBodyRuntime.survivalAlert(bot, "critical_hunger_no_food");
++                nextEatAttemptTick.put(bot.getUuid(), now + 100);
++                return false;
++            }
+             // 第2层 饥饿链:没有任何食物 → 若周围有可猎动物,主动猎杀获取生肉,而非干等饿死。
+             if (huntForFood(server, bot, active)) {
+                 return true;
+@@ -837,6 +844,7 @@
+     }
+ 
+     private boolean maybeStartNightTask(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+         }
+@@ -883,6 +891,7 @@
+     // 规避加固:地下/黑暗处(方块光照<8)只要 idle 且有火把,就先点亮——从源头减少怪物在身边刷新。
+     // 不限夜晚(地下白天 light=0 同样刷怪)。仅 active 为空(idle/目标步骤间隙)时派,避免打断挖矿。
+     private boolean maybeLightDarkArea(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+         }
+--- a/src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java
+@@ -73,6 +73,7 @@
+     }
+ 
+     public void onBotDeath(AIPlayerEntity bot) {
++        io.github.zoyluo.aibot.external.ExternalBodyRuntime.death(bot);
+         BrainCoordinator.INSTANCE.invalidateDecision(bot, "bot_death");
+         BrainCoordinator.INSTANCE.clearIntentWakeSources(bot);
+         // A death interrupts but does not erase a long-running Mission. GoalExecutor persists the
+--- a/src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java
++++ b/src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java
+@@ -69,7 +69,7 @@
+         if (!decision.allowed()) {
+             auditDenied(actor, source.getName(), bot, operation, channel, decision);
+         }
+-        return decision.allowed();
++        return decision.allowed() && io.github.zoyluo.aibot.external.ExternalBodyAccess.permitsLegacyOperation(bot, operation.name(), channel);
+     }
+ 
+     public boolean authorize(ServerPlayerEntity player,
+@@ -81,7 +81,7 @@
+         if (!decision.allowed()) {
+             auditDenied(actor, player.getGameProfile().getName(), bot, operation, channel, decision);
+         }
+-        return decision.allowed();
++        return decision.allowed() && io.github.zoyluo.aibot.external.ExternalBodyAccess.permitsLegacyOperation(bot, operation.name(), channel);
+     }
+ 
+     public boolean authorizeBot(AIPlayerEntity actorBot,
+@@ -93,7 +93,7 @@
+         if (!decision.allowed()) {
+             auditDenied(actor, actorBot.getGameProfile().getName(), targetBot, operation, channel, decision);
+         }
+-        return decision.allowed();
++        return decision.allowed() && io.github.zoyluo.aibot.external.ExternalBodyAccess.permitsLegacyOperation(targetBot, operation.name(), channel);
+     }
+ 
+     public boolean requireGlobalAdmin(ServerCommandSource source, String channel) {
+--- a/src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java
++++ b/src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java
+@@ -303,6 +303,10 @@
+ 
+     private void dispatch(ServerPlayerEntity player, AIPlayerEntity bot, BotCommandC2S payload) {
+         String action = payload.action().toLowerCase(Locale.ROOT);
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot) && !"chat".equals(action)) {
++            sendSystem(player, bot.getGameProfile().getName(), "External body: use DSH controls; legacy panel mutation is disabled.");
++            return;
++        }
+         switch (action) {
+             case "move" -> assign(bot, new MoveTask(bot, parseBlockPos(payload.arg1())));
+             case "mine" -> assign(bot, new MineTask(requiredBlock(payload.arg1()), count(payload)));
+@@ -315,7 +319,11 @@
+             }
+             case "chat" -> {
+                 sendBotChat(bot, "user", payload.arg1());
+-                if (!IntentController.INSTANCE.routePlayerControlPhrase(
++                if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
++                            bot, player.getUuid(), player.getGameProfile().getName(),
++                            "network:panel_chat", true, payload.arg1());
++                } else if (!IntentController.INSTANCE.routePlayerControlPhrase(
+                         bot, IntentController.ControlOrigin.PLAYER_PANEL, payload.arg1())) {
+                     BrainCoordinator.INSTANCE.handleMessage(bot, player.getGameProfile().getName(), payload.arg1());
+                 }
+--- a/src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java
++++ b/src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java
+@@ -63,6 +63,7 @@
+ 
+     public boolean pause(AIPlayerEntity bot, ControlOrigin origin, String reason) {
+         requireServerThread(bot);
++        if (origin != ControlOrigin.SYSTEM) io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
+         String normalized = normalizeReason(origin, reason);
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+@@ -85,6 +86,7 @@
+ 
+     public boolean resume(AIPlayerEntity bot, ControlOrigin origin, String reason) {
+         requireServerThread(bot);
++        if (origin != ControlOrigin.SYSTEM) io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
+         String normalized = normalizeReason(origin, reason);
+         if (!TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+@@ -125,6 +127,7 @@
+                                                     String reason,
+                                                     IntentControlTransaction.Scope scope) {
+         Objects.requireNonNull(origin, "origin");
++        if (origin != ControlOrigin.SYSTEM) io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
+         String normalizedReason = reason == null || reason.isBlank() ? origin.name().toLowerCase() : reason;
+         IntentControlTransaction.Port port = new MinecraftPort(bot, origin, normalizedReason);
+         return IntentControlTransaction.cancel(port, scope, origin.invalidatesDecision());
+--- /dev/null
++++ b/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+@@ -0,0 +1,27 @@
++package io.github.zoyluo.aibot.external;
++
++/** Every method is called exclusively by BridgeKernel.tick on the Minecraft server thread. */
++public interface BodyBackend {
++    /** Returns false until the configured, living body exists. */
++    boolean ready();
++    String bodyId();
++    String observeJson();
++    /** Must perform argument validation before mutation and retain the exact Task instance. */
++    Handle start(String operation,String argumentsJson);
++    void pause();
++    void resume();
++    void cancel(String reason);
++    interface Handle {
++        /** No lookup of global lastStatus: that could refer to a different safety task. */
++        Snapshot snapshot();
++    }
++    record Snapshot(String state,double progress,String reason) {
++        public Snapshot {
++            if(!java.util.Set.of("running","paused","completed","failed","cancelled","outcome_unknown").contains(state))
++                throw new IllegalArgumentException("invalid_backend_state");
++            if(!Double.isFinite(progress)) progress=0;
++            progress=Math.max(0,Math.min(1,progress));
++            reason=reason==null?"":reason;
++        }
++    }
++}
+--- /dev/null
++++ b/src/main/java/io/github/zoyluo/aibot/external/BridgeFault.java
+@@ -0,0 +1,7 @@
++package io.github.zoyluo.aibot.external;
++
++public final class BridgeFault extends RuntimeException {
++    public final int status;
++    public final String code;
++    public BridgeFault(int status, String code) { super(code); this.status=status; this.code=code; }
++}
+--- /dev/null
++++ b/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
+@@ -0,0 +1,112 @@
++package io.github.zoyluo.aibot.external;
++
++import com.sun.net.httpserver.*;
++import java.io.*;
++import java.net.*;
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.util.*;
++import java.util.concurrent.*;
++
++/** Loopback-only adapter. Mutations are admitted by the kernel, never run in HTTP workers. */
++public final class BridgeHttpServer implements AutoCloseable {
++    private final HttpServer server;
++    private final ThreadPoolExecutor workers;
++    private final BridgeKernel kernel;
++    private final byte[] bearer;
++    private final Semaphore eventReaders=new Semaphore(2);
++    public BridgeHttpServer(BridgeKernel kernel,int port,String bearer) throws IOException {
++        if(bearer==null || bearer.length()<32 || bearer.length()>256 || !bearer.matches("[A-Za-z0-9_-]+"))
++            throw new IllegalArgumentException("AIBOT_BRIDGE_TOKEN must be 32..256 URL-safe characters");
++        this.kernel=kernel; this.bearer=bearer.getBytes(StandardCharsets.UTF_8);
++        server=HttpServer.create(new InetSocketAddress(InetAddress.getByName("127.0.0.1"),port),16);
++        workers=new ThreadPoolExecutor(4,8,30,TimeUnit.SECONDS,new ArrayBlockingQueue<>(32),r->{
++            Thread t=new Thread(r,"aibot-bridge-http"); t.setDaemon(true); return t;
++        },new ThreadPoolExecutor.AbortPolicy());
++        server.setExecutor(workers); server.createContext("/",this::handle);
++    }
++    public void start() { server.start(); }
++    public int port() { return server.getAddress().getPort(); }
++    private void handle(HttpExchange x) throws IOException {
++        try {
++            if(x.getRequestHeaders().getFirst("Origin")!=null) throw new BridgeFault(403,"browser_origin_not_allowed");
++            String auth=x.getRequestHeaders().getFirst("Authorization");
++            if(auth==null || !auth.startsWith("Bearer ") || !MessageDigest.isEqual(bearer,auth.substring(7).getBytes(StandardCharsets.UTF_8)))
++                throw new BridgeFault(401,"unauthorized");
++            String method=x.getRequestMethod(),path=x.getRequestURI().getPath();
++            String lease=x.getRequestHeaders().getFirst("X-Control-Token");
++            String request=x.getRequestHeaders().getFirst("X-Request-Id");
++            Object result; int status=200;
++            if(method.equals("GET") && path.equals("/v1/status")) result=kernel.status();
++            else if(method.equals("GET") && path.equals("/v1/observe")) result=kernel.observe();
++            else if(method.equals("POST") && path.equals("/v1/lease"))
++                result=kernel.claim(x.getRequestHeaders().getFirst("X-Owner-Id"),lease);
++            else if(method.equals("POST") && path.equals("/v1/lease/renew")) result=kernel.renew(lease);
++            else if(method.equals("DELETE") && path.equals("/v1/lease")) result=kernel.release(lease);
++            else if(method.equals("GET") && path.equals("/v1/events")) {
++                if(!eventReaders.tryAcquire()) throw new BridgeFault(429,"too_many_event_readers");
++                try {
++                    Map<String,String> q=query(x.getRequestURI().getRawQuery());
++                    String epoch=q.getOrDefault("epoch","");
++                    long after=Long.parseLong(q.getOrDefault("after","0"));
++                    int wait=Integer.parseInt(q.getOrDefault("wait_ms","0"));
++                    result=kernel.journal().waitAfter(epoch,after,wait);
++                } finally { eventReaders.release(); }
++            } else if(method.equals("GET") && path.startsWith("/v1/requests/")) {
++                result=kernel.requestStatus(segment(path,3));
++            } else if(path.startsWith("/v1/executions/")) {
++                String[] parts=path.split("/",-1);
++                if(parts.length==4 && method.equals("POST")) {
++                    String type=x.getRequestHeaders().getFirst("Content-Type");
++                    if(type==null || !type.split(";",2)[0].trim().equalsIgnoreCase("application/json"))
++                        throw new BridgeFault(415,"json_content_type_required");
++                    result=kernel.submit(lease,request,parts[3],readBody(x)); status=202;
++                } else if(parts.length==4 && method.equals("GET")) result=kernel.execution(parts[3]);
++                else if(parts.length==5 && method.equals("POST")) {
++                    result=kernel.control(lease,request,parts[3],parts[4]); status=202;
++                } else throw new BridgeFault(404,"route_not_found");
++            } else throw new BridgeFault(404,"route_not_found");
++            reply(x,status,Map.of("ok",true,"data",result));
++        } catch(BridgeFault e) { reply(x,e.status,Map.of("ok",false,"error",e.code)); }
++        catch(NumberFormatException e) { reply(x,400,Map.of("ok",false,"error","invalid_number")); }
++        catch(IllegalArgumentException e) { reply(x,400,Map.of("ok",false,"error","invalid_request")); }
++        catch(InterruptedException e) { Thread.currentThread().interrupt(); reply(x,503,Map.of("ok",false,"error","server_stopping")); }
++        catch(RuntimeException e) { reply(x,500,Map.of("ok",false,"error","internal_error_do_not_blindly_retry_mutations")); }
++        finally { x.close(); }
++    }
++    private static String segment(String path,int index) {
++        String[] parts=path.split("/",-1);
++        if(parts.length!=index+1 || parts[index].isEmpty()) throw new BridgeFault(404,"route_not_found");
++        return parts[index];
++    }
++    private static Map<String,String> query(String raw) {
++        Map<String,String> out=new HashMap<>();
++        if(raw==null) return out;
++        if(raw.length()>1024) throw new BridgeFault(400,"query_too_long");
++        for(String part:raw.split("&")) {
++            String[] entry=part.split("=",2);
++            String key=URLDecoder.decode(entry[0],StandardCharsets.UTF_8);
++            String value=entry.length==2?URLDecoder.decode(entry[1],StandardCharsets.UTF_8):"";
++            if(out.put(key,value)!=null) throw new BridgeFault(400,"duplicate_query_parameter");
++        }
++        return out;
++    }
++    private static String readBody(HttpExchange x) throws IOException {
++        String len=x.getRequestHeaders().getFirst("Content-Length");
++        if(len!=null && Long.parseLong(len)>16384) throw new BridgeFault(413,"arguments_too_large");
++        byte[] bytes=x.getRequestBody().readNBytes(16385);
++        if(bytes.length>16384) throw new BridgeFault(413,"arguments_too_large");
++        String value=StandardCharsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(bytes)).toString();
++        if(value.isBlank()) throw new BridgeFault(400,"empty_arguments");
++        return value;
++    }
++    private static void reply(HttpExchange x,int status,Object value) throws IOException {
++        byte[] data=JsonOutput.encode(value).getBytes(StandardCharsets.UTF_8);
++        x.getResponseHeaders().set("Content-Type","application/json; charset=utf-8");
++        x.getResponseHeaders().set("Cache-Control","no-store");
++        x.getResponseHeaders().set("X-Content-Type-Options","nosniff");
++        x.sendResponseHeaders(status,data.length);
++        try(OutputStream out=x.getResponseBody()) { out.write(data); }
++    }
++    @Override public void close() { server.stop(0); workers.shutdownNow(); }
++}
+--- /dev/null
++++ b/src/main/java/io/github/zoyluo/aibot/external/BridgeJournal.java
+@@ -0,0 +1,170 @@
++package io.github.zoyluo.aibot.external;
++
++import java.io.*;
++import java.nio.*;
++import java.nio.channels.*;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.*;
++import java.util.*;
++import java.util.function.LongSupplier;
++import java.util.zip.CRC32;
++
++/** Single-writer, fsynced, bounded journal. No Java object deserialization. */
++public final class BridgeJournal implements AutoCloseable {
++    private static final byte[] MAGIC = "AIBODY01".getBytes(StandardCharsets.US_ASCII);
++    private static final int HEADER_SIZE = 44, MAX_FRAME = 131072;
++    public static final long DEFAULT_MAX_BYTES = 32L * 1024 * 1024;
++    private final FileChannel channel;
++    private final FileLock lock;
++    private final LongSupplier clock;
++    private final long maxBytes;
++    private final List<Frame> frames = new ArrayList<>();
++    private long sequence;
++    private boolean failed;
++    public final String epoch;
++
++    public record Frame(long sequence, long time, Map<String,String> fields) {
++        public Frame { fields = Collections.unmodifiableMap(new LinkedHashMap<>(fields)); }
++        public Map<String,Object> wire() {
++            Map<String,Object> out = new LinkedHashMap<>();
++            out.put("sequence", sequence); out.put("observed_at_ms", time);
++            out.put("kind", fields.getOrDefault("kind", "unknown"));
++            out.put("execution_id", fields.getOrDefault("execution_id", ""));
++            out.put("state", fields.getOrDefault("state", ""));
++            out.put("reason", fields.getOrDefault("reason", ""));
++            String payload = fields.get("payload");
++            if (payload != null) out.put("payload", payload); // opaque text, never promoted to instructions
++            return out;
++        }
++    }
++
++    public BridgeJournal(Path path, LongSupplier clock) throws IOException {
++        this(path, clock, DEFAULT_MAX_BYTES);
++    }
++    public BridgeJournal(Path path, LongSupplier clock, long maxBytes) throws IOException {
++        this.clock = clock; this.maxBytes = maxBytes;
++        Files.createDirectories(path.toAbsolutePath().getParent());
++        channel = FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
++        FileLock acquired = null;
++        try {
++            acquired = channel.tryLock();
++            if (acquired == null) throw new IOException("journal_already_locked");
++            if (channel.size() > maxBytes) throw new IOException("journal_size_limit");
++            if (channel.size() == 0) {
++                String id = UUID.randomUUID().toString();
++                writeFully(ByteBuffer.wrap(MAGIC));
++                writeFully(ByteBuffer.wrap(id.getBytes(StandardCharsets.US_ASCII)));
++                channel.force(true);
++                epoch = id;
++            } else {
++                if (channel.size() < HEADER_SIZE) throw new IOException("journal_invalid_header");
++                ByteBuffer header = ByteBuffer.allocate(HEADER_SIZE);
++                readFully(header); header.flip();
++                byte[] magic = new byte[8], id = new byte[36];
++                header.get(magic); header.get(id);
++                if (!Arrays.equals(magic,MAGIC)) throw new IOException("journal_invalid_magic");
++                epoch = UUID.fromString(new String(id,StandardCharsets.US_ASCII)).toString();
++                recover();
++            }
++            channel.position(channel.size());
++            lock = acquired;
++        } catch (IOException | RuntimeException e) {
++            if (acquired != null) acquired.release();
++            channel.close();
++            throw e;
++        }
++    }
++
++    private void recover() throws IOException {
++        long lastGood = HEADER_SIZE;
++        while (channel.position() < channel.size()) {
++            if (channel.size() - channel.position() < 4) { truncateTail(lastGood); break; }
++            ByteBuffer sizeBuf = ByteBuffer.allocate(4); readFully(sizeBuf); sizeBuf.flip();
++            int size = sizeBuf.getInt();
++            if (size < 16 || size > MAX_FRAME) throw new IOException("journal_invalid_frame_length");
++            if (channel.size() - channel.position() < size + 4L) { truncateTail(lastGood); break; }
++            ByteBuffer body = ByteBuffer.allocate(size); readFully(body);
++            ByteBuffer crcBuf = ByteBuffer.allocate(4); readFully(crcBuf); crcBuf.flip();
++            CRC32 crc = new CRC32(); crc.update(body.array());
++            if ((int)crc.getValue() != crcBuf.getInt()) throw new IOException("journal_checksum_mismatch");
++            try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(body.array()))) {
++                long seq = in.readLong(), time = in.readLong();
++                if (seq != sequence+1) throw new IOException("journal_sequence_gap");
++                int count = in.readInt();
++                if (count<1 || count>32) throw new IOException("journal_invalid_field_count");
++                Map<String,String> fields = new LinkedHashMap<>();
++                for(int i=0;i<count;i++) {
++                    String k=readString(in), v=readString(in);
++                    if(fields.put(k,v)!=null) throw new IOException("journal_duplicate_key");
++                }
++                if(in.available()!=0) throw new IOException("journal_trailing_bytes");
++                frames.add(new Frame(seq,time,fields)); sequence=seq;
++            }
++            lastGood=channel.position();
++        }
++    }
++    private static String readString(DataInputStream in) throws IOException {
++        int len=in.readInt();
++        if(len<0 || len>65536 || len>in.available()) throw new IOException("journal_invalid_string");
++        return new String(in.readNBytes(len),StandardCharsets.UTF_8);
++    }
++    private static void writeString(DataOutputStream out,String value) throws IOException {
++        byte[] bytes=value.getBytes(StandardCharsets.UTF_8);
++        if(bytes.length>65536) throw new IOException("journal_string_too_large");
++        out.writeInt(bytes.length); out.write(bytes);
++    }
++    private void truncateTail(long pos) throws IOException { channel.truncate(pos); channel.force(true); channel.position(pos); }
++    private void readFully(ByteBuffer buf) throws IOException {
++        while(buf.hasRemaining()) if(channel.read(buf)<0) throw new EOFException();
++    }
++    private void writeFully(ByteBuffer buf) throws IOException { while(buf.hasRemaining()) channel.write(buf); }
++
++    public synchronized Frame append(Map<String,String> fields) {
++        if(failed) throw new BridgeFault(503,"journal_failed_closed");
++        if(fields.isEmpty() || fields.size()>32) throw new IllegalArgumentException("invalid_journal_fields");
++        try {
++            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
++            long now=clock.getAsLong();
++            try(DataOutputStream out=new DataOutputStream(bytes)) {
++                out.writeLong(sequence+1); out.writeLong(now); out.writeInt(fields.size());
++                for(var e:fields.entrySet()) { writeString(out,e.getKey()); writeString(out,e.getValue()); }
++            }
++            byte[] body=bytes.toByteArray();
++            if(body.length>MAX_FRAME || channel.size()+body.length+8>maxBytes) {
++                failed=true; throw new BridgeFault(503,"journal_capacity_exhausted");
++            }
++            CRC32 crc=new CRC32(); crc.update(body);
++            ByteBuffer frame=ByteBuffer.allocate(body.length+8).putInt(body.length).put(body).putInt((int)crc.getValue());
++            frame.flip(); writeFully(frame); channel.force(true);
++            Frame result=new Frame(++sequence,now,fields); frames.add(result);
++            notifyAll(); return result;
++        } catch(IOException e) { failed=true; throw new BridgeFault(503,"journal_io_failure"); }
++    }
++    public synchronized List<Frame> replay() { return List.copyOf(frames); }
++    public synchronized long lastSequence() { return sequence; }
++    public synchronized Map<String,Object> readAfter(String requestedEpoch,long after,int limit) {
++        if(after<0 || limit<1 || limit>256) throw new BridgeFault(400,"invalid_event_cursor");
++        long first=Math.max(1,sequence-4095);
++        boolean gap=!epoch.equals(requestedEpoch) || after<first-1 || after>sequence;
++        List<Map<String,Object>> events=new ArrayList<>();
++        if(!gap) for(Frame f:frames) if(f.sequence()>after && events.size()<limit) events.add(f.wire());
++        Map<String,Object> result=new LinkedHashMap<>();
++        result.put("epoch",epoch); result.put("gap",gap); result.put("first_sequence",first);
++        result.put("last_sequence",sequence); result.put("events",events);
++        result.put("next_sequence",gap?sequence:events.isEmpty()?after:events.getLast().get("sequence"));
++        return result;
++    }
++    public synchronized Map<String,Object> waitAfter(String requestedEpoch,long after,int waitMs) throws InterruptedException {
++        if(waitMs<0 || waitMs>20000) throw new BridgeFault(400,"invalid_wait");
++        long deadline=System.nanoTime()+waitMs*1_000_000L;
++        while(!failed && epoch.equals(requestedEpoch) && after==sequence && waitMs>0) {
++            long remaining=deadline-System.nanoTime(); if(remaining<=0) break;
++            wait(Math.max(1,remaining/1_000_000L));
++        }
++        return readAfter(requestedEpoch,after,128);
++    }
++    @Override public synchronized void close() throws IOException {
++        failed=true; notifyAll();
++        if(channel.isOpen()) { lock.release(); channel.close(); }
++    }
++}
+--- /dev/null
++++ b/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+@@ -0,0 +1,324 @@
++package io.github.zoyluo.aibot.external;
++
++import java.nio.charset.StandardCharsets;
++import java.security.*;
++import java.util.*;
++import java.util.function.LongSupplier;
++
++/** Protocol-independent, single-body coordinator. HTTP threads may only admit work/read caches. */
++public final class BridgeKernel {
++    public static final Set<String> OPERATIONS=Set.of("goto","gather","craft","smelt","eat","set_base","deposit","say");
++    private static final Set<String> TERMINAL=Set.of("completed","failed","cancelled","outcome_unknown");
++    private static final int MAX_EXECUTIONS=1024, MAX_CONTROLS=2048;
++    private static final long LEASE_MS=30000, OBSERVATION_MAX_AGE_MS=5000;
++    private final BridgeJournal journal;
++    private final BodyBackend backend;
++    private final LongSupplier mono;
++    private final Map<String,Execution> byId=new LinkedHashMap<>();
++    private final Map<String,Execution> byRequest=new HashMap<>();
++    private final Map<String,Control> controls=new LinkedHashMap<>();
++    private final Deque<Control> controlQueue=new ArrayDeque<>();
++    public final String runtimeEpoch=UUID.randomUUID().toString();
++    private String token, owner, leaseEpoch;
++    private long expiresAt, leaseCounter;
++    private String bodyId="", observation="{}", fault="";
++    private long observedAt=-1;
++    private boolean ready, needsReconcile, pauseRequested, stopped;
++    private Execution active;
++
++    private static final class Execution {
++        String id, request, fingerprint, owner, operation, arguments, admittingLeaseEpoch, bodyId, state="accepted", reason="";
++        double progress;
++        BodyBackend.Handle handle;
++        Map<String,Object> wire() {
++            Map<String,Object> out=new LinkedHashMap<>();
++            out.put("execution_id",id); out.put("request_id",request); out.put("body_id",bodyId); out.put("operation",operation);
++            out.put("state",state); out.put("progress",progress); out.put("reason",reason);
++            out.put("terminal",TERMINAL.contains(state));
++            out.put("success_scope","bounded_body_operation_not_user_goal");
++            return out;
++        }
++    }
++    private static final class Control {
++        String request, fingerprint, executionId, action, leaseToken, state="accepted", reason="";
++        Map<String,Object> wire() {
++            return Map.of("request_id",request,"execution_id",executionId,"action",action,"state",state,"reason",reason);
++        }
++    }
++    public BridgeKernel(BridgeJournal journal, BodyBackend backend) {
++        this(journal,backend,()->System.nanoTime()/1_000_000L);
++    }
++    public BridgeKernel(BridgeJournal journal,BodyBackend backend,LongSupplier monotonicMillis) {
++        this.journal=journal; this.backend=backend; this.mono=monotonicMillis;
++        recover();
++        event("runtime_started","",Map.of("runtime_epoch",runtimeEpoch));
++    }
++    private void recover() {
++        for(var f:journal.replay()) {
++            Map<String,String> m=f.fields();
++            if("execution".equals(m.get("kind"))) {
++                Execution e=byId.get(m.get("execution_id"));
++                if(e==null) {
++                    if(!m.containsKey("request_id")) throw new BridgeFault(503,"journal_missing_execution_acceptance");
++                    e=new Execution(); e.id=m.get("execution_id"); e.request=m.get("request_id");
++                    e.fingerprint=m.get("fingerprint"); e.owner=m.get("owner");
++                    e.operation=m.get("operation"); e.arguments=m.get("arguments"); e.bodyId=m.getOrDefault("body_id", "");
++                    byId.put(e.id,e); byRequest.put(e.request,e);
++                }
++                e.state=m.get("state"); e.reason=m.getOrDefault("reason","");
++                e.progress=Double.parseDouble(m.getOrDefault("progress","0"));
++            } else if("body_binding".equals(m.get("kind"))) {
++                bodyId=m.getOrDefault("body_id", "");
++            } else if("control".equals(m.get("kind"))) {
++                Control c=controls.computeIfAbsent(m.get("request_id"),k->new Control());
++                c.request=m.get("request_id"); c.fingerprint=m.get("fingerprint");
++                c.executionId=m.get("execution_id"); c.action=m.get("action");
++                c.state=m.get("state"); c.reason=m.getOrDefault("reason","");
++            }
++        }
++        for(Execution e:byId.values()) if(!TERMINAL.contains(e.state)) {
++            transition(e,"outcome_unknown",e.progress,"runtime_restarted_observe_before_new_work"); needsReconcile=true;
++        }
++        for(Control c:controls.values()) if("accepted".equals(c.state)) {
++            c.state="rejected"; c.reason="runtime_restarted_control_not_replayed"; persistControl(c);
++        }
++    }
++    private void requireHealthy() {
++        if(stopped) throw new BridgeFault(503,"bridge_stopped");
++        if(!fault.isEmpty()) throw new BridgeFault(503,"bridge_failed_closed:"+fault);
++    }
++    private boolean fresh() { return observedAt>=0 && mono.getAsLong()-observedAt<=OBSERVATION_MAX_AGE_MS; }
++    private void requireReady() {
++        requireHealthy(); if(!ready || !fresh()) throw new BridgeFault(503,"body_not_ready_or_server_tick_stale");
++    }
++    private void expire() {
++        if(token!=null && mono.getAsLong()>=expiresAt) {
++            token=null; owner=null; pauseRequested=true;
++            event("control_lost","",Map.of("reason","lease_expired"));
++        }
++    }
++    private void requireLease(String supplied) {
++        requireHealthy(); expire();
++        if(token==null || supplied==null || !MessageDigest.isEqual(token.getBytes(StandardCharsets.UTF_8),supplied.getBytes(StandardCharsets.UTF_8)))
++            throw new BridgeFault(409,"control_lease_invalid");
++    }
++    private static void identifier(String id) {
++        if(id==null || !id.matches("[A-Za-z0-9:._-]{1,160}")) throw new BridgeFault(400,"invalid_identifier");
++    }
++    public synchronized Map<String,Object> claim(String newOwner) { return claim(newOwner,null); }
++    public synchronized Map<String,Object> claim(String newOwner,String existingToken) {
++        identifier(newOwner); requireReady(); expire();
++        if(token!=null && (!Objects.equals(owner,newOwner) || existingToken==null
++                || !MessageDigest.isEqual(token.getBytes(StandardCharsets.UTF_8),existingToken.getBytes(StandardCharsets.UTF_8))))
++            throw new BridgeFault(409,"body_controlled_by_another_session_or_process");
++        if(token==null) {
++            byte[] secret=new byte[32]; new SecureRandom().nextBytes(secret);
++            String newToken=HexFormat.of().formatHex(secret);
++            String nextEpoch=runtimeEpoch+":"+(++leaseCounter);
++            event("control_acquired","",Map.of("owner",newOwner,"lease_epoch",nextEpoch));
++            token=newToken; owner=newOwner; leaseEpoch=nextEpoch;
++        }
++        expiresAt=mono.getAsLong()+LEASE_MS;
++        return Map.of("token",token,"owner",owner,"lease_epoch",leaseEpoch,"expires_in_ms",LEASE_MS,
++                "event_epoch",journal.epoch,"event_sequence",journal.lastSequence());
++    }
++    public synchronized Map<String,Object> renew(String supplied) {
++        requireLease(supplied); expiresAt=mono.getAsLong()+LEASE_MS;
++        return Map.of("expires_in_ms",LEASE_MS,"lease_epoch",leaseEpoch);
++    }
++    public synchronized Map<String,Object> release(String supplied) {
++        requireLease(supplied);
++        event("control_lost","",Map.of("reason","released"));
++        token=null; owner=null; pauseRequested=true;
++        return Map.of("released",true,"body_policy","pause_normal_work_keep_safety_no_internal_fallback");
++    }
++    public synchronized Map<String,Object> status() {
++        Map<String,Object> out=new LinkedHashMap<>();
++        out.put("protocol_version",1); out.put("runtime_epoch",runtimeEpoch); out.put("event_epoch",journal.epoch);
++        out.put("event_sequence",journal.lastSequence()); out.put("body_id",bodyId);
++        out.put("body_ready",ready && fresh()); out.put("needs_reconcile",needsReconcile);
++        out.put("control_active",token!=null && mono.getAsLong()<expiresAt);
++        out.put("fault",fault); out.put("stopped",stopped);
++        out.put("active_execution",active==null?null:active.wire());
++        out.put("operations",OPERATIONS.stream().sorted().toList());
++        return out;
++    }
++    public synchronized Map<String,Object> observe() {
++        requireReady(); needsReconcile=false;
++        return Map.of("runtime_epoch",runtimeEpoch,"body_id",bodyId,"observation",new JsonOutput.Raw(observation),
++                "snapshot_age_ms",Math.max(0,mono.getAsLong()-observedAt),"execution",active==null?Map.of():active.wire());
++    }
++    public synchronized Map<String,Object> execution(String id) {
++        Execution e=byId.get(id); if(e==null) throw new BridgeFault(404,"execution_not_found"); return e.wire();
++    }
++    public synchronized Map<String,Object> requestStatus(String id) {
++        Execution e=byRequest.get(id); if(e!=null) return e.wire();
++        Control c=controls.get(id); if(c!=null) return c.wire();
++        throw new BridgeFault(404,"request_not_found");
++    }
++    private static String fingerprint(String type,String payload) {
++        try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
++                .digest((type+"\n"+payload).getBytes(StandardCharsets.UTF_8))); }
++        catch(NoSuchAlgorithmException impossible) { throw new AssertionError(impossible); }
++    }
++    public synchronized Map<String,Object> submit(String supplied,String request,String operation,String arguments) {
++        requireLease(supplied); identifier(request);
++        if(!OPERATIONS.contains(operation)) throw new BridgeFault(400,"unsupported_operation");
++        if(arguments==null || arguments.getBytes(StandardCharsets.UTF_8).length>16384) throw new BridgeFault(413,"arguments_too_large");
++        String fp=fingerprint(operation,arguments);
++        Execution previous=byRequest.get(request);
++        if(previous!=null) {
++            if(!previous.fingerprint.equals(fp) || !previous.owner.equals(owner) || !previous.bodyId.equals(bodyId)) throw new BridgeFault(409,"idempotency_conflict");
++            return previous.wire();
++        }
++        if(controls.containsKey(request)) throw new BridgeFault(409,"idempotency_conflict");
++        requireReady();
++        if(needsReconcile) throw new BridgeFault(409,"observe_required_before_new_work");
++        if(active!=null) throw new BridgeFault(409,"execution_in_progress");
++        if(byId.size()>=MAX_EXECUTIONS) throw new BridgeFault(503,"execution_ledger_capacity_exhausted");
++        Execution e=new Execution(); e.id=UUID.randomUUID().toString(); e.request=request; e.owner=owner;
++        e.operation=operation; e.arguments=arguments; e.fingerprint=fp; e.admittingLeaseEpoch=leaseEpoch; e.bodyId=bodyId;
++        persistExecution(e,true); // durable acceptance before any world mutation
++        byId.put(e.id,e); byRequest.put(request,e); active=e;
++        return e.wire();
++    }
++    public synchronized Map<String,Object> control(String supplied,String request,String executionId,String action) {
++        requireLease(supplied); identifier(request);
++        if(!Set.of("pause","resume","cancel").contains(action)) throw new BridgeFault(400,"invalid_control");
++        String fp=fingerprint(action,executionId);
++        Control prior=controls.get(request);
++        if(prior!=null) { if(!prior.fingerprint.equals(fp)) throw new BridgeFault(409,"idempotency_conflict"); return prior.wire(); }
++        if(byRequest.containsKey(request)) throw new BridgeFault(409,"idempotency_conflict");
++        Execution e=byId.get(executionId); if(e==null) throw new BridgeFault(404,"execution_not_found");
++        if(TERMINAL.contains(e.state)) return Map.of("state","already_terminal","execution",e.wire());
++        if(active!=e) throw new BridgeFault(409,"execution_not_current");
++        if(controls.size()>=MAX_CONTROLS || controlQueue.size()>=32) throw new BridgeFault(429,"control_queue_full");
++        Control c=new Control(); c.request=request; c.executionId=executionId; c.action=action; c.fingerprint=fp; c.leaseToken=token;
++        persistControl(c); controls.put(request,c); controlQueue.add(c); return c.wire();
++    }
++    private void persistControl(Control c) {
++        journal.append(Map.of("kind","control","request_id",c.request,"fingerprint",c.fingerprint,
++                "execution_id",c.executionId,"action",c.action,"state",c.state,"reason",c.reason));
++    }
++    private void persistExecution(Execution e,boolean first) {
++        Map<String,String> fields=new LinkedHashMap<>();
++        fields.put("kind","execution"); fields.put("execution_id",e.id); fields.put("state",e.state);
++        fields.put("reason",bound(e.reason,2048)); fields.put("progress",Double.toString(e.progress));
++        if(first) {
++            fields.put("request_id",e.request); fields.put("fingerprint",e.fingerprint); fields.put("owner",e.owner);
++            fields.put("operation",e.operation); fields.put("arguments",e.arguments); fields.put("body_id",e.bodyId);
++        }
++        fields.put("payload",JsonOutput.encode(e.wire())); journal.append(fields);
++    }
++    private void transition(Execution e,String state,double progress,String reason) {
++        if(TERMINAL.contains(e.state)) return;
++        String oldState=e.state, oldReason=e.reason; double oldProgress=e.progress;
++        e.state=state; e.progress=progress; e.reason=bound(reason,2048);
++        try { persistExecution(e,false); }
++        catch(RuntimeException ex) { e.state=oldState; e.progress=oldProgress; e.reason=oldReason; throw ex; }
++        if(TERMINAL.contains(state) && active==e) active=null;
++    }
++    private void event(String kind,String executionId,Map<String,Object> payload) {
++        journal.append(Map.of("kind",kind,"execution_id",executionId,"payload",JsonOutput.encode(payload)));
++    }
++    private static String bound(String s,int max) { if(s==null)return ""; return s.length()<=max?s:s.substring(0,max); }
++
++    /** Called after existing TaskManager and safety ticks, never by HTTP worker threads. */
++    public synchronized void tick() {
++        if(stopped) return;
++        if(!fault.isEmpty()) { try { backend.pause(); } catch(RuntimeException ignored) {} return; }
++        try {
++            expire();
++            boolean nowReady=backend.ready();
++            String id=backend.bodyId();
++            if(!bodyId.isEmpty() && !id.isEmpty() && !bodyId.equals(id)) {
++                if(active!=null) transition(active,"outcome_unknown",active.progress,"body_identity_changed");
++                token=null; owner=null; pauseRequested=true; needsReconcile=true;
++                event("body_changed","",Map.of("previous",bodyId,"current",id));
++            }
++            if(!id.isEmpty() && !bodyId.equals(id)) {
++                journal.append(Map.of("kind","body_binding","body_id",id,"payload",JsonOutput.encode(Map.of("body_id",id))));
++                bodyId=id;
++            }
++            if(!nowReady) {
++                ready=false;
++                if(active!=null) { transition(active,"outcome_unknown",active.progress,"body_unavailable"); needsReconcile=true; }
++                return;
++            }
++            ready=true; observation=backend.observeJson(); observedAt=mono.getAsLong();
++            if(pauseRequested) { backend.pause(); pauseRequested=false; }
++            while(!controlQueue.isEmpty()) applyControl(controlQueue.remove());
++            Execution e=active;
++            if(e==null) return;
++            if(e.handle==null) {
++                if(token==null || !Objects.equals(e.owner,owner) || !Objects.equals(e.admittingLeaseEpoch,leaseEpoch)) { transition(e,"cancelled",0,"lease_lost_before_dispatch"); return; }
++                if(e.state.equals("paused")) return;
++                try { e.handle=backend.start(e.operation,e.arguments); }
++                catch(BridgeFault validationFailure) { transition(e,"failed",0,validationFailure.code); return; }
++                catch(RuntimeException startFailure) {
++                    try { backend.cancel("start_failure"); } catch(RuntimeException cleanup) { startFailure.addSuppressed(cleanup); }
++                    transition(e,"outcome_unknown",0,"backend_start_exception:"+startFailure.getClass().getSimpleName()); needsReconcile=true; return;
++                }
++            }
++            BodyBackend.Snapshot snap=e.handle.snapshot();
++            if(!e.state.equals(snap.state()) || (TERMINAL.contains(snap.state()) && !TERMINAL.contains(e.state))) {
++                transition(e,snap.state(),snap.progress(),snap.reason());
++                if("outcome_unknown".equals(snap.state())) needsReconcile=true;
++            } else { e.progress=snap.progress(); e.reason=bound(snap.reason(),2048); } // progress is polled, not journal spam
++        } catch(RuntimeException failure) {
++            fault=failure instanceof BridgeFault f?f.code:failure.getClass().getSimpleName();
++            token=null; owner=null; needsReconcile=true;
++            try { backend.pause(); } catch(RuntimeException ignored) {}
++        }
++    }
++    private void applyControl(Control c) {
++        try {
++            requireLease(c.leaseToken);
++            Execution e=byId.get(c.executionId);
++            if(e==null || e!=active || TERMINAL.contains(e.state)) { c.state="applied"; c.reason="already_terminal_or_not_current"; persistControl(c); return; }
++            switch(c.action) {
++                case "pause" -> {
++                    if(e.handle==null) { // accepted but not dispatched: don't accidentally start paused work
++                        transition(e,"paused",0,"paused_before_dispatch");
++                    } else backend.pause();
++                }
++                case "resume" -> {
++                    if(e.handle==null) transition(e,"accepted",0,"resumed_before_dispatch");
++                    else backend.resume();
++                }
++                case "cancel" -> { if(e.handle!=null)backend.cancel("external_cancel"); transition(e,"cancelled",e.progress,"external_cancel"); }
++                default -> throw new BridgeFault(400,"invalid_control");
++            }
++            c.state="applied"; c.reason="";
++        } catch(BridgeFault f) { c.state="rejected"; c.reason=f.code; }
++        catch(RuntimeException ex) {
++            c.state="outcome_unknown"; c.reason="backend_control_exception"; needsReconcile=true;
++            try { backend.pause(); } catch(RuntimeException ignored) {}
++            if(active!=null) transition(active,"outcome_unknown",active.progress,"control_failed_reconcile_required");
++        }
++        persistControl(c);
++    }
++    public synchronized void publish(String kind,Map<String,Object> payload) {
++        if(stopped || !fault.isEmpty()) return;
++        try {
++            event(kind,active==null?"":active.id,payload);
++            if("death".equals(kind)) {
++                if(active!=null) transition(active,"failed",active.progress,"body_died");
++                needsReconcile=true; ready=false;
++            }
++        } catch(RuntimeException ex) { fault="event_persistence_failed"; pauseRequested=true; token=null; }
++    }
++    public synchronized void shutdown() {
++        if(stopped) return;
++        try {
++            backend.pause();
++            if(active!=null) {
++                Execution e=active;
++                transition(e,"outcome_unknown",e.progress,"server_stopping_no_automatic_replay");
++                backend.cancel("external_runtime_unload");
++            }
++            event("runtime_stopped","",Map.of("runtime_epoch",runtimeEpoch));
++        } finally { stopped=true; ready=false; token=null; owner=null; }
++    }
++    public BridgeJournal journal() { return journal; }
++}
+--- /dev/null
++++ b/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
+@@ -0,0 +1,44 @@
++package io.github.zoyluo.aibot.external;
++
++import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.runtime.TaskOrigin;
++import java.util.UUID;
++import java.util.function.Supplier;
++
++/** Narrow authorization boundary for the configured external body. Disabled by default. */
++public final class ExternalBodyAccess {
++    public static final String BOT_NAME=System.getenv().getOrDefault("AIBOT_EXTERNAL_BOT", "").trim();
++    private static final ThreadLocal<Integer> DEPTH=ThreadLocal.withInitial(()->0);
++    private static volatile boolean RESERVATION_ACTIVE;
++    private ExternalBodyAccess() {}
++    public static boolean enabled() { return !BOT_NAME.isEmpty(); }
++    public static boolean reserved(AIPlayerEntity bot) {
++        return enabled() && RESERVATION_ACTIVE && bot!=null && BOT_NAME.equalsIgnoreCase(bot.getGameProfile().getName());
++    }
++    public static void activateReservation() { if(enabled()) RESERVATION_ACTIVE=true; }
++    public static boolean dispatching() { return DEPTH.get()>0; }
++    public static <T> T dispatch(Supplier<T> body) {
++        int old=DEPTH.get(); DEPTH.set(old+1);
++        try { return body.get(); } finally { if(old==0)DEPTH.remove();else DEPTH.set(old); }
++    }
++    public static void checkAssignment(AIPlayerEntity bot,TaskOrigin origin) {
++        if(reserved(bot) && !dispatching() && (origin==null || !origin.safety()))
++            throw new IllegalStateException("external_body_reserved_use_dsh_bridge");
++    }
++    public static void checkTool(AIPlayerEntity bot) {
++        if(reserved(bot) && !dispatching()) throw new IllegalStateException("external_body_reserved_use_dsh_bridge");
++    }
++    /** Public legacy controllers may observe and send authorized chat, never mutate this body. */
++    public static boolean permitsLegacyOperation(AIPlayerEntity bot,String operation,String channel) {
++        if(!reserved(bot))return true;
++        if("VIEW".equals(operation))return true;
++        return "COMMAND".equals(operation) && ("chat:@bot".equals(channel) || "chat:plain_external".equals(channel) || "network:command".equals(channel));
++    }
++    public static void message(AIPlayerEntity bot,String sender,String text) {
++        ExternalBodyRuntime.playerMessage(bot,null,sender,"legacy_brain_handle",false,text);
++    }
++    public static void playerMessage(AIPlayerEntity bot,UUID senderUuid,String senderName,
++                                     String channel,boolean authorizedControl,String text) {
++        ExternalBodyRuntime.playerMessage(bot,senderUuid,senderName,channel,authorizedControl,text);
++    }
++}
+--- /dev/null
++++ b/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+@@ -0,0 +1,101 @@
++package io.github.zoyluo.aibot.external;
++
++import io.github.zoyluo.aibot.AIBotMod;
++import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.manager.AIPlayerManager;
++import net.minecraft.server.MinecraftServer;
++import net.minecraft.util.WorldSavePath;
++import java.util.*;
++
++/** Lifecycle wiring. No second LLM loop, no MCP server, and no asynchronous Minecraft access. */
++public final class ExternalBodyRuntime {
++    private static BridgeKernel kernel;
++    private static BridgeJournal journal;
++    private static BridgeHttpServer http;
++    private static UUID observedBody;
++    private static float previousHealth=Float.NaN;
++    private static boolean previousAlive;
++    private static final Map<String,Integer> nextSurvivalAlertTick=new HashMap<>();
++    private ExternalBodyRuntime() {}
++    public static void start(MinecraftServer server) {
++        if(!ExternalBodyAccess.enabled())return;
++        ExternalBodyAccess.activateReservation(); // after persistence restore; before any tick/network control
++        if(!ExternalBodyAccess.BOT_NAME.matches("[A-Za-z0-9_]{1,16}"))throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BOT");
++        try {
++            String token=System.getenv("AIBOT_BRIDGE_TOKEN");
++            int port=Integer.parseInt(System.getenv().getOrDefault("AIBOT_BRIDGE_PORT","8765"));
++            if(port<1024 || port>65535)throw new IllegalArgumentException("invalid_bridge_port");
++            journal=new BridgeJournal(server.getSavePath(WorldSavePath.ROOT).resolve("aibot/external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".journal"),System::currentTimeMillis);
++            kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME));
++            kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
++            http=new BridgeHttpServer(kernel,port,token);http.start();
++            observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();
++            AIBotMod.LOGGER.info("AIBot external-body bridge bound to loopback port {} for {}",port,ExternalBodyAccess.BOT_NAME);
++        }catch(Exception failure){
++            if(http!=null)http.close();
++            try{if(journal!=null)journal.close();}catch(Exception ignored){}
++            http=null;journal=null;kernel=null;
++            // Reservation remains in force. Invalid config must never silently reactivate the old brain.
++            throw new IllegalStateException("external_bridge_start_failed_closed",failure);
++        }
++    }
++    public static void tick(MinecraftServer server) {
++        if(kernel==null)return;
++        kernel.tick();
++        AIPlayerEntity bot=AIPlayerManager.INSTANCE.all().stream().filter(ExternalBodyAccess::reserved).findFirst().orElse(null);
++        if(bot==null){observedBody=null;previousHealth=Float.NaN;previousAlive=false;return;}
++        if(!bot.getUuid().equals(observedBody)){observedBody=bot.getUuid();previousHealth=bot.getHealth();previousAlive=bot.isAlive();return;}
++        if(previousAlive && bot.isAlive() && bot.getHealth()<previousHealth)
++            kernel.publish("damage",Map.of("previous_health",previousHealth,"health",bot.getHealth(),"source","health_delta_not_causal_attribution"));
++        if(!previousAlive && bot.isAlive())kernel.publish("respawn",Map.of("body_id",bot.getUuid().toString(),"health",bot.getHealth()));
++        previousAlive=bot.isAlive();previousHealth=bot.getHealth();
++    }
++    public static void death(AIPlayerEntity bot) {
++        if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
++        String source=bot.getRecentDamageSource()==null?"unknown":bot.getRecentDamageSource().getName();
++        kernel.publish("death",Map.of("body_id",bot.getUuid().toString(),"recent_damage_source",source,
++                "causal_chain_complete",false,"x",bot.getX(),"y",bot.getY(),"z",bot.getZ(),
++                "dimension",bot.getServerWorld().getRegistryKey().getValue().toString()));
++        previousAlive=false;previousHealth=0;
++    }
++    public static void message(AIPlayerEntity bot,String sender,String text) {
++        playerMessage(bot,null,sender,"legacy_brain_handle",false,text);
++    }
++    public static void playerMessage(AIPlayerEntity bot,UUID senderUuid,String senderName,
++                                     String channel,boolean authorizedControl,String text) {
++        if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
++        Map<String,Object> payload=new LinkedHashMap<>();
++        payload.put("actor_kind","player");
++        payload.put("sender_uuid",senderUuid==null?"":senderUuid.toString());
++        payload.put("sender_name",bounded(senderName,80));
++        payload.put("sender",bounded(senderName,80)); // M0 compatibility alias; never a synthetic authority label
++        payload.put("channel",bounded(channel,80));
++        payload.put("authorized_control",authorizedControl);
++        payload.put("text",bounded(text,2000));
++        payload.put("trust","untrusted_game_text");
++        kernel.publish("player_message",payload);
++    }
++    public static void survivalAlert(AIPlayerEntity bot,String reason) {
++        if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
++        int now=bot.getServer().getTicks();
++        String key=bot.getUuid()+":"+bounded(reason,80);
++        if(now<nextSurvivalAlertTick.getOrDefault(key,0))return;
++        nextSurvivalAlertTick.put(key,now+200);
++        kernel.publish("survival_alert",Map.of(
++                "reason",bounded(reason,80),
++                "body_id",bot.getUuid().toString(),
++                "health",bot.getHealth(),
++                "food",bot.getHungerManager().getFoodLevel(),
++                "action","observe_and_replan"));
++    }
++    private static String bounded(String s,int length){return s==null?"":s.length()<=length?s:s.substring(0,length);}
++    public static void stop() {
++        try{if(kernel!=null)kernel.shutdown();}
++        catch(RuntimeException e){AIBotMod.LOGGER.error("external body shutdown requires reconciliation",e);}
++        finally {
++            if(http!=null)http.close();
++            try{if(journal!=null)journal.close();}catch(Exception e){AIBotMod.LOGGER.error("external journal close failed",e);}
++            http=null;journal=null;kernel=null;observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();
++        }
++    }
++}
+--- /dev/null
++++ b/src/main/java/io/github/zoyluo/aibot/external/JsonOutput.java
+@@ -0,0 +1,56 @@
++package io.github.zoyluo.aibot.external;
++
++import java.util.*;
++
++/** Small output-only encoder. Input JSON is parsed by AIBot's existing Gson, not here. */
++public final class JsonOutput {
++    private JsonOutput() {}
++    /** Only use for JSON produced by a trusted serializer (the Minecraft backend uses Gson). */
++    public record Raw(String json) {
++        public Raw { Objects.requireNonNull(json); }
++    }
++    public static String encode(Object value) {
++        if (value == null) return "null";
++        if (value instanceof Raw r) return r.json();
++        if (value instanceof String s) return quote(s);
++        if (value instanceof Boolean) return value.toString();
++        if (value instanceof Number n) {
++            if (!Double.isFinite(n.doubleValue())) throw new IllegalArgumentException("non_finite_json");
++            return n.toString();
++        }
++        if (value instanceof Map<?, ?> map) {
++            StringJoiner out = new StringJoiner(",", "{", "}");
++            for (var e : map.entrySet()) {
++                if (!(e.getKey() instanceof String key)) throw new IllegalArgumentException("non_string_key");
++                out.add(quote(key) + ":" + encode(e.getValue()));
++            }
++            return out.toString();
++        }
++        if (value instanceof Collection<?> list) {
++            StringJoiner out = new StringJoiner(",", "[", "]");
++            for (var entry : list) out.add(encode(entry));
++            return out.toString();
++        }
++        throw new IllegalArgumentException("unsupported_json_type:" + value.getClass().getName());
++    }
++    public static String quote(String value) {
++        StringBuilder b = new StringBuilder("\"");
++        for (int i = 0; i < value.length(); i++) {
++            char c = value.charAt(i);
++            switch (c) {
++                case '"' -> b.append("\\\"");
++                case '\\' -> b.append("\\\\");
++                case '\b' -> b.append("\\b");
++                case '\f' -> b.append("\\f");
++                case '\n' -> b.append("\\n");
++                case '\r' -> b.append("\\r");
++                case '\t' -> b.append("\\t");
++                default -> {
++                    if (c < 0x20 || Character.isSurrogate(c)) b.append(String.format(Locale.ROOT,"\\u%04x",(int)c));
++                    else b.append(c);
++                }
++            }
++        }
++        return b.append('"').toString();
++    }
++}
+--- /dev/null
++++ b/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+@@ -0,0 +1,191 @@
++package io.github.zoyluo.aibot.external;
++
++import com.google.gson.*;
++import io.github.zoyluo.aibot.AIBotConfig;
++import io.github.zoyluo.aibot.brain.BrainCoordinator;
++import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.manager.AIPlayerManager;
++import io.github.zoyluo.aibot.memory.BotMemoryStore;
++import io.github.zoyluo.aibot.perception.PerceptionCollector;
++import io.github.zoyluo.aibot.persist.BotPersistence;
++import io.github.zoyluo.aibot.runtime.IntentController;
++import io.github.zoyluo.aibot.runtime.TaskOrigin;
++import io.github.zoyluo.aibot.task.*;
++import net.minecraft.item.Item;
++import net.minecraft.item.ItemStack;
++import net.minecraft.registry.Registries;
++import net.minecraft.server.MinecraftServer;
++import net.minecraft.util.Identifier;
++import net.minecraft.util.math.BlockPos;
++import java.util.*;
++
++/** Integration adapter only: this is the part requiring the real Fabric/Minecraft classpath. */
++public final class MinecraftBodyBackend implements BodyBackend {
++    private static final Gson GSON=new Gson();
++    private final MinecraftServer server;
++    private AIPlayerEntity bot, prepared;
++    private Task managed;
++    private JsonElement perception;
++    private int perceptionTick;
++    private String perceptionDimension="";
++    private final String name;
++    public MinecraftBodyBackend(MinecraftServer server,String name) { this.server=server; this.name=name; }
++    private void onThread() { if(!server.isOnThread())throw new IllegalStateException("minecraft_access_off_server_thread"); }
++    @Override public boolean ready() {
++        onThread();
++        bot=AIPlayerManager.INSTANCE.all().stream().filter(b->name.equalsIgnoreCase(b.getGameProfile().getName())).findFirst().orElse(null);
++        if(bot==null || !bot.isAlive()) return false;
++        if(prepared!=bot) {
++            // Explicit external-mode startup fences saved legacy work before admitting commands.
++            ExternalBodyAccess.dispatch(()->{
++                IntentController.INSTANCE.cancelAll(bot,IntentController.ControlOrigin.SYSTEM,"external_mode_enter");
++                BrainCoordinator.INSTANCE.reset(bot);
++                return null;
++            });
++            prepared=bot; managed=null; perception=null;
++        }
++        return true;
++    }
++    @Override public String bodyId() { onThread();return bot==null?"":bot.getUuid().toString(); }
++    @Override public String observeJson() {
++        onThread();
++        JsonObject out=new JsonObject();
++        out.addProperty("body_id",bot.getUuid().toString()); out.addProperty("name",bot.getGameProfile().getName());
++        out.addProperty("profile",AIBotConfig.get().profile().configValue());
++        out.addProperty("health",bot.getHealth()); out.addProperty("food",bot.getHungerManager().getFoodLevel());
++        out.addProperty("dimension",bot.getServerWorld().getRegistryKey().getValue().toString());
++        JsonObject position=new JsonObject(); position.addProperty("x",bot.getX());position.addProperty("y",bot.getY());position.addProperty("z",bot.getZ());out.add("position",position);
++        out.add("inventory",GSON.toJsonTree(inventory()));
++        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
++        int tick=server.getTicks();
++        if(perception==null || tick-perceptionTick>=10 || tick<perceptionTick || !dimension.equals(perceptionDimension)) {
++            perception=JsonParser.parseString(PerceptionCollector.collect(bot).toJson());
++            perceptionTick=tick;perceptionDimension=dimension;
++        }
++        out.add("perception",perception);
++        out.addProperty("perception_age_ticks",Math.max(0,tick-perceptionTick));
++        out.addProperty("safety_active",TaskManager.INSTANCE.activeOrigin(bot).map(TaskOrigin::safety).orElse(false));
++        out.addProperty("user_paused",TaskManager.INSTANCE.isUserPaused(bot));
++        out.addProperty("current_task",TaskManager.INSTANCE.status(bot).name());
++        out.addProperty("paused_depth",TaskManager.INSTANCE.pausedDepth(bot));
++        return GSON.toJson(out);
++    }
++    private Map<String,Integer> inventory() {
++        Map<String,Integer> counts=new TreeMap<>();
++        for(int i=0;i<bot.getInventory().size();i++) {
++            ItemStack stack=bot.getInventory().getStack(i);
++            if(!stack.isEmpty())counts.merge(Registries.ITEM.getId(stack.getItem()).toString(),stack.getCount(),Integer::sum);
++        }
++        return counts;
++    }
++    @Override public Handle start(String operation,String raw) {
++        onThread();
++        if(bot==null || !bot.isAlive())throw new BridgeFault(409,"body_unavailable");
++        if(!"strict_survival".equals(AIBotConfig.get().profile().configValue()))throw new BridgeFault(403,"strict_survival_required");
++        JsonObject args=parse(raw);
++        Set<String> allowed=switch(operation) {
++            case "goto" -> Set.of("x","y","z","allow_terrain_changes");
++            case "gather","craft" -> Set.of("item","count");
++            case "smelt" -> Set.of("input_item","output_item","count");
++            case "say" -> Set.of("message");
++            case "eat","set_base","deposit" -> Set.of();
++            default -> throw new BridgeFault(400,"unsupported_operation");
++        };
++        if(!allowed.containsAll(args.keySet()))throw new BridgeFault(400,"unknown_argument");
++        Task task;Item target=null;int count=0;BlockPos goal=null;
++        switch(operation) {
++            case "goto" -> {
++                if(!args.has("allow_terrain_changes") || !args.get("allow_terrain_changes").isJsonPrimitive()
++                        || !args.getAsJsonPrimitive("allow_terrain_changes").isBoolean() || !args.get("allow_terrain_changes").getAsBoolean())
++                    throw new BridgeFault(400,"goto_can_dig_explicit_allow_terrain_changes_required");
++                goal=new BlockPos(integer(args,"x",-29999984,29999984),integer(args,"y",bot.getServerWorld().getBottomY(),bot.getServerWorld().getBottomY()+bot.getServerWorld().getHeight()-1),integer(args,"z",-29999984,29999984));
++                if(bot.getBlockPos().getSquaredDistance(goal)>128*128)throw new BridgeFault(400,"goto_distance_limit_128");
++                task=new MoveTask(bot,goal);
++            }
++            case "gather" -> {target=item(args,"item");count=integer(args,"count",1,256);task=new GatherQuotaTask(target,count);}
++            case "craft" -> {target=item(args,"item");count=integer(args,"count",1,64);task=new CraftTask(target,count);}
++            case "smelt" -> {target=item(args,"output_item");count=integer(args,"count",1,64);task=new SmeltTask(item(args,"input_item"),target,count);}
++            case "eat" -> task=new EatTask();
++            case "deposit" -> task=new StockpileTask(true);
++            case "set_base" -> {
++                BotMemoryStore.INSTANCE.of(bot.getUuid()).markPlace("base",bot.getServerWorld(),bot.getBlockPos());
++                BotPersistence.INSTANCE.markDirty(server);
++                return ()->new Snapshot("completed",1,"base_marker_saved_operational_state_only");
++            }
++            case "say" -> {
++                String message=string(args,"message",1000);
++                BrainCoordinator.INSTANCE.sendPanelChat(bot,"bot",message);
++                server.getPlayerManager().broadcast(net.minecraft.text.Text.literal("<"+bot.getGameProfile().getName()+"> "+message),false);
++                return ()->new Snapshot("completed",1,"sent_to_aibot_panel_and_global_chat");
++            }
++            default -> throw new BridgeFault(400,"unsupported_operation");
++        }
++        if(TaskManager.INSTANCE.getActive(bot).isPresent() || TaskManager.INSTANCE.hasPaused(bot)
++                || bot.getActionPack().hasActiveActions())throw new BridgeFault(409,"body_busy_safety_or_legacy_work");
++        if(TaskManager.INSTANCE.isUserPaused(bot))throw new BridgeFault(409,"body_user_paused");
++        AIPlayerEntity executionBody=bot;
++        Item expected=target; int quota=count; BlockPos destination=goal;
++        ExternalBodyAccess.dispatch(()->{
++            TaskManager.INSTANCE.assign(executionBody,task,TaskOrigin.of(TaskOrigin.Kind.LLM_TOOL,"external_dsh"));return null;
++        });
++        managed=task;
++        return ()->{
++            onThread();
++            if(bot!=executionBody)return new Snapshot("outcome_unknown",task.progress(),"body_instance_replaced");
++            TaskStatus s=TaskStatus.from(task);
++            String state=switch(s.state()) {
++                case PENDING,RUNNING -> "running";
++                case PAUSED -> "paused";
++                case COMPLETED -> "completed";
++                case FAILED -> "failed";
++                case CANCELLED -> "cancelled";
++            };
++            String reason=s.failureReason()==null?"":s.failureReason();
++            if(state.equals("running") && TaskManager.INSTANCE.getActive(bot).orElse(null)!=task)
++                return new Snapshot("outcome_unknown",s.progress(),"tracked_task_no_longer_owns_execution");
++            if(state.equals("paused"))reason=TaskManager.INSTANCE.isUserPaused(bot)?"user_or_lease_pause":"safety_preempted";
++            if(state.equals("completed")) {
++                if(operation.equals("gather")) {
++                    int actual=inventory().getOrDefault(Registries.ITEM.getId(expected).toString(),0);
++                    if(actual<quota)return new Snapshot("failed",s.progress(),"gather_postcondition_missing:observed="+actual+":quota="+quota);
++                    reason="inventory_quota_verified:observed="+actual;
++                } else if(operation.equals("goto")) {
++                    if(bot.getBlockPos().getSquaredDistance(destination)>9)return new Snapshot("failed",s.progress(),"goto_postcondition_not_within_3_blocks");
++                    reason="arrival_within_3_blocks_verified";
++                } else reason="upstream_task_completed_reobserve_for_user_goal_verification";
++            }
++            return new Snapshot(state,s.progress(),reason);
++        };
++    }
++    @Override public void pause() {
++        onThread();
++        if(bot!=null && managed!=null && (managed.state()==TaskState.RUNNING || managed.state()==TaskState.PAUSED))
++            ExternalBodyAccess.dispatch(()->IntentController.INSTANCE.pause(bot,IntentController.ControlOrigin.SYSTEM,"external_pause"));
++    }
++    @Override public void resume() {
++        onThread();if(bot!=null)ExternalBodyAccess.dispatch(()->IntentController.INSTANCE.resume(bot,IntentController.ControlOrigin.SYSTEM,"external_resume"));
++    }
++    @Override public void cancel(String reason) {
++        onThread();if(bot!=null)ExternalBodyAccess.dispatch(()->IntentController.INSTANCE.cancelAll(bot,IntentController.ControlOrigin.SYSTEM,reason));
++    }
++    private static JsonObject parse(String raw) {
++        try { JsonElement value=JsonParser.parseString(raw);if(!value.isJsonObject())throw new IllegalArgumentException();return value.getAsJsonObject(); }
++        catch(RuntimeException bad){throw new BridgeFault(400,"invalid_arguments_json_object");}
++    }
++    private static String string(JsonObject o,String key,int max) {
++        JsonElement v=o.get(key);
++        if(v==null || !v.isJsonPrimitive() || !v.getAsJsonPrimitive().isString())throw new BridgeFault(400,"string_required:"+key);
++        String s=v.getAsString();if(s.isBlank() || s.length()>max)throw new BridgeFault(400,"invalid_string_length:"+key);return s;
++    }
++    private static int integer(JsonObject o,String key,int min,int max) {
++        try {
++            JsonElement v=o.get(key);if(v==null || !v.isJsonPrimitive() || !v.getAsJsonPrimitive().isNumber())throw new IllegalArgumentException();
++            int n=v.getAsBigDecimal().intValueExact();if(n<min || n>max)throw new IllegalArgumentException();return n;
++        }catch(RuntimeException bad){throw new BridgeFault(400,"integer_out_of_range:"+key);}
++    }
++    private static Item item(JsonObject o,String key) {
++        String name=string(o,key,128);Identifier id=Identifier.tryParse(name);
++        if(id==null || !Registries.ITEM.containsId(id) || name.equals("minecraft:air"))throw new BridgeFault(400,"unknown_item:"+key);
++        return Registries.ITEM.get(id);
++    }
++}

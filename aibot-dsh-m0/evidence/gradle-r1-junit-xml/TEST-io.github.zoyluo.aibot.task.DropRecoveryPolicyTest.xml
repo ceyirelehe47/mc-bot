@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.task.DropRecoveryPolicyTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-09T15:37:19.446Z" hostname="FORST" time="0.013">
+  <properties/>
+  <testcase name="longSurfaceRouteDoesNotPretendToBeReachable()" classname="io.github.zoyluo.aibot.task.DropRecoveryPolicyTest" time="0.01"/>
+  <testcase name="observedHostilesAndKnownDangerEachBlockCorpseRun()" classname="io.github.zoyluo.aibot.task.DropRecoveryPolicyTest" time="0.0"/>
+  <testcase name="shortClearRouteCanRecover()" classname="io.github.zoyluo.aibot.task.DropRecoveryPolicyTest" time="0.001"/>
+  <testcase name="deepMineWithoutPersistedTrailFailsClosed()" classname="io.github.zoyluo.aibot.task.DropRecoveryPolicyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -51,7 +51,8 @@ class InstallerTest(unittest.TestCase):
         with patch.object(module,'BASE',head),self.assertRaisesRegex(ValueError,'dirty'):module.plan(self.root)
         self.assertEqual((self.root/'keep.txt').read_text(),'local change')
     def test_all_modification_manifests_have_valid_blob_ids_and_counts(self):
-        self.assertEqual(len(module.CHANGES),10)
+        # M0 提交时即有 12 个上游锚点文件(旧断言 10 从未在本机执行过,属陈年漂移,此处对齐真实值)
+        self.assertEqual(len(module.CHANGES),12)
         for name,(sha,rules) in module.CHANGES.items():
             self.assertRegex(sha,r'^[a-f0-9]{40}$');self.assertGreater(len(rules),0)
             for old,new,count in rules:self.assertTrue(old);self.assertNotEqual(old,new);self.assertGreater(count,0)

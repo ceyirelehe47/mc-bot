@@ -1,0 +1,36 @@
+[t=5s] food/pos: 14 20 120.6043930383727 -39.50153849324701 | [23:52:50] [Server thread/INFO]: [AIBot] TASK event=task_resumed bot=Bob {stack_depth=0, name=move, user_paused=false, origin=LLM_TOOL}
+[23:53:01] [Server thread/INFO]: [AIBot] TASK event=task_resumed bot=Bob {stack_depth=0, name=move, user_paused=false, origin=LLM_TOOL}
+[t=10s] food/pos: 11 20 120.6043930383727 -39.50153849324701 | [23:52:50] [Server thread/INFO]: [AIBot] TASK event=task_resumed bot=Bob {stack_depth=0, name=move, user_paused=false, origin=LLM_TOOL}
+[23:53:01] [Server thread/INFO]: [AIBot] TASK event=task_resumed bot=Bob {stack_depth=0, name=move, user_paused=false, origin=LLM_TOOL}
+[t=15s] food/pos: 8 20 120.6043930383727 -39.50153849324701 | [23:52:50] [Server thread/INFO]: [AIBot] TASK event=task_resumed bot=Bob {stack_depth=0, name=move, user_paused=false, origin=LLM_TOOL}
+[23:53:01] [Server thread/INFO]: [AIBot] TASK event=task_resumed bot=Bob {stack_depth=0, name=move, user_paused=false, origin=LLM_TOOL}
+[t=20s] food/pos: 6 20 120.6043930383727 -39.50153849324701 | [23:53:51] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:53:51] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=25s] food/pos: 14 20 120.6043930383727 -39.50153849324701 | [23:53:51] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:53:51] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=30s] food/pos: 14 20 120.6043930383727 -39.50153849324701 | [23:53:51] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:53:51] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=35s] food/pos: 14 20 120.6043930383727 -39.50153849324701 | [23:53:51] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:53:51] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=40s] food/pos: 14 20 120.6043930383727 -39.50153849324701 | [23:53:51] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:53:51] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=45s] food/pos: 12 20 120.6043930383727 -39.50153849324701 | [23:53:51] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:53:51] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=50s] food/pos: 9 20 120.6043930383727 -39.50153849324701 | [23:53:51] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:53:51] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=55s] food/pos: 7 20 120.6043930383727 -39.50153849324701 | [23:54:31] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:54:31] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=60s] food/pos: 14 20 120.6043930383727 -39.50153849324701 | [23:54:31] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:54:31] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=65s] food/pos: 14 20 120.6043930383727 -39.50153849324701 | [23:54:31] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:54:31] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=70s] food/pos: 14 20 120.6043930383727 -39.50153849324701 | [23:54:31] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:54:31] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=75s] food/pos: 14 20 120.6043930383727 -39.50153849324701 | [23:54:31] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:54:31] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=80s] food/pos: 13 20 120.6043930383727 -39.50153849324701 | [23:54:31] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:54:31] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=85s] food/pos: 10 20 120.6043930383727 -39.50153849324701 | [23:54:31] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:54:31] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}
+[t=90s] food/pos: 7 20 120.6043930383727 -39.50153849324701 | [23:54:31] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {name=eat, origin=SAFETY, params=Eating phase=FINDING starting_food=0, origin_reason=critical_hunger}
+[23:54:31] [Server thread/INFO]: [AIBot] DANGER event=hunger_eat_started bot=Bob {healing=false, hp=20, critical=true, food=6}

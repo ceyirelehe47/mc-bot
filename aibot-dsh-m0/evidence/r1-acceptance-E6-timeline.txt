@@ -1,0 +1,14 @@
+[t=6s] exec=('gather', 'paused', 0.75) | 
+[t=12s] exec=('gather', 'paused', 0.75) | 
+[t=18s] exec=('gather', 'paused', 0.75) | 
+[t=24s] exec=('gather', 'paused', 0.75) | 
+[t=30s] exec=('gather', 'paused', 0.75) | 
+[t=36s] exec=('gather', 'paused', 0.75) | 
+[t=42s] exec=('gather', 'paused', 0.75) | 
+[t=48s] exec=('gather', 'paused', 0.75) | 
+[t=54s] exec=('gather', 'paused', 0.75) | 
+[t=60s] exec=('gather', 'paused', 0.75) | 
+[t=66s] exec=('gather', 'paused', 0.75) | 
+[t=72s] exec=('gather', 'paused', 0.75) | 
+[t=78s] exec=('gather', 'paused', 0.75) | 
+[t=84s] exec=('gather', 'paused', 0.75) | 

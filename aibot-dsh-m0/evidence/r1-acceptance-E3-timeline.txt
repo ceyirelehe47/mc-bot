@@ -1,0 +1,20 @@
+[t=8s] exec=none | 
+[t=16s] exec=none | 
+[t=24s] exec=none | 
+[t=32s] exec=('goto', 'running', 0.04) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=40s] exec=('goto', 'running', 0.2) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=48s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=56s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=64s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=72s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=80s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=88s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=96s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=104s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=112s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=120s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=128s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=136s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=144s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=152s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 
+[t=160s] exec=none | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Walking to 120 

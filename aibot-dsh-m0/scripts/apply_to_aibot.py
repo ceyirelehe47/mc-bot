@@ -58,7 +58,7 @@ CHANGES = {
                 // 无 @ 前缀:对保留身体(外部大脑控制)放宽为免 @ 直聊;授权门与控制短语语义不变
                 String plainSender = sender.getGameProfile().getName();
                 for (var bot : AIPlayerManager.INSTANCE.all()) {
-                    if (!''+'ACCESS'+'''.reserved(bot)) continue;
+                    if (!'''+ACCESS+'''.reserved(bot)) continue;
                     if (!BotAuthorizationGate.INSTANCE.authorize(
                             sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:@bot")) {
                         return;
@@ -74,12 +74,55 @@ CHANGES = {
                 return;
             }
 ''', 1),
+  ('''                    if (!BotAuthorizationGate.INSTANCE.authorize(
+                            sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:@bot")) {
+                        return;
+                    }
+                    BotLog.comm(bot, "chat_in", "sender", plainSender, "text", text);
+                    if (io.github.zoyluo.aibot.runtime.IntentController.INSTANCE.routePlayerControlPhrase(
+                            bot, io.github.zoyluo.aibot.runtime.IntentController.ControlOrigin.PLAYER_COMMAND, text)) {
+                        return;
+                    }
+                    BrainCoordinator.INSTANCE.handleMessage(bot, plainSender, text);
+                    return;
+''',
+   '''                    if (!BotAuthorizationGate.INSTANCE.authorize(
+                            sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:plain_external")) {
+                        return;
+                    }
+                    BotLog.comm(bot, "chat_in", "sender", plainSender, "text", text);
+                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
+                            bot, sender.getUuid(), plainSender, "chat:plain", true, text);
+                    return;
+''', 1),
+  ('''                BotLog.comm(bot, "chat_in", "sender", sender.getGameProfile().getName(), "text", body);
+                if (io.github.zoyluo.aibot.runtime.IntentController.INSTANCE.routePlayerControlPhrase(
+                        bot, io.github.zoyluo.aibot.runtime.IntentController.ControlOrigin.PLAYER_COMMAND, body)) {
+                    return;
+                }
+                BrainCoordinator.INSTANCE.handleMessage(bot, sender.getGameProfile().getName(), body);
+''',
+   '''                String senderName = sender.getGameProfile().getName();
+                BotLog.comm(bot, "chat_in", "sender", senderName, "text", body);
+                if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
+                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
+                            bot, sender.getUuid(), senderName, "chat:@bot", true, body);
+                    return;
+                }
+                if (io.github.zoyluo.aibot.runtime.IntentController.INSTANCE.routePlayerControlPhrase(
+                        bot, io.github.zoyluo.aibot.runtime.IntentController.ControlOrigin.PLAYER_COMMAND, body)) {
+                    return;
+                }
+                BrainCoordinator.INSTANCE.handleMessage(bot, senderName, body);
+''', 1),
  ]),
  'task/DangerWatcher.java': ('16b7aeb058b2b557e4af9ad514d2736c318884fd', [
   ('private boolean maybeResupply(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {',
    'private boolean maybeResupply(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {\n        if ('+ACCESS+'.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响', 1),
-  ('private boolean maybeEat(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {',
-   'private boolean maybeEat(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {\n        if ('+ACCESS+'.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响', 1),
+  ('boolean urgent = critical || healingEmergency;',
+   'boolean urgent = critical || healingEmergency;\n        if ('+ACCESS+'.reserved(bot) && !urgent) return false; // 外部身体只保留 critical hunger / healing 的 SAFETY EatTask', 1),
+  ('if (InventoryAction.findFoodSlot(bot) < 0) {\n            // 第2层 饥饿链:没有任何食物 → 若周围有可猎动物,主动猎杀获取生肉,而非干等饿死。',
+   'if (InventoryAction.findFoodSlot(bot) < 0) {\n            if ('+ACCESS+'.reserved(bot)) {\n                '+RUNTIME+'.survivalAlert(bot, "critical_hunger_no_food");\n                nextEatAttemptTick.put(bot.getUuid(), now + 100);\n                return false;\n            }\n            // 第2层 饥饿链:没有任何食物 → 若周围有可猎动物,主动猎杀获取生肉,而非干等饿死。', 1),
   ('private boolean maybeStartNightTask(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {',
    'private boolean maybeStartNightTask(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {\n        if ('+ACCESS+'.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响', 1),
   ('private boolean maybeLightDarkArea(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {',
@@ -98,14 +141,32 @@ CHANGES = {
  'network/AIBotServerNetworking.java': ('baa72f575d832fbfa200d02af610104fd0018535', [
   ('String action = payload.action().toLowerCase(Locale.ROOT);',
    'String action = payload.action().toLowerCase(Locale.ROOT);\n        if ('+ACCESS+'.reserved(bot) && !"chat".equals(action)) {\n            sendSystem(player, bot.getGameProfile().getName(), "External body: use DSH controls; legacy panel mutation is disabled.");\n            return;\n        }', 1),
+  ('''            case "chat" -> {
+                sendBotChat(bot, "user", payload.arg1());
+                if (!IntentController.INSTANCE.routePlayerControlPhrase(
+                        bot, IntentController.ControlOrigin.PLAYER_PANEL, payload.arg1())) {
+                    BrainCoordinator.INSTANCE.handleMessage(bot, player.getGameProfile().getName(), payload.arg1());
+                }
+            }
+''',
+   '''            case "chat" -> {
+                sendBotChat(bot, "user", payload.arg1());
+                if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
+                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
+                            bot, player.getUuid(), player.getGameProfile().getName(),
+                            "network:panel_chat", true, payload.arg1());
+                } else if (!IntentController.INSTANCE.routePlayerControlPhrase(
+                        bot, IntentController.ControlOrigin.PLAYER_PANEL, payload.arg1())) {
+                    BrainCoordinator.INSTANCE.handleMessage(bot, player.getGameProfile().getName(), payload.arg1());
+                }
+            }
+''', 1),
  ]),
  'runtime/IntentController.java': ('69878ada6beca2e502dc4bd05d351d8682f902a7', [
   ('Objects.requireNonNull(origin, "origin");',
    'Objects.requireNonNull(origin, "origin");\n        if (origin != ControlOrigin.SYSTEM) '+ACCESS+'.checkTool(bot);', 1),
   ('String normalized = normalizeReason(origin, reason);',
    'if (origin != ControlOrigin.SYSTEM) '+ACCESS+'.checkTool(bot);\n        String normalized = normalizeReason(origin, reason);', 2),
-  ('public boolean routePlayerControlPhrase(AIPlayerEntity bot, ControlOrigin origin, String text) {',
-   'public boolean routePlayerControlPhrase(AIPlayerEntity bot, ControlOrigin origin, String text) {\n        if ('+ACCESS+'.reserved(bot)) {\n            '+ACCESS+'.message(bot, "authorized_player_control", text);\n            return true;\n        }', 1),
  ]),
 }
 

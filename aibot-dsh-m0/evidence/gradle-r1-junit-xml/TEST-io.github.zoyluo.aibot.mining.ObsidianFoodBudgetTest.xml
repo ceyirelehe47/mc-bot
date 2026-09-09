@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.mining.ObsidianFoodBudgetTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-09T15:37:18.787Z" hostname="FORST" time="0.003">
+  <properties/>
+  <testcase name="initialRationIsStagedAtTheFloorBufferLevel()" classname="io.github.zoyluo.aibot.mining.ObsidianFoodBudgetTest" time="0.001"/>
+  <testcase name="partialSegmentsRoundUpAndStayWithinOneStack()" classname="io.github.zoyluo.aibot.mining.ObsidianFoodBudgetTest" time="0.001"/>
+  <testcase name="smallTargetsKeepTheBoundedLegacyFloor()" classname="io.github.zoyluo.aibot.mining.ObsidianFoodBudgetTest" time="0.0"/>
+  <testcase name="longMissionsCarryPerSegmentRationsPlusBuffer()" classname="io.github.zoyluo.aibot.mining.ObsidianFoodBudgetTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,14 @@
+[t=5s] food=0 | 
+[t=10s] food=0 | 
+[t=15s] food=0 | 
+[t=20s] food=0 | 
+[t=25s] food=0 | 
+[t=30s] food=0 | 
+[t=35s] food=0 | 
+[t=40s] food=0 | 
+[t=45s] food=0 | 
+[t=50s] food=0 | 
+[t=55s] food=0 | 
+[t=60s] food=0 | 
+[t=65s] food=0 | 
+[t=70s] food=0 | 

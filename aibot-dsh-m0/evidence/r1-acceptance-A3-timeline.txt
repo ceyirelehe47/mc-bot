@@ -1,0 +1,14 @@
+[t=5s] 14 32.5 -31.5 | 
+[t=10s] 14 63.4 -31.5 | 
+[t=15s] 14 89.5 -38.5 | 
+[t=20s] 14 120.2 -39.5 | [AIBot] TASK event=task_completed bot=Bob |
+[t=25s] 14 120.7 -39.5 | [AIBot] TASK event=task_completed bot=Bob |
+[t=30s] 14 120.7 -39.5 | [AIBot] TASK event=task_completed bot=Bob |
+[t=35s] 14 120.7 -39.5 | [AIBot] TASK event=task_completed bot=Bob |
+[t=40s] 14 120.7 -39.5 | [AIBot] TASK event=task_completed bot=Bob |
+[t=45s] 14 120.7 -39.5 | [AIBot] TASK event=task_completed bot=Bob |
+[t=50s] 14 120.7 -39.5 | [AIBot] TASK event=task_completed bot=Bob |
+[t=55s] 14 120.7 -39.5 | [AIBot] TASK event=task_completed bot=Bob |
+[t=60s] 14 120.7 -39.5 | [AIBot] TASK event=task_completed bot=Bob |
+[t=65s] 14 120.7 -39.5 | [AIBot] TASK event=task_completed bot=Bob |
+[t=70s] 14 120.7 -39.5 | [AIBot] TASK event=task_completed bot=Bob |

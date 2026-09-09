@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "savedAtUtc": "2026-09-09T16:27:59.018832800Z",
+  "buildVersion": "0.0.1",
+  "runtimeSessionId": "b69a2fa9-6bae-450c-806b-fc73cc408cd8",
+  "bots": [
+    {
+      "bot": {
+        "name": "Bob",
+        "dimension": "minecraft:overworld",
+        "x": 264.5,
+        "y": 101.0,
+        "z": 10.5,
+        "yaw": -180.0,
+        "pitch": -60.395687,
+        "gameMode": "survival",
+        "health": 20.0,
+        "hunger": 17,
+        "inventoryNbt": "{Inventory:[{Slot:0b,count:8,id:\"minecraft:cherry_log\"},{Slot:1b,count:2,id:\"minecraft:cherry_planks\"},{Slot:2b,count:1,id:\"minecraft:crafting_table\"},{Slot:4b,components:{\"minecraft:damage\":24},count:1,id:\"minecraft:wooden_pickaxe\"},{Slot:5b,count:1,id:\"minecraft:wooden_sword\"},{Slot:6b,count:13,id:\"minecraft:cooked_beef\"},{Slot:7b,components:{\"minecraft:damage\":102},count:1,id:\"minecraft:stone_axe\"},{Slot:8b,components:{\"minecraft:damage\":5},count:1,id:\"minecraft:stone_sword\"},{Slot:9b,count:8,id:\"minecraft:cobblestone\"},{Slot:10b,count:3,id:\"minecraft:oak_fence\"},{Slot:11b,count:1,id:\"minecraft:furnace\"},{Slot:12b,components:{\"minecraft:damage\":13},count:1,id:\"minecraft:stone_pickaxe\"},{Slot:13b,count:2,id:\"minecraft:gunpowder\"},{Slot:14b,count:1,id:\"minecraft:bone\"},{Slot:15b,count:2,id:\"minecraft:string\"}]}",
+        "role": "worker",
+        "memoryNbt": "{facts:{},goalCursor:0,goalSteps:[\"collect 16 cobblestone blocks\"],goalTitle:\"cobble_goal\",places:{base:{dimension:\"minecraft:overworld\",x:5,y:112,z:-13},furnace:{dimension:\"minecraft:overworld\",x:80,y:114,z:79}}}",
+        "ownerUuid": "53b8c64e-8fa2-3285-8bdc-6e3a2d8554c4"
+      },
+      "missions": {
+        "queue": [],
+        "userPaused": false
+      }
+    }
+  ],
+  "jobs": []
+}

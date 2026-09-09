@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.task.HuntSearchCursorTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-09T15:37:19.489Z" hostname="FORST" time="0.123">
+  <properties/>
+  <testcase name="surfaceAnchorIsDimensionBoundSetOnceAndCheckpointed()" classname="io.github.zoyluo.aibot.task.HuntSearchCursorTest" time="0.002"/>
+  <testcase name="dirtyAndRevisionChangeOnlyForDurableMutations()" classname="io.github.zoyluo.aibot.task.HuntSearchCursorTest" time="0.002"/>
+  <testcase name="malformedNonEmptyCheckpointsFailClosed()" classname="io.github.zoyluo.aibot.task.HuntSearchCursorTest" time="0.004"/>
+  <testcase name="ordinalClaimsRemainMissionGlobalAcrossReplansAndRestart()" classname="io.github.zoyluo.aibot.task.HuntSearchCursorTest" time="0.0"/>
+  <testcase name="invalidPublicDimensionsAndOrdinalExhaustionAreRejected()" classname="io.github.zoyluo.aibot.task.HuntSearchCursorTest" time="0.002"/>
+  <testcase name="capacityRefusesNewSectorsWithoutEvictingOldHistory()" classname="io.github.zoyluo.aibot.task.HuntSearchCursorTest" time="0.105"/>
+  <testcase name="equivalentStateHasDeterministicCheckpointContentAndOrder()" classname="io.github.zoyluo.aibot.task.HuntSearchCursorTest" time="0.003"/>
+  <testcase name="nullAndEmptyLegacyCheckpointsRestoreFreshState()" classname="io.github.zoyluo.aibot.task.HuntSearchCursorTest" time="0.001"/>
+  <testcase name="sectorsUseFloorDivisionAndRemainDimensionAware()" classname="io.github.zoyluo.aibot.task.HuntSearchCursorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

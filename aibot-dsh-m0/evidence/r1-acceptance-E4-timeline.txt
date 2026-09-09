@@ -1,0 +1,22 @@
+[t=8s] exec=('gather', 'running', 0.46) | 
+[t=16s] exec=('gather', 'running', 0.71) | 
+[t=24s] exec=('gather', 'running', 0.75) | 
+[t=32s] exec=('gather', 'running', 0.88) | 
+[t=40s] exec=('gather', 'running', 0.96) | 
+[t=48s] exec=none | 
+[t=56s] exec=none | 
+[t=64s] exec=none | 
+[t=72s] exec=none | 
+[t=80s] exec=none | 
+[t=88s] exec=none | 
+[t=96s] exec=none | 
+[t=104s] exec=none | 
+[t=112s] exec=none | 
+[t=120s] exec=none | 
+[t=128s] exec=none | 
+[t=136s] exec=none | 
+[t=144s] exec=none | 
+[t=152s] exec=none | 
+[t=160s] exec=none | 
+[t=168s] exec=none | 
+[t=176s] exec=none | 

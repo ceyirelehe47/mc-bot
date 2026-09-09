@@ -1,0 +1,20 @@
+[t=8s] exec=none | 
+[t=16s] exec=none | 
+[t=24s] exec=none | 
+[t=32s] exec=none | 
+[t=40s] exec=none | 
+[t=48s] exec=('gather', 'running', 0.25) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=56s] exec=('gather', 'running', 0.25) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=64s] exec=('gather', 'running', 0.25) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=72s] exec=('gather', 'running', 0.38) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=80s] exec=('gather', 'running', 0.38) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=88s] exec=('gather', 'running', 0.38) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=96s] exec=('gather', 'running', 0.38) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=104s] exec=('gather', 'running', 0.38) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=112s] exec=('gather', 'running', 0.38) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=120s] exec=('gather', 'running', 0.38) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=128s] exec=('gather', 'running', 0.5) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=136s] exec=('gather', 'running', 0.5) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=144s] exec=('gather', 'running', 0.5) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=152s] exec=('gather', 'running', 0.5) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 
+[t=160s] exec=('gather', 'running', 0.5) | EVT task_assigned bot=Bob {origin=LLM_TOOL, params=Gathering m 

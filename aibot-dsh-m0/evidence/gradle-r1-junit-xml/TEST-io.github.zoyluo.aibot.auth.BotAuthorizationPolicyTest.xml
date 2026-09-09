@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-09T15:37:17.132Z" hostname="FORST" time="0.018">
+  <properties/>
+  <testcase name="unknownActorIsAlwaysDenied()" classname="io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest" time="0.007"/>
+  <testcase name="operatorCanManageOwnedAndOwnerlessBots()" classname="io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest" time="0.001"/>
+  <testcase name="ownerCanPerformEveryBotScopedOperation()" classname="io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest" time="0.001"/>
+  <testcase name="unrelatedPlayerCannotPerformAnyBotScopedOperation()" classname="io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest" time="0.001"/>
+  <testcase name="ownerlessTargetRejectsNormalPlayer()" classname="io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest" time="0.001"/>
+  <testcase name="consoleAndSystemCanPerformEveryOperation()" classname="io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest" time="0.001"/>
+  <testcase name="sameOwnerBotCanOnlySendCommands()" classname="io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest" time="0.001"/>
+  <testcase name="crossOwnerAndOwnerlessBotActorsAreDenied()" classname="io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest" time="0.001"/>
+  <testcase name="globalTargetRequiresTrustedAdministrator()" classname="io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
