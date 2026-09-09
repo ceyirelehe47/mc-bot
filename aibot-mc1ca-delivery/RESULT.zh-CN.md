@@ -44,7 +44,7 @@ R1_PROVENANCE_REGRESSION = NOT_RUN
 
 ### HOME_PROTECTION = PASS（LIVE-1）
 - 木屋（oak_log 角柱×4×3 + 木板墙/地板/顶）+ 注册 HOME（radius=4, below=1, above=5），屋外自然橡树。
-- **逐块快照**：HOME cuboid 567 格 `execute if block` 全枚举（`04-live/LIVE-1-home-before.json` vs `-after.json`），**sha256 完全一致** `635377f56952506eb912ae69b46cd87733825cdb93e9ac3519898237870717d8`，0 格变化——多次 gather 期间房柱曾被 prospect 选中为目标（`gather_prospect_unreachable found=3,113,3` 等），挖掘层硬门全部拦截。
+- **逐块快照**：HOME cuboid 567 格 `execute if block` 全枚举（`04-live/LIVE-1-home-before.json` vs `-after.json`），**快照数据 sha256 完全一致** `635377f56952506eb912ae69b46cd87733825cdb93e9ac3519898237870717d8`（注：为两个 JSON 内嵌 snapshot 单元格数据的摘要，非整文件哈希；两文件仅 elapsed_sec 元数据行不同），0 格变化——多次 gather 期间房柱曾被 prospect 选中为目标（`gather_prospect_unreachable found=3,113,3` 等，见 `05-server/server.log` 与 `05-server/server-restart1.log`），挖掘层硬门全部拦截。
 - 外部自然树实际变化：多棵真实树被采伐（(14,115,46) 橡树、(12,113,0) 树基×3、孤岛树群）。
 - 配额达成：oak_log=4 严格满足（`task_completed` 02:48:33）。
 - 过程发现（非缺陷但重要）：上游 gather 的 family 计数把任意原木计入任意原木配额（cherry_log 满足 oak 配额导致秒完成），严格 postcondition 又只认精确物品——见 LIVE-1.log 多次 `observed=N:quota=4`。
