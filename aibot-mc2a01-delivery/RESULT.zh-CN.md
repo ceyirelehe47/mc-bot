@@ -5,7 +5,7 @@
 | 项 | 值 |
 |---|---|
 | base | `6bd9d7099b72573ff42a7c952e1f407109aeb7f3`（experiment/mc2a0-cognitive-view） |
-| final | `254d204…`（本分支头，完整 SHA 见 00-meta） |
+| final | `e3515ce…`（交付内容主提交；完整 SHA 见 00-meta/final-sha.txt） |
 | branch | `experiment/mc2a01-cognitive-evidence-boundary` |
 | 外部验收 | MC-2A0 判定 PARTIAL PASS；本轮修复全部 6 项缺陷 |
 
@@ -13,7 +13,7 @@
 
 - 开工时 `origin/experiment/mc2a0-cognitive-view` == `6bd9d70…` 已验证；从 exact base
   新建分支，无 merge master、无 force push。
-- final SHA：本提交（交付物与组件更新随同入库；`00-meta/`）。
+- final SHA：交付内容主提交 `e3515ce…`（本文件为随后的元数据修正提交）。
 
 ## 3. remote structure current-integrity policy
 
