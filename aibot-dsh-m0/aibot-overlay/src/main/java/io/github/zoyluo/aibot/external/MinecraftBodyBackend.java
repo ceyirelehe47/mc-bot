@@ -60,15 +60,8 @@ public final class MinecraftBodyBackend implements BodyBackend {
         out.addProperty("dimension",bot.getServerWorld().getRegistryKey().getValue().toString());
         JsonObject position=new JsonObject(); position.addProperty("x",bot.getX());position.addProperty("y",bot.getY());position.addProperty("z",bot.getZ());out.add("position",position);
         out.add("inventory",GSON.toJsonTree(inventory()));
-        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
+        refreshCaches();
         int tick=server.getTicks();
-        if(perception==null || tick-perceptionTick>=10 || tick<perceptionTick || !dimension.equals(perceptionDimension)) {
-            perception=JsonParser.parseString(PerceptionCollector.collect(bot).toJson());
-            perceptionTick=tick;perceptionDimension=dimension;
-        }
-        if(semantic==null || tick-semanticTick>=10 || tick<semanticTick || !dimension.equals(semanticDimension)) {
-            semantic=SemanticWorldRegistry.observe(bot); semanticTick=tick; semanticDimension=dimension;
-        }
         out.add("semantic_world",semantic);
         out.addProperty("semantic_age_ticks",Math.max(0,tick-semanticTick));
         out.add("perception",perception);
@@ -79,6 +72,32 @@ public final class MinecraftBodyBackend implements BodyBackend {
         out.addProperty("paused_depth",TaskManager.INSTANCE.pausedDepth(bot));
         return GSON.toJson(out);
     }
+    /** perception/semantic 各 10-tick 缓存;认知视图与 observeJson 共用同一份,绝不做第二次全扫。 */
+    private void refreshCaches() {
+        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
+        int tick=server.getTicks();
+        if(perception==null || tick-perceptionTick>=10 || tick<perceptionTick || !dimension.equals(perceptionDimension)) {
+            perception=JsonParser.parseString(PerceptionCollector.collect(bot).toJson());
+            perceptionTick=tick;perceptionDimension=dimension;
+        }
+        if(semantic==null || tick-semanticTick>=10 || tick<semanticTick || !dimension.equals(semanticDimension)) {
+            semantic=SemanticWorldRegistry.observe(bot); semanticTick=tick; semanticDimension=dimension;
+        }
+    }
+    // MC-2A0 认知查询:server 线程被 kernel.tick 调用,只读复用上述缓存。
+    @Override public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal) {
+        onThread();
+        if(bot==null || !bot.isAlive()) return null;
+        refreshCaches();
+        JsonObject semanticSnapshot=semantic!=null && semantic.isJsonObject() ? semantic.getAsJsonObject() : null;
+        return io.github.zoyluo.aibot.external.cognition.CognitiveViewBuilder.build(bot,journal,semanticSnapshot);
+    }
+    @Override public String inspectLocalJson(int radius,String detail) {
+        onThread();
+        if(bot==null || !bot.isAlive())throw new BridgeFault(409,"body_unavailable");
+        return io.github.zoyluo.aibot.external.cognition.CognitiveInspector.inspectLocalJson(bot,radius,detail);
+    }
+    @Override public long serverTick() { onThread(); return server.getTicks(); }
     private Map<String,Integer> inventory() {
         Map<String,Integer> counts=new TreeMap<>();
         for(int i=0;i<bot.getInventory().size();i++) {

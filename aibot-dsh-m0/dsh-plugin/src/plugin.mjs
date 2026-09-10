@@ -84,7 +84,7 @@ export function install(ctx, api, options = {}) {
         }
       })();
       return { attached: true, ...lease, status: await client.status(signal),
-        limits: 'M1C-A R2: one configured Bot, strict_survival, fourteen bounded operations, world/dimension-scoped semantics + deferred ore + conservative HOME rebuild.' };
+        limits: 'MC-2A0: one configured Bot, strict_survival, fourteen bounded operations, world/dimension-scoped semantics, plus read-only mc_view/mc_inspect/mc_inspect_local cognitive queries.' };
     })();
     try { return await connecting; } finally { connecting = null; connectingAgent = null; }
   }
@@ -99,6 +99,17 @@ export function install(ctx, api, options = {}) {
     async (_args, exec) => attach(exec.agent, exec.signal));
   register('mc_observe', 'Read a fresh bounded snapshot of the body, inventory, nearby world and current task. Required after unknown outcomes or a restart.', {},
     async (_args, exec) => bound(exec).client.observe(exec.signal));
+  // MC-2A0 read-only cognitive queries: never conclude the turn, never occupy the execution slot.
+  register('mc_view', 'Read the compact cognitive view (mc.cognitive_view.v0): world scope, self/inventory, environment phase, HOME/farm/opportunity summaries with evidence_refs, execution state, recent significant events, explicit uncertainties, and a stable scene_hash. Read-only and safe while a task is RUNNING. Prefer this over mc_observe for ordinary situation awareness.', {},
+    async (_args, exec) => bound(exec).client.view(exec.signal));
+  register('mc_inspect', 'Drill down ONE semantic object via its exact evidence_ref copied from mc_view. Structures: summary|integrity|baseline; farms: summary|cells; opportunities: summary|evidence. Read-only, fail-closed on forged or foreign refs.',
+    { ref: string('Exact evidence_ref from mc_view, form mc://<world>/<dimension>/<kind>/<id>.'),
+      detail: { type: 'string', description: 'Optional detail level; default summary.' } },
+    async (args, exec) => bound(exec).client.inspect(args.ref, args.detail, exec.signal));
+  register('mc_inspect_local', 'Read a bounded local view centered on the CURRENT body only (remote centers are impossible). Same strict observation boundary as perception: occluded blocks stay invisible. Read-only.',
+    { radius: { type: 'integer', description: 'Chebyshev radius 1..16 around the current body; default 4, clamped to the perception policy radius.' },
+      detail: { type: 'string', description: 'Optional summary (default), blocks, entities, or all.' } },
+    async (args, exec) => bound(exec).client.inspectLocal(args.radius ?? 4, args.detail, exec.signal));
   register('mc_status', 'Read bridge state and active execution, or look up one execution id. accepted/running/paused are NOT success.',
     { execution_id: { type: 'string', description: 'Optional exact execution id from a previous receipt.' } },
     async (args, exec) => args.execution_id ? bound(exec).client.execution(args.execution_id, exec.signal) : bound(exec).client.status(exec.signal));

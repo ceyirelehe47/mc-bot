@@ -62,3 +62,20 @@ test('oversized or malformed successful transport response is not trusted',async
   const c=make(async()=>new Response('x',{headers:{'content-length':'99999999'}}));await assert.rejects(()=>c.status(),/too large/);
   const d=make(async()=>new Response('{'));await assert.rejects(()=>d.status());
 });
+test('cognitive queries use POST query semantics and propagate 4xx/5xx bridge errors',async()=>{
+  const seen=[];
+  const c=make(async(url,opts)=>{
+    seen.push([opts.method,url]);
+    if(url.endsWith('/v1/view'))return ok({schema:'mc.cognitive_view.v0',meta:{},scene:{}});
+    if(url.includes('/v1/inspect?'))return bad(404,'evidence_ref_not_in_current_view:foreign_or_unknown_or_kind_mismatch');
+    if(url.includes('/v1/inspect-local?'))return bad(400,'radius_out_of_range_1_16');
+    throw new Error('unexpected '+url);
+  });
+  // 不连接(无 lease)也可查询:与 observe 一致的只读语义
+  const view=await c.view();assert.equal(view.schema,'mc.cognitive_view.v0');
+  await assert.rejects(()=>c.inspect('mc://w/minecraft:overworld/farm/f'),e=>e instanceof BridgeError&&e.status===404);
+  await assert.rejects(()=>c.inspectLocal(17),e=>e instanceof BridgeError&&e.status===400);
+  assert.deepEqual(seen,[['POST','http://127.0.0.1:8765/v1/view'],
+    ['POST','http://127.0.0.1:8765/v1/inspect?ref=mc%3A%2F%2Fw%2Fminecraft%3Aoverworld%2Ffarm%2Ff&detail=summary'],
+    ['POST','http://127.0.0.1:8765/v1/inspect-local?radius=17&detail=summary']]);
+});

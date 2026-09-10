@@ -438,6 +438,42 @@ public final class SemanticWorldRegistry {
                 || now - prior.stateSinceGameTime > REVALIDATE_COOLDOWN_TICKS;
     }
 
+    // ---- MC-2A0 read-only evidence accessors (cognition view drill-down) ----
+    // 只读快照拷贝,registry 仍是唯一 authority;认知视图绝不在此之上做第二次可变真相。
+
+    public record SnapshotCellEvidence(int x, int y, int z, String blockId) {}
+    public record StructureEvidence(String id, String kind, String dimension,
+                                    int minX, int minY, int minZ, int maxX, int maxY, int maxZ,
+                                    List<SnapshotCellEvidence> cells) {}
+    public record CellEvidence(int x, int y, int z) {}
+    public record FarmEvidence(String id, String cropId, int x, int y, int z, int radius,
+                               List<CellEvidence> cells) {}
+
+    /** 当前维度全部已注册结构的不可变快照(含 baseline 逐格期望),按 id 稳定排序。 */
+    public static List<StructureEvidence> structureEvidences(AIPlayerEntity bot) {
+        requireReady(bot);
+        String dim = dimension(bot);
+        List<StructureEvidence> out = new ArrayList<>();
+        for (Structure structure : STRUCTURES.values()) if (structure.dimension.equals(dim))
+            out.add(new StructureEvidence(structure.id, structure.kind, structure.dimension,
+                    structure.minX, structure.minY, structure.minZ, structure.maxX, structure.maxY, structure.maxZ,
+                    structure.snapshot.stream().map(cell -> new SnapshotCellEvidence(cell.x(), cell.y(), cell.z(), cell.blockId())).toList()));
+        out.sort(Comparator.comparing(StructureEvidence::id));
+        return out;
+    }
+
+    /** 当前维度全部已注册农田的不可变快照(exact connected cell mask),按 id 稳定排序。 */
+    public static List<FarmEvidence> farmEvidences(AIPlayerEntity bot) {
+        requireReady(bot);
+        String dim = dimension(bot);
+        List<FarmEvidence> out = new ArrayList<>();
+        for (Farm farm : FARMS.values()) if (farm.dimension.equals(dim))
+            out.add(new FarmEvidence(farm.id, farm.cropId, farm.x, farm.y, farm.z, farm.radius,
+                    farm.cells.stream().map(cell -> new CellEvidence(cell.x(), cell.y(), cell.z())).toList()));
+        out.sort(Comparator.comparing(FarmEvidence::id));
+        return out;
+    }
+
     public static Optional<OpportunitySpec> opportunity(AIPlayerEntity bot, String rawId) {
         requireReady(bot);
         String id = id(rawId, "opportunity");

@@ -1,0 +1,33 @@
+# MC-2A0 最终状态（提交前快照）
+
+## mc-bot 仓库（本仓库）
+- 分支: experiment/mc2a0-cognitive-view
+- HEAD(提交前): d3699fb3b0b6707984aef8ca5d6479dc5f778b1a
+- 变更: aibot-dsh-m0 交付组件更新 + aibot-mc2a0-delivery 新交付目录
+ M aibot-dsh-m0/SHA256SUMS
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
+ M aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
+ M aibot-dsh-m0/bridge-tests/FakeBridgeServer.java
+ M aibot-dsh-m0/dsh-plugin/src/client.mjs
+ M aibot-dsh-m0/dsh-plugin/src/events.mjs
+ M aibot-dsh-m0/dsh-plugin/src/plugin.mjs
+ M aibot-dsh-m0/dsh-plugin/test/client.test.mjs
+ M aibot-dsh-m0/dsh-plugin/test/http-integration.test.mjs
+ M aibot-dsh-m0/dsh-plugin/test/plugin.test.mjs
+ M aibot-dsh-m0/scripts/apply_to_aibot.py
+ M aibot-dsh-m0/scripts/test.sh
+ M aibot-dsh-m0/scripts/test_installers.py
+?? aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A0CognitiveViewGameTests.java
+?? aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/
+?? aibot-dsh-m0/aibot-overlay/src/test/
+?? aibot-dsh-m0/dsh-plugin/test/FakeBridgeServer.java
+?? aibot-mc2a0-delivery/
+
+## aibot 开发工作区（D:/code/mc-experiment/aibot）
+- HEAD: a029fa6a（上游冻结点，未提交变更=installer 交付形态，与重放产物 0 diff）
+## 重放工作区
+- aibot-replay-2a0: 干净 a029fa6（验证后已重置）

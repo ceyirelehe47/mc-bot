@@ -84,6 +84,14 @@ export class BodyClient {
   requireConnected() { if (!this.#lease) throw new Error('No control lease. Call mc_connect first.'); }
   status(signal) { return this.request('GET', '/v1/status', { signal }); }
   observe(signal) { return this.request('GET', '/v1/observe', { signal }); }
+  // MC-2A0 read-only cognitive queries: no lease, no execution receipt, safe while a task runs.
+  view(signal) { return this.request('POST', '/v1/view', { signal }); }
+  inspect(ref, detail, signal) {
+    return this.request('POST', `/v1/inspect?ref=${encodeURIComponent(ref)}&detail=${encodeURIComponent(detail ?? 'summary')}`, { signal });
+  }
+  inspectLocal(radius, detail, signal) {
+    return this.request('POST', `/v1/inspect-local?radius=${encodeURIComponent(radius)}&detail=${encodeURIComponent(detail ?? 'summary')}`, { signal });
+  }
   execution(id, signal) { return this.request('GET', '/v1/executions/' + encodeURIComponent(id), { signal }); }
   async lookup(requestId, signal) {
     const result = await this.request('GET', '/v1/requests/' + encodeURIComponent(requestId), { signal });

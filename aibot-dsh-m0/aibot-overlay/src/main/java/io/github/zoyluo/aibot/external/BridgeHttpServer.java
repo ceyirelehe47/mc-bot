@@ -54,6 +54,18 @@ public final class BridgeHttpServer implements AutoCloseable {
                 } finally { eventReaders.release(); }
             } else if(method.equals("GET") && path.startsWith("/v1/requests/")) {
                 result=kernel.requestStatus(segment(path,3));
+            } else if(method.equals("POST") && path.equals("/v1/view")) {
+                // MC-2A0 只读认知查询:query semantics,POST 只是参数通道。
+                result=kernel.view();
+            } else if(method.equals("POST") && path.equals("/v1/inspect")) {
+                Map<String,String> view=query(x.getRequestURI().getRawQuery());
+                result=kernel.inspect(view.get("ref"),view.get("detail"));
+            } else if(method.equals("POST") && path.equals("/v1/inspect-local")) {
+                Map<String,String> local=query(x.getRequestURI().getRawQuery());
+                int radius;
+                try { radius=Integer.parseInt(local.getOrDefault("radius","4")); }
+                catch(NumberFormatException bad) { throw new BridgeFault(400,"invalid_radius"); }
+                result=awaitLocal(kernel.submitLocalQuery(radius,local.get("detail")));
             } else if(path.startsWith("/v1/executions/")) {
                 String[] parts=path.split("/",-1);
                 if(parts.length==4 && method.equals("POST")) {
@@ -73,6 +85,21 @@ public final class BridgeHttpServer implements AutoCloseable {
         catch(InterruptedException e) { Thread.currentThread().interrupt(); reply(x,503,Map.of("ok",false,"error","server_stopping")); }
         catch(RuntimeException e) { reply(x,500,Map.of("ok",false,"error","internal_error_do_not_blindly_retry_mutations")); }
         finally { x.close(); }
+    }
+    /** HTTP 线程无锁等待 server 线程完成局部查询(kernel synchronized,持锁等待会死锁)。 */
+    private static Map<String,Object> awaitLocal(java.util.concurrent.CompletableFuture<String> future) {
+        String json;
+        try { json=future.get(5,TimeUnit.SECONDS); }
+        catch(java.util.concurrent.TimeoutException timeout) { throw new BridgeFault(503,"query_timeout"); }
+        catch(java.util.concurrent.ExecutionException execution) {
+            if(execution.getCause() instanceof BridgeFault fault) throw fault;
+            throw new BridgeFault(500,"query_failed");
+        }
+        catch(InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new BridgeFault(503,"server_stopping"); }
+        Map<String,Object> out=new LinkedHashMap<>();
+        out.put("schema","mc.local_view.v0_wrapper");
+        out.put("snapshot",new JsonOutput.Raw(json));
+        return out;
     }
     private static String segment(String path,int index) {
         String[] parts=path.split("/",-1);

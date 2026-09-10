@@ -332,13 +332,37 @@ CHANGES = {
 EXTRA_CHANGES={
  'src/gametest/resources/fabric.mod.json': ('25ecb31ca127ed2e9d57ccb9b5c223066092f3e5', [
   ('"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",',
-   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",', 1),
+   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",', 1),
  ]),
  'src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java': ('07d61c3c7b180d12361b8ab6bbe8983f42ed30f4', [
   ('        assertEquals(2, occurrences(buildTask, "isObservableStandable(bot, candidate)"),\n                "both work-pose scans must cross the observable-world boundary");\n',
    '        // R2.1: work-pose selection proves the TARGET cell observable through the strict boundary\n        // (ObservableWorldQuery.canObserveCellFrom) evaluated from the candidate stand eye — the\n        // old "stand visible from the CURRENT eye" rule dead-locked HOME repair (LIVE-R2-7).\n        assertEquals(2, occurrences(buildTask, "isWorkPoseUsable(bot, candidate,"),\n                "both work-pose scans must prove the target observable through the strict boundary");\n', 1),
   ('                "raw standability must stay inside the observable work-pose adapter");\n        assertFalse(StructureVerifier.matches(\n',
    '                "raw standability must stay inside the observable work-pose adapter");\n        assertTrue(buildTask.contains("ObservableWorldQuery.canObserveCellFrom"),\n                "work-pose acceptance must run the strict observation raycast, not raw reads");\n        assertFalse(StructureVerifier.matches(\n', 1),
+  ('    private static Map<String, String> matchingSources(Pattern pattern) throws IOException {\n',
+   '''    @Test
+    void cognitiveViewStaysAReadModel() throws IOException {
+        // MC-2A0 (VIEW-1/READ-1): the cognitive view reports evidence only. Builders must not
+        // mutate the world, the registry ledger or the body inventory from the query path.
+        String[] cognitionSources = {
+                "external/cognition/CognitiveViewBuilder.java",
+                "external/cognition/CognitiveInspector.java",
+                "external/cognition/CanonicalJson.java",
+                "external/cognition/EvidenceRef.java",
+                "external/cognition/CognitiveSnapshot.java"};
+        for (String relative : cognitionSources) {
+            String source = read(relative);
+            assertFalse(source.contains(".setBlockState("), relative + " must not place blocks");
+            assertFalse(source.contains(".breakBlock("), relative + " must not break blocks");
+            assertFalse(source.contains(".insertStack("), relative + " must not inject inventory");
+            assertFalse(source.contains(".assign("), relative + " must not assign tasks");
+        }
+        String backend = read("external/MinecraftBodyBackend.java");
+        assertTrue(backend.contains("CognitiveViewBuilder.build(bot,journal,semanticSnapshot)"),
+                "the view must reuse the observe semantic cache, never run a second full scan");
+    }
+
+    private static Map<String, String> matchingSources(Pattern pattern) throws IOException {\n''', 1),
  ]),
 }
 

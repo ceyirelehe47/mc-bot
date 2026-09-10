@@ -11,7 +11,18 @@ public final class BridgeCoreTest {
     static int passed;
     static final class FakeBackend implements BodyBackend {
         boolean alive=true; String id="body-1"; String state="running"; int starts,pauses,resumes,cancels; boolean failStart;
+        long tick; String localJson="{\"schema\":\"mc.local_view.v0\"}";
+        static final String SCENE="{\"world\":{\"world_id\":\"core-test-world\"}}";
         public boolean ready(){return alive;} public String bodyId(){return id;}
+        public long serverTick(){return ++tick;}
+        public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal){
+            java.util.Map<String,String> details=new java.util.LinkedHashMap<>();
+            details.put("summary","{\"object_id\":\"home1\"}");
+            java.util.Map<String,java.util.Map<String,String>> index=new java.util.LinkedHashMap<>();
+            index.put("mc://core-test-world/minecraft%3Aoverworld/structure/home1",details);
+            return new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot(SCENE,"cafe".repeat(16),42L,index);
+        }
+        public String inspectLocalJson(int radius,String detail){return localJson;}
         public String observeJson(){return "{\"health\":20,\"inventory\":{}}";}
         public Handle start(String op,String args){ starts++; if(failStart)throw new IllegalStateException(); state="running"; return ()->new Snapshot(state,.5,""); }
         public void pause(){pauses++;if(state.equals("running"))state="paused";}
@@ -31,7 +42,32 @@ public final class BridgeCoreTest {
     static void check(boolean condition,String name){if(!condition)throw new AssertionError(name);passed++;System.out.println("PASS "+name);}
     static void fault(int status,String code,Runnable fn){try{fn.run();throw new AssertionError("expected "+code);}catch(BridgeFault e){check(e.status==status && e.code.startsWith(code),code);}}
     public static void main(String[] args)throws Exception {
-        check(JsonOutput.encode(Map.of("x","\"\\\n中文😀")).equals("{\"x\":\"\\\"\\\\\\n中文\\ud83d\\ude00\"}"),"JSON escaping");
+
+        try(Fixture f=fixture()) {
+            // MC-2A0: view is a read query — no lease required, and unlike observe it must NOT
+            // clear needsReconcile (that would unlock new work without a real reconciliation).
+            var v=f.kernel.view();
+            check(v.get("schema").equals("mc.cognitive_view.v0"),"view schema");
+            check(v.get("meta") instanceof Map m && String.valueOf(((Map<?,?>)m).get("scene_hash")).startsWith("sha256:"),"view hash format");
+            f.body.id="body-2"; f.kernel.tick(); // body identity change -> needsReconcile
+            check(f.kernel.status().get("needs_reconcile").equals(true),"body change requires reconciliation");
+            f.kernel.view();
+            check(f.kernel.status().get("needs_reconcile").equals(true),"view must not clear needs_reconcile");
+            String t=claim(f);
+            fault(409,"observe_required",()->f.kernel.submit(t,"new-work","gather","{}"));
+            fault(400,"invalid_evidence_ref",()->f.kernel.inspect("garbage",null));
+            fault(404,"evidence_ref_not_in_current_view",()->f.kernel.inspect("mc://other/minecraft%3Aoverworld/structure/home1",null));
+            var evidence=f.kernel.inspect("mc://core-test-world/minecraft%3Aoverworld/structure/home1",null);
+            check(evidence.get("detail").equals("summary"),"inspect summary detail");
+            fault(400,"unsupported_detail_level",()->f.kernel.inspect("mc://core-test-world/minecraft%3Aoverworld/structure/home1","baseline"));
+            fault(400,"radius_out_of_range",()->f.kernel.submitLocalQuery(0,"summary"));
+            var query=f.kernel.submitLocalQuery(4,"summary");
+            check(!query.isDone(),"local query waits for the server thread");
+            f.kernel.tick();
+            check(query.isDone() && query.get().contains("mc.local_view.v0"),"local query completes on tick thread");
+            f.kernel.observe();
+            check(f.kernel.status().get("needs_reconcile").equals(false),"only observe unlocks new work");
+        }        check(JsonOutput.encode(Map.of("x","\"\\\n中文😀")).equals("{\"x\":\"\\\"\\\\\\n中文\\ud83d\\ude00\"}"),"JSON escaping");
         try(Fixture f=fixture()) {
             String t=claim(f);
             check(f.kernel.status().get("control_active").equals(true),"lease active");

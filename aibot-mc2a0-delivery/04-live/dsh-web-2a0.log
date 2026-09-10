@@ -1,0 +1,3 @@
+$ node --import tsx/esm apps/cli/src/bin.ts "web" "--patch" "D:\\code\\mc-experiment\\dsh\\scratch-aibot-body\\cordis.yml"
+dsh web: http://127.0.0.1:3080/?token=_jTZBD6PWmlek6R9PsShWJla_GthpJMUNhBum-emLZs
+dsh web: opening the default browser; pass --no-open to disable

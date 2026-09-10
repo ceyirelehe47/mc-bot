@@ -1,0 +1,31 @@
+changed entries: 30 (modified+new)
+ M src/gametest/resources/fabric.mod.json
+ M src/main/java/io/github/zoyluo/aibot/AIBotMod.java
+ M src/main/java/io/github/zoyluo/aibot/action/BlockMiner.java
+ M src/main/java/io/github/zoyluo/aibot/action/FarmAction.java
+ M src/main/java/io/github/zoyluo/aibot/action/HarvestCore.java
+ M src/main/java/io/github/zoyluo/aibot/action/MiningAction.java
+ M src/main/java/io/github/zoyluo/aibot/action/MiningController.java
+ M src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java
+ M src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java
+ M src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java
+ M src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java
+ M src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java
+ M src/main/java/io/github/zoyluo/aibot/mode/ObservableWorldQuery.java
+ M src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java
+ M src/main/java/io/github/zoyluo/aibot/perception/PerceptionCollector.java
+ M src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java
+ M src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java
+ M src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java
+ M src/main/java/io/github/zoyluo/aibot/task/BuildTask.java
+ M src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java
+ M src/main/java/io/github/zoyluo/aibot/task/FarmTask.java
+ M src/main/java/io/github/zoyluo/aibot/task/GatherQuotaTask.java
+ M src/main/java/io/github/zoyluo/aibot/task/TaskManager.java
+ M src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java
+?? src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CAR21GameTests.java
+?? src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CAR2GameTests.java
+?? src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CASemanticsGameTests.java
+?? src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A0CognitiveViewGameTests.java
+?? src/main/java/io/github/zoyluo/aibot/external/
+?? src/test/java/io/github/zoyluo/aibot/external/

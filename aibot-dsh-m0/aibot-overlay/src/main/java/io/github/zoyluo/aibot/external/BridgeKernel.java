@@ -3,7 +3,10 @@ package io.github.zoyluo.aibot.external;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.LongSupplier;
+import io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot;
+import io.github.zoyluo.aibot.external.cognition.EvidenceRef;
 
 /** Protocol-independent, single-body coordinator. HTTP threads may only admit work/read caches. */
 public final class BridgeKernel {
@@ -25,6 +28,12 @@ public final class BridgeKernel {
     private long observedAt=-1;
     private boolean ready, needsReconcile, pauseRequested, stopped;
     private Execution active;
+    // MC-2A0 只读认知查询缓存:server 线程 tick 构建,HTTP 线程只读。
+    private CognitiveSnapshot.Snapshot cognitive;
+    private long cognitiveTick=-1, lastServerTick=-1;
+    private String cognitiveFault="";
+    private final ArrayDeque<LocalQuery> localQueries=new ArrayDeque<>();
+    private record LocalQuery(int radius, String detail, CompletableFuture<String> future) {}
 
     private static final class Execution {
         String id, request, fingerprint, owner, operation, arguments, admittingLeaseEpoch, bodyId, state="accepted", reason="";
@@ -148,6 +157,61 @@ public final class BridgeKernel {
         return Map.of("runtime_epoch",runtimeEpoch,"body_id",bodyId,"observation",new JsonOutput.Raw(observation),
                 "snapshot_age_ms",Math.max(0,mono.getAsLong()-observedAt),"execution",active==null?Map.of():active.wire());
     }
+    // ---- MC-2A0 read-only cognitive queries ----
+    // 语义与 observe 的关键差异:只读新鲜度要求,不清 needsReconcile、不要求/消耗 lease、
+    // 不产生 execution receipt、不被 body-busy 拒绝、绝不 pause/cancel/replace 执行所有权。
+
+    public synchronized Map<String,Object> view() {
+        requireReady();
+        if(cognitive==null) throw new BridgeFault(503,"cognitive_view_unavailable:"+cognitiveFault);
+        byte[] sceneBytes=cognitive.sceneJson().getBytes(StandardCharsets.UTF_8);
+        if(sceneBytes.length>CognitiveSnapshot.VIEW_MAX_BYTES) throw new BridgeFault(500,"cognitive_view_exceeds_hard_limit");
+        Map<String,Object> meta=new LinkedHashMap<>();
+        meta.put("generated_server_tick",lastServerTick);
+        meta.put("generated_game_time",cognitive.gameTime());
+        meta.put("scene_hash","sha256:"+cognitive.sceneHash());
+        meta.put("encoded_bytes",(long)sceneBytes.length);
+        Map<String,Object> out=new LinkedHashMap<>();
+        out.put("schema","mc.cognitive_view.v0");
+        out.put("meta",meta);
+        out.put("scene",new JsonOutput.Raw(cognitive.sceneJson()));
+        return out;
+    }
+    public synchronized Map<String,Object> inspect(String ref,String detail) {
+        requireReady();
+        if(ref==null || ref.isBlank()) throw new BridgeFault(400,"invalid_evidence_ref");
+        EvidenceRef.parse(ref); // malformed 一律 400 fail-closed
+        if(cognitive==null) throw new BridgeFault(503,"cognitive_view_unavailable:"+cognitiveFault);
+        Map<String,String> details=cognitive.inspectIndex().get(ref);
+        // foreign world / dimension policy / kind mismatch / unknown object 统一 fail-closed
+        if(details==null) throw new BridgeFault(404,"evidence_ref_not_in_current_view:foreign_or_unknown_or_kind_mismatch");
+        String level=detail==null||detail.isBlank()?"summary":detail;
+        String json=details.get(level);
+        if(json==null) throw new BridgeFault(400,"unsupported_detail_level:"+level);
+        Map<String,Object> meta=new LinkedHashMap<>();
+        meta.put("generated_server_tick",lastServerTick);
+        Map<String,Object> out=new LinkedHashMap<>();
+        out.put("schema","mc.evidence.v0");
+        out.put("ref",ref);
+        out.put("detail",level);
+        out.put("meta",meta);
+        out.put("evidence",new JsonOutput.Raw(json));
+        return out;
+    }
+    /**
+     * 校验并入队 server 线程局部查询,立即返回 future。
+     * HTTP 线程必须无锁等待:kernel 全方法 synchronized,持锁等待 tick() 会死锁。
+     */
+    public synchronized CompletableFuture<String> submitLocalQuery(int radius,String detail) {
+        requireReady();
+        if(radius<1 || radius>16) throw new BridgeFault(400,"radius_out_of_range_1_16");
+        String level=detail==null||detail.isBlank()?"summary":detail;
+        if(!CognitiveSnapshot.LOCAL_DETAILS.contains(level)) throw new BridgeFault(400,"invalid_detail");
+        if(localQueries.size()>=4) throw new BridgeFault(429,"too_many_local_queries");
+        CompletableFuture<String> future=new CompletableFuture<>();
+        localQueries.add(new LocalQuery(radius,level,future));
+        return future;
+    }
     public synchronized Map<String,Object> execution(String id) {
         Execution e=byId.get(id); if(e==null) throw new BridgeFault(404,"execution_not_found"); return e.wire();
     }
@@ -246,8 +310,23 @@ public final class BridgeKernel {
                 return;
             }
             ready=true; observation=backend.observeJson(); observedAt=mono.getAsLong();
+            lastServerTick=backend.serverTick();
+            // 认知快照独立刷新:构建失败只令 view/inspect 503,绝不拖垮 observe/execution 主链。
+            if(cognitive==null || lastServerTick-cognitiveTick>=5 || lastServerTick<cognitiveTick) {
+                try { cognitive=backend.cognitiveSnapshot(journal); cognitiveTick=lastServerTick; cognitiveFault=""; }
+                catch(RuntimeException viewFailure) {
+                    cognitive=null;
+                    cognitiveFault=viewFailure instanceof BridgeFault f ? f.code : viewFailure.getClass().getSimpleName();
+                }
+            }
             if(pauseRequested) { backend.pause(); pauseRequested=false; }
             while(!controlQueue.isEmpty()) applyControl(controlQueue.remove());
+            // inspect-local 查询在 server 线程执行;异常原样传回等待中的 HTTP 线程。
+            while(!localQueries.isEmpty()) {
+                LocalQuery query=localQueries.poll();
+                try { query.future().complete(backend.inspectLocalJson(query.radius(),query.detail())); }
+                catch(RuntimeException queryFailure) { query.future().completeExceptionally(queryFailure); }
+            }
             Execution e=active;
             if(e==null) return;
             if(e.handle==null) {

@@ -77,6 +77,42 @@ test('production Java HTTP + kernel + journal interoperates with real Node clien
     assert.equal((await c.observe()).observation.physical_starts,1);
   });
   await c.release();
+  await t.test('MC-2A0 cognitive queries: stable hash, fail-closed refs, bounded local, busy-safe',async()=>{
+    // Re-acquire the body for the query-only phase (previous lease was released).
+    await c.connect();
+    const view1=await c.view(),view2=await c.view();
+    assert.equal(view1.schema,'mc.cognitive_view.v0');
+    assert.ok(view1.scene.world.world_id==='fake-world-1');
+    assert.equal(view1.meta.scene_hash,view2.meta.scene_hash); // clock-only change keeps the hash
+    assert.ok(view2.meta.generated_server_tick>=view1.meta.generated_server_tick);
+    // forged / malformed / foreign / kind-mismatch refs all fail closed
+    await assert.rejects(()=>c.inspect('not-a-ref'),e=>e instanceof BridgeError&&e.status===400);
+    await assert.rejects(()=>c.inspect('mc://other-world/minecraft%3Aoverworld/structure/fake_home'),e=>e instanceof BridgeError&&e.status===404);
+    await assert.rejects(()=>c.inspect('mc://fake-world-1/minecraft%3Aoverworld/farm/fake_home'),e=>e instanceof BridgeError&&e.status===404);
+    const summary=await c.inspect('mc://fake-world-1/minecraft%3Aoverworld/structure/fake_home');
+    assert.equal(summary.detail,'summary');assert.equal(summary.evidence.object_id,'fake_home');
+    const baseline=await c.inspect('mc://fake-world-1/minecraft%3Aoverworld/structure/fake_home','baseline');
+    assert.equal(baseline.evidence.baseline_cells,9);
+    await assert.rejects(()=>c.inspect('mc://fake-world-1/minecraft%3Aoverworld/structure/fake_home','cells'),e=>e instanceof BridgeError&&e.status===400);
+    // local: radius out of range is rejected before queueing; valid radius runs on the tick thread
+    await assert.rejects(()=>c.inspectLocal(17),e=>e instanceof BridgeError&&e.status===400);
+    const local=await c.inspectLocal(16,'blocks');
+    assert.equal(local.snapshot.radius_effective,8);assert.equal(local.snapshot.detail,'blocks');
+    // busy-safe: a paused ordinary execution keeps its identity across all three queries
+    const busy=await c.execute('gather',{item:'minecraft:oak_log',count:4},'busy-query');
+    await c.control(busy.execution_id,'pause','busy-pause');
+    await waitUntil(async()=>(await c.execution(busy.execution_id)).state==='paused');
+    await c.view();
+    await c.inspect('mc://fake-world-1/minecraft%3Aoverworld/structure/fake_home');
+    await c.inspectLocal(4,'summary');
+    const still=(await c.execution(busy.execution_id));
+    assert.equal(still.state,'paused');assert.equal(still.execution_id,busy.execution_id);
+    const status=await c.status();
+    assert.equal(status.active_execution.execution_id,busy.execution_id); // query did not replace/steal the owner
+    await c.control(busy.execution_id,'resume','busy-resume');
+    await waitUntil(async()=>(await c.execution(busy.execution_id)).state==='completed');
+    await c.release();
+  });
   await t.test('actual plugin transport worker enqueues a terminal wake into its fake DSH owner',async()=>{
     const ctx=scope(),agentScope=scope(),tools=new Map(),messages=[];let flushes=0;ctx.sessionPersistence={async stat(){return {};},async flush(){flushes++;}};ctx.tools={register:tool=>tools.set(tool.name,tool)};
     const agent={id:'integration-dsh',ctx:agentScope,status:'idle',followup:m=>messages.push(['followup',m]),steer:m=>messages.push(['steer',m]),inject:m=>messages.push(['inject',m])};
