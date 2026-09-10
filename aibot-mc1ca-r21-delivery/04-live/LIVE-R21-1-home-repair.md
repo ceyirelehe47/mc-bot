@@ -30,5 +30,12 @@ world_id 2eadb4ef-61bb-4657-ab6e-94d50141bbd1），R2.1 jar（含独立验收修
 ## 证据
 
 - executions：`7eb023c3`（单格）、`71ab1708`（3 格）、`550d09c2`（conflict 409）
-- 原始日志：`server-r21-live.log`（单格）、`server-r21-live-rerun.log`（多格 + R21-3/4/5 复验）
+- 原始日志：
+  - 单格：`server-r21-live.log`
+  - **3 格（17:08:45–17:08:48）**：`server-1708-multicell-repair.log`
+    （从服务器归档 `logs/2026-09-10-5.log.gz` 提取；含 3 条 `event=place`
+    ——chest@26,113,26 / oak_log@27,113,26 / oak_log@30,113,28
+    ——与 `task_completed elapsed_ticks=65`）
+  - fail-closed 两条：`missing_material: minecraft:chest`（归档同文件）；
+    `home_repair_v1_conflicting_cells:1`（journal execution `550d09c2`）
 - 逐格探测：`execute if block <pos> <block>` 全部命中（见上文坐标）

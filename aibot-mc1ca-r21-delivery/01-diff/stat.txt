@@ -16,10 +16,10 @@
  .../zoyluo/aibot/runtime/IntentController.java     |   3 +
  .../aibot/runtime/RuntimeLifecycleCoordinator.java |   1 +
  .../zoyluo/aibot/task/BotTickCoordinator.java      |   2 +-
- .../io/github/zoyluo/aibot/task/BuildTask.java     | 121 +++++++++++++++++----
+ .../io/github/zoyluo/aibot/task/BuildTask.java     | 124 +++++++++++++++++----
  .../io/github/zoyluo/aibot/task/DangerWatcher.java |   9 ++
  .../java/io/github/zoyluo/aibot/task/FarmTask.java |   4 +-
  .../github/zoyluo/aibot/task/GatherQuotaTask.java  |   7 +-
  .../io/github/zoyluo/aibot/task/TaskManager.java   |   1 +
  .../aibot/mode/PrivilegedBoundarySourceTest.java   |   9 +-
- 24 files changed, 255 insertions(+), 39 deletions(-)
+ 24 files changed, 258 insertions(+), 39 deletions(-)

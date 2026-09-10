@@ -61,8 +61,10 @@ BreakPolicy 对 safety 放行（safety_override）。
 
 ━━━ C. 导航（startPathTo，30 个文件） ━━━
 
-12. external 可达：KnownResourceTask(77/98)、FarmTask(241/322)、MoveTask(92/206/286，需
-    显式 allow_terrain_changes=true)、GatherQuotaTask(×5)、BuildTask(264/335/386/454/476)、
+12. external 可达：KnownResourceTask(111/137；R2.1 恢复相的掉落物接近经
+    HarvestCore.chaseDropAnyOf→startExactPickupPath，不直接调 startPathTo)、
+    FarmTask(241/322)、MoveTask(92/206/286，需显式 allow_terrain_changes=true)、
+    GatherQuotaTask(×5)、BuildTask(264/335/386/454/476)、
     SmeltTask/StockpileTask/CraftTask 间接。
     途中挖掘由 PathExecutor→MiningController 每 tick 过 BreakPolicy（同 9）；
     放置经 BuildAction.placeBlockAt（原版交互，非 setBlockState）。

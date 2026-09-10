@@ -168,13 +168,6 @@ public final class SemanticWorldRegistry {
         BlockPos seenFrom() { return new BlockPos(seenX, seenY, seenZ); }
         BlockPos stateAt() { return new BlockPos(stateX, stateY, stateZ); }
 
-        /** Rebuilds the entry with a new state, preserving the pickup baseline and position. */
-        ResourceOpportunity withState(String nextStatus, String nextReason, String nextTool, long now,
-                                      int baseline) {
-            return new ResourceOpportunity(id, dimension, x, y, z, blockId, seenX, seenY, seenZ,
-                    nextStatus, nextReason, nextTool, lastSeenGameTime, now, stateX, stateY, stateZ,
-                    baseline);
-        }
         ResourceOpportunity observedAt(long now) {
             return new ResourceOpportunity(id, dimension, x, y, z, blockId, seenX, seenY, seenZ,
                     status, blockedReason, requiredTool, now, stateSinceGameTime, stateX, stateY, stateZ,
@@ -405,7 +398,7 @@ public final class SemanticWorldRegistry {
             next = new ResourceOpportunity(id, dim, pos.getX(), pos.getY(), pos.getZ(), blockId,
                     seenFrom.getX(), seenFrom.getY(), seenFrom.getZ(), status, reason,
                     ToolTier.requiredPickaxeItemId(state.getBlock()), now, now,
-                    bot.getBlockPos().getX(), bot.getBlockPos().getY(), bot.getBlockPos().getZ(), 0);
+                    bot.getBlockPos().getX(), bot.getBlockPos().getY(), bot.getBlockPos().getZ(), -1);
         }
         if (prior == null) {
             evictOpportunityIfNeeded(); OPPORTUNITIES.put(key, next); dirty = true;
@@ -500,10 +493,12 @@ public final class SemanticWorldRegistry {
         // pickupBaseline is the accepted-inventory count measured when the ore break happened, so a
         // later recovery can prove the delta even when the drop was already picked up by the time
         // recovery starts (count measured at recovery start would hide that gain).
+        // Negative values are the explicit "unknown baseline" sentinel (legacy registry entries):
+        // the recovery then falls back to a fresh count, which can only under-claim.
         OPPORTUNITIES.put(key, new ResourceOpportunity(prior.id, prior.dimension, prior.x, prior.y, prior.z,
                 prior.blockId, prior.seenX, prior.seenY, prior.seenZ, "MINED_PENDING_PICKUP",
                 "pickup_recovery_pending", prior.requiredTool, prior.lastSeenGameTime, now,
-                feet.getX(), feet.getY(), feet.getZ(), Math.max(0, pickupBaseline)));
+                feet.getX(), feet.getY(), feet.getZ(), pickupBaseline));
         persistAsync();
     }
 
@@ -964,7 +959,7 @@ public final class SemanticWorldRegistry {
                         version >= VERSION && o.has("state_x") ? o.get("state_x").getAsInt() : o.get("seen_x").getAsInt(),
                         version >= VERSION && o.has("state_y") ? o.get("state_y").getAsInt() : o.get("seen_y").getAsInt(),
                         version >= VERSION && o.has("state_z") ? o.get("state_z").getAsInt() : o.get("seen_z").getAsInt(),
-                        o.has("pickup_baseline") ? o.get("pickup_baseline").getAsInt() : 0);
+                        o.has("pickup_baseline") ? o.get("pickup_baseline").getAsInt() : -1);
                 Identifier blockId = Identifier.tryParse(r.blockId); Block block = blockId == null ? null : Registries.BLOCK.getOptionalValue(blockId).orElse(null);
                 if (block == null || !OreScan.isOreBlock(block)) throw new IllegalArgumentException("opportunity_block");
                 OPPORTUNITIES.put(scoped(r.dimension, r.id), r);

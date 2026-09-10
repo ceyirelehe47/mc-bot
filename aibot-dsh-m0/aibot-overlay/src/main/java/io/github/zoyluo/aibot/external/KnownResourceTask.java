@@ -21,6 +21,8 @@ public final class KnownResourceTask extends AbstractTask {
     private static final int PICKUP_RECOVERY_BUDGET_TICKS = 400;
     private static final int DROP_ABSENCE_CONFIRM_TICKS = 200;
     private static final double DROP_SEARCH_RADIUS = 16.0D;
+    /** Vanilla items despawn after ~6000 ticks; before that an unobservable drop may still exist. */
+    private static final long DROP_DESPAWN_GRACE_TICKS = 6000L;
     private final SemanticWorldRegistry.OpportunitySpec opportunity;
     private final Set<Item> targetDrops;
     private final BlockMiner miner = new BlockMiner();
@@ -68,7 +70,13 @@ public final class KnownResourceTask extends AbstractTask {
             // The completion proof must be the delta since the ore break, NOT since recovery start:
             // vanilla auto-pickup often lands the drop between the two, and a recovery-start
             // baseline would hide that gain and mis-report the resource as lost.
-            inventoryBefore = opportunity.pickupBaseline();
+            // An unknown baseline (legacy registry written before the field existed) falls back to
+            // the current count: that can only UNDER-claim (a gain taken before recovery started is
+            // not credited here), never over-claim.
+            int baseline = opportunity.pickupBaseline();
+            inventoryBefore = baseline >= 0
+                    ? baseline
+                    : HarvestCore.countInventoryItems(bot, targetDrops);
             recoveryTicks = PICKUP_RECOVERY_BUDGET_TICKS;
             dropAbsentTicks = 0;
             phase = Phase.PICKUP_RECOVERY;
@@ -199,20 +207,26 @@ public final class KnownResourceTask extends AbstractTask {
             complete();
             return;
         }
-        // The drop may have scattered: walk toward it before concluding anything. forcePickup only
-        // reaches the immediate radius, so a nearby-but-not-touching drop would otherwise look lost.
-        var reachable = HarvestCore.nearestDropAnyOf(bot, targetDrops, DROP_SEARCH_RADIUS);
-        if (reachable.isPresent() && bot.getActionPack().isPathExecutorIdle()) {
-            bot.getActionPack().startPathTo(reachable.get().getBlockPos());
-        }
-        HarvestCore.chaseDropAnyOf(bot, targetDrops, 8.0D);
+        // The drop may have scattered: walk toward it before concluding anything. chaseDropAnyOf
+        // uses HarvestCore's conservative pickup approach (exact surface movement toward a
+        // physically supported drop — it never digs or pillars toward a transient entity position),
+        // unlike a raw startPathTo(dropPos).
+        HarvestCore.chaseDropAnyOf(bot, targetDrops, DROP_SEARCH_RADIUS);
         boolean dropNearby = HarvestCore.nearestDropAnyOf(bot, targetDrops, DROP_SEARCH_RADIUS).isPresent();
         dropAbsentTicks = dropNearby ? 0 : dropAbsentTicks + 1;
         if (dropAbsentTicks > DROP_ABSENCE_CONFIRM_TICKS) {
-            // Conservative loss: no drop entity, no inventory delta — the resource provably did
-            // NOT reach this bot. Terminal tombstone; never fakes collection.
-            SemanticWorldRegistry.markOpportunityStale(bot, opportunity.id(), "pickup_lost_drop_despawned_or_taken");
-            fail("known_resource_pickup_lost_drop_despawned_or_taken");
+            // "Absent" here means "not observable through strict LOS", which is weaker than "gone":
+            // a drop behind terrain or slightly out of range is still recoverable. Only terminalize
+            // once the vanilla despawn horizon has passed since the pending state was recorded;
+            // before that the pending obligation survives for a later retry.
+            long pendingAge = bot.getServerWorld().getTime() - opportunity.stateSinceGameTime();
+            if (pendingAge > DROP_DESPAWN_GRACE_TICKS) {
+                SemanticWorldRegistry.markOpportunityStale(bot, opportunity.id(),
+                        "pickup_lost_drop_despawned_or_taken");
+                fail("known_resource_pickup_lost_drop_despawned_or_taken");
+            } else {
+                fail("known_resource_pickup_recovery_drop_not_found");
+            }
             return;
         }
         if (--recoveryTicks <= 0) {

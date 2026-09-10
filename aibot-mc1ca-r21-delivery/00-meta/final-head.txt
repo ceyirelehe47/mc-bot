@@ -1,5 +1,7 @@
 R2.1 交付提交 = 包含本文件的这次 commit（aibot-mc1ca-r21-delivery/ 所在提交）。
 父提交（起点）：10b5b480cda225367180043ca8868b725f071348
 上游冻结基线：a029fa6a3760fd0f83834c104051b041d986da60
-说明：首次提交 9f942a4 之后经独立验收发现 pickup baseline 正确性缺陷，
-本提交为修复版（LIVE 复验 + GameTest 613 + 安装器重放均基于此版本）。
+提交序列：
+  9f942a4  首版交付（GameTest 612/612）
+  7c0bb1b  第一轮独立复核后的修复（pickup baseline 缺陷；GameTest 613/613）
+  本提交   第二轮独立复核后的跟进修复（恢复路线/缺席语义/未知基线；GameTest 614/614）

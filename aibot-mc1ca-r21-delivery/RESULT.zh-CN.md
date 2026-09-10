@@ -14,7 +14,9 @@
 
 ## 2. 修改文件列表
 
-`01-diff/stat.txt` 为完整清单（24 改 + 3 新 + 13 overlay）。生产源码净变化：
+`01-diff/stat.txt` 为完整清单（24 个 tracked 文件修改 + 3 个新增 GameTest +
+14 个 external overlay 文件 + 1 个新增 HomeBlockEquivalence 亦在 overlay 内，overlay 合计 17 个）。
+生产源码净变化：
 
 | 文件 | 变化 | 内容 |
 |---|---|---|
@@ -150,18 +152,18 @@ L 形走廊几何下目标格与全部 stand 候选的可观察性均为 false �
 
 ```
 old_required = 600
-new_required = 13
-total_required = 613
-pass = 613
+new_required = 14
+total_required = 614
+pass = 614
 fail = 0
 ```
 
 | 轮次 | 结果 | 原始日志 | XML |
 |---|---|---|---|
-| run1 | All 613 required tests passed | `03-gametest/run1.log` | `03-gametest/TEST-aibot-gametest-run1.xml` |
-| run2 | All 613 required tests passed | `03-gametest/run2.log` | `03-gametest/TEST-aibot-gametest-run2.xml` |
+| run1 | All 614 required tests passed | `03-gametest/run1.log` | `03-gametest/TEST-aibot-gametest-run1.xml` |
+| run2 | All 614 required tests passed | `03-gametest/run2.log` | `03-gametest/TEST-aibot-gametest-run2.xml` |
 
-新增 13 个（全部 r21 前缀，XML 中逐一列出；第 13 个是独立验收后补的回归测试）：
+新增 14 个（全部 r21 前缀，XML 中逐一列出；第 13/14 个是两轮独立复核后补的回归测试）：
 
 | # | GameTest | 矩阵项 |
 |---|---|---|
@@ -177,7 +179,8 @@ fail = 0
 | 10 | `r21StaleOpportunityDoesNotClaimInventorySuccess` | R21-B6 |
 | 11 | `r21ReservedFarmMutationOutsideMaskIsRejected` | R21-C2 |
 | 12 | `r21RegisteredFarmMutationInsideMaskStillWorks` | R21-C1 |
-| 13 | `r21PickupRecoveryHonoursDropCollectedBeforeRecoveryStart` | R21-B5（验收缺陷回归） |
+| 13 | `r21PickupRecoveryHonoursDropCollectedBeforeRecoveryStart` | R21-B5（第一轮复核缺陷回归） |
+| 14 | `r21LegacyPendingWithoutBaselineNeverOverClaims` | R21-B4/B5（第二轮复核缺陷回归） |
 
 未删除/禁用任何既有测试：594 旧 + 6 R2 = 600，全部继续通过（XML 可核）。
 
@@ -242,10 +245,28 @@ registry 快照：`04-live/registry-final-state.json`。
 | 5 | **[可维护性] 预算顺延可能放大空转**（path 长期不 idle 时不断顺延） | **已修复**：顺延累计上限 600t，超限仍按 `target_timeout` 结束 |
 | 6 | **[边界] `isWorkPoseUsable` 先做原始 Standability 读、后做观察证明** | **已修复**：改为先 `canObserveCellFrom` 证明可见、再做原始 standability 读（保持上游"观察在前"的顺序约束） |
 | 7 | **[边界] 容量淘汰可能淘汰 MINED_PENDING_PICKUP 恢复义务** | **已修复**：`evictOpportunityIfNeeded` 排除 pending 条目 |
-| 8 | **[文档] overlay 文件计数口径小差（13 vs 实际 14 external + 3 gametest）** | **已更正**：本 RESULT 与 00-meta/environment.txt 使用准确口径 |
+| 8 | **[文档] overlay 文件计数口径小差** | **已更正**：§2 与本文 12c 使用准确口径（overlay 17 个 = 14 external + 3 gametest） |
 
-修复后重跑全部验证：`clean compileJava test` 全绿、`runGameTest` 两轮 **613/613**、
-Node **34/34**、安装器在干净 a029fa6 上**重放 0 diff**、LIVE-R21-1..5 全部复验 PASS。
+修复后重跑全部验证：`clean compileJava test` 全绿、`runGameTest` 两轮 **614/614**、
+Node **34/34**、安装器在干净 a029fa6 上**重放内容 0 diff**、LIVE-R21-1..5 全部复验 PASS。
+
+## 12c. 第二轮独立复核与其后的跟进修复
+
+第二轮复核（针对 12b 的修复）给出 **PASS（附必办跟进）**，指出 3 个新代码问题与 4 个文档/证据问题，已全部处理：
+
+| # | 复核发现 | 处置 |
+|---|---|---|
+| 1 | **[代码] 恢复接近路线越权**：新增的"走向掉落物"用裸 `startPathTo(dropPos)`（可挖/可搭、无终点校验），与仓库既有的保守掉落物接近实现相悖 | **已修复**：改用 `HarvestCore.chaseDropAnyOf`（exact surface movement，不挖不搭，只接近物理支撑的掉落物） |
+| 2 | **[代码] "不可观察"被当作"已消失"**：200t 内 strict LOS 看不到即终态化并删条目，而 vanilla 掉落物存续约 6000t，被地形遮住的掉落物会被永久放弃 | **已修复**：改为先返回可重试的 `known_resource_pickup_recovery_drop_not_found`（pending 保留），仅当 pending 年龄超过 6000t 才 `markOpportunityStale` |
+| 3 | **[代码] 未知基线可能虚报成功**：9f942a4 写出的 version=3 文件没有 `pickup_baseline` 字段，回退 0 时若背包已有同族物品会立即算出 delta>0 | **已修复**：缺字段加载为 `-1`（未知哨兵），恢复时回退"当前计数"基线——只会少认、绝不虚报；新增 GameTest `r21LegacyPendingWithoutBaselineNeverOverClaims` |
+| 4 | **[证据] LIVE-R21-1 多格引用错文件**（rerun log 窗口不含 repair 段） | **已修复**：从服务器归档 `logs/2026-09-10-5.log.gz` 提取 `server-1708-multicell-repair.log` 并交付（含 3 条 `event=place` + `task_completed elapsed_ticks=65`） |
+| 5 | **[证据] LIVE-R21-2 引用的日志无对应命中** | **已修复**：文档改为指向正确文件（单格轮 `server-r21-live.log`、多格轮 `server-1708-multicell-repair.log`）与 journal executions |
+| 6 | **[表述] "mine_start 计数 0" 与全场次事实不符** | **已修复**：改为"该恢复 execution 内 0 次"，并说明同场次另一颗 ore 的 APPROACH 会产生独立事件 |
+| 7 | **[低] flatten 相位顺延无上限 / `withState` 死代码 / audit 行号过期 / overlay 与工作区 EOL 不一致** | 前两项已修（flatten 加同一 600t 上限、删除死代码）；audit 行号与 EOL 口径已更新说明 |
+
+跟进轮新增实机证据：`04-live/server-r21-live-followup.log`
+（pending `pickup_baseline=4` 持久化 → restart → recovery
+`known_resource_collected {count=2, mode=pickup_recovery}`、该轮 `mine_start`=0）。
 
 ## 13. 新发现缺陷（如实记录）
 
@@ -281,7 +302,8 @@ scheduler priority classes、automatic HOME/Farm/Opportunity producer、Body→D
 - `00-meta/`：base-head、environment、git-status-final
 - `01-diff/`：stat.txt、patch.diff、replay-verify.log、replay-gametest.log
   （**安装器重放验证**：干净 a029fa6 上 `apply_to_aibot.py --apply` 重放，
-  与本轮工作区逐文件 0 diff；重放后 `clean compileJava test` + `runGameTest` 612/612 再次通过）
+  与本轮工作区逐文件内容 0 diff（EOL 归一化后即完全一致）；
+  重放后 `clean compileJava test` + `runGameTest` 614/614 再次通过）
 - `02-build/`：gradle-clean-test.log、node-tests.log
 - `03-gametest/`：run1/run2.log + TEST-*.xml
 - `04-live/`：LIVE-R21-1..5 + 原始服务器日志 + registry 快照

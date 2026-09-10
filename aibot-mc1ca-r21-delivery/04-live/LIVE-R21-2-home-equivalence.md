@@ -26,6 +26,8 @@ r2home baseline 中大量 expected=dirt 的格子，实机世界已自然演化�
 
 ## 证据
 
-- 服务器日志：本目录 server-r21-live.log（两次 `home_missing_only_repair_verified`；
-  plan wrong=0 时直接进入 BuildTask）
+- 服务器日志：`server-r21-live.log`（单格轮）与 `server-1708-multicell-repair.log`
+  （多格轮，含 baseline=dirt 格补回 dirt 的 `event=place item=minecraft:dirt`）；
+  两次 repair 的 `home_missing_only_repair_verified` 见 journal execution
+  `7eb023c3` / `71ab1708`（桥 journal 持久化记录）
 - registry：registry-final-state.json（r2home integrity 全绿）

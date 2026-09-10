@@ -361,6 +361,53 @@ public final class MC1CAR21GameTests implements FabricGameTest {
         });
     }
 
+    /**
+     * 8c (second-review regression): a legacy pending entry with an UNKNOWN baseline (registry
+     * written before the field existed, loaded as -1) must not credit an inventory count that was
+     * already there. The recovery falls back to a fresh count, so a drop that is still in the world
+     * produces a retryable "not found" rather than a fake success or a false terminal loss.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc1caR21", tickLimit = 300)
+    public void r21LegacyPendingWithoutBaselineNeverOverClaims(TestContext context) {
+        Fixture f = cabin(context, "r21_legacy");
+        AIPlayerEntity bot = f.bot;
+        BlockPos ore = f.farWallCenter().up(5);
+        set(bot, ore, Blocks.IRON_ORE);
+        InventoryAction.giveItem(bot, new ItemStack(Items.IRON_PICKAXE));
+        io.github.zoyluo.aibot.perception.PerceptionCollector.collect(bot);
+        String id = opportunityAt(context, bot, ore, "ACTIONABLE");
+        var dropItem = io.github.zoyluo.aibot.action.HarvestCore.expectedDropsFor(Blocks.IRON_ORE).iterator().next();
+
+        // Simulate a legacy pending entry: unknown baseline sentinel (-1) and pre-existing stock
+        // already in the inventory that must NOT be mistaken for this opportunity's yield.
+        set(bot, ore, Blocks.AIR);
+        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id, -1);
+        InventoryAction.giveItem(bot, new ItemStack(dropItem, 2)); // pre-existing, unrelated stock
+
+        var pending = SemanticWorldRegistry.opportunity(bot, id).orElseThrow();
+        KnownResourceTask task = new KnownResourceTask(pending, true);
+        task.start(bot);
+        context.runAtEveryTick(() -> {
+            if (task.state() == TaskState.RUNNING) task.tick(bot);
+            TaskState state = task.state();
+            if (state == TaskState.COMPLETED) {
+                AIPlayerManager.INSTANCE.despawn(bot.getServer(), BOT);
+                throwGameTest(context, "unknown-baseline recovery must not claim pre-existing stock as collected");
+            }
+            if (state == TaskState.FAILED || state == TaskState.CANCELLED) {
+                boolean overClaimed = SemanticWorldRegistry.opportunity(bot, id).isEmpty();
+                String reason = task.failureReason();
+                boolean typedRetryable = reason.contains("known_resource_pickup_recovery_drop_not_found")
+                        || reason.contains("known_resource_pickup_recovery_timeout");
+                String message = "legacy pending handling wrong: reason=" + reason
+                        + " opportunityRemoved=" + overClaimed;
+                AIPlayerManager.INSTANCE.despawn(bot.getServer(), BOT);
+                if (overClaimed || !typedRetryable) throwGameTest(context, message);
+                finish(context, f);
+            }
+        });
+    }
+
     /** 9: an externally consumed ore terminalizes as stale and never claims inventory success. */
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc1caR21", tickLimit = 200)
     public void r21StaleOpportunityDoesNotClaimInventorySuccess(TestContext context) {

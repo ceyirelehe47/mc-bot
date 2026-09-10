@@ -49,3 +49,12 @@ node --test test/*.test.mjs
   registry version 2→3（兼容 v1/v2 加载）；pending 条目不被容量淘汰。
 - Farm gate：`SemanticWorldRegistry.farmMutationDenial` 接入 FarmAction till/plant/harvest。
 - 观测查询：新增 `ObservableWorldQuery.canObserveCellFrom`（planner 眼位严格同规则）。
+
+## 交付构成（文件计数口径）
+
+- installer 锚点补丁：22 个上游文件（`aibot-dsh-m0/scripts/apply_to_aibot.py` 的 CHANGES）
+  + 2 个 EXTRA_CHANGES（含 fabric.mod.json 的 gametest 注册）
+- overlay 新文件：17 个（14 个 `external/*.java` + 3 个 gametest 类）
+- git 口径：24 个 tracked 文件修改（含 R1/R2 既有改动）+ 3 个新增 GameTest 类
+  + 14 个 external 新文件；`01-diff/stat.txt` 只列 tracked 修改，新增文件在 `patch.diff` 中
+  以 /dev/null 形式呈现
