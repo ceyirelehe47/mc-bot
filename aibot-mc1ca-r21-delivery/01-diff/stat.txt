@@ -7,19 +7,19 @@
  .../zoyluo/aibot/action/MiningController.java      |   5 +
  .../zoyluo/aibot/auth/BotAuthorizationGate.java    |   6 +-
  .../zoyluo/aibot/brain/BrainCoordinator.java       |  10 ++
- .../zoyluo/aibot/brain/ChatCaptureListener.java    |  23 ++++-
+ .../zoyluo/aibot/brain/ChatCaptureListener.java    |  23 +++-
  .../io/github/zoyluo/aibot/brain/ToolRegistry.java |   6 +-
  .../zoyluo/aibot/coordination/IdleCoordinator.java |   1 +
- .../zoyluo/aibot/mode/ObservableWorldQuery.java    |  23 +++++
+ .../zoyluo/aibot/mode/ObservableWorldQuery.java    |  23 ++++
  .../aibot/network/AIBotServerNetworking.java       |  10 +-
  .../aibot/perception/PerceptionCollector.java      |   9 +-
  .../zoyluo/aibot/runtime/IntentController.java     |   3 +
  .../aibot/runtime/RuntimeLifecycleCoordinator.java |   1 +
  .../zoyluo/aibot/task/BotTickCoordinator.java      |   2 +-
- .../io/github/zoyluo/aibot/task/BuildTask.java     | 112 +++++++++++++++++----
+ .../io/github/zoyluo/aibot/task/BuildTask.java     | 121 +++++++++++++++++----
  .../io/github/zoyluo/aibot/task/DangerWatcher.java |   9 ++
  .../java/io/github/zoyluo/aibot/task/FarmTask.java |   4 +-
  .../github/zoyluo/aibot/task/GatherQuotaTask.java  |   7 +-
  .../io/github/zoyluo/aibot/task/TaskManager.java   |   1 +
  .../aibot/mode/PrivilegedBoundarySourceTest.java   |   9 +-
- 24 files changed, 246 insertions(+), 39 deletions(-)
+ 24 files changed, 255 insertions(+), 39 deletions(-)

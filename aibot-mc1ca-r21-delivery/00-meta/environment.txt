@@ -38,13 +38,14 @@ node --test test/*.test.mjs
 - 驱动：D:\code\mc-experiment\r21_live.py（租约/执行/轮询）与 r21_live4.py（pending pickup 专项）
 - RCON 探针：D:\code\mc-experiment\rcon.py
 
-## 关键修复（R2 → R2.1）一览
+## 关键修复（R2 → R2.1）一览（含独立验收后的修复）
 
 - BuildTask work-pose：`isObservableStandable`（从当前眼位看 stand）→
   `isWorkPoseUsable`（从候选 stand 眼位证明目标格可观察 + 可达）；
-  预算在路径执行器活跃时顺延；silent false 路径全部 typed 化。
+  预算在路径执行器活跃时顺延（累计上限 600t）；silent false 路径全部 typed 化且节流诊断。
 - HOME 等价：新增 `HomeBlockEquivalence`（dirt↔grass_block 显式白名单）。
 - Opportunity：新增 UNREACHABLE / MINED_PENDING_PICKUP 状态与 bounded revalidation、
-  pickup recovery、stale tombstone 事件；registry version 2→3（兼容 v1/v2 加载）。
+  pickup recovery（含 pending 持久化的 `pickup_baseline`）、stale tombstone 事件；
+  registry version 2→3（兼容 v1/v2 加载）；pending 条目不被容量淘汰。
 - Farm gate：`SemanticWorldRegistry.farmMutationDenial` 接入 FarmAction till/plant/harvest。
 - 观测查询：新增 `ObservableWorldQuery.canObserveCellFrom`（planner 眼位严格同规则）。

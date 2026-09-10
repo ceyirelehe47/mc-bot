@@ -1,6 +1,6 @@
 # LIVE-R21-5｜Farm exact-mask mutation gate —— PASS
 
-环境同 LIVE-R21-1。fixture：沿用已注册 r2farm（center -22,112,26，radius 5，
+环境同 LIVE-R21-1（复验轮日志 `server-r21-live-rerun.log`）。fixture：沿用已注册 r2farm（center -22,112,26，radius 5，
 crop=wheat，**5 个 exact connected cells**：(-22,112,24)(-22,112,25)(-22,112,26)
 (-21,112,25)(-20,112,25)）。
 
@@ -26,9 +26,16 @@ crop=wheat，**5 个 exact connected cells**：(-22,112,24)(-22,112,25)(-22,112,
   + 世界零改动；
 - 非 reserved（legacy/内部脑）模式返回 null（上游行为不变，R21-11 隔离）。
 
+## 复验轮（R2.1 修复后）
+
+- mask 内 (-21,113,25) 放成熟小麦 → `mc_tend_farm {"name":"r2farm"}` → execution `2686ec9c`
+  → **completed**；日志 `event=harvest pos=(-21,113,25)` + `event=plant`（割后补种），
+  现场复核该格已为新种 wheat。
+- mask 外 (-17,114,25) 成熟小麦保持 `wheat[age=7]` 不变（零 mutation）。
+
 ## 证据
 
-- execution：`1e205475-2a98-4065-ba88-aeddda0a6d1f`（completed）
+- executions：`1e205475`（首轮）、`2686ec9c`（复验轮）（均 completed）
 - 服务器日志：server-r21-live.log（harvest/plant 事件坐标全在 5 格 mask 内；
   无任何 mask 外 mutation）
 - GameTest 侧对应：`r21ReservedFarmMutationOutsideMaskIsRejected` /

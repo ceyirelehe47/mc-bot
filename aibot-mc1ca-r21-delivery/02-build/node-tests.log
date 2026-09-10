@@ -2,206 +2,206 @@ TAP version 13
 # Subtest: restricts bridge to explicit IPv4 loopback with no credentials or path
 ok 1 - restricts bridge to explicit IPv4 loopback with no credentials or path
   ---
-  duration_ms: 1.3443
+  duration_ms: 1.8959
   type: 'test'
   ...
 # Subtest: stable request identity scopes same tool-call id to one session
 ok 2 - stable request identity scopes same tool-call id to one session
   ---
-  duration_ms: 0.7617
+  duration_ms: 0.7586
   type: 'test'
   ...
 # Subtest: canonical argument encoding and rejects lossy JSON
 ok 3 - canonical argument encoding and rejects lossy JSON
   ---
-  duration_ms: 0.5509
+  duration_ms: 0.8872
   type: 'test'
   ...
 # Subtest: lease token stays out of model-facing connect return and enumerable client state
 ok 4 - lease token stays out of model-facing connect return and enumerable client state
   ---
-  duration_ms: 23.1304
+  duration_ms: 28.7041
   type: 'test'
   ...
 # Subtest: lost acceptance is unknown, no blind retry, query unlocks next action
 ok 5 - lost acceptance is unknown, no blind retry, query unlocks next action
   ---
-  duration_ms: 2.3739
+  duration_ms: 3.7083
   type: 'test'
   ...
 # Subtest: aborted call before admission does not perform mutation
 ok 6 - aborted call before admission does not perform mutation
   ---
-  duration_ms: 0.7215
+  duration_ms: 1.2345
   type: 'test'
   ...
 # Subtest: explicit 4xx rejection is not represented as success or unknown
 ok 7 - explicit 4xx rejection is not represented as success or unknown
   ---
-  duration_ms: 1.0558
+  duration_ms: 1.9913
   type: 'test'
   ...
 # Subtest: 5xx mutation remains unknown and lease rejection clears local ownership
 ok 8 - 5xx mutation remains unknown and lease rejection clears local ownership
   ---
-  duration_ms: 2.3888
+  duration_ms: 2.7897
   type: 'test'
   ...
 # Subtest: mutations carry actual lease and stable JSON, release drops lease even on network failure
 ok 9 - mutations carry actual lease and stable JSON, release drops lease even on network failure
   ---
-  duration_ms: 1.6754
+  duration_ms: 1.6441
   type: 'test'
   ...
 # Subtest: oversized or malformed successful transport response is not trusted
 ok 10 - oversized or malformed successful transport response is not trusted
   ---
-  duration_ms: 1.868
+  duration_ms: 1.6355
   type: 'test'
   ...
 # Subtest: only important or terminal events wake models, not action progress
 ok 11 - only important or terminal events wake models, not action progress
   ---
-  duration_ms: 1.2837
+  duration_ms: 1.7236
   type: 'test'
   ...
 # Subtest: idle followup, busy urgent steer, pause inject-only use public ingress
 ok 12 - idle followup, busy urgent steer, pause inject-only use public ingress
   ---
-  duration_ms: 0.4304
+  duration_ms: 0.734
   type: 'test'
   ...
 # Subtest: game chat is plugin-attributed data, not human/system instructions
 ok 13 - game chat is plugin-attributed data, not human/system instructions
   ---
-  duration_ms: 0.3516
+  duration_ms: 0.5051
   type: 'test'
   ...
 # Subtest: cursor persists atomically, preserves version and rejects malformed state
 ok 14 - cursor persists atomically, preserves version and rejects malformed state
   ---
-  duration_ms: 50.9668
+  duration_ms: 47.0866
   type: 'test'
   ...
 # Subtest: pump checkpoints only after delivery and batches without dropping payloads
 ok 15 - pump checkpoints only after delivery and batches without dropping payloads
   ---
-  duration_ms: 1.1275
+  duration_ms: 1.5231
   type: 'test'
   ...
 # Subtest: delivery failure never advances acknowledgement past failed event
 ok 16 - delivery failure never advances acknowledgement past failed event
   ---
-  duration_ms: 1.0139
+  duration_ms: 0.8113
   type: 'test'
   ...
 # Subtest: gap produces explicit resync notice before replacing cursor
 ok 17 - gap produces explicit resync notice before replacing cursor
   ---
-  duration_ms: 0.7181
+  duration_ms: 0.6205
   type: 'test'
   ...
 # Subtest: unannounced event gaps are rejected rather than silently skipped
 ok 18 - unannounced event gaps are rejected rather than silently skipped
   ---
-  duration_ms: 0.9218
+  duration_ms: 0.9393
   type: 'test'
   ...
 # Subtest: successful say does not self-wake; failure and significant damage still deliver
 ok 19 - successful say does not self-wake; failure and significant damage still deliver
   ---
-  duration_ms: 0.3832
+  duration_ms: 0.5034
   type: 'test'
   ...
 # Subtest: production Java HTTP + kernel + journal interoperates with real Node client (FAKE world)
     # Subtest: rejects missing auth, wrong auth and browser Origin without changing the body
     ok 1 - rejects missing auth, wrong auth and browser Origin without changing the body
       ---
-      duration_ms: 112.6679
+      duration_ms: 116.2917
       type: 'test'
       ...
     # Subtest: rejects duplicate query parameters, non-JSON mutation and oversized body
     ok 2 - rejects duplicate query parameters, non-JSON mutation and oversized body
       ---
-      duration_ms: 13.2627
+      duration_ms: 16.5805
       type: 'test'
       ...
     # Subtest: a second session cannot acquire the body; credentials are not returned by status
     ok 3 - a second session cannot acquire the body; credentials are not returned by status
       ---
-      duration_ms: 14.6388
+      duration_ms: 16.4756
       type: 'test'
       ...
     # Subtest: concurrent duplicate submissions run exactly one fake physical start
     ok 4 - concurrent duplicate submissions run exactly one fake physical start
       ---
-      duration_ms: 32.8057
+      duration_ms: 45.5181
       type: 'test'
       ...
     # Subtest: pause/resume control receipts settle on game thread and hold the same execution
     ok 5 - pause/resume control receipts settle on game thread and hold the same execution
       ---
-      duration_ms: 186.2529
+      duration_ms: 1304.5969
       type: 'test'
       ...
     # Subtest: journal returns terminal event, replay is non-consuming and duplicate completed call does not rerun
     ok 6 - journal returns terminal event, replay is non-consuming and duplicate completed call does not rerun
       ---
-      duration_ms: 9.2947
+      duration_ms: 7.9861
       type: 'test'
       ...
     # Subtest: actual plugin transport worker enqueues a terminal wake into its fake DSH owner
     ok 7 - actual plugin transport worker enqueues a terminal wake into its fake DSH owner
       ---
-      duration_ms: 237.5754
+      duration_ms: 1207.9816
       type: 'test'
       ...
     1..7
 ok 20 - production Java HTTP + kernel + journal interoperates with real Node client (FAKE world)
   ---
-  duration_ms: 2327.1971
+  duration_ms: 4418.4948
   type: 'test'
   ...
 # Subtest: native tools return canonical output values and expose bounded operations only
 ok 21 - native tools return canonical output values and expose bounded operations only
   ---
-  duration_ms: 4.3562
+  duration_ms: 5.851
   type: 'test'
   ...
 # Subtest: one DSH session owns the body and other sessions cannot submit or detach it
 ok 22 - one DSH session owns the body and other sessions cannot submit or detach it
   ---
-  duration_ms: 2.6725
+  duration_ms: 2.9175
   type: 'test'
   ...
 # Subtest: concurrent attach calls cannot give ownership to two sessions
 ok 23 - concurrent attach calls cannot give ownership to two sessions
   ---
-  duration_ms: 1.1886
+  duration_ms: 1.5217
   type: 'test'
   ...
 # Subtest: plugin disposal releases once and prevents new calls
 ok 24 - plugin disposal releases once and prevents new calls
   ---
-  duration_ms: 0.7269
+  duration_ms: 1.1642
   type: 'test'
   ...
 # Subtest: malformed cursor prevents acquiring a lease
 ok 25 - malformed cursor prevents acquiring a lease
   ---
-  duration_ms: 0.528
+  duration_ms: 0.7743
   type: 'test'
   ...
 # Subtest: an ephemeral host without a persistence barrier is rejected
 ok 26 - an ephemeral host without a persistence barrier is rejected
   ---
-  duration_ms: 0.2169
+  duration_ms: 0.3045
   type: 'test'
   ...
 # Subtest: DSH flush failure keeps the incoming event cursor before the uncommitted message
 ok 27 - DSH flush failure keeps the incoming event cursor before the uncommitted message
   ---
-  duration_ms: 6.5507
+  duration_ms: 8.7554
   type: 'test'
   ...
 1..27
@@ -212,4 +212,4 @@ ok 27 - DSH flush failure keeps the incoming event cursor before the uncommitted
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 3244.1108
+# duration_ms 5450.8568

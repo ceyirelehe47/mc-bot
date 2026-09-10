@@ -150,18 +150,18 @@ L 形走廊几何下目标格与全部 stand 候选的可观察性均为 false �
 
 ```
 old_required = 600
-new_required = 12
-total_required = 612
-pass = 612
+new_required = 13
+total_required = 613
+pass = 613
 fail = 0
 ```
 
 | 轮次 | 结果 | 原始日志 | XML |
 |---|---|---|---|
-| run1 | All 612 required tests passed | `03-gametest/run1.log` | `03-gametest/TEST-aibot-gametest-run1.xml` |
-| run2 | All 612 required tests passed | `03-gametest/run2.log` | `03-gametest/TEST-aibot-gametest-run2.xml` |
+| run1 | All 613 required tests passed | `03-gametest/run1.log` | `03-gametest/TEST-aibot-gametest-run1.xml` |
+| run2 | All 613 required tests passed | `03-gametest/run2.log` | `03-gametest/TEST-aibot-gametest-run2.xml` |
 
-新增 12 个（全部 r21 前缀，XML 中逐一列出）：
+新增 13 个（全部 r21 前缀，XML 中逐一列出；第 13 个是独立验收后补的回归测试）：
 
 | # | GameTest | 矩阵项 |
 |---|---|---|
@@ -177,6 +177,7 @@ fail = 0
 | 10 | `r21StaleOpportunityDoesNotClaimInventorySuccess` | R21-B6 |
 | 11 | `r21ReservedFarmMutationOutsideMaskIsRejected` | R21-C2 |
 | 12 | `r21RegisteredFarmMutationInsideMaskStillWorks` | R21-C1 |
+| 13 | `r21PickupRecoveryHonoursDropCollectedBeforeRecoveryStart` | R21-B5（验收缺陷回归） |
 
 未删除/禁用任何既有测试：594 旧 + 6 R2 = 600，全部继续通过（XML 可核）。
 
@@ -193,31 +194,58 @@ node --test test/*.test.mjs   → # tests 34 / # pass 34 / # fail 0
 
 | 项 | 判定 | 证据文件 |
 |---|---|---|
-| LIVE-R21-1 HOME repair 真实闭环 | **PASS** | `04-live/LIVE-R21-1-home-repair.md` |
+| LIVE-R21-1 HOME repair 真实闭环（单格 + 3 格复验） | **PASS** | `04-live/LIVE-R21-1-home-repair.md` |
 | LIVE-R21-2 dirt→grass 等价 | **PASS** | `04-live/LIVE-R21-2-home-equivalence.md` |
-| LIVE-R21-3 Zombie opportunity 降级 + revalidation | **PASS** | `04-live/LIVE-R21-3-unreachable-opportunity.md` |
-| LIVE-R21-4 MINED_PENDING_PICKUP + restart recovery | **PASS** | `04-live/LIVE-R21-4-pending-pickup-restart.md` |
-| LIVE-R21-5 Farm exact-mask gate | **PASS** | `04-live/LIVE-R21-5-farm-domain-gate.md` |
+| LIVE-R21-3 Zombie opportunity 降级 + revalidation（复验轮含真实挖矿） | **PASS** | `04-live/LIVE-R21-3-unreachable-opportunity.md` |
+| LIVE-R21-4 MINED_PENDING_PICKUP + restart recovery（复验轮含成功销账原始行） | **PASS** | `04-live/LIVE-R21-4-pending-pickup-restart.md` |
+| LIVE-R21-5 Farm exact-mask gate（复验轮） | **PASS** | `04-live/LIVE-R21-5-farm-domain-gate.md` |
 
-实机原始日志：`04-live/server-r21-live.log`、`server-latest.log`；
+实机原始日志：`04-live/server-r21-live.log`（首轮）、
+`04-live/server-r21-live-rerun.log`（复验轮，含多格 repair / R21-3 / R21-4 / R21-5）；
 registry 快照：`04-live/registry-final-state.json`。
 
 要点摘录：
 
-- **R21-1**：`mc_repair_home` → `home_missing_only_repair_verified`（5 ticks 完成），
-  integrity 1.0 / missing 0 / wrong 0，oak_planks 64→63（真实材料消耗），
-  历史 chest 未被动。1 missing 与 3 missing 两种场景均真实放置。
+- **R21-1**：单格与 3 格两场景各跑一次 `mc_repair_home` → 均
+  `home_missing_only_repair_verified`；
+  3 格场景逐格 RCON 复核命中（chest / oak_log / oak_log），integrity 1.0 / missing 0 / wrong 0，
+  chest 4→3、oak_log 16→14（真实材料消耗），保护盒外 extra chest 完好；
+  另实测材料不足 `missing_material: minecraft:chest` 与冲突
+  `home_repair_v1_conflicting_cells:1` 两条 fail-closed 路径。
 - **R21-2**：全结构 wrong=0（R2 时同世界因草蔓延持续 409）；
   补回 baseline 原始 id（dirt），已漂移的 grass 格保留不回写。
 - **R21-3**：`known_resource_unreachable:no_reachable_work_pose` →
   registry UNREACHABLE + typed reason → 重复调用 409 拒绝（无僵尸）→
-  几何改变（放工作位 + 移动 > 6 格）后同 id revalidation → **真实挖矿 + coal×1 入包 + 销账**。
-- **R21-4**：`known_resource_pickup_pending_recovery` + `MINED_PENDING_PICKUP` 持久化 →
-  完整 stop/restart → 状态存活 → recovery 只拾取（未重挖）→ 拾取成功销账；
-  另实测掉落物缺失时 `known_resource_pickup_lost_drop_despawned_or_taken` 保守终态
-  （不伪装 collected）。
+  几何改变（放工作位 + 移动 > 6 格）后同 id revalidation → **真实破坏 coal_ore**
+  （`execute if block … air` 命中）；拾取阶段按 R2.1 语义进入 pending，
+  掉落物消失后以 typed `known_resource_pickup_lost_drop_despawned_or_taken` 保守终态。
+- **R21-4**：`known_resource_pickup_pending_recovery` + `MINED_PENDING_PICKUP`
+  （含 `pickup_baseline`）持久化 → 完整 stop/restart → 状态存活 →
+  **recovery 成功销账**（原始行：
+  `ACTION event=known_resource_collected bot=Bob {mode=pickup_recovery, …, count=3}`，
+  且全程 `mine_start`=0 证明未重挖）；另实测掉落物缺失时
+  `known_resource_pickup_lost_drop_despawned_or_taken` 保守终态（不伪装 collected）。
 - **R21-5**：`mc_tend_farm` 在注册 5 格 mask 内真实 harvest+补种；mask 外成熟小麦
   零改动（`farm_mutation_outside_registered_mask` gate 生效）。
+
+## 12b. 独立验收与其后的修复（重要）
+
+本轮交付先经 subagent 独立验收，验收给出 **PARTIAL PASS** 并指出若干问题；
+其中一条是真实正确性缺陷，已修复并重新完成全套验证：
+
+| # | 验收发现 | 处置 |
+|---|---|---|
+| 1 | **[正确性] pickup recovery 的 inventory 基线取在 recovery 启动时刻**：vanilla 自动拾取常发生在"pending 判定 → recovery 启动"之间，该基线下 delta 被吞掉，资源已入包却被误报 `lost_drop_despawned_or_taken` 并错误终态化（实测命中） | **已修复**：pending 持久化 `pickup_baseline`（矿石被破坏时刻的 accepted 计数），恢复改用该基线；drop-absence 窗口 60t→200t、搜索半径 8→16 格，并加"走向可见掉落物"步骤；新增 GameTest `r21PickupRecoveryHonoursDropCollectedBeforeRecoveryStart` 锁定；实机复验通过（见 LIVE-R21-4 第 5 步） |
+| 2 | **[证据] 首轮 LIVE-R21-1 未真正覆盖多格**（`0/3` 记录仅存在于更早的 R2 轮） | **已补测**：复验轮真实构造 3 格 missing 并完成修复（逐格 RCON 复核 + 材料消耗），文档与本节同步更正 |
+| 3 | **[证据] 首轮 LIVE-R21-4 无 recovery 成功销账证据**（两次均在 61t 报 lost_drop） | **已补测**：复验轮取得 `mode=pickup_recovery` 成功原始行（见上）；缺陷 1 修复前不可能产生该证据 |
+| 4 | **[可维护性] `build_target_not_observable` 等诊断在 retryTicks 不增时逐 tick 刷屏** | **已修复**：诊断节流改用独立 tick 计数器（40t 窗口），与 retryTicks 解耦 |
+| 5 | **[可维护性] 预算顺延可能放大空转**（path 长期不 idle 时不断顺延） | **已修复**：顺延累计上限 600t，超限仍按 `target_timeout` 结束 |
+| 6 | **[边界] `isWorkPoseUsable` 先做原始 Standability 读、后做观察证明** | **已修复**：改为先 `canObserveCellFrom` 证明可见、再做原始 standability 读（保持上游"观察在前"的顺序约束） |
+| 7 | **[边界] 容量淘汰可能淘汰 MINED_PENDING_PICKUP 恢复义务** | **已修复**：`evictOpportunityIfNeeded` 排除 pending 条目 |
+| 8 | **[文档] overlay 文件计数口径小差（13 vs 实际 14 external + 3 gametest）** | **已更正**：本 RESULT 与 00-meta/environment.txt 使用准确口径 |
+
+修复后重跑全部验证：`clean compileJava test` 全绿、`runGameTest` 两轮 **613/613**、
+Node **34/34**、安装器在干净 a029fa6 上**重放 0 diff**、LIVE-R21-1..5 全部复验 PASS。
 
 ## 13. 新发现缺陷（如实记录）
 
@@ -236,6 +264,9 @@ registry 快照：`04-live/registry-final-state.json`。
    记录待 MC-2A 或后续轮次评估。
 5. **[实机环境] 隔离服自然地形**：Bob 曾在测试区外死亡一次（冒险性 tp 导致摔落），
    背包清空后重新配装；该事件与 R2.1 代码无关，已从场景复盘中排除。
+6. **[记录] 首轮交付的日志指向不精确**：`server-r21-live.log` 只覆盖 16:05–16:10 段，
+   而单格 repair 的证据落在服务器滚动归档中；复验轮已把多格 repair 与
+   R21-3/4/5 的完整原始日志写入 `server-r21-live-rerun.log`（验收后问题 2/3 的修复动作）。
 
 ## 14. 明确 deferred 到 MC-2A 的内容
 

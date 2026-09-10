@@ -1,31 +1,34 @@
-# LIVE-R21-1｜HOME repair 真实闭环 —— PASS
+# LIVE-R21-1｜HOME repair 真实闭环（含多格） —— PASS
 
-环境：隔离服 D:\code\mc-experiment\mc-server-mc1ca（world_r2，world_id 2eadb4ef-61bb-4657-ab6e-94d50141bbd1），
-新 jar（R2.1）部署后重启，桥 8765，Bob 领租约驱动；无 teleport/setblock 伪造 repair。
+环境：隔离服 D:\code\mc-experiment\mc-server-mc1ca（world_r2，
+world_id 2eadb4ef-61bb-4657-ab6e-94d50141bbd1），R2.1 jar（含独立验收修复），
+桥 8765，Bob 领租约驱动。**无 teleport/setblock 伪造 repair**（setblock 仅用于构造 fixture 损伤）。
 
-## 场景
+## 单格场景（首轮）
 
-- r2home（526 格 baseline，bounds 18,112,18–34,119,34）自然演化了数日：
-  - 大量 baseline dirt 格被草蔓延为 grass_block；
-  - R2 轮遗留 1 格真 missing（26,112,26，baseline grass_block，被挖空）。
-- 这正好同时覆盖 R21-A1（1 missing）与 R21-A5（dirt↔grass）。
+- r2home baseline 自然演化后 `missing=1 wrong=0`（草蔓延的 dirt→grass 被等价 policy 吸收）。
+- `mc_repair_home {"name":"r2home"}` → execution `7eb023c3` →
+  **completed / `home_missing_only_repair_verified`**（5 ticks）。
+- 复核：integrity 1.0 / missing 0 / wrong 0；oak_planks 64→63（1 格真实消耗）；
+  历史 chest 未被删。
 
-## 执行与结果
+## 多格场景（复验轮，3 格）
 
-1. `mc_repair_home {"name":"r2home"}` → execution `7eb023c3`，
-   **completed / `home_missing_only_repair_verified`**（5 ticks）。
-2. observe 复核：`integrity=1.0 missing=0 wrong=0 repairable=false`。
-3. 材料真实消耗：oak_planks 64 → 63（1 格放置）。
-4. 等价不覆盖：baseline 为 grass_block 的 33/34 列、以及 baseline 为 dirt 的
-   (33,113,24) 等格全部保持原样，草蔓延未被强行回改（wrong=0 而非回写）。
-5. R2 对比：R2 轮同世界同结构因 1 格 grass 漂移持续 `home_repair_v1_conflicting_cells:1`
-   永久 409 拒绝；R2.1 等价 policy 后预检通过、只补真 missing。
-6. 3 missing 变体：追加实测 `setblock 33 113 24 air`（baseline dirt）→ repair → completed，
-   **补回的是 baseline 原始 id（dirt）**，dirt 33→32 消耗；grass 邻格不动（见 LIVE-R21-2）。
-7. extra 块保持：r2home 内 (26,113,26) 的历史 chest 在全部 repair 轮次后仍为 chest。
+- fixture：将 baseline 中三格结构块置空（26,113,26 = chest；27,113,26 与 30,113,28 = oak_log）；
+  另在保护盒外放 chest 验证 extra 不删。
+- 观测复核 `missing=3 wrong=0 repairable=true`，材料补足（oak_planks / oak_log / chest）。
+- `mc_repair_home` → execution `71ab1708` →
+  **completed / `home_missing_only_repair_verified`**。
+- 逐格 RCON 复核：
+  - `26 113 26 = chest`（命中）、`27 113 26 = oak_log`（命中）、`30 113 28 = oak_log`（命中）
+  - `40 113 40 = chest`（盒外 extra，完好）
+  - integrity 回升 **1.0 / missing 0 / wrong 0**
+  - 材料真实消耗：chest 4→3、oak_log 16→14
+- 期间另实测：材料不足时 typed `missing_material: minecraft:chest`（快速失败，不伪造完成）；
+  baseline 格被非等价物块占据时 `home_repair_v1_conflicting_cells:1`（409 原子 fail-closed）。
 
 ## 证据
 
-- 桥 execution：`7eb023c3-05cf-4b37-8f71-941062dcde30`（completed）
-- 服务器日志：本目录 server-r21-live.log（task_completed build elapsed_ticks=5）
-- 现场 RCON 复核：integrity 1.0 / missing 0 / wrong 0；`execute if block` 逐格探测
+- executions：`7eb023c3`（单格）、`71ab1708`（3 格）、`550d09c2`（conflict 409）
+- 原始日志：`server-r21-live.log`（单格）、`server-r21-live-rerun.log`（多格 + R21-3/4/5 复验）
+- 逐格探测：`execute if block <pos> <block>` 全部命中（见上文坐标）

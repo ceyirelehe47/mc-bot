@@ -18,8 +18,9 @@ import java.util.Set;
 /** Mine one exact previously-observed ore opportunity; never silently substitutes another vein. */
 public final class KnownResourceTask extends AbstractTask {
     private enum Phase { APPROACH, MINING, PICKUP, PICKUP_RECOVERY }
-    private static final int PICKUP_RECOVERY_BUDGET_TICKS = 200;
-    private static final int DROP_ABSENCE_CONFIRM_TICKS = 60;
+    private static final int PICKUP_RECOVERY_BUDGET_TICKS = 400;
+    private static final int DROP_ABSENCE_CONFIRM_TICKS = 200;
+    private static final double DROP_SEARCH_RADIUS = 16.0D;
     private final SemanticWorldRegistry.OpportunitySpec opportunity;
     private final Set<Item> targetDrops;
     private final BlockMiner miner = new BlockMiner();
@@ -64,9 +65,10 @@ public final class KnownResourceTask extends AbstractTask {
 
     @Override protected void onStart(AIPlayerEntity bot) {
         if (pickupRecoveryOnly) {
-            // The mining postcondition is historical fact here; re-baseline the inventory so the
-            // recovery completion proof is a delta measured from recovery start.
-            inventoryBefore = HarvestCore.countInventoryItems(bot, targetDrops);
+            // The completion proof must be the delta since the ore break, NOT since recovery start:
+            // vanilla auto-pickup often lands the drop between the two, and a recovery-start
+            // baseline would hide that gain and mis-report the resource as lost.
+            inventoryBefore = opportunity.pickupBaseline();
             recoveryTicks = PICKUP_RECOVERY_BUDGET_TICKS;
             dropAbsentTicks = 0;
             phase = Phase.PICKUP_RECOVERY;
@@ -172,7 +174,7 @@ public final class KnownResourceTask extends AbstractTask {
                 // R2.1: the ore break is proven but the drop is not in inventory yet — park the
                 // opportunity as MINED_PENDING_PICKUP (persisted, restart-safe) and fail typed.
                 // The old behavior consumed the opportunity here, silently losing the resource.
-                SemanticWorldRegistry.markOpportunityPendingPickup(bot, opportunity.id());
+                SemanticWorldRegistry.markOpportunityPendingPickup(bot, opportunity.id(), inventoryBefore);
                 fail("known_resource_pickup_pending_recovery");
             } else {
                 // The block is back/still there: nothing was mined, the opportunity stays as-is.
@@ -197,8 +199,14 @@ public final class KnownResourceTask extends AbstractTask {
             complete();
             return;
         }
+        // The drop may have scattered: walk toward it before concluding anything. forcePickup only
+        // reaches the immediate radius, so a nearby-but-not-touching drop would otherwise look lost.
+        var reachable = HarvestCore.nearestDropAnyOf(bot, targetDrops, DROP_SEARCH_RADIUS);
+        if (reachable.isPresent() && bot.getActionPack().isPathExecutorIdle()) {
+            bot.getActionPack().startPathTo(reachable.get().getBlockPos());
+        }
         HarvestCore.chaseDropAnyOf(bot, targetDrops, 8.0D);
-        boolean dropNearby = HarvestCore.nearestDropAnyOf(bot, targetDrops, 8.0D).isPresent();
+        boolean dropNearby = HarvestCore.nearestDropAnyOf(bot, targetDrops, DROP_SEARCH_RADIUS).isPresent();
         dropAbsentTicks = dropNearby ? 0 : dropAbsentTicks + 1;
         if (dropAbsentTicks > DROP_ABSENCE_CONFIRM_TICKS) {
             // Conservative loss: no drop entity, no inventory delta — the resource provably did

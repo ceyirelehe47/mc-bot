@@ -456,7 +456,7 @@ index 0a6bfc2f..23d33624 100644
              }
              if (!handled && runBackground) {
 diff --git a/src/main/java/io/github/zoyluo/aibot/task/BuildTask.java b/src/main/java/io/github/zoyluo/aibot/task/BuildTask.java
-index 9a2e3704..e8d0d6f7 100644
+index 9a2e3704..cc8c8d97 100644
 --- a/src/main/java/io/github/zoyluo/aibot/task/BuildTask.java
 +++ b/src/main/java/io/github/zoyluo/aibot/task/BuildTask.java
 @@ -21,6 +21,7 @@ import net.minecraft.server.world.ServerWorld;
@@ -467,17 +467,19 @@ index 9a2e3704..e8d0d6f7 100644
  
  import java.util.ArrayDeque;
  import java.util.Deque;
-@@ -55,6 +56,9 @@ public final class BuildTask extends AbstractTask {
+@@ -55,6 +56,11 @@ public final class BuildTask extends AbstractTask {
      private int skippedBlocks;
      private boolean flattenMiningStarted;
      private boolean buildMiningStarted;
 +    private BlockPos cachedStand;          // R2.1: stand 搜索含 raycast,同目标短窗口缓存
 +    private BlockPos cachedStandTarget;
 +    private int cachedStandTick = -100;
++    private int workPoseDiagTick = -100;   // 诊断行节流:独立计数器(与 retryTicks 解耦)
++    private int pathHoldTicks;             // 因 path 活跃而顺延的累计 tick(防无限顺延)
      private String note = "";
  
      public BuildTask(BlueprintSchema blueprint, BlockPos anchor) {
-@@ -198,9 +202,13 @@ public final class BuildTask extends AbstractTask {
+@@ -198,9 +204,13 @@ public final class BuildTask extends AbstractTask {
          // 整地格预算:够不到的格(nearbyStand 无落脚点会退化成 startPathTo 自己→原地死循环,real_build 实测
          // path_idle 0 进度 build_timeout)→ 50t 内没搞定就跳过,best-effort 继续整地/盖房,站不到的格不强求。
          if (elapsed - flattenTargetTick > 50) {
@@ -494,8 +496,11 @@ index 9a2e3704..e8d0d6f7 100644
          }
          if (currentFlattenTarget.kind() == FlattenKind.CLEAR) {
              clearFlattenBlock(bot);
-@@ -300,8 +308,15 @@ public final class BuildTask extends AbstractTask {
+@@ -298,10 +308,20 @@ public final class BuildTask extends AbstractTask {
+             buildTargetIndex = nextIndex;
+             buildTargetTick = elapsed;
              retryTicks = 0;
++            pathHoldTicks = 0;
              buildMiningStarted = false;
          } else if (elapsed - buildTargetTick > 80) {
 -            skipBuildTarget(bot, pos, "target_timeout");
@@ -503,8 +508,10 @@ index 9a2e3704..e8d0d6f7 100644
 +            // R2.1: 走向工作位是进展而非空转。HOME repair 的工作位常在结构另一侧,绕行 10+ 格的
 +            // 正常路途会吃满 80t 预算被误判 target_timeout(R2-7 残留)。path executor 活跃时顺延
 +            // 预算;真正的空转(path idle 且无放置)仍由 80t 窗口兜底。
-+            if (!bot.getActionPack().isPathExecutorIdle()) {
++            if (!bot.getActionPack().isPathExecutorIdle() && pathHoldTicks < 600) {
++                // 走向工作位算进展,但顺延有上限:path 若长期不 idle(反复重规划),600t 后仍按空转处理。
 +                buildTargetTick = elapsed;
++                pathHoldTicks++;
 +            } else {
 +                skipBuildTarget(bot, pos, "target_timeout");
 +                return;
@@ -512,7 +519,7 @@ index 9a2e3704..e8d0d6f7 100644
          }
          if (!ensureObservableWorkPose(bot, pos, "build")) {
              return;
-@@ -376,16 +391,47 @@ public final class BuildTask extends AbstractTask {
+@@ -376,16 +396,49 @@ public final class BuildTask extends AbstractTask {
  
      private boolean ensureObservableWorkPose(AIPlayerEntity bot, BlockPos pos, String reason) {
          double reach = bot.getBlockInteractionRange();
@@ -522,13 +529,15 @@ index 9a2e3704..e8d0d6f7 100644
 +        if (observable && moveWithinReach(bot, pos, reason, reach * reach)) {
              return true;
          }
-+        if (!observable && (retryTicks == 1 || retryTicks % 40 == 0)) {
++        if (!observable && elapsed - workPoseDiagTick >= 40) {
++            workPoseDiagTick = elapsed;
 +            BotLog.action(bot, "build_target_not_observable", "pos", compact(pos), "phase", reason,
 +                    "bot", compact(bot.getBlockPos()), "retry", retryTicks);
 +        }
          if (bot.getActionPack().isPathExecutorIdle()) {
              BlockPos stand = nearbyStand(bot, pos);
-+            if (retryTicks == 1 || retryTicks % 40 == 0) {
++            if (elapsed - workPoseDiagTick >= 40) {
++                workPoseDiagTick = elapsed;
 +                BotLog.action(bot, "build_work_pose_state",
 +                        "pos", compact(pos), "phase", reason,
 +                        "stand", stand == null ? "none" : compact(stand),
@@ -549,11 +558,11 @@ index 9a2e3704..e8d0d6f7 100644
 +                // R2.1: 无可观察工作位不再 80t 静默空转——节流 typed 诊断(L0/L1 journal,不 wake DSH),
 +                // 40t 预算内仍无工作位则快速失败,替代事后才出现的 target_timeout。
 +                retryTicks++;
-+                if (retryTicks == 1 || retryTicks % 20 == 0) {
++                if (elapsed - workPoseDiagTick >= 40) {
++                    workPoseDiagTick = elapsed;
 +                    BotLog.action(bot, "build_work_pose_blocked",
 +                            "pos", compact(pos),
 +                            "reason", reason,
-+                            "observable_from_here", ObservableWorldQuery.canObserveCell(bot, pos),
 +                            "bot", compact(bot.getBlockPos()),
 +                            "retry", retryTicks);
 +                }
@@ -562,7 +571,7 @@ index 9a2e3704..e8d0d6f7 100644
                  }
              }
          }
-@@ -494,9 +540,24 @@ public final class BuildTask extends AbstractTask {
+@@ -494,9 +547,24 @@ public final class BuildTask extends AbstractTask {
      }
  
      private BlockPos nearbyStand(AIPlayerEntity bot, BlockPos pos) {
@@ -588,7 +597,7 @@ index 9a2e3704..e8d0d6f7 100644
          if (exterior != null) {
              return exterior;
          }
-@@ -519,7 +580,7 @@ public final class BuildTask extends AbstractTask {
+@@ -519,7 +587,7 @@ public final class BuildTask extends AbstractTask {
                          if (candidate.equals(current)
                                  || pathAlreadyConsidersArrived
                                  || candidate.getSquaredDistance(pos) > 100.0D
@@ -597,7 +606,7 @@ index 9a2e3704..e8d0d6f7 100644
                              continue;
                          }
                          double score = candidate.getSquaredDistance(current)
-@@ -540,7 +601,8 @@ public final class BuildTask extends AbstractTask {
+@@ -540,7 +608,8 @@ public final class BuildTask extends AbstractTask {
       * from slowly walling itself into the structure and gives it a clear angle to the nearest
       * facade without inspecting hidden terrain inside the footprint.
       */
@@ -607,7 +616,7 @@ index 9a2e3704..e8d0d6f7 100644
          if (anchor == null) {
              return null;
          }
-@@ -570,7 +632,7 @@ public final class BuildTask extends AbstractTask {
+@@ -570,7 +639,7 @@ public final class BuildTask extends AbstractTask {
                  BlockPos candidate = new BlockPos(horizontal.getX(), y, horizontal.getZ());
                  if (!pathAlreadyConsidersArrived(current, candidate)
                          && candidate.getSquaredDistance(target) <= 100.0D
@@ -616,7 +625,7 @@ index 9a2e3704..e8d0d6f7 100644
                      return candidate.toImmutable();
                  }
              }
-@@ -579,16 +641,26 @@ public final class BuildTask extends AbstractTask {
+@@ -579,16 +648,28 @@ public final class BuildTask extends AbstractTask {
      }
  
      /**
@@ -641,14 +650,16 @@ index 9a2e3704..e8d0d6f7 100644
 -                && Standability.isStandable(bot.getServerWorld(), candidate);
 +    private static boolean isWorkPoseUsable(AIPlayerEntity bot, BlockPos candidate, BlockPos target,
 +                                            double reachSquared) {
-+        if (!Standability.isStandable(bot.getServerWorld(), candidate)) {
-+            return false;
-+        }
 +        Vec3d eye = new Vec3d(candidate.getX() + 0.5D, candidate.getY() + 1.62D, candidate.getZ() + 0.5D);
 +        if (eye.squaredDistanceTo(target.toCenterPos()) > reachSquared) {
 +            return false;
 +        }
-+        return ObservableWorldQuery.canObserveCellFrom(bot, eye, target);
++        // Observe first: the strict raycast is the boundary that must gate any later raw world read
++        // (upstream rule), so raw standability is consulted only after the target is proven visible.
++        if (!ObservableWorldQuery.canObserveCellFrom(bot, eye, target)) {
++            return false;
++        }
++        return Standability.isStandable(bot.getServerWorld(), candidate);
      }
  
      private static boolean pathAlreadyConsidersArrived(BlockPos current, BlockPos candidate) {
@@ -783,10 +794,10 @@ index 07d61c3c..7120c254 100644
                          BlockPos.ORIGIN,
 diff --git a/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CAR21GameTests.java b/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CAR21GameTests.java
 new file mode 100644
-index 00000000..a1e68e3e
+index 00000000..6973bcf7
 --- /dev/null
 +++ b/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CAR21GameTests.java
-@@ -0,0 +1,614 @@
+@@ -0,0 +1,661 @@
 +package io.github.zoyluo.aibot.gametest;
 +
 +import io.github.zoyluo.aibot.action.InventoryAction;
@@ -1033,7 +1044,7 @@ index 00000000..a1e68e3e
 +        io.github.zoyluo.aibot.perception.PerceptionCollector.collect(bot);
 +        String id = opportunityAt(context, bot, ore, "ACTIONABLE");
 +
-+        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id); // ore proven broken, drop not collected
++        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id, 0); // ore proven broken, drop not collected
 +        set(bot, ore, Blocks.STONE); // something else now occupies the cell
 +        io.github.zoyluo.aibot.perception.PerceptionCollector.collect(bot);
 +        io.github.zoyluo.aibot.perception.PerceptionCollector.collect(bot);
@@ -1062,7 +1073,7 @@ index 00000000..a1e68e3e
 +        String id = opportunityAt(context, bot, ore, "ACTIONABLE");
 +        var spec = SemanticWorldRegistry.opportunity(bot, id).orElseThrow();
 +
-+        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id);
++        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id, 0);
 +        set(bot, ore, Blocks.AIR); // the ore is gone (break already proven)
 +        var dropItem = io.github.zoyluo.aibot.action.HarvestCore.expectedDropsFor(Blocks.IRON_ORE).iterator().next();
 +        var world = bot.getServerWorld();
@@ -1097,6 +1108,53 @@ index 00000000..a1e68e3e
 +                if (!notRemined || !collected || !consumed) {
 +                    throwGameTest(context, "recovery postcondition failed: notRemined=" + notRemined
 +                            + " collected=" + collected + " consumed=" + consumed);
++                }
++                finish(context, f);
++            }
++        });
++    }
++
++    /**
++     * 8b (acceptance-found regression): the drop often reaches the inventory BEFORE a recovery
++     * starts (vanilla auto-pickup as the bot comes near). A recovery baseline measured at recovery
++     * start would hide that gain and mis-report the resource as lost. The pending baseline captured
++     * at the ore break must prove the delta.
++     */
++    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc1caR21", tickLimit = 300)
++    public void r21PickupRecoveryHonoursDropCollectedBeforeRecoveryStart(TestContext context) {
++        Fixture f = cabin(context, "r21_prepick");
++        AIPlayerEntity bot = f.bot;
++        BlockPos ore = f.farWallCenter().up(5);
++        set(bot, ore, Blocks.IRON_ORE);
++        InventoryAction.giveItem(bot, new ItemStack(Items.IRON_PICKAXE));
++        io.github.zoyluo.aibot.perception.PerceptionCollector.collect(bot);
++        String id = opportunityAt(context, bot, ore, "ACTIONABLE");
++        var spec = SemanticWorldRegistry.opportunity(bot, id).orElseThrow();
++        var dropItem = io.github.zoyluo.aibot.action.HarvestCore.expectedDropsFor(Blocks.IRON_ORE).iterator().next();
++        int acceptedAtBreak = io.github.zoyluo.aibot.action.HarvestCore.countInventoryItems(bot,
++                io.github.zoyluo.aibot.action.HarvestCore.expectedDropsFor(Blocks.IRON_ORE));
++
++        set(bot, ore, Blocks.AIR);
++        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id, acceptedAtBreak);
++        // The drop lands in the inventory BEFORE the recovery task is ever started.
++        InventoryAction.giveItem(bot, new ItemStack(dropItem, 2));
++
++        var pending = SemanticWorldRegistry.opportunity(bot, id).orElseThrow();
++        KnownResourceTask task = new KnownResourceTask(pending, true);
++        task.start(bot);
++        context.runAtEveryTick(() -> {
++            if (task.state() == TaskState.RUNNING) task.tick(bot);
++            TaskState state = task.state();
++            if (state == TaskState.FAILED || state == TaskState.CANCELLED) {
++                String message = "pre-recovery pickup must be honoured, got " + state + " reason=" + task.failureReason();
++                AIPlayerManager.INSTANCE.despawn(bot.getServer(), BOT);
++                throwGameTest(context, message);
++            } else if (state == TaskState.COMPLETED) {
++                boolean consumed = SemanticWorldRegistry.opportunity(bot, id).isEmpty();
++                int collected = io.github.zoyluo.aibot.action.HarvestCore.countInventoryItems(bot,
++                        io.github.zoyluo.aibot.action.HarvestCore.expectedDropsFor(Blocks.IRON_ORE)) - acceptedAtBreak;
++                if (!consumed || collected <= 0) {
++                    throwGameTest(context, "recovery postcondition failed: consumed=" + consumed + " collected=" + collected);
 +                }
 +                finish(context, f);
 +            }
@@ -2864,10 +2922,10 @@ index 00000000..4ff76299
 +}
 diff --git a/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java b/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java
 new file mode 100644
-index 00000000..efe0509a
+index 00000000..46da2a24
 --- /dev/null
 +++ b/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java
-@@ -0,0 +1,231 @@
+@@ -0,0 +1,239 @@
 +package io.github.zoyluo.aibot.external;
 +
 +import io.github.zoyluo.aibot.action.BlockMiner;
@@ -2888,8 +2946,9 @@ index 00000000..efe0509a
 +/** Mine one exact previously-observed ore opportunity; never silently substitutes another vein. */
 +public final class KnownResourceTask extends AbstractTask {
 +    private enum Phase { APPROACH, MINING, PICKUP, PICKUP_RECOVERY }
-+    private static final int PICKUP_RECOVERY_BUDGET_TICKS = 200;
-+    private static final int DROP_ABSENCE_CONFIRM_TICKS = 60;
++    private static final int PICKUP_RECOVERY_BUDGET_TICKS = 400;
++    private static final int DROP_ABSENCE_CONFIRM_TICKS = 200;
++    private static final double DROP_SEARCH_RADIUS = 16.0D;
 +    private final SemanticWorldRegistry.OpportunitySpec opportunity;
 +    private final Set<Item> targetDrops;
 +    private final BlockMiner miner = new BlockMiner();
@@ -2934,9 +2993,10 @@ index 00000000..efe0509a
 +
 +    @Override protected void onStart(AIPlayerEntity bot) {
 +        if (pickupRecoveryOnly) {
-+            // The mining postcondition is historical fact here; re-baseline the inventory so the
-+            // recovery completion proof is a delta measured from recovery start.
-+            inventoryBefore = HarvestCore.countInventoryItems(bot, targetDrops);
++            // The completion proof must be the delta since the ore break, NOT since recovery start:
++            // vanilla auto-pickup often lands the drop between the two, and a recovery-start
++            // baseline would hide that gain and mis-report the resource as lost.
++            inventoryBefore = opportunity.pickupBaseline();
 +            recoveryTicks = PICKUP_RECOVERY_BUDGET_TICKS;
 +            dropAbsentTicks = 0;
 +            phase = Phase.PICKUP_RECOVERY;
@@ -3042,7 +3102,7 @@ index 00000000..efe0509a
 +                // R2.1: the ore break is proven but the drop is not in inventory yet — park the
 +                // opportunity as MINED_PENDING_PICKUP (persisted, restart-safe) and fail typed.
 +                // The old behavior consumed the opportunity here, silently losing the resource.
-+                SemanticWorldRegistry.markOpportunityPendingPickup(bot, opportunity.id());
++                SemanticWorldRegistry.markOpportunityPendingPickup(bot, opportunity.id(), inventoryBefore);
 +                fail("known_resource_pickup_pending_recovery");
 +            } else {
 +                // The block is back/still there: nothing was mined, the opportunity stays as-is.
@@ -3067,8 +3127,14 @@ index 00000000..efe0509a
 +            complete();
 +            return;
 +        }
++        // The drop may have scattered: walk toward it before concluding anything. forcePickup only
++        // reaches the immediate radius, so a nearby-but-not-touching drop would otherwise look lost.
++        var reachable = HarvestCore.nearestDropAnyOf(bot, targetDrops, DROP_SEARCH_RADIUS);
++        if (reachable.isPresent() && bot.getActionPack().isPathExecutorIdle()) {
++            bot.getActionPack().startPathTo(reachable.get().getBlockPos());
++        }
 +        HarvestCore.chaseDropAnyOf(bot, targetDrops, 8.0D);
-+        boolean dropNearby = HarvestCore.nearestDropAnyOf(bot, targetDrops, 8.0D).isPresent();
++        boolean dropNearby = HarvestCore.nearestDropAnyOf(bot, targetDrops, DROP_SEARCH_RADIUS).isPresent();
 +        dropAbsentTicks = dropNearby ? 0 : dropAbsentTicks + 1;
 +        if (dropAbsentTicks > DROP_ABSENCE_CONFIRM_TICKS) {
 +            // Conservative loss: no drop entity, no inventory delta — the resource provably did
@@ -3549,10 +3615,10 @@ index 00000000..4f006bc1
 +}
 diff --git a/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java b/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
 new file mode 100644
-index 00000000..a754354f
+index 00000000..777d8873
 --- /dev/null
 +++ b/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
-@@ -0,0 +1,971 @@
+@@ -0,0 +1,987 @@
 +package io.github.zoyluo.aibot.external;
 +
 +import com.google.gson.Gson;
@@ -3686,7 +3752,7 @@ index 00000000..a754354f
 +    public record FarmSpec(String id, BlockPos center, int radius, Block crop, Item seed) {}
 +    public record OpportunitySpec(String id, String dimension, BlockPos pos, Block block,
 +                                  BlockPos seenFrom, String status, String blockedReason,
-+                                  long stateSinceGameTime, BlockPos stateAt) {}
++                                  long stateSinceGameTime, BlockPos stateAt, int pickupBaseline) {}
 +    public record HomeRepairPlan(String id, BlockPos anchor, BlueprintSchema blueprint,
 +                                 int expected, int missing, int wrong) {}
 +
@@ -3717,18 +3783,23 @@ index 00000000..a754354f
 +                                       String blockId, int seenX, int seenY, int seenZ,
 +                                       String status, String blockedReason, String requiredTool,
 +                                       long lastSeenGameTime,
-+                                       long stateSinceGameTime, int stateX, int stateY, int stateZ) {
++                                       long stateSinceGameTime, int stateX, int stateY, int stateZ,
++                                       int pickupBaseline) {
 +        BlockPos pos() { return new BlockPos(x, y, z); }
 +        BlockPos seenFrom() { return new BlockPos(seenX, seenY, seenZ); }
 +        BlockPos stateAt() { return new BlockPos(stateX, stateY, stateZ); }
 +
-+        ResourceOpportunity withStatus(String nextStatus, String nextReason, String nextTool, long now) {
++        /** Rebuilds the entry with a new state, preserving the pickup baseline and position. */
++        ResourceOpportunity withState(String nextStatus, String nextReason, String nextTool, long now,
++                                      int baseline) {
 +            return new ResourceOpportunity(id, dimension, x, y, z, blockId, seenX, seenY, seenZ,
-+                    nextStatus, nextReason, nextTool, lastSeenGameTime, now, stateX, stateY, stateZ);
++                    nextStatus, nextReason, nextTool, lastSeenGameTime, now, stateX, stateY, stateZ,
++                    baseline);
 +        }
 +        ResourceOpportunity observedAt(long now) {
 +            return new ResourceOpportunity(id, dimension, x, y, z, blockId, seenX, seenY, seenZ,
-+                    status, blockedReason, requiredTool, now, stateSinceGameTime, stateX, stateY, stateZ);
++                    status, blockedReason, requiredTool, now, stateSinceGameTime, stateX, stateY, stateZ,
++                    pickupBaseline);
 +        }
 +    }
 +    private record Integrity(int expected, int matched, int missing, int wrong) {}
@@ -3941,7 +4012,7 @@ index 00000000..a754354f
 +                next = new ResourceOpportunity(id, dim, pos.getX(), pos.getY(), pos.getZ(), blockId,
 +                        seenFrom.getX(), seenFrom.getY(), seenFrom.getZ(), status, reason,
 +                        ToolTier.requiredPickaxeItemId(state.getBlock()), now, now,
-+                        prior.stateX, prior.stateY, prior.stateZ);
++                        prior.stateX, prior.stateY, prior.stateZ, prior.pickupBaseline);
 +                reactivated = actionable;
 +            } else {
 +                next = prior.observedAt(now); // keep UNREACHABLE, only refresh last_seen
@@ -3955,7 +4026,7 @@ index 00000000..a754354f
 +            next = new ResourceOpportunity(id, dim, pos.getX(), pos.getY(), pos.getZ(), blockId,
 +                    seenFrom.getX(), seenFrom.getY(), seenFrom.getZ(), status, reason,
 +                    ToolTier.requiredPickaxeItemId(state.getBlock()), now, now,
-+                    bot.getBlockPos().getX(), bot.getBlockPos().getY(), bot.getBlockPos().getZ());
++                    bot.getBlockPos().getX(), bot.getBlockPos().getY(), bot.getBlockPos().getZ(), 0);
 +        }
 +        if (prior == null) {
 +            evictOpportunityIfNeeded(); OPPORTUNITIES.put(key, next); dirty = true;
@@ -4005,7 +4076,7 @@ index 00000000..a754354f
 +        if (block == null || !OreScan.isOreBlock(block)) return Optional.empty();
 +        return Optional.of(new OpportunitySpec(opportunity.id, opportunity.dimension, opportunity.pos(), block,
 +                opportunity.seenFrom(), opportunity.status, opportunity.blockedReason,
-+                opportunity.stateSinceGameTime, opportunity.stateAt()));
++                opportunity.stateSinceGameTime, opportunity.stateAt(), opportunity.pickupBaseline));
 +    }
 +
 +    public static void markOpportunityConsumed(AIPlayerEntity bot, String rawId) {
@@ -4030,7 +4101,8 @@ index 00000000..a754354f
 +        OPPORTUNITIES.put(key, new ResourceOpportunity(prior.id, prior.dimension, prior.x, prior.y, prior.z,
 +                prior.blockId, prior.seenX, prior.seenY, prior.seenZ, "UNREACHABLE",
 +                reason == null || reason.isBlank() ? "no_reachable_work_pose" : reason,
-+                prior.requiredTool, prior.lastSeenGameTime, now, feet.getX(), feet.getY(), feet.getZ()));
++                prior.requiredTool, prior.lastSeenGameTime, now, feet.getX(), feet.getY(), feet.getZ(),
++                prior.pickupBaseline));
 +        persistAsync();
 +    }
 +
@@ -4039,17 +4111,20 @@ index 00000000..a754354f
 +     * in the registry as MINED_PENDING_PICKUP (persisted, restart-safe) with its position/block
 +     * as the recovery anchor. Only an inventory-delta postcondition may consume it afterwards.
 +     */
-+    public static void markOpportunityPendingPickup(AIPlayerEntity bot, String rawId) {
++    public static void markOpportunityPendingPickup(AIPlayerEntity bot, String rawId, int pickupBaseline) {
 +        if (server == null || bot == null) return;
 +        String key = scoped(dimension(bot), id(rawId, "opportunity"));
 +        ResourceOpportunity prior = OPPORTUNITIES.get(key);
 +        if (prior == null) return;
 +        long now = bot.getServerWorld().getTime();
 +        BlockPos feet = bot.getBlockPos();
++        // pickupBaseline is the accepted-inventory count measured when the ore break happened, so a
++        // later recovery can prove the delta even when the drop was already picked up by the time
++        // recovery starts (count measured at recovery start would hide that gain).
 +        OPPORTUNITIES.put(key, new ResourceOpportunity(prior.id, prior.dimension, prior.x, prior.y, prior.z,
 +                prior.blockId, prior.seenX, prior.seenY, prior.seenZ, "MINED_PENDING_PICKUP",
 +                "pickup_recovery_pending", prior.requiredTool, prior.lastSeenGameTime, now,
-+                feet.getX(), feet.getY(), feet.getZ()));
++                feet.getX(), feet.getY(), feet.getZ(), Math.max(0, pickupBaseline)));
 +        persistAsync();
 +    }
 +
@@ -4086,14 +4161,15 @@ index 00000000..a754354f
 +        ResourceOpportunity next = new ResourceOpportunity(prior.id, prior.dimension, prior.x, prior.y, prior.z,
 +                prior.blockId, prior.seenX, prior.seenY, prior.seenZ, status, reason,
 +                ToolTier.requiredPickaxeItemId(blockOf(prior.blockId)), prior.lastSeenGameTime,
-+                now, feet.getX(), feet.getY(), feet.getZ());
++                now, feet.getX(), feet.getY(), feet.getZ(), prior.pickupBaseline);
 +        OPPORTUNITIES.put(key, next);
 +        persistAsync();
 +        if (actionable) {
 +            ExternalBodyRuntime.resourceOpportunityActionable(bot, next.id, next.blockId, next.pos(), next.seenFrom());
 +        }
 +        return Optional.of(new OpportunitySpec(next.id, next.dimension, next.pos(), blockOf(next.blockId),
-+                next.seenFrom(), next.status, next.blockedReason, next.stateSinceGameTime, next.stateAt()));
++                next.seenFrom(), next.status, next.blockedReason, next.stateSinceGameTime, next.stateAt(),
++                next.pickupBaseline));
 +    }
 +
 +    private static Block blockOf(String blockId) {
@@ -4347,7 +4423,8 @@ index 00000000..a754354f
 +                    opportunity.x, opportunity.y, opportunity.z, opportunity.blockId,
 +                    opportunity.seenX, opportunity.seenY, opportunity.seenZ,
 +                    nextStatus, nextReason, ToolTier.requiredPickaxeItemId(block), opportunity.lastSeenGameTime,
-+                    opportunity.stateSinceGameTime, opportunity.stateX, opportunity.stateY, opportunity.stateZ);
++                    opportunity.stateSinceGameTime, opportunity.stateX, opportunity.stateY, opportunity.stateZ,
++                    opportunity.pickupBaseline);
 +            OPPORTUNITIES.put(entry.getKey(), next); dirty = true;
 +            if ("BLOCKED".equals(opportunity.status) && "ACTIONABLE".equals(nextStatus)) transitions.add(next);
 +        }
@@ -4360,6 +4437,9 @@ index 00000000..a754354f
 +    private static void evictOpportunityIfNeeded() {
 +        while (OPPORTUNITIES.size() >= MAX_OPPORTUNITIES) {
 +            String oldest = OPPORTUNITIES.entrySet().stream()
++                    // A MINED_PENDING_PICKUP entry is a recovery obligation, never eviction bait:
++                    // only ordinary (re-derivable from re-observation) entries age out.
++                    .filter(entry -> !"MINED_PENDING_PICKUP".equals(entry.getValue().status))
 +                    .min(Comparator.comparingLong(entry -> entry.getValue().lastSeenGameTime))
 +                    .map(Map.Entry::getKey).orElse(null);
 +            if (oldest == null) break;
@@ -4441,6 +4521,7 @@ index 00000000..a754354f
 +            o.addProperty("last_seen_game_time", opportunity.lastSeenGameTime);
 +            o.addProperty("state_since_game_time", opportunity.stateSinceGameTime);
 +            o.addProperty("state_x", opportunity.stateX); o.addProperty("state_y", opportunity.stateY); o.addProperty("state_z", opportunity.stateZ);
++            o.addProperty("pickup_baseline", opportunity.pickupBaseline);
 +            opportunities.add(o);
 +        }
 +        root.add("resource_opportunities", opportunities);
@@ -4503,7 +4584,8 @@ index 00000000..a754354f
 +                        version >= VERSION && o.has("state_since_game_time") ? o.get("state_since_game_time").getAsLong() : 0L,
 +                        version >= VERSION && o.has("state_x") ? o.get("state_x").getAsInt() : o.get("seen_x").getAsInt(),
 +                        version >= VERSION && o.has("state_y") ? o.get("state_y").getAsInt() : o.get("seen_y").getAsInt(),
-+                        version >= VERSION && o.has("state_z") ? o.get("state_z").getAsInt() : o.get("seen_z").getAsInt());
++                        version >= VERSION && o.has("state_z") ? o.get("state_z").getAsInt() : o.get("seen_z").getAsInt(),
++                        o.has("pickup_baseline") ? o.get("pickup_baseline").getAsInt() : 0);
 +                Identifier blockId = Identifier.tryParse(r.blockId); Block block = blockId == null ? null : Registries.BLOCK.getOptionalValue(blockId).orElse(null);
 +                if (block == null || !OreScan.isOreBlock(block)) throw new IllegalArgumentException("opportunity_block");
 +                OPPORTUNITIES.put(scoped(r.dimension, r.id), r);

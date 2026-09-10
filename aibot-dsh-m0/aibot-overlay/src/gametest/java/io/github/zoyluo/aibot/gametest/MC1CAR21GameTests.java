@@ -244,7 +244,7 @@ public final class MC1CAR21GameTests implements FabricGameTest {
         io.github.zoyluo.aibot.perception.PerceptionCollector.collect(bot);
         String id = opportunityAt(context, bot, ore, "ACTIONABLE");
 
-        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id); // ore proven broken, drop not collected
+        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id, 0); // ore proven broken, drop not collected
         set(bot, ore, Blocks.STONE); // something else now occupies the cell
         io.github.zoyluo.aibot.perception.PerceptionCollector.collect(bot);
         io.github.zoyluo.aibot.perception.PerceptionCollector.collect(bot);
@@ -273,7 +273,7 @@ public final class MC1CAR21GameTests implements FabricGameTest {
         String id = opportunityAt(context, bot, ore, "ACTIONABLE");
         var spec = SemanticWorldRegistry.opportunity(bot, id).orElseThrow();
 
-        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id);
+        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id, 0);
         set(bot, ore, Blocks.AIR); // the ore is gone (break already proven)
         var dropItem = io.github.zoyluo.aibot.action.HarvestCore.expectedDropsFor(Blocks.IRON_ORE).iterator().next();
         var world = bot.getServerWorld();
@@ -308,6 +308,53 @@ public final class MC1CAR21GameTests implements FabricGameTest {
                 if (!notRemined || !collected || !consumed) {
                     throwGameTest(context, "recovery postcondition failed: notRemined=" + notRemined
                             + " collected=" + collected + " consumed=" + consumed);
+                }
+                finish(context, f);
+            }
+        });
+    }
+
+    /**
+     * 8b (acceptance-found regression): the drop often reaches the inventory BEFORE a recovery
+     * starts (vanilla auto-pickup as the bot comes near). A recovery baseline measured at recovery
+     * start would hide that gain and mis-report the resource as lost. The pending baseline captured
+     * at the ore break must prove the delta.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc1caR21", tickLimit = 300)
+    public void r21PickupRecoveryHonoursDropCollectedBeforeRecoveryStart(TestContext context) {
+        Fixture f = cabin(context, "r21_prepick");
+        AIPlayerEntity bot = f.bot;
+        BlockPos ore = f.farWallCenter().up(5);
+        set(bot, ore, Blocks.IRON_ORE);
+        InventoryAction.giveItem(bot, new ItemStack(Items.IRON_PICKAXE));
+        io.github.zoyluo.aibot.perception.PerceptionCollector.collect(bot);
+        String id = opportunityAt(context, bot, ore, "ACTIONABLE");
+        var spec = SemanticWorldRegistry.opportunity(bot, id).orElseThrow();
+        var dropItem = io.github.zoyluo.aibot.action.HarvestCore.expectedDropsFor(Blocks.IRON_ORE).iterator().next();
+        int acceptedAtBreak = io.github.zoyluo.aibot.action.HarvestCore.countInventoryItems(bot,
+                io.github.zoyluo.aibot.action.HarvestCore.expectedDropsFor(Blocks.IRON_ORE));
+
+        set(bot, ore, Blocks.AIR);
+        SemanticWorldRegistry.markOpportunityPendingPickup(bot, id, acceptedAtBreak);
+        // The drop lands in the inventory BEFORE the recovery task is ever started.
+        InventoryAction.giveItem(bot, new ItemStack(dropItem, 2));
+
+        var pending = SemanticWorldRegistry.opportunity(bot, id).orElseThrow();
+        KnownResourceTask task = new KnownResourceTask(pending, true);
+        task.start(bot);
+        context.runAtEveryTick(() -> {
+            if (task.state() == TaskState.RUNNING) task.tick(bot);
+            TaskState state = task.state();
+            if (state == TaskState.FAILED || state == TaskState.CANCELLED) {
+                String message = "pre-recovery pickup must be honoured, got " + state + " reason=" + task.failureReason();
+                AIPlayerManager.INSTANCE.despawn(bot.getServer(), BOT);
+                throwGameTest(context, message);
+            } else if (state == TaskState.COMPLETED) {
+                boolean consumed = SemanticWorldRegistry.opportunity(bot, id).isEmpty();
+                int collected = io.github.zoyluo.aibot.action.HarvestCore.countInventoryItems(bot,
+                        io.github.zoyluo.aibot.action.HarvestCore.expectedDropsFor(Blocks.IRON_ORE)) - acceptedAtBreak;
+                if (!consumed || collected <= 0) {
+                    throwGameTest(context, "recovery postcondition failed: consumed=" + consumed + " collected=" + collected);
                 }
                 finish(context, f);
             }

@@ -131,7 +131,7 @@ public final class SemanticWorldRegistry {
     public record FarmSpec(String id, BlockPos center, int radius, Block crop, Item seed) {}
     public record OpportunitySpec(String id, String dimension, BlockPos pos, Block block,
                                   BlockPos seenFrom, String status, String blockedReason,
-                                  long stateSinceGameTime, BlockPos stateAt) {}
+                                  long stateSinceGameTime, BlockPos stateAt, int pickupBaseline) {}
     public record HomeRepairPlan(String id, BlockPos anchor, BlueprintSchema blueprint,
                                  int expected, int missing, int wrong) {}
 
@@ -162,18 +162,23 @@ public final class SemanticWorldRegistry {
                                        String blockId, int seenX, int seenY, int seenZ,
                                        String status, String blockedReason, String requiredTool,
                                        long lastSeenGameTime,
-                                       long stateSinceGameTime, int stateX, int stateY, int stateZ) {
+                                       long stateSinceGameTime, int stateX, int stateY, int stateZ,
+                                       int pickupBaseline) {
         BlockPos pos() { return new BlockPos(x, y, z); }
         BlockPos seenFrom() { return new BlockPos(seenX, seenY, seenZ); }
         BlockPos stateAt() { return new BlockPos(stateX, stateY, stateZ); }
 
-        ResourceOpportunity withStatus(String nextStatus, String nextReason, String nextTool, long now) {
+        /** Rebuilds the entry with a new state, preserving the pickup baseline and position. */
+        ResourceOpportunity withState(String nextStatus, String nextReason, String nextTool, long now,
+                                      int baseline) {
             return new ResourceOpportunity(id, dimension, x, y, z, blockId, seenX, seenY, seenZ,
-                    nextStatus, nextReason, nextTool, lastSeenGameTime, now, stateX, stateY, stateZ);
+                    nextStatus, nextReason, nextTool, lastSeenGameTime, now, stateX, stateY, stateZ,
+                    baseline);
         }
         ResourceOpportunity observedAt(long now) {
             return new ResourceOpportunity(id, dimension, x, y, z, blockId, seenX, seenY, seenZ,
-                    status, blockedReason, requiredTool, now, stateSinceGameTime, stateX, stateY, stateZ);
+                    status, blockedReason, requiredTool, now, stateSinceGameTime, stateX, stateY, stateZ,
+                    pickupBaseline);
         }
     }
     private record Integrity(int expected, int matched, int missing, int wrong) {}
@@ -386,7 +391,7 @@ public final class SemanticWorldRegistry {
                 next = new ResourceOpportunity(id, dim, pos.getX(), pos.getY(), pos.getZ(), blockId,
                         seenFrom.getX(), seenFrom.getY(), seenFrom.getZ(), status, reason,
                         ToolTier.requiredPickaxeItemId(state.getBlock()), now, now,
-                        prior.stateX, prior.stateY, prior.stateZ);
+                        prior.stateX, prior.stateY, prior.stateZ, prior.pickupBaseline);
                 reactivated = actionable;
             } else {
                 next = prior.observedAt(now); // keep UNREACHABLE, only refresh last_seen
@@ -400,7 +405,7 @@ public final class SemanticWorldRegistry {
             next = new ResourceOpportunity(id, dim, pos.getX(), pos.getY(), pos.getZ(), blockId,
                     seenFrom.getX(), seenFrom.getY(), seenFrom.getZ(), status, reason,
                     ToolTier.requiredPickaxeItemId(state.getBlock()), now, now,
-                    bot.getBlockPos().getX(), bot.getBlockPos().getY(), bot.getBlockPos().getZ());
+                    bot.getBlockPos().getX(), bot.getBlockPos().getY(), bot.getBlockPos().getZ(), 0);
         }
         if (prior == null) {
             evictOpportunityIfNeeded(); OPPORTUNITIES.put(key, next); dirty = true;
@@ -450,7 +455,7 @@ public final class SemanticWorldRegistry {
         if (block == null || !OreScan.isOreBlock(block)) return Optional.empty();
         return Optional.of(new OpportunitySpec(opportunity.id, opportunity.dimension, opportunity.pos(), block,
                 opportunity.seenFrom(), opportunity.status, opportunity.blockedReason,
-                opportunity.stateSinceGameTime, opportunity.stateAt()));
+                opportunity.stateSinceGameTime, opportunity.stateAt(), opportunity.pickupBaseline));
     }
 
     public static void markOpportunityConsumed(AIPlayerEntity bot, String rawId) {
@@ -475,7 +480,8 @@ public final class SemanticWorldRegistry {
         OPPORTUNITIES.put(key, new ResourceOpportunity(prior.id, prior.dimension, prior.x, prior.y, prior.z,
                 prior.blockId, prior.seenX, prior.seenY, prior.seenZ, "UNREACHABLE",
                 reason == null || reason.isBlank() ? "no_reachable_work_pose" : reason,
-                prior.requiredTool, prior.lastSeenGameTime, now, feet.getX(), feet.getY(), feet.getZ()));
+                prior.requiredTool, prior.lastSeenGameTime, now, feet.getX(), feet.getY(), feet.getZ(),
+                prior.pickupBaseline));
         persistAsync();
     }
 
@@ -484,17 +490,20 @@ public final class SemanticWorldRegistry {
      * in the registry as MINED_PENDING_PICKUP (persisted, restart-safe) with its position/block
      * as the recovery anchor. Only an inventory-delta postcondition may consume it afterwards.
      */
-    public static void markOpportunityPendingPickup(AIPlayerEntity bot, String rawId) {
+    public static void markOpportunityPendingPickup(AIPlayerEntity bot, String rawId, int pickupBaseline) {
         if (server == null || bot == null) return;
         String key = scoped(dimension(bot), id(rawId, "opportunity"));
         ResourceOpportunity prior = OPPORTUNITIES.get(key);
         if (prior == null) return;
         long now = bot.getServerWorld().getTime();
         BlockPos feet = bot.getBlockPos();
+        // pickupBaseline is the accepted-inventory count measured when the ore break happened, so a
+        // later recovery can prove the delta even when the drop was already picked up by the time
+        // recovery starts (count measured at recovery start would hide that gain).
         OPPORTUNITIES.put(key, new ResourceOpportunity(prior.id, prior.dimension, prior.x, prior.y, prior.z,
                 prior.blockId, prior.seenX, prior.seenY, prior.seenZ, "MINED_PENDING_PICKUP",
                 "pickup_recovery_pending", prior.requiredTool, prior.lastSeenGameTime, now,
-                feet.getX(), feet.getY(), feet.getZ()));
+                feet.getX(), feet.getY(), feet.getZ(), Math.max(0, pickupBaseline)));
         persistAsync();
     }
 
@@ -531,14 +540,15 @@ public final class SemanticWorldRegistry {
         ResourceOpportunity next = new ResourceOpportunity(prior.id, prior.dimension, prior.x, prior.y, prior.z,
                 prior.blockId, prior.seenX, prior.seenY, prior.seenZ, status, reason,
                 ToolTier.requiredPickaxeItemId(blockOf(prior.blockId)), prior.lastSeenGameTime,
-                now, feet.getX(), feet.getY(), feet.getZ());
+                now, feet.getX(), feet.getY(), feet.getZ(), prior.pickupBaseline);
         OPPORTUNITIES.put(key, next);
         persistAsync();
         if (actionable) {
             ExternalBodyRuntime.resourceOpportunityActionable(bot, next.id, next.blockId, next.pos(), next.seenFrom());
         }
         return Optional.of(new OpportunitySpec(next.id, next.dimension, next.pos(), blockOf(next.blockId),
-                next.seenFrom(), next.status, next.blockedReason, next.stateSinceGameTime, next.stateAt()));
+                next.seenFrom(), next.status, next.blockedReason, next.stateSinceGameTime, next.stateAt(),
+                next.pickupBaseline));
     }
 
     private static Block blockOf(String blockId) {
@@ -792,7 +802,8 @@ public final class SemanticWorldRegistry {
                     opportunity.x, opportunity.y, opportunity.z, opportunity.blockId,
                     opportunity.seenX, opportunity.seenY, opportunity.seenZ,
                     nextStatus, nextReason, ToolTier.requiredPickaxeItemId(block), opportunity.lastSeenGameTime,
-                    opportunity.stateSinceGameTime, opportunity.stateX, opportunity.stateY, opportunity.stateZ);
+                    opportunity.stateSinceGameTime, opportunity.stateX, opportunity.stateY, opportunity.stateZ,
+                    opportunity.pickupBaseline);
             OPPORTUNITIES.put(entry.getKey(), next); dirty = true;
             if ("BLOCKED".equals(opportunity.status) && "ACTIONABLE".equals(nextStatus)) transitions.add(next);
         }
@@ -805,6 +816,9 @@ public final class SemanticWorldRegistry {
     private static void evictOpportunityIfNeeded() {
         while (OPPORTUNITIES.size() >= MAX_OPPORTUNITIES) {
             String oldest = OPPORTUNITIES.entrySet().stream()
+                    // A MINED_PENDING_PICKUP entry is a recovery obligation, never eviction bait:
+                    // only ordinary (re-derivable from re-observation) entries age out.
+                    .filter(entry -> !"MINED_PENDING_PICKUP".equals(entry.getValue().status))
                     .min(Comparator.comparingLong(entry -> entry.getValue().lastSeenGameTime))
                     .map(Map.Entry::getKey).orElse(null);
             if (oldest == null) break;
@@ -886,6 +900,7 @@ public final class SemanticWorldRegistry {
             o.addProperty("last_seen_game_time", opportunity.lastSeenGameTime);
             o.addProperty("state_since_game_time", opportunity.stateSinceGameTime);
             o.addProperty("state_x", opportunity.stateX); o.addProperty("state_y", opportunity.stateY); o.addProperty("state_z", opportunity.stateZ);
+            o.addProperty("pickup_baseline", opportunity.pickupBaseline);
             opportunities.add(o);
         }
         root.add("resource_opportunities", opportunities);
@@ -948,7 +963,8 @@ public final class SemanticWorldRegistry {
                         version >= VERSION && o.has("state_since_game_time") ? o.get("state_since_game_time").getAsLong() : 0L,
                         version >= VERSION && o.has("state_x") ? o.get("state_x").getAsInt() : o.get("seen_x").getAsInt(),
                         version >= VERSION && o.has("state_y") ? o.get("state_y").getAsInt() : o.get("seen_y").getAsInt(),
-                        version >= VERSION && o.has("state_z") ? o.get("state_z").getAsInt() : o.get("seen_z").getAsInt());
+                        version >= VERSION && o.has("state_z") ? o.get("state_z").getAsInt() : o.get("seen_z").getAsInt(),
+                        o.has("pickup_baseline") ? o.get("pickup_baseline").getAsInt() : 0);
                 Identifier blockId = Identifier.tryParse(r.blockId); Block block = blockId == null ? null : Registries.BLOCK.getOptionalValue(blockId).orElse(null);
                 if (block == null || !OreScan.isOreBlock(block)) throw new IllegalArgumentException("opportunity_block");
                 OPPORTUNITIES.put(scoped(r.dimension, r.id), r);
