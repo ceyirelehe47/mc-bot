@@ -1,0 +1,87 @@
+MC-1C-A R2.1｜冻结上游(a029fa6)+R2 overlay+R2.1 修复 应用后的生产源码 world-mutation surface 审计
+扫描基线：src/main/java 全量 grep（breakBlock( / setBlockState( / processBlockBreakingAction( / startMining( / startPathTo(）
+行号口径：R2.1 修复应用后的工作区（FarmAction 行号因 gate 插入相对 R2 偏移）
+
+拦截前提：external reserved 模式下 legacy 脑/工具/命令任务全部被闸死
+（BrainCoordinator.reserved() 短路；ToolRegistry/IntentController checkTool；
+TaskManager.assign→ExternalBodyAccess.checkAssignment 非 dispatch 且非 safety 即抛
+external_body_reserved_use_dsh_bridge）。唯一例外是 SAFETY origin（DangerWatcher），
+BreakPolicy 对 safety 放行（safety_override）。
+
+━━━ A. 直接 world mutation（非导航） ━━━
+
+1. FarmAction.java:38  setBlockState(FARMLAND)    till        [FIXED_THIS_ROUND→REGISTERED_FARM_DOMAIN]
+   external reserved 可达：tend_farm → FarmTask.till → FarmAction.till。
+   R2.1：入口接入 SemanticWorldRegistry.farmMutationDenial——reserved 身体的 till 目标必须在
+   注册 exact connected farm mask 内，mask 外返回 ActionResult.failed(farm_mutation_outside_
+   registered_mask:till@x,y,z) 且零世界改动；非 reserved legacy 保持上游行为。
+   GameTest：r21ReservedFarmMutationOutsideMaskIsRejected / r21RegisteredFarmMutationInsideMaskStillWorks。
+
+2. FarmAction.java:57  setBlockState(crop)         plant       [FIXED_THIS_ROUND→REGISTERED_FARM_DOMAIN]
+   external reserved 可达：tend_farm → FarmTask.plant + harvest 补种。同上 gate（plant@pos）。
+
+3. FarmAction.java:79  breakBlock(cropPos,true,bot) harvest     [FIXED_THIS_ROUND→REGISTERED_FARM_DOMAIN]
+   external reserved 可达：tend_farm → FarmTask.harvest。R2 的主嫌疑（裸 breakBlock 绕过
+   policy）；R2.1 同 gate（crop 格经 cell.down() 解析到注册 farmland）。
+
+4. FarmAction.java:94  setBlockState(WATER)        placeWater  [LEGACY_ONLY_NOT_REACHABLE_IN_RESERVED_MODE]
+   唯一调用链 IrrigateTask ← ToolRegistry.java:856 创建点，reserved 模式被 checkTool 闸死。
+   本轮不为不可达路径加 gate（任务书 7.2：不为想象路径过度修改）。
+
+5. FarmAction.java:109 setBlockState(AIR)          fillBucket  [LEGACY_ONLY_NOT_REACHABLE_IN_RESERVED_MODE]
+   生产源码无任何调用者（死代码）。同上不加 gate，记录在案。
+
+6. BuildAction.java:205 setBlockState(placementState) directPlaceFallback [SAFETY_EXCEPTION(结构性)]
+   仅 profile != STRICT_SURVIVAL 可达（BuildAction 103-105 显式排除）；external 模式强制
+   strict_survival（MinecraftBodyBackend.observeJson 上报 profile 校验 + start() 403
+   strict_survival_required），reserved 身体不可达。保留：operator/宽松模式的既有放置回退。
+
+7. IrrigateTask.java:107/109 setBlockState(DIRT/AIR) dig手术 [LEGACY_ONLY_NOT_REACHABLE_IN_RESERVED_MODE]
+   同 4：ToolRegistry 创建点被 checkTool 闸死，reserved 不可达。
+
+8. SleepTask.java:131/132 setBlockState(放床两格)  [LEGACY_ONLY_NOT_REACHABLE_IN_RESERVED_MODE]
+   创建点 ToolRegistry(452/863)/AIBotServerNetworking(316) 全部经 checkTool/checkAssignment
+   闸死。reserved 身体的 say/eat 等 bounded op 不会构造 SleepTask。
+
+━━━ B. 挖掘通道（startMining/processBlockBreakingAction） ━━━
+
+9.  MiningController.java:57/74/97/112  startDestroyBlock/STOP_DESTROY/ABORT_DESTROY
+    [PHYSICAL_MINING_GATE] 全部挖掘的最终物理出口。tick(38-42) 每 tick 过
+    BreakPolicy.decide 硬门：reserved 身体的挖掘目标若命中 HOME 保护盒
+    （protected_structure:<id>）或注册 farm 格（registered_farm:<id>）即拒绝；
+    active SAFETY origin 例外（safety_override，R21 保持）。
+
+10. MiningAction.java:16/27 startMining/mineOnceInstant [PHYSICAL_MINING_GATE]
+    入口自带 BreakPolicy(14/25)。mineOnceInstant 全仓库无调用者（死代码，保留口径）。
+
+11. HarvestCore.java:77 / BlockMiner.java:13/134 / GatherQuotaTask(174/810/1010) /
+    BuildTask(229/377)/ToolRegistry:151
+    [PHYSICAL_MINING_GATE] 汇聚到 9/10。BuildTask 377 是 R2.1 新增 no_observable_work_pose
+    typed 快速失败（非 mutation）。ToolRegistry:151 被 checkTool 闸死（legacy）。
+
+━━━ C. 导航（startPathTo，30 个文件） ━━━
+
+12. external 可达：KnownResourceTask(77/98)、FarmTask(241/322)、MoveTask(92/206/286，需
+    显式 allow_terrain_changes=true)、GatherQuotaTask(×5)、BuildTask(264/335/386/454/476)、
+    SmeltTask/StockpileTask/CraftTask 间接。
+    途中挖掘由 PathExecutor→MiningController 每 tick 过 BreakPolicy（同 9）；
+    放置经 BuildAction.placeBlockAt（原版交互，非 setBlockState）。
+    [PHYSICAL_MINING_GATE(途中挖掘)+SAFETY_EXCEPTION(安全任务)]
+
+13. SAFETY origin 任务（EmergencyShelterTask/LavaEscapeTask/CreeperDefenseTask/
+    MiningBarricadeTask/RecoverDropsTask，DangerWatcher 以 TaskOrigin.safety 指派）：
+    [SAFETY_EXCEPTION] 放置/挖掘走 safety_override。这是 R1 保留的生存安全网语义，
+    R2.1 未改动（R21-11 legacy 隔离原则）。
+
+14. 其余 legacy 任务（OreDigTask/StripMineTask/DigDownTask/HuntTask/…约 25 个文件）：
+    [LEGACY_ONLY_NOT_REACHABLE_IN_RESERVED_MODE] 仅 BrainCoordinator/GoalExecutor/
+    ToolRegistry/命令创建，reserved 模式全部闸死。
+
+━━━ 结论 ━━━
+- reserved external body 的全部可达直接 mutation 已收敛到三类：
+  ① MiningController 物理挖掘（BreakPolicy 硬门）；② FarmAction till/plant/harvest
+  （R2.1 新增 registered farm mask gate）；③ SAFETY origin（显式豁免）。
+- placeWater/fillBucket/IrrigateTask/SleepTask/directPlaceFallback 在 reserved 模式
+  均不可达（创建点闸死或 profile 排除），本轮不为其加 gate，归类记录如上。
+- 无 TEST_ONLY 分类残留（测试 fixture 均经 context.setBlockState/world.setBlockState
+  在 gametest 源集，不在生产面）。

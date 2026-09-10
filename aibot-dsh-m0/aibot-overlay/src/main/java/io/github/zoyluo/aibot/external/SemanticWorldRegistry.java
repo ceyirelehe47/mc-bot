@@ -56,7 +56,7 @@ import java.util.concurrent.TimeUnit;
  * opportunities, and a conservative HOME desired-state baseline.
  */
 public final class SemanticWorldRegistry {
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
     private static final int MAX_STRUCTURES = 64;
     private static final int MAX_FARMS = 64;
     private static final int MAX_FARM_RADIUS = 16;
@@ -65,6 +65,8 @@ public final class SemanticWorldRegistry {
     private static final int MAX_SNAPSHOT_CELLS = 4096;
     private static final int LIVE_SUMMARY_DISTANCE = 32;
     private static final int INTEGRITY_CACHE_TICKS = 20;
+    private static final int REVALIDATE_MOVE_DISTANCE = 6;
+    private static final long REVALIDATE_COOLDOWN_TICKS = 2400L;
     private static final Gson GSON = new Gson();
 
     private static final Map<String, Structure> STRUCTURES = new LinkedHashMap<>();
@@ -128,7 +130,8 @@ public final class SemanticWorldRegistry {
     public record Registration(String payload, CompletableFuture<Void> persisted) {}
     public record FarmSpec(String id, BlockPos center, int radius, Block crop, Item seed) {}
     public record OpportunitySpec(String id, String dimension, BlockPos pos, Block block,
-                                  BlockPos seenFrom, String status, String blockedReason) {}
+                                  BlockPos seenFrom, String status, String blockedReason,
+                                  long stateSinceGameTime, BlockPos stateAt) {}
     public record HomeRepairPlan(String id, BlockPos anchor, BlueprintSchema blueprint,
                                  int expected, int missing, int wrong) {}
 
@@ -158,9 +161,20 @@ public final class SemanticWorldRegistry {
     private record ResourceOpportunity(String id, String dimension, int x, int y, int z,
                                        String blockId, int seenX, int seenY, int seenZ,
                                        String status, String blockedReason, String requiredTool,
-                                       long lastSeenGameTime) {
+                                       long lastSeenGameTime,
+                                       long stateSinceGameTime, int stateX, int stateY, int stateZ) {
         BlockPos pos() { return new BlockPos(x, y, z); }
         BlockPos seenFrom() { return new BlockPos(seenX, seenY, seenZ); }
+        BlockPos stateAt() { return new BlockPos(stateX, stateY, stateZ); }
+
+        ResourceOpportunity withStatus(String nextStatus, String nextReason, String nextTool, long now) {
+            return new ResourceOpportunity(id, dimension, x, y, z, blockId, seenX, seenY, seenZ,
+                    nextStatus, nextReason, nextTool, lastSeenGameTime, now, stateX, stateY, stateZ);
+        }
+        ResourceOpportunity observedAt(long now) {
+            return new ResourceOpportunity(id, dimension, x, y, z, blockId, seenX, seenY, seenZ,
+                    status, blockedReason, requiredTool, now, stateSinceGameTime, stateX, stateY, stateZ);
+        }
     }
     private record Integrity(int expected, int matched, int missing, int wrong) {}
     private record CachedIntegrity(int tick, Integrity value) {}
@@ -287,6 +301,26 @@ public final class SemanticWorldRegistry {
                 || ObservableWorldQuery.canObserveCell(bot, ground.up());
     }
 
+    /**
+     * R2.1 reserved-body farm mutation gate: for the reserved external body, every direct farm
+     * domain mutation (till/plant/harvest) must target a cell inside a REGISTERED exact connected
+     * farm mask — either the farmland cell itself or the crop cell standing on one. Anything else
+     * returns a typed denial and the caller must abort without touching the world. Legacy
+     * non-reserved bodies keep the upstream behavior (null = unrestricted) so R2.1 cannot change
+     * the internal/legacy mode (R21-11).
+     */
+    public static String farmMutationDenial(AIPlayerEntity bot, BlockPos cell, String kind) {
+        if (bot == null || cell == null) return "farm_mutation_outside_registered_mask:" + kind + ":invalid_target";
+        if (!ExternalBodyAccess.reserved(bot) || server == null) return null; // legacy mode: upstream behavior
+        String dim = dimension(bot);
+        for (Farm farm : FARMS.values()) {
+            if (!farm.dimension.equals(dim)) continue;
+            // crop cell (one above registered farmland) or the farmland cell itself
+            if (farm.contains(cell) || farm.contains(cell.down())) return null;
+        }
+        return "farm_mutation_outside_registered_mask:" + kind + "@" + cell.getX() + "," + cell.getY() + "," + cell.getZ();
+    }
+
     public static String protectionReason(AIPlayerEntity bot, BlockPos pos) {
         if (bot == null || pos == null || server == null) return null;
         String dim = dimension(bot);
@@ -309,27 +343,65 @@ public final class SemanticWorldRegistry {
         String blockId = Registries.BLOCK.getId(state.getBlock()).toString();
         boolean ore = OreScan.isOreBlock(state.getBlock());
         List<String> remove = new ArrayList<>();
+        List<ResourceOpportunity> staled = new ArrayList<>();
         for (var entry : OPPORTUNITIES.entrySet()) {
             ResourceOpportunity opportunity = entry.getValue();
             if (opportunity.dimension.equals(dim) && opportunity.x == pos.getX()
                     && opportunity.y == pos.getY() && opportunity.z == pos.getZ()
-                    && (!ore || !opportunity.blockId.equals(blockId))) remove.add(entry.getKey());
+                    && (!ore || !opportunity.blockId.equals(blockId))
+                    // R2.1: a pending-pickup opportunity is a recovery obligation (the ore was
+                    // proven broken). A different block now occupying the cell must not delete it;
+                    // only recovery or a stale terminal resolution may end it.
+                    && !"MINED_PENDING_PICKUP".equals(opportunity.status)) {
+                remove.add(entry.getKey());
+                staled.add(opportunity);
+            }
         }
         boolean dirty = false;
         for (String key : remove) { OPPORTUNITIES.remove(key); dirty = true; }
+        // R2.1 6.3: an opportunity whose cell now holds something else was consumed by the world,
+        // not by this bot. Terminalize with a typed tombstone event instead of silently dropping
+        // the entry, so the loss is visible and can never read as a successful collection.
+        for (ResourceOpportunity stale : staled) {
+            ExternalBodyRuntime.resourceOpportunityStale(bot, stale.id, stale.blockId, stale.pos(),
+                    "externally_consumed_cell_replaced_with:" + blockId);
+        }
         if (!ore) { if (dirty) persistAsync(); return; }
 
         String id = opportunityId(dim, pos, blockId);
         String key = scoped(dim, id);
-        boolean actionable = ToolTier.canHarvestWithInventory(bot, state);
-        String status = actionable ? "ACTIONABLE" : "BLOCKED";
-        String reason = actionable ? "" : "insufficient_tool";
-        String required = ToolTier.requiredPickaxeItemId(state.getBlock());
         ResourceOpportunity prior = OPPORTUNITIES.get(key);
         BlockPos seenFrom = prior == null ? bot.getBlockPos() : prior.seenFrom();
-        ResourceOpportunity next = new ResourceOpportunity(id, dim, pos.getX(), pos.getY(), pos.getZ(), blockId,
-                seenFrom.getX(), seenFrom.getY(), seenFrom.getZ(),
-                status, reason, required, bot.getServerWorld().getTime());
+        long now = bot.getServerWorld().getTime();
+        ResourceOpportunity next;
+        boolean reactivated = false;
+        if (prior != null && "UNREACHABLE".equals(prior.status)) {
+            // R2.1: unchanged observation keeps UNREACHABLE (no event storm). Bounded deterministic
+            // revalidation — the bot moved meaningfully or enough game time passed — may restore
+            // ACTIONABLE (single event, never repeatedly while conditions hold).
+            if (opportunityRevalidationReady(bot, prior)) {
+                boolean actionable = ToolTier.canHarvestWithInventory(bot, state);
+                String status = actionable ? "ACTIONABLE" : "BLOCKED";
+                String reason = actionable ? "" : "insufficient_tool";
+                next = new ResourceOpportunity(id, dim, pos.getX(), pos.getY(), pos.getZ(), blockId,
+                        seenFrom.getX(), seenFrom.getY(), seenFrom.getZ(), status, reason,
+                        ToolTier.requiredPickaxeItemId(state.getBlock()), now, now,
+                        prior.stateX, prior.stateY, prior.stateZ);
+                reactivated = actionable;
+            } else {
+                next = prior.observedAt(now); // keep UNREACHABLE, only refresh last_seen
+            }
+        } else if (prior != null && "MINED_PENDING_PICKUP".equals(prior.status)) {
+            next = prior.observedAt(now); // recovery obligation outlives re-observation
+        } else {
+            boolean actionable = ToolTier.canHarvestWithInventory(bot, state);
+            String status = actionable ? "ACTIONABLE" : "BLOCKED";
+            String reason = actionable ? "" : "insufficient_tool";
+            next = new ResourceOpportunity(id, dim, pos.getX(), pos.getY(), pos.getZ(), blockId,
+                    seenFrom.getX(), seenFrom.getY(), seenFrom.getZ(), status, reason,
+                    ToolTier.requiredPickaxeItemId(state.getBlock()), now, now,
+                    bot.getBlockPos().getX(), bot.getBlockPos().getY(), bot.getBlockPos().getZ());
+        }
         if (prior == null) {
             evictOpportunityIfNeeded(); OPPORTUNITIES.put(key, next); dirty = true;
             if ("ACTIONABLE".equals(next.status)) {
@@ -339,11 +411,33 @@ public final class SemanticWorldRegistry {
             OPPORTUNITIES.put(key, next);
             dirty = !prior.status.equals(next.status) || !prior.blockId.equals(next.blockId)
                     || !prior.requiredTool.equals(next.requiredTool);
-            if ("BLOCKED".equals(prior.status) && "ACTIONABLE".equals(next.status)) {
+            if (reactivated || ("BLOCKED".equals(prior.status) && "ACTIONABLE".equals(next.status))) {
                 ExternalBodyRuntime.resourceOpportunityActionable(bot, next.id, next.blockId, next.pos(), next.seenFrom());
             }
         }
         if (dirty) persistAsync();
+    }
+
+    /**
+     * R2.1 bounded revalidation gate for UNREACHABLE: re-arm only when the bot has moved
+     * meaningfully relative to where the no-work-pose verdict was recorded, or after a bounded
+     * game-time cooldown. Standing still in front of the same geometry never re-arms it, so the
+     * same unchanged observation can never storm ACTIONABLE transitions or wake DSH repeatedly.
+     */
+    public static boolean opportunityRevalidationReady(AIPlayerEntity bot, OpportunitySpec opportunity) {
+        long now = bot.getServerWorld().getTime();
+        int dx = bot.getBlockPos().getX() - opportunity.stateAt().getX();
+        int dz = bot.getBlockPos().getZ() - opportunity.stateAt().getZ();
+        return dx * dx + dz * dz > REVALIDATE_MOVE_DISTANCE * REVALIDATE_MOVE_DISTANCE
+                || now - opportunity.stateSinceGameTime() > REVALIDATE_COOLDOWN_TICKS;
+    }
+
+    private static boolean opportunityRevalidationReady(AIPlayerEntity bot, ResourceOpportunity prior) {
+        long now = bot.getServerWorld().getTime();
+        int dx = bot.getBlockPos().getX() - prior.stateX;
+        int dz = bot.getBlockPos().getZ() - prior.stateZ;
+        return dx * dx + dz * dz > REVALIDATE_MOVE_DISTANCE * REVALIDATE_MOVE_DISTANCE
+                || now - prior.stateSinceGameTime > REVALIDATE_COOLDOWN_TICKS;
     }
 
     public static Optional<OpportunitySpec> opportunity(AIPlayerEntity bot, String rawId) {
@@ -355,13 +449,101 @@ public final class SemanticWorldRegistry {
         Block block = blockIdentifier == null ? null : Registries.BLOCK.getOptionalValue(blockIdentifier).orElse(null);
         if (block == null || !OreScan.isOreBlock(block)) return Optional.empty();
         return Optional.of(new OpportunitySpec(opportunity.id, opportunity.dimension, opportunity.pos(), block,
-                opportunity.seenFrom(), opportunity.status, opportunity.blockedReason));
+                opportunity.seenFrom(), opportunity.status, opportunity.blockedReason,
+                opportunity.stateSinceGameTime, opportunity.stateAt()));
     }
 
     public static void markOpportunityConsumed(AIPlayerEntity bot, String rawId) {
         if (server == null || bot == null) return;
         String key = scoped(dimension(bot), id(rawId, "opportunity"));
         if (OPPORTUNITIES.remove(key) != null) persistAsync();
+    }
+
+    /**
+     * R2.1: proven absence of a legal work pose demotes the opportunity to UNREACHABLE (typed
+     * reason, e.g. no_reachable_work_pose) instead of leaving a zombie ACTIONABLE entry that
+     * resident perception keeps refreshing. Not terminal: bounded revalidation can restore
+     * ACTIONABLE once geometry or time changes. No event — this must not wake DSH.
+     */
+    public static void markOpportunityUnreachable(AIPlayerEntity bot, String rawId, String reason) {
+        if (server == null || bot == null) return;
+        String key = scoped(dimension(bot), id(rawId, "opportunity"));
+        ResourceOpportunity prior = OPPORTUNITIES.get(key);
+        if (prior == null) return;
+        long now = bot.getServerWorld().getTime();
+        BlockPos feet = bot.getBlockPos();
+        OPPORTUNITIES.put(key, new ResourceOpportunity(prior.id, prior.dimension, prior.x, prior.y, prior.z,
+                prior.blockId, prior.seenX, prior.seenY, prior.seenZ, "UNREACHABLE",
+                reason == null || reason.isBlank() ? "no_reachable_work_pose" : reason,
+                prior.requiredTool, prior.lastSeenGameTime, now, feet.getX(), feet.getY(), feet.getZ()));
+        persistAsync();
+    }
+
+    /**
+     * R2.1: the ore was proven broken but the drop is not yet in inventory. The opportunity stays
+     * in the registry as MINED_PENDING_PICKUP (persisted, restart-safe) with its position/block
+     * as the recovery anchor. Only an inventory-delta postcondition may consume it afterwards.
+     */
+    public static void markOpportunityPendingPickup(AIPlayerEntity bot, String rawId) {
+        if (server == null || bot == null) return;
+        String key = scoped(dimension(bot), id(rawId, "opportunity"));
+        ResourceOpportunity prior = OPPORTUNITIES.get(key);
+        if (prior == null) return;
+        long now = bot.getServerWorld().getTime();
+        BlockPos feet = bot.getBlockPos();
+        OPPORTUNITIES.put(key, new ResourceOpportunity(prior.id, prior.dimension, prior.x, prior.y, prior.z,
+                prior.blockId, prior.seenX, prior.seenY, prior.seenZ, "MINED_PENDING_PICKUP",
+                "pickup_recovery_pending", prior.requiredTool, prior.lastSeenGameTime, now,
+                feet.getX(), feet.getY(), feet.getZ()));
+        persistAsync();
+    }
+
+    /**
+     * R2.1 terminal: the target vanished without the resource ever being proven into this bot's
+     * inventory (externally consumed, or a pending pickup whose drop despawned). Emits a typed
+     * tombstone event so the loss is visible and never reads as success.
+     */
+    public static void markOpportunityStale(AIPlayerEntity bot, String rawId, String reason) {
+        if (server == null || bot == null) return;
+        String key = scoped(dimension(bot), id(rawId, "opportunity"));
+        ResourceOpportunity prior = OPPORTUNITIES.remove(key);
+        if (prior == null) return;
+        persistAsync();
+        ExternalBodyRuntime.resourceOpportunityStale(bot, prior.id, prior.blockId, prior.pos(),
+                reason == null || reason.isBlank() ? "externally_consumed_or_stale" : reason);
+    }
+
+    /**
+     * R2.1: re-arm a revalidation-eligible UNREACHABLE opportunity after re-checking the tool
+     * capability; returns the refreshed spec the caller should execute. Pushes the ordinary
+     * actionable event exactly once per transition.
+     */
+    public static Optional<OpportunitySpec> reactivateOpportunity(AIPlayerEntity bot, String rawId) {
+        requireReady(bot);
+        String key = scoped(dimension(bot), id(rawId, "opportunity"));
+        ResourceOpportunity prior = OPPORTUNITIES.get(key);
+        if (prior == null || !"UNREACHABLE".equals(prior.status)) return Optional.empty();
+        long now = bot.getServerWorld().getTime();
+        BlockPos feet = bot.getBlockPos();
+        boolean actionable = ToolTier.canHarvestWithInventory(bot, blockOf(prior.blockId).getDefaultState());
+        String status = actionable ? "ACTIONABLE" : "BLOCKED";
+        String reason = actionable ? "" : "insufficient_tool";
+        ResourceOpportunity next = new ResourceOpportunity(prior.id, prior.dimension, prior.x, prior.y, prior.z,
+                prior.blockId, prior.seenX, prior.seenY, prior.seenZ, status, reason,
+                ToolTier.requiredPickaxeItemId(blockOf(prior.blockId)), prior.lastSeenGameTime,
+                now, feet.getX(), feet.getY(), feet.getZ());
+        OPPORTUNITIES.put(key, next);
+        persistAsync();
+        if (actionable) {
+            ExternalBodyRuntime.resourceOpportunityActionable(bot, next.id, next.blockId, next.pos(), next.seenFrom());
+        }
+        return Optional.of(new OpportunitySpec(next.id, next.dimension, next.pos(), blockOf(next.blockId),
+                next.seenFrom(), next.status, next.blockedReason, next.stateSinceGameTime, next.stateAt()));
+    }
+
+    private static Block blockOf(String blockId) {
+        Identifier identifier = Identifier.tryParse(blockId);
+        return identifier == null ? null : Registries.BLOCK.getOptionalValue(identifier).orElse(null);
     }
 
     public static HomeRepairPlan homeRepairPlan(AIPlayerEntity bot, String rawId) {
@@ -381,6 +563,7 @@ public final class SemanticWorldRegistry {
             if (expected == null || expected == Blocks.AIR) continue;
             BlockState actual = world.getBlockState(pos);
             if (actual.isOf(expected)) continue;
+            if (HomeBlockEquivalence.equivalent(expected, actual.getBlock())) continue; // R2.1 natural drift
             if (actual.isAir() || actual.isReplaceable()) {
                 missing.add(new BlueprintSchema.BlockPlacement(
                         pos.getX() - anchor.getX(), pos.getY() - anchor.getY(), pos.getZ() - anchor.getZ(), cell.blockId));
@@ -463,6 +646,7 @@ public final class SemanticWorldRegistry {
             if (expected == null) { wrong++; continue; }
             BlockState actual = world.getBlockState(cell.pos());
             if (actual.isOf(expected)) matched++;
+            else if (HomeBlockEquivalence.equivalent(expected, actual.getBlock())) matched++; // R2.1 natural drift
             else if (actual.isAir() || actual.isReplaceable()) missing++;
             else wrong++;
         }
@@ -593,6 +777,10 @@ public final class SemanticWorldRegistry {
         for (var entry : new ArrayList<>(OPPORTUNITIES.entrySet())) {
             ResourceOpportunity opportunity = entry.getValue();
             if (!opportunity.dimension.equals(dim)) continue;
+            // R2.1: UNREACHABLE is geometry-proven and MINED_PENDING_PICKUP is a recovery
+            // obligation; neither is a tool-capability state, so the tool re-check must not
+            // silently overwrite them.
+            if ("UNREACHABLE".equals(opportunity.status) || "MINED_PENDING_PICKUP".equals(opportunity.status)) continue;
             Identifier id = Identifier.tryParse(opportunity.blockId);
             Block block = id == null ? null : Registries.BLOCK.getOptionalValue(id).orElse(null);
             if (block == null || !OreScan.isOreBlock(block)) continue;
@@ -603,7 +791,8 @@ public final class SemanticWorldRegistry {
             ResourceOpportunity next = new ResourceOpportunity(opportunity.id, opportunity.dimension,
                     opportunity.x, opportunity.y, opportunity.z, opportunity.blockId,
                     opportunity.seenX, opportunity.seenY, opportunity.seenZ,
-                    nextStatus, nextReason, ToolTier.requiredPickaxeItemId(block), opportunity.lastSeenGameTime);
+                    nextStatus, nextReason, ToolTier.requiredPickaxeItemId(block), opportunity.lastSeenGameTime,
+                    opportunity.stateSinceGameTime, opportunity.stateX, opportunity.stateY, opportunity.stateZ);
             OPPORTUNITIES.put(entry.getKey(), next); dirty = true;
             if ("BLOCKED".equals(opportunity.status) && "ACTIONABLE".equals(nextStatus)) transitions.add(next);
         }
@@ -694,7 +883,10 @@ public final class SemanticWorldRegistry {
             o.addProperty("x", opportunity.x); o.addProperty("y", opportunity.y); o.addProperty("z", opportunity.z); o.addProperty("block", opportunity.blockId);
             o.addProperty("seen_x", opportunity.seenX); o.addProperty("seen_y", opportunity.seenY); o.addProperty("seen_z", opportunity.seenZ);
             o.addProperty("status", opportunity.status); o.addProperty("blocked_reason", opportunity.blockedReason); o.addProperty("required_tool", opportunity.requiredTool);
-            o.addProperty("last_seen_game_time", opportunity.lastSeenGameTime); opportunities.add(o);
+            o.addProperty("last_seen_game_time", opportunity.lastSeenGameTime);
+            o.addProperty("state_since_game_time", opportunity.stateSinceGameTime);
+            o.addProperty("state_x", opportunity.stateX); o.addProperty("state_y", opportunity.stateY); o.addProperty("state_z", opportunity.stateZ);
+            opportunities.add(o);
         }
         root.add("resource_opportunities", opportunities);
         return GSON.toJson(root);
@@ -707,21 +899,21 @@ public final class SemanticWorldRegistry {
             if (!parsed.isJsonObject()) throw new IllegalArgumentException("root_not_object");
             JsonObject root = parsed.getAsJsonObject();
             int version = root.has("version") ? root.get("version").getAsInt() : -1;
-            if (version != 1 && version != VERSION) throw new IllegalArgumentException("version");
+            if (version != 1 && version != 2 && version != VERSION) throw new IllegalArgumentException("version");
             if (version == VERSION) {
                 String storedWorld = root.has("world_id") ? root.get("world_id").getAsString() : "";
                 if (!worldId.equals(storedWorld)) throw new IllegalArgumentException("world_id_mismatch");
             }
             JsonArray structures = root.has("structures") ? root.getAsJsonArray("structures") : new JsonArray();
             JsonArray farms = root.has("farms") ? root.getAsJsonArray("farms") : new JsonArray();
-            JsonArray opportunities = version == VERSION && root.has("resource_opportunities")
+            JsonArray opportunities = version >= 2 && root.has("resource_opportunities")
                     ? root.getAsJsonArray("resource_opportunities") : new JsonArray();
             if (structures.size() > MAX_STRUCTURES || farms.size() > MAX_FARMS || opportunities.size() > MAX_OPPORTUNITIES) throw new IllegalArgumentException("capacity");
             for (JsonElement element : structures) {
                 JsonObject o = element.getAsJsonObject();
                 String dim = o.get("dimension").getAsString(); String id = id(o.get("id").getAsString(), "structure");
                 List<SnapshotCell> snapshot = new ArrayList<>();
-                if (version == VERSION && o.has("snapshot")) for (JsonElement c0 : o.getAsJsonArray("snapshot")) {
+                if (version >= 2 && o.has("snapshot")) for (JsonElement c0 : o.getAsJsonArray("snapshot")) {
                     JsonObject c = c0.getAsJsonObject(); snapshot.add(new SnapshotCell(c.get("x").getAsInt(), c.get("y").getAsInt(), c.get("z").getAsInt(), c.get("block").getAsString()));
                     if (snapshot.size() > MAX_SNAPSHOT_CELLS) throw new IllegalArgumentException("snapshot_capacity");
                 }
@@ -736,7 +928,7 @@ public final class SemanticWorldRegistry {
                 if (radius < 1 || radius > MAX_FARM_RADIUS) throw new IllegalArgumentException("farm_radius");
                 String dim = o.get("dimension").getAsString(); String id = id(o.get("id").getAsString(), "farm");
                 List<Cell> cells = new ArrayList<>();
-                if (version == VERSION && o.has("cells")) for (JsonElement c0 : o.getAsJsonArray("cells")) {
+                if (version >= 2 && o.has("cells")) for (JsonElement c0 : o.getAsJsonArray("cells")) {
                     JsonObject c = c0.getAsJsonObject(); cells.add(new Cell(c.get("x").getAsInt(), c.get("y").getAsInt(), c.get("z").getAsInt()));
                     if (cells.size() > MAX_FARM_CELLS) throw new IllegalArgumentException("farm_cell_capacity");
                 }
@@ -752,12 +944,16 @@ public final class SemanticWorldRegistry {
                         o.get("x").getAsInt(), o.get("y").getAsInt(), o.get("z").getAsInt(), o.get("block").getAsString(),
                         o.get("seen_x").getAsInt(), o.get("seen_y").getAsInt(), o.get("seen_z").getAsInt(),
                         o.get("status").getAsString(), o.get("blocked_reason").getAsString(), o.get("required_tool").getAsString(),
-                        o.get("last_seen_game_time").getAsLong());
+                        o.get("last_seen_game_time").getAsLong(),
+                        version >= VERSION && o.has("state_since_game_time") ? o.get("state_since_game_time").getAsLong() : 0L,
+                        version >= VERSION && o.has("state_x") ? o.get("state_x").getAsInt() : o.get("seen_x").getAsInt(),
+                        version >= VERSION && o.has("state_y") ? o.get("state_y").getAsInt() : o.get("seen_y").getAsInt(),
+                        version >= VERSION && o.has("state_z") ? o.get("state_z").getAsInt() : o.get("seen_z").getAsInt());
                 Identifier blockId = Identifier.tryParse(r.blockId); Block block = blockId == null ? null : Registries.BLOCK.getOptionalValue(blockId).orElse(null);
                 if (block == null || !OreScan.isOreBlock(block)) throw new IllegalArgumentException("opportunity_block");
                 OPPORTUNITIES.put(scoped(r.dimension, r.id), r);
             }
-            return version == 1;
+            return version == 1 || version == 2;
         } catch (RuntimeException invalid) {
             STRUCTURES.clear(); FARMS.clear(); OPPORTUNITIES.clear(); INTEGRITY.clear();
             throw new IOException("semantic_registry_invalid", invalid);

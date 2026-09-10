@@ -17,17 +17,32 @@ import java.util.Set;
 
 /** Mine one exact previously-observed ore opportunity; never silently substitutes another vein. */
 public final class KnownResourceTask extends AbstractTask {
-    private enum Phase { APPROACH, MINING, PICKUP }
+    private enum Phase { APPROACH, MINING, PICKUP, PICKUP_RECOVERY }
+    private static final int PICKUP_RECOVERY_BUDGET_TICKS = 200;
+    private static final int DROP_ABSENCE_CONFIRM_TICKS = 60;
     private final SemanticWorldRegistry.OpportunitySpec opportunity;
     private final Set<Item> targetDrops;
     private final BlockMiner miner = new BlockMiner();
+    private final boolean pickupRecoveryOnly;
     private Phase phase = Phase.APPROACH;
     private int pickupTicks;
+    private int recoveryTicks;
+    private int dropAbsentTicks;
     private int inventoryBefore;
     private boolean pathStarted;
 
     public KnownResourceTask(SemanticWorldRegistry.OpportunitySpec opportunity) {
+        this(opportunity, false);
+    }
+
+    /**
+     * R2.1: with pickupRecoveryOnly the task NEVER mines again — the ore break was already proven
+     * (the opportunity entered MINED_PENDING_PICKUP). It only walks the drop, waits for the
+     * inventory-delta postcondition, and either consumes the opportunity on proof or fails typed.
+     */
+    public KnownResourceTask(SemanticWorldRegistry.OpportunitySpec opportunity, boolean pickupRecoveryOnly) {
         this.opportunity = opportunity;
+        this.pickupRecoveryOnly = pickupRecoveryOnly;
         this.targetDrops = HarvestCore.expectedDropsFor(opportunity.block());
     }
 
@@ -39,10 +54,26 @@ public final class KnownResourceTask extends AbstractTask {
     }
 
     @Override public double progress() {
-        return switch (phase) { case APPROACH -> 0.2D; case MINING -> 0.6D; case PICKUP -> 0.9D; };
+        return switch (phase) {
+            case APPROACH -> 0.2D;
+            case MINING -> 0.6D;
+            case PICKUP -> 0.9D;
+            case PICKUP_RECOVERY -> 0.95D;
+        };
     }
 
-    @Override protected void onStart(AIPlayerEntity bot) { phase = Phase.APPROACH; }
+    @Override protected void onStart(AIPlayerEntity bot) {
+        if (pickupRecoveryOnly) {
+            // The mining postcondition is historical fact here; re-baseline the inventory so the
+            // recovery completion proof is a delta measured from recovery start.
+            inventoryBefore = HarvestCore.countInventoryItems(bot, targetDrops);
+            recoveryTicks = PICKUP_RECOVERY_BUDGET_TICKS;
+            dropAbsentTicks = 0;
+            phase = Phase.PICKUP_RECOVERY;
+        } else {
+            phase = Phase.APPROACH;
+        }
+    }
 
     @Override protected void onTick(AIPlayerEntity bot) {
         if (elapsed > 2400) { fail("known_resource_timeout"); return; }
@@ -51,6 +82,7 @@ public final class KnownResourceTask extends AbstractTask {
             case APPROACH -> approach(bot);
             case MINING -> mine(bot);
             case PICKUP -> pickup(bot);
+            case PICKUP_RECOVERY -> recoverPickup(bot);
         }
     }
 
@@ -82,15 +114,20 @@ public final class KnownResourceTask extends AbstractTask {
         }
         var state = bot.getServerWorld().getBlockState(pos);
         if (!state.isOf(opportunity.block())) {
-            SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id());
-            fail("known_resource_stale_or_consumed");
+            // R2.1: externally consumed — terminal tombstone event, and NEVER a claim that the
+            // resource reached this bot's inventory.
+            SemanticWorldRegistry.markOpportunityStale(bot, opportunity.id(), "externally_consumed_or_stale");
+            fail("known_resource_stale_externally_consumed");
             return;
         }
 
         HarvestCore.TargetChoice choice = HarvestCore.nearestReachableBlock(
                 bot, Set.of(opportunity.block()), 16, 16, 16, candidate -> candidate.equals(pos));
         if (choice == null) {
-            fail("known_resource_visible_but_not_reachable");
+            // R2.1: proven absence of a legal work pose demotes the opportunity to UNREACHABLE
+            // (typed, persisted, revalidatable) instead of leaving a zombie ACTIONABLE entry.
+            SemanticWorldRegistry.markOpportunityUnreachable(bot, opportunity.id(), "no_reachable_work_pose");
+            fail("known_resource_unreachable:no_reachable_work_pose");
             return;
         }
         if (!choice.direct()) {
@@ -132,9 +169,47 @@ public final class KnownResourceTask extends AbstractTask {
         HarvestCore.chaseDropAnyOf(bot, targetDrops, 8.0D);
         if (--pickupTicks <= 0) {
             if (!bot.getServerWorld().getBlockState(opportunity.pos()).isOf(opportunity.block())) {
-                SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id());
+                // R2.1: the ore break is proven but the drop is not in inventory yet — park the
+                // opportunity as MINED_PENDING_PICKUP (persisted, restart-safe) and fail typed.
+                // The old behavior consumed the opportunity here, silently losing the resource.
+                SemanticWorldRegistry.markOpportunityPendingPickup(bot, opportunity.id());
+                fail("known_resource_pickup_pending_recovery");
+            } else {
+                // The block is back/still there: nothing was mined, the opportunity stays as-is.
+                fail("known_resource_pickup_timeout");
             }
-            fail("known_resource_pickup_timeout");
+        }
+    }
+
+    /**
+     * R2.1 pickup recovery: the ore was already broken (MINED_PENDING_PICKUP). Never re-mine the
+     * cell — collect the drop and demand the inventory-delta postcondition. If the drop has
+     * verifiably vanished (no matching ItemEntity nearby, no inventory delta, sustained), end as
+     * a typed stale loss; a plain timeout leaves the pending state intact for a later retry.
+     */
+    private void recoverPickup(AIPlayerEntity bot) {
+        HarvestCore.forcePickupNearbyAnyOf(bot, targetDrops);
+        int collected = HarvestCore.countInventoryItems(bot, targetDrops) - inventoryBefore;
+        if (collected > 0) {
+            SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id());
+            BotLog.action(bot, "known_resource_collected",
+                    "opportunity", opportunity.id(), "count", collected, "mode", "pickup_recovery");
+            complete();
+            return;
+        }
+        HarvestCore.chaseDropAnyOf(bot, targetDrops, 8.0D);
+        boolean dropNearby = HarvestCore.nearestDropAnyOf(bot, targetDrops, 8.0D).isPresent();
+        dropAbsentTicks = dropNearby ? 0 : dropAbsentTicks + 1;
+        if (dropAbsentTicks > DROP_ABSENCE_CONFIRM_TICKS) {
+            // Conservative loss: no drop entity, no inventory delta — the resource provably did
+            // NOT reach this bot. Terminal tombstone; never fakes collection.
+            SemanticWorldRegistry.markOpportunityStale(bot, opportunity.id(), "pickup_lost_drop_despawned_or_taken");
+            fail("known_resource_pickup_lost_drop_despawned_or_taken");
+            return;
+        }
+        if (--recoveryTicks <= 0) {
+            // Retryable outcome: pending state survives for a later mc_mine_opportunity(id).
+            fail("known_resource_pickup_recovery_timeout");
         }
     }
 

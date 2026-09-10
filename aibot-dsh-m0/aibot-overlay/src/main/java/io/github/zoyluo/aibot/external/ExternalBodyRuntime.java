@@ -101,6 +101,21 @@ public final class ExternalBodyRuntime {
                 "dimension",bot.getServerWorld().getRegistryKey().getValue().toString(),
                 "world_id",SemanticWorldRegistry.worldId()));
     }
+    /**
+     * R2.1 terminal tombstone: an opportunity left the active registry without the resource ever
+     * being proven into inventory (externally consumed, or a pending pickup whose drop vanished).
+     * Distinct from actionable/completion events so DSH never mistakes it for success.
+     */
+    public static void resourceOpportunityStale(AIPlayerEntity bot,String opportunityId,String blockId,
+                                                net.minecraft.util.math.BlockPos pos,String reason) {
+        if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+        kernel.publish("resource_opportunity_stale",Map.of(
+                "opportunity_id",opportunityId,"block",blockId,
+                "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
+                "reason",bounded(reason,120),
+                "dimension",bot.getServerWorld().getRegistryKey().getValue().toString(),
+                "world_id",SemanticWorldRegistry.worldId()));
+    }
     private static String bounded(String s,int length){return s==null?"":s.length()<=length?s:s.substring(0,length);}
     public static void stop() {
         try{if(kernel!=null)kernel.shutdown();}

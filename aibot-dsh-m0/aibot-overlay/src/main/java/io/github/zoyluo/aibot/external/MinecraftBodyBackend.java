@@ -174,9 +174,22 @@ public final class MinecraftBodyBackend implements BodyBackend {
                 String opportunityId=string(args,"id",48);
                 var opportunity=SemanticWorldRegistry.opportunity(bot,opportunityId)
                         .orElseThrow(()->new BridgeFault(404,"resource_opportunity_not_found_in_current_dimension"));
-                if(!"ACTIONABLE".equals(opportunity.status()))
+                // R2.1 lifecycle: MINED_PENDING_PICKUP runs pickup recovery only (never re-mines);
+                // UNREACHABLE refuses until bounded revalidation (geometry change or cooldown).
+                if("MINED_PENDING_PICKUP".equals(opportunity.status())) {
+                    task=new KnownResourceTask(opportunity,true);
+                } else if("UNREACHABLE".equals(opportunity.status())) {
+                    if(!SemanticWorldRegistry.opportunityRevalidationReady(bot,opportunity))
+                        throw new BridgeFault(409,"resource_opportunity_unreachable:"+opportunity.blockedReason()
+                                +":revalidation_requires_geometry_change_or_cooldown");
+                    opportunity=SemanticWorldRegistry.reactivateOpportunity(bot,opportunityId)
+                            .orElseThrow(()->new BridgeFault(409,"resource_opportunity_unreachable:reactivation_failed"));
+                    task=new KnownResourceTask(opportunity,false);
+                } else if("ACTIONABLE".equals(opportunity.status())) {
+                    task=new KnownResourceTask(opportunity,false);
+                } else {
                     throw new BridgeFault(409,"resource_opportunity_blocked:"+opportunity.blockedReason());
-                task=new KnownResourceTask(opportunity);
+                }
             }
             case "deposit" -> task=new StockpileTask(true);
             case "set_base" -> {

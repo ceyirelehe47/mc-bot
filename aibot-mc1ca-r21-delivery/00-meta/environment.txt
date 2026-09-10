@@ -1,0 +1,50 @@
+# MC-1C-A R2.1｜environment.txt
+
+- 日期：2026-09-10
+- 仓库：ceyirelehe47/mc-bot，分支 experiment/mc1ca-structure-semantics
+- 起点：10b5b480cda225367180043ca8868b725f071348（与任务书一致）
+- 上游冻结基线：zoyluoblue/mc_aiplayer@a029fa6a3760fd0f83834c104051b041d986da60
+- DSH 基线：deepseek-ai/deepseek-harness@5dda764ed3aa172535a7967b06ff95d9cbfe536a
+
+## 构建/测试主机
+
+- OS：Windows 10.0.26200（Git Bash / MSYS）
+- JDK：D:\mc-server\jdk-21.0.12.1+1（JAVA_HOME）
+- Gradle：仓库 wrapper（neoforge/fabric-loom，MC 1.21.3）
+- Node：v22.19.0（DSH plugin 测试）
+- AIBot checkout：D:\code\mc-experiment\aibot（HEAD=a029fa6，工作区含 R1→R2→R2.1 全部 overlay/补丁）
+- DSH checkout：D:\code\mc-experiment\dsh（5dda764，scratch-aibot-body 插件为 R1 版）
+
+## 构建/测试命令（本轮实际使用）
+
+```bash
+# 主源码 + 单测
+./gradlew clean compileJava test
+
+# 全量 GameTest（两轮；外部身体名与桥 token 必须提供，否则桥启动 fail-closed 崩溃）
+AIBOT_EXTERNAL_BOT=Mc1caBot AIBOT_BRIDGE_TOKEN=gametest-token-0123456789-abcdefghij ./gradlew runGameTest
+
+# DSH plugin Node 测试（先在 .build 装配生产 class + FakeBridgeServer）
+node --test test/*.test.mjs
+```
+
+## 实机验收环境
+
+- 隔离服：D:\code\mc-experiment\mc-server-mc1ca
+  - 存档 world_r2（world_id 2eadb4ef-61bb-4657-ab6e-94d50141bbd1）
+  - 端口 25565 / RCON 25575 / external bridge 8765
+  - 启动：`AIBOT_EXTERNAL_BOT=Bob AIBOT_BRIDGE_TOKEN=<token> java -Xmx4G -jar fabric-server-launch.jar nogui`
+  - 桥 token 存于 bridge-token.txt（不进交付物）
+- 驱动：D:\code\mc-experiment\r21_live.py（租约/执行/轮询）与 r21_live4.py（pending pickup 专项）
+- RCON 探针：D:\code\mc-experiment\rcon.py
+
+## 关键修复（R2 → R2.1）一览
+
+- BuildTask work-pose：`isObservableStandable`（从当前眼位看 stand）→
+  `isWorkPoseUsable`（从候选 stand 眼位证明目标格可观察 + 可达）；
+  预算在路径执行器活跃时顺延；silent false 路径全部 typed 化。
+- HOME 等价：新增 `HomeBlockEquivalence`（dirt↔grass_block 显式白名单）。
+- Opportunity：新增 UNREACHABLE / MINED_PENDING_PICKUP 状态与 bounded revalidation、
+  pickup recovery、stale tombstone 事件；registry version 2→3（兼容 v1/v2 加载）。
+- Farm gate：`SemanticWorldRegistry.farmMutationDenial` 接入 FarmAction till/plant/harvest。
+- 观测查询：新增 `ObservableWorldQuery.canObserveCellFrom`（planner 眼位严格同规则）。
