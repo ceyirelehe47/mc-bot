@@ -1,0 +1,4 @@
+jar=aibot-0.0.1.jar
+sha256=f4b2df812233124a8a0ffd0568eac45e453b4d14a28e51954bcd926af47b6076
+size=1741452
+built-from=PRODUCTION_SHA 13a490cb4ce3341aa09beeecc1e0e7b688ff89e2 (overlay == replay 0-diff, 428 files)

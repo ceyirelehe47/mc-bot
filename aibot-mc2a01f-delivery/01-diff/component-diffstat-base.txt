@@ -1,0 +1,15 @@
+ aibot-dsh-m0/SHA256SUMS                            | 175 +++++++++++----------
+ .../aibot/gametest/MC2A01FClosureGameTests.java    | 170 ++++++++++++++++++++
+ .../aibot/external/MinecraftBodyBackend.java       |   5 +-
+ .../aibot/external/SemanticWorldRegistry.java      |  54 ++++++-
+ .../external/cognition/CognitiveInspector.java     |   3 +-
+ .../external/cognition/CognitiveViewBuilder.java   |   8 +-
+ .../external/cognition/StructureKnowledge.java     |   9 +-
+ aibot-dsh-m0/docs/GLM_HANDOFF.zh-CN.md             |   2 +-
+ aibot-dsh-m0/docs/IMPLEMENTATION.zh-CN.md          |   2 +-
+ aibot-dsh-m0/dsh-plugin/src/events.mjs             |  23 ++-
+ aibot-dsh-m0/dsh-plugin/test/events.test.mjs       |  51 +++++-
+ .../dsh-plugin/test/http-integration.test.mjs      |   5 +-
+ aibot-dsh-m0/dsh-plugin/test/plugin.test.mjs       |   4 +-
+ aibot-dsh-m0/scripts/apply_to_aibot.py             |  28 +++-
+ 14 files changed, 425 insertions(+), 114 deletions(-)

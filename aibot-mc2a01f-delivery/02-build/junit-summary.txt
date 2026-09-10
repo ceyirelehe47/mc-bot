@@ -1,0 +1,6 @@
+JUnit fresh exact count (build/test-results/test/*.xml, PRODUCTION_SHA 13a490c):
+tests=361 failures=0 errors=0 skipped=0
+source-level additions vs MC-2A0.1 (359): +2 source-contract tests
+  - PrivilegedBoundarySourceTest#structureKnowledgeCacheKeyIncludesWorldId
+  - PrivilegedBoundarySourceTest#automaticObservationUsesBoundedSemanticSnapshot
+Prior-stage archived 351 was a stale artifact; 359 + 2 = 361 matches fresh XML.

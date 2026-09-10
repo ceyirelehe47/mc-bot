@@ -1,0 +1,15 @@
+== phase 1: far-from-structure automatic window (>200 server ticks) ==
+ticks=4271..4482 (delta=211) view_calls=35
+semantic schema=mc_spatial_semantics_v2_bounded
+  observe structure home: fields=['bounds', 'id', 'inside', 'kind', 'protected', 'snapshot_cells'] integrity_fields_present=False
+  observe structure live2a01: fields=['bounds', 'id', 'inside', 'kind', 'protected', 'snapshot_cells'] integrity_fields_present=False
+view live2a01 card: {"evidence_ref": "mc://80980dea-4a25-46fa-ab97-eeefcc8b4b39/minecraft%3Aoverworld/structure/live2a01", "freshness": "UNKNOWN", "kind": "structure", "knowledge": "UNKNOWN", "object_id": "live2a01", "role": "HOME", "summary": {"baseline_cells": 4, "current_integrity": {"knowledge": "UNKNOWN", "reason": "not_currently_verifiable"}}}
+
+== assertions ==
+PASS semantic schema is bounded variant
+PASS no structure card in automatic observe carries integrity fields
+PASS durable identity visible remotely (card + baseline_cells)
+PASS remote knowledge is NOT VERIFIED_LIVE
+PASS remote freshness is NOT LIVE
+PASS window covered >=200 server ticks
+RESULT live4_far=PASS

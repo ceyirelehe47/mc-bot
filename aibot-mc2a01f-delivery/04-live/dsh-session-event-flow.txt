@@ -1,0 +1,36 @@
+# MC-2A0.1F LIVE transport evidence (session-23315a0d, sanitized event-flow extract)
+# source: session.v3.jsonl.zstd (zstd multi-frame); only transport-relevant events kept
+# target=next-step => steer/inject channel; target=next-turn => followup channel (forbidden for Body events)
+
+seq=3 agent/inbox/spliced INSERT target=next-turn source=user/5eb488d2-b456-4657-aa4f-f4ab57ef694d (user text elided)
+seq=5 agent/inbox/spliced CLAIM target=next-turn
+seq=9 user/message source=plugin admitted into model step
+seq=27 turn/end turn=1 reason={"kind": "completed"}
+seq=28 agent/inbox/spliced INSERT target=next-turn source=user/dc890a95-9ab4-45da-891f-6dd67242cbe1 (user text elided)
+seq=30 agent/inbox/spliced CLAIM target=next-turn
+seq=37 turn/end turn=2 reason={"kind": "completed"}
+seq=38 agent/inbox/spliced INSERT target=next-step source=plugin/aibot-body events=['execution'] seq=['158']
+seq=40 agent/inbox/spliced CLAIM target=next-step
+seq=42 user/message source=plugin admitted into model step
+seq=50 turn/end turn=3 reason={"kind": "completed"}
+seq=51 agent/inbox/spliced INSERT target=next-turn source=user/95f81765-3474-4cb4-8e36-82c435e1b317 (user text elided)
+seq=53 agent/inbox/spliced CLAIM target=next-turn
+seq=60 turn/end turn=4 reason={"kind": "completed"}
+seq=61 agent/inbox/spliced INSERT target=next-step source=plugin/aibot-body events=['execution'] seq=['161']
+seq=63 agent/inbox/spliced CLAIM target=next-step
+seq=65 user/message source=plugin admitted into model step
+seq=73 turn/end turn=5 reason={"kind": "completed"}
+seq=74 agent/inbox/spliced INSERT target=next-turn source=user/0ef521a4-b18f-44c8-acbc-b457e76aa96f (user text elided)
+seq=76 agent/inbox/spliced CLAIM target=next-turn
+seq=96 agent/inbox/spliced INSERT target=next-step source=plugin/aibot-body events=['damage'] seq=['162']
+seq=99 agent/inbox/spliced CLAIM target=next-step
+seq=101 user/message source=plugin admitted into model step
+seq=129 turn/end turn=6 reason={"kind": "completed"}
+seq=130 agent/inbox/spliced INSERT target=next-turn source=user/0aacfd4f-80a3-4258-8da9-8bceafdcf61b (user text elided)
+seq=132 agent/inbox/spliced CLAIM target=next-turn
+seq=160 agent/inbox/spliced INSERT target=next-step source=plugin/aibot-body events=['resource_opportunity_actionable'] seq=['163']
+seq=161 agent/inbox/spliced INSERT target=next-step source=plugin/aibot-body events=['resource_opportunity_actionable'] seq=['164']
+seq=166 agent/inbox/spliced CLAIM target=next-step
+seq=168 user/message source=plugin admitted into model step
+seq=169 user/message source=plugin admitted into model step
+seq=177 turn/end turn=7 reason={"kind": "completed"}
