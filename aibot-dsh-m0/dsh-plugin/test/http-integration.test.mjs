@@ -115,13 +115,14 @@ test('production Java HTTP + kernel + journal interoperates with real Node clien
   });
   await t.test('actual plugin transport worker enqueues a terminal wake into its fake DSH owner',async()=>{
     const ctx=scope(),agentScope=scope(),tools=new Map(),messages=[];let flushes=0;ctx.sessionPersistence={async stat(){return {};},async flush(){flushes++;}};ctx.tools={register:tool=>tools.set(tool.name,tool)};
-    const agent={id:'integration-dsh',ctx:agentScope,status:'idle',followup:m=>messages.push(['followup',m]),steer:m=>messages.push(['steer',m]),inject:m=>messages.push(['inject',m])};
+    // MC-2A0.1F: idle + autoWake + terminal must wake via steer; the fake exposes no followup.
+    const agent={id:'integration-dsh',ctx:agentScope,status:'idle',steer:m=>messages.push(['steer',m]),inject:m=>messages.push(['inject',m])};
     const impl=install(ctx,{defineTool:t=>t,createUserMessage:m=>m},{baseUrl,token:TOKEN,stateDir:join(dir,'dsh-state'),renewIntervalMs:100,log:()=>{}});
     const call=(name,args={},callId=name)=>tools.get(name).execute(args,{agent,callId,concludeTurn(){},signal:new AbortController().signal});
     try{
       await call('mc_connect');await call('mc_observe');const r=await call('mc_gather',{item:'minecraft:oak_log',count:4});assert.equal(r.state,'accepted');
       await waitUntil(()=>messages.find(([,m])=>m.content[0].text.includes(r.execution_id)&&m.content[0].text.includes('completed')));
-      assert.ok(flushes>=1);assert.equal(messages.at(-1)[0],'followup');assert.equal(messages.at(-1)[1].source.kind,'plugin');
+      assert.ok(flushes>=1);assert.equal(messages.at(-1)[0],'steer');assert.equal(messages.at(-1)[1].source.kind,'plugin');
       await agentScope.dispose();await waitUntil(async()=>(await c.status()).control_active===false);
     }finally{await impl.dispose();}
   });

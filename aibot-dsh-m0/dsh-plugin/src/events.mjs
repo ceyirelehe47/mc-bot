@@ -28,14 +28,27 @@ export function createEventMessage(api, epoch, events) {
     source: { kind: 'plugin', plugin: 'aibot-body', form: 'notice', summary: `Minecraft: ${events.map(e => e.kind).join(', ').slice(0, 95)}` },
   });
 }
-/** Uses verified DSH public methods, never mutates Session or calls an LLM directly. */
+/**
+ * Uses verified DSH public methods, never mutates Session or calls an LLM directly.
+ *
+ * MC-2A0.1F transport contract (EVT-TR-1..5): followup() is a next-turn queue — a
+ * Minecraft Agent often loops tools inside ONE long turn, so a queued event never
+ * reached the current model step and piled up as backlog (the real-play root cause).
+ * Body events therefore only ever use:
+ * - inject(): context-only, visible at the next admitted model step in the SAME turn
+ *   (running routine, or any event while autoWake=false — never wakes);
+ * - steer(): running redirects the current step; idle wakes a continuation turn
+ *   (urgent events always, and wake-worthy terminal/routine deliverables when idle).
+ */
+const URGENT_KINDS = ['death','damage','player_message','survival_alert','control_lost','body_changed'];
 export function enqueueEvents(agent, api, epoch, events, { autoWake = true } = {}) {
   if (!events.length) return;
   const message = createEventMessage(api, epoch, events);
-  if (!autoWake) { agent.inject(message); return; }
-  const urgent = events.some(e => ['death','damage','player_message','survival_alert','control_lost','body_changed'].includes(e.kind));
-  if (urgent && agent.status === 'running') agent.steer(message);
-  else agent.followup(message); // queues a guaranteed new turn even if currently running
+  if (!autoWake) { agent.inject(message); return; } // EVT-TR-4: context only, never wake
+  const urgent = events.some(e => URGENT_KINDS.includes(e.kind));
+  if (urgent) { agent.steer(message); return; } // EVT-TR-2: running steers current turn, idle wakes
+  if (agent.status === 'running') { agent.inject(message); return; } // EVT-TR-1: same-turn admission, never a next-turn queue
+  agent.steer(message); // EVT-TR-3: idle wake-worthy terminal/event must wake the continuation
 }
 export async function pumpEvents({ client, store, initialCursor, signal, deliver, onError = () => {} }) {
   let cursor = await store.load() ?? initialCursor;

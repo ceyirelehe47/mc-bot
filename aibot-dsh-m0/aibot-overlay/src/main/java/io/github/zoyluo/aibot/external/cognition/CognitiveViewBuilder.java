@@ -55,12 +55,14 @@ public final class CognitiveViewBuilder {
     private CognitiveViewBuilder() {}
 
     /**
-     * @param semanticOrNull 调用方缓存的 registry.observe 快照;传 null 则现取
-     *                       (GameTest 直调路径)。两种来源数据完全一致。
+     * @param semanticOrNull 调用方缓存的 registry.observeBounded 快照;传 null 则现取 bounded 版
+     *                       (GameTest 直调路径)。两种来源数据完全一致,且都绝不含远程 current integrity。
      * @param journal        只读事件尾部来源;传 null 时 events 段显式 UNAVAILABLE_THIS_SLICE。
      */
     public static CognitiveSnapshot.Snapshot build(AIPlayerEntity bot, BridgeJournal journal, JsonObject semanticOrNull) {
-        JsonObject semantic = semanticOrNull == null ? SemanticWorldRegistry.observe(bot) : semanticOrNull;
+        // MC-2A0.1F:认知视图的 semantic 现取也只走 bounded 入口——构建 scene 不得触发远程
+        // structure integrity 扫描(COG-AQ-1);current integrity 只能来自 StructureKnowledge 合法验证。
+        JsonObject semantic = semanticOrNull == null ? SemanticWorldRegistry.observeBounded(bot) : semanticOrNull;
         ServerWorld world = bot.getServerWorld();
         String worldId = SemanticWorldRegistry.worldId();
         String dimension = world.getRegistryKey().getValue().toString();

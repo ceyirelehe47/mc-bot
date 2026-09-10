@@ -332,7 +332,7 @@ CHANGES = {
 EXTRA_CHANGES={
  'src/gametest/resources/fabric.mod.json': ('25ecb31ca127ed2e9d57ccb9b5c223066092f3e5', [
   ('"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",',
-   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",', 1),
+   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",', 1),
  ]),
  'src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java': ('07d61c3c7b180d12361b8ab6bbe8983f42ed30f4', [
   ('        assertEquals(2, occurrences(buildTask, "isObservableStandable(bot, candidate)"),\n                "both work-pose scans must cross the observable-world boundary");\n',
@@ -416,6 +416,32 @@ EXTRA_CHANGES={
                         relative + " must not contain autonomy runtime symbol " + banned);
             }
         }
+    }
+
+    @Test
+    void structureKnowledgeCacheKeyIncludesWorldId() throws IOException {
+        // MC-2A0.1F (COG-AQ-6/SPATIAL-CACHE-1): LAST_KNOWN verification identity must never
+        // alias across saves/worlds. The CACHE has no lifecycle eviction, so only binding the
+        // per-save world_id into the key can keep two same-named structures in different
+        // worlds from sharing a verification.
+        String knowledge = read("external/cognition/StructureKnowledge.java");
+        assertTrue(knowledge.contains("SemanticWorldRegistry.worldId() + \\"/\\" + structure.dimension() + \\"/\\" + structure.id()"),
+                "StructureKnowledge cache key must be world_id/dimension/object-id scoped");
+    }
+
+    @Test
+    void automaticObservationUsesBoundedSemanticSnapshot() throws IOException {
+        // MC-2A0.1F (AUTO-OBS-1..3/COG-AQ-1): the automatic refresh path must take the bounded
+        // registry entry — the omniscient observe() variant remote-scans registered structure
+        // baselines with no observability proof and may only serve EXPLICIT operations.
+        String backend = read("external/MinecraftBodyBackend.java");
+        assertTrue(backend.contains("SemanticWorldRegistry.observeBounded(bot)"),
+                "automatic semantic cache refresh must use observeBounded, never omniscient observe");
+        assertFalse(backend.contains("SemanticWorldRegistry.observe(bot)"),
+                "the automatic backend must not call the omniscient observe variant at all");
+        String builder = read("external/cognition/CognitiveViewBuilder.java");
+        assertTrue(builder.contains("SemanticWorldRegistry.observeBounded(bot)"),
+                "the cognitive view fallback must use the bounded semantic snapshot");
     }
 
     private static Map<String, String> matchingSources(Pattern pattern) throws IOException {

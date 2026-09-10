@@ -72,7 +72,8 @@ public final class MinecraftBodyBackend implements BodyBackend {
         out.addProperty("paused_depth",TaskManager.INSTANCE.pausedDepth(bot));
         return GSON.toJson(out);
     }
-    /** perception/semantic 各 10-tick 缓存;认知视图与 observeJson 共用同一份,绝不做第二次全扫。 */
+    /** perception/semantic 各 10-tick 缓存;认知视图与 observeJson 共用同一份,绝不做第二次全扫。
+     *  MC-2A0.1F:自动刷新只走 bounded 语义快照——绝不触发远程 Structure current-integrity 扫描(AUTO-OBS-1)。 */
     private void refreshCaches() {
         String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
         int tick=server.getTicks();
@@ -81,7 +82,7 @@ public final class MinecraftBodyBackend implements BodyBackend {
             perceptionTick=tick;perceptionDimension=dimension;
         }
         if(semantic==null || tick-semanticTick>=10 || tick<semanticTick || !dimension.equals(semanticDimension)) {
-            semantic=SemanticWorldRegistry.observe(bot); semanticTick=tick; semanticDimension=dimension;
+            semantic=SemanticWorldRegistry.observeBounded(bot); semanticTick=tick; semanticDimension=dimension;
         }
     }
     // MC-2A0 认知查询:server 线程被 kernel.tick 调用,只读复用上述缓存。

@@ -116,7 +116,7 @@ python3 "$BUNDLE/scripts/install_dsh_plugin.py" --repo "$WORK/dsh"
 
 必须在真实 `dsh web` profile 测试，而不只是 TypeScript 检查或 mock。确认16个工具可见，`output.schema={type:'json'}` 能返回 canonical 值，参数和执行错误正确展示。
 
-确认 `exec.concludeTurn()` 在已接受长任务后结束推理，但不取消身体任务。确认空闲终态使用 followup、忙碌紧急事件使用 steer、暂停后注入不自动唤醒。禁止进度事件每 tick 调用 LLM。
+确认 `exec.concludeTurn()` 在已接受长任务后结束推理，但不取消身体任务。确认空闲终态用 steer 唤醒续作、忙碌紧急事件使用 steer、忙碌普通事件使用 inject（同回合可见）、暂停后注入不自动唤醒；Body 事件传输禁止 followup（MC-2A0.1F）。禁止进度事件每 tick 调用 LLM。
 
 确认 `ctx.sessionPersistence.stat(agent.id)` 对 Web 会话成立，事件入队后的 `flush()` 确实包含该事件，成功后才落游标。不要通过开启第二个 Session write handle 解决 flush。公开服务已经提供 barrier。
 

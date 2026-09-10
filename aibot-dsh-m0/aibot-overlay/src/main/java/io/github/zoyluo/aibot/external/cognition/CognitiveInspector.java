@@ -72,7 +72,8 @@ public final class CognitiveInspector {
         Set<String> allowed = CognitiveSnapshot.INSPECT_DETAILS.get(parsed.kind());
         if (allowed == null || !allowed.contains(level))
             throw new BridgeFault(400, "unsupported_detail_level:" + level);
-        JsonObject semantic = semanticOrNull == null ? SemanticWorldRegistry.observe(bot) : semanticOrNull;
+        // MC-2A0.1F:materialize 只按 id 解析 descriptor/农场统计,bounded 快照足够;现取也绝不走 omniscient observe。
+        JsonObject semantic = semanticOrNull == null ? SemanticWorldRegistry.observeBounded(bot) : semanticOrNull;
         long tick = bot.getServer().getTicks();
         Map<String, Object> out = switch (parsed.kind()) {
             case "structure" -> materializeStructure(bot, semantic, gameTime, tick, parsed, level);

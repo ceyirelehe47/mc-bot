@@ -619,17 +619,43 @@ public final class SemanticWorldRegistry {
         return new HomeRepairPlan(id, anchor, blueprint, structure.snapshot.size(), missing.size(), wrong);
     }
 
+    /**
+     * MC-2A0.1F omniscient variant: structures carry authoritative CURRENT integrity, which
+     * requires scanning remote baseline cells (world.getBlockState) with no observability
+     * proof. Reserved for EXPLICIT operations (register/capture receipts, debug, direct test
+     * helpers) — never the automatic tick/observation/cognition refresh path (AUTO-OBS-1..3).
+     */
     public static JsonObject observe(AIPlayerEntity bot) {
+        return observe(bot, true);
+    }
+
+    /**
+     * MC-2A0.1F bounded variant for automatic paths (BridgeKernel.tick → observeJson /
+     * refreshCaches / cognitiveSnapshot / CognitiveViewBuilder). Identical durable content
+     * (world/dimension identity, structure descriptors + registered bounds + captured
+     * baseline count, observable farm evidence, opportunity registry facts) but structure
+     * cards carry NO current-integrity fields: building the periodic view must never trigger
+     * a remote baseline scan (COG-AQ-1/4). Current integrity may only resurface through the
+     * legal proof-before-read verification in StructureKnowledge.
+     */
+    public static JsonObject observeBounded(AIPlayerEntity bot) {
+        return observe(bot, false);
+    }
+
+    private static JsonObject observe(AIPlayerEntity bot, boolean includeCurrentIntegrity) {
         requireReady(bot);
         refreshOpportunityCapabilities(bot);
         JsonObject out = new JsonObject();
-        out.addProperty("schema", "mc_spatial_semantics_v2");
+        out.addProperty("schema", includeCurrentIntegrity
+                ? "mc_spatial_semantics_v2" : "mc_spatial_semantics_v2_bounded");
         out.addProperty("world_id", worldId);
         out.addProperty("dimension", dimension(bot));
         out.addProperty("persistence_fault", persistenceFault);
 
         JsonArray structures = new JsonArray();
-        for (Structure structure : STRUCTURES.values()) if (structure.dimension.equals(dimension(bot))) structures.add(structureJson(bot, structure));
+        for (Structure structure : STRUCTURES.values()) if (structure.dimension.equals(dimension(bot)))
+            structures.add(includeCurrentIntegrity ? structureJson(bot, structure)
+                    : structureDescriptorJson(bot, structure));
         out.add("structures", structures);
         JsonArray farms = new JsonArray();
         for (Farm farm : FARMS.values()) if (farm.dimension.equals(dimension(bot))) farms.add(farmJson(bot, farm));
@@ -652,7 +678,12 @@ public final class SemanticWorldRegistry {
         return out;
     }
 
-    private static JsonObject structureJson(AIPlayerEntity bot, Structure structure) {
+    /**
+     * Durable structure descriptor (AUTO-OBS-2): identity/role/bounds/captured-baseline facts
+     * that stay provable with zero current-world reads. This is the only structure form the
+     * automatic observation path may emit.
+     */
+    private static JsonObject structureDescriptorJson(AIPlayerEntity bot, Structure structure) {
         JsonObject o = new JsonObject();
         o.addProperty("id", structure.id); o.addProperty("kind", structure.kind); o.addProperty("protected", true);
         o.addProperty("inside", structure.contains(bot.getBlockPos()));
@@ -661,6 +692,12 @@ public final class SemanticWorldRegistry {
         bounds.addProperty("max_x", structure.maxX); bounds.addProperty("max_y", structure.maxY); bounds.addProperty("max_z", structure.maxZ);
         o.add("bounds", bounds);
         o.addProperty("snapshot_cells", structure.snapshot.size());
+        return o;
+    }
+
+    /** Omniscient structure card: durable descriptor + authoritative current integrity (explicit paths only). */
+    private static JsonObject structureJson(AIPlayerEntity bot, Structure structure) {
+        JsonObject o = structureDescriptorJson(bot, structure);
         if (!structure.snapshot.isEmpty()) {
             Integrity integrity = integrity(bot, structure);
             o.addProperty("integrity_expected", integrity.expected);
@@ -674,11 +711,22 @@ public final class SemanticWorldRegistry {
         return o;
     }
 
+    /**
+     * MC-2A0.1F test/live-only instrumentation (AUTO-OBS gate evidence, zero production
+     * output): counts full baseline scans performed by integrity() after an INTEGRITY-cache
+     * miss — every one of those scans reads remote block states without an observability
+     * proof. After the bounded-observation split this may only grow on EXPLICIT omniscient
+     * calls (register/capture receipts, debug, direct helpers); the automatic tick/observe/
+     * view refresh path must keep it at 0 (mc2a01fAutomaticViewNeverTriggersRemoteStructureIntegrityRead).
+     */
+    public static final java.util.concurrent.atomic.AtomicLong INTEGRITY_RAW_READ_SCANS = new java.util.concurrent.atomic.AtomicLong();
+
     private static Integrity integrity(AIPlayerEntity bot, Structure structure) {
         String key = scoped(structure.dimension, structure.id);
         int tick = bot.getServer().getTicks();
         CachedIntegrity cached = INTEGRITY.get(key);
         if (cached != null && tick >= cached.tick && tick - cached.tick < INTEGRITY_CACHE_TICKS) return cached.value;
+        INTEGRITY_RAW_READ_SCANS.incrementAndGet();
         int matched = 0, missing = 0, wrong = 0;
         ServerWorld world = bot.getServerWorld();
         for (SnapshotCell cell : structure.snapshot) {

@@ -16,7 +16,9 @@ function setup(){
     events(_cursor,signal){return new Promise((_,reject)=>{if(signal.aborted)reject(signal.reason);else signal.addEventListener('abort',()=>reject(signal.reason),{once:true});});}};
   const store={value:null,async load(){return this.value;},async save(value){this.value={...value};}};
   const impl=install(ctx,api,{makeClient:()=>client,makeStore:()=>store,renewIntervalMs:100000,log:()=>{}});
-  function makeAgent(id){const calls=[];return{id,ctx:scope(),status:'idle',calls,followup:m=>calls.push(m),steer:m=>calls.push(m),inject:m=>calls.push(m)};}
+  // MC-2A0.1F: Body event transport never uses followup(); the fake omits it so a
+  // regressed followup call fails loudly instead of being recorded silently.
+  function makeAgent(id){const calls=[];return{id,ctx:scope(),status:'idle',calls,steer:m=>calls.push(m),inject:m=>calls.push(m)};}
   const a=makeAgent('s1'),b=makeAgent('s2');
   const call=(name,args={},owner=a,callId='call1')=>tools.get(name).execute(args,{agent:owner,callId,concludeTurn(){concludes++;},signal:new AbortController().signal});
   return{ctx,tools,impl,a,b,call,client,store,submissions,get releases(){return releases;},get connects(){return connects;},get concludes(){return concludes;}};

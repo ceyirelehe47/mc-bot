@@ -59,7 +59,12 @@ final class StructureKnowledge {
         volatile long failedTick = -1;
     }
 
-    /** key = dimension + "/" + structureId;只在 server 线程读写(view build / materialize)。 */
+    /**
+     * key = world_id + "/" + dimension + "/" + structureId;只在 server 线程读写(view build / materialize)。
+     * MC-2A0.1F (COG-AQ-6/SPATIAL-CACHE-1):LAST_KNOWN 验证身份必须绑定 save/world——
+     * 同名结构在不同 world/save 中绝不能共享验证缓存(本 CACHE 无生命周期清理,跨 JVM 会话
+     * 尤其如此)。world_id 缺失(registry 未 start)直接 fail-loud,绝不静默退化为可跨 world 串扰的窄 key。
+     */
     private static final Map<String, Entry> CACHE = new ConcurrentHashMap<>();
 
     /** test/live-only instrumentation(逐格证明路径计数;LIVE-2A01 证据,生产零输出)。 */
@@ -81,7 +86,7 @@ final class StructureKnowledge {
      */
     static Assessment assess(AIPlayerEntity bot, SemanticWorldRegistry.StructureEvidence structure,
                              long nowGameTime, long nowTick) {
-        String key = structure.dimension() + "/" + structure.id();
+        String key = SemanticWorldRegistry.worldId() + "/" + structure.dimension() + "/" + structure.id();
         Entry entry = CACHE.get(key);
         if (!withinEnvelope(bot, structure)) {
             // 远程:不扫描。只有"曾经的合法验证"可以 LAST_KNOWN 呈现,否则 UNKNOWN。
