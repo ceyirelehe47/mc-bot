@@ -332,7 +332,7 @@ CHANGES = {
 EXTRA_CHANGES={
  'src/gametest/resources/fabric.mod.json': ('25ecb31ca127ed2e9d57ccb9b5c223066092f3e5', [
   ('"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",',
-   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",', 1),
+   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",', 1),
  ]),
  'src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java': ('07d61c3c7b180d12361b8ab6bbe8983f42ed30f4', [
   ('        assertEquals(2, occurrences(buildTask, "isObservableStandable(bot, candidate)"),\n                "both work-pose scans must cross the observable-world boundary");\n',
@@ -349,7 +349,8 @@ EXTRA_CHANGES={
                 "external/cognition/CognitiveInspector.java",
                 "external/cognition/CanonicalJson.java",
                 "external/cognition/EvidenceRef.java",
-                "external/cognition/CognitiveSnapshot.java"};
+                "external/cognition/CognitiveSnapshot.java",
+                "external/cognition/StructureKnowledge.java"};
         for (String relative : cognitionSources) {
             String source = read(relative);
             assertFalse(source.contains(".setBlockState("), relative + " must not place blocks");
@@ -362,7 +363,63 @@ EXTRA_CHANGES={
                 "the view must reuse the observe semantic cache, never run a second full scan");
     }
 
-    private static Map<String, String> matchingSources(Pattern pattern) throws IOException {\n''', 1),
+    @Test
+    void cognitiveLocalScanProvesObservabilityBeforeBlockRead() throws IOException {
+        // MC-2A0.1 (BOUND-1/SEC-2): raw block reads in the cognition local-scan path may only
+        // happen after the strict-survival observability proof. The SOURCE ORDER itself is the
+        // contract — a black-box no-leak test cannot prove the read boundary.
+        String inspector = read("external/cognition/CognitiveInspector.java");
+        int scan = inspector.indexOf("inspectLocalJson");
+        assertTrue(scan >= 0, "inspectLocalJson must exist");
+        int proof = inspector.indexOf("canObserveBlock", scan);
+        int read = inspector.indexOf("getBlockState", scan);
+        assertTrue(proof >= 0, "inspectLocalJson must gate through canObserveBlock");
+        assertTrue(read >= 0, "inspectLocalJson must read block state");
+        assertTrue(proof < read,
+                "canObserveBlock proof must occur BEFORE the first getBlockState read in inspectLocalJson");
+        String knowledge = read("external/cognition/StructureKnowledge.java");
+        int verifyProof = knowledge.indexOf("canObserveBlock");
+        int verifyRead = knowledge.indexOf("getBlockState");
+        assertTrue(verifyProof >= 0 && verifyRead >= 0 && verifyProof < verifyRead,
+                "structure verification must prove all cells before reading any cell");
+    }
+
+    @Test
+    void cognitiveInspectIsLazyAndStaysInsideEvidenceScope() throws IOException {
+        // MC-2A0.1 (LAZY-1/2, SCOPE-1): the periodic view snapshot must not materialize inspect
+        // details; homeRepairPlan may only run inside the explicit baseline materialization; no
+        // autonomy runtime symbols may appear in the cognition package.
+        String builder = read("external/cognition/CognitiveViewBuilder.java");
+        assertFalse(builder.contains("CognitiveInspector.buildIndex"),
+                "view build must not precompute the inspect detail index");
+        assertFalse(builder.contains("homeRepairPlan"),
+                "a periodic cognitive snapshot refresh must never trigger homeRepairPlan (LAZY-2)");
+        assertTrue(builder.contains("EvidenceDescriptor"),
+                "the snapshot must carry lightweight evidence descriptors instead of detail JSON");
+        String inspector = read("external/cognition/CognitiveInspector.java");
+        assertTrue(inspector.indexOf("private static Map<String, Object> structureBaselineDetail") >= 0
+                        && inspector.indexOf("SemanticWorldRegistry.homeRepairPlan")
+                        > inspector.indexOf("private static Map<String, Object> structureBaselineDetail"),
+                "homeRepairPlan may only be reached from the explicit baseline detail path");
+        String backend = read("external/MinecraftBodyBackend.java");
+        assertTrue(backend.contains("CognitiveInspector.materialize(bot,semanticSnapshot,gameTime,ref,detail)"),
+                "on-demand materialization must reuse the same cached semantic snapshot");
+        for (String banned : new String[]{"AgendaItem", "TaskGraphStore", "GraphFragment", "GraphProducer", "AutonomyScheduler"}) {
+            for (String relative : new String[]{
+                    "external/cognition/CognitiveViewBuilder.java",
+                    "external/cognition/CognitiveInspector.java",
+                    "external/cognition/CognitiveSnapshot.java",
+                    "external/cognition/StructureKnowledge.java",
+                    "external/cognition/CanonicalJson.java",
+                    "external/cognition/EvidenceRef.java"}) {
+                assertFalse(read(relative).contains(banned),
+                        relative + " must not contain autonomy runtime symbol " + banned);
+            }
+        }
+    }
+
+    private static Map<String, String> matchingSources(Pattern pattern) throws IOException {
+''', 1),
  ]),
 }
 

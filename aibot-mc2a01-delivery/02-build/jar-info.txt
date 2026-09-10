@@ -1,0 +1,2 @@
+aibot-0.0.1.jar sha256: 765de042fe04df6e74324cd7b4c11f77251bac60350de93c84dcc86e346a4109 bytes: 1741017
+deployed to mc-server-mc1ca/mods (LIVE used this jar)

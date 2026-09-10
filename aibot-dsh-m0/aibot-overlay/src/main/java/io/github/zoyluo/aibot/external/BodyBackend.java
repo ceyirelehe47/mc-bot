@@ -23,6 +23,13 @@ public interface BodyBackend {
     default String inspectLocalJson(int radius,String detail) {
         return null;
     }
+    /**
+     * MC-2A0.1 on-demand evidence materialization:把单个 EvidenceRef+detail 展开成
+     * bounded JSON。gameTime 是 kernel 当前快照的构建时刻——freshness 与 view 卡同源。
+     */
+    default String materializeEvidence(String ref,String detail,long gameTime) {
+        return null;
+    }
     /** 当前服务器 tick,供 kernel 缓存刷新节奏与 view meta 使用。 */
     default long serverTick() {
         return -1L;

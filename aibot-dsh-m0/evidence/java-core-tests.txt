@@ -1,3 +1,23 @@
+PASS view schema
+PASS view hash format
+PASS body change requires reconciliation
+PASS view must not clear needs_reconcile
+PASS observe_required
+PASS invalid_evidence_ref
+PASS evidence_ref_not_in_current_view
+PASS inspect summary materializes on demand
+PASS unsupported_detail_level
+PASS radius_out_of_range
+PASS local query waits for the server thread
+PASS local query completes on tick thread
+PASS only observe unlocks new work
+PASS one expensive local query per tick (got 1)
+PASS queued queries drain across ticks
+PASS expired query fails the waiter
+PASS expired query never executes on the server thread (inspectLocals=4)
+PASS view refresh materializes zero inspect details
+PASS a single inspect materializes exactly one detail
+PASS baseline detail content
 PASS JSON escaping
 PASS lease active
 PASS body_controlled
@@ -55,4 +75,4 @@ PASS incomplete crash tail truncated to last verified frame
 PASS corrupt complete frame fails closed
 PASS second writer rejected
 PASS body_not_ready
-TOTAL 57 checks passed
+TOTAL 77 checks passed

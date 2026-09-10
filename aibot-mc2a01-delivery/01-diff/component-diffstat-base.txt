@@ -1,0 +1,31 @@
+warning: in the working copy of 'aibot-dsh-m0/SHA256SUMS', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A0CognitiveViewGameTests.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveInspector.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveSnapshot.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveViewBuilder.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/bridge-tests/BridgeCoreTest.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/bridge-tests/FakeBridgeServer.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/dsh-plugin/test/FakeBridgeServer.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/evidence/node-tests.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'aibot-dsh-m0/scripts/apply_to_aibot.py', LF will be replaced by CRLF the next time Git touches it
+ aibot-dsh-m0/SHA256SUMS                            | 114 +-------
+ .../gametest/MC2A0CognitiveViewGameTests.java      |  10 +-
+ .../github/zoyluo/aibot/external/BodyBackend.java  |   7 +
+ .../zoyluo/aibot/external/BridgeHttpServer.java    |  32 ++-
+ .../github/zoyluo/aibot/external/BridgeKernel.java |  73 +++--
+ .../aibot/external/MinecraftBodyBackend.java       |   8 +
+ .../external/cognition/CognitiveInspector.java     | 308 +++++++++++++--------
+ .../external/cognition/CognitiveSnapshot.java      |  22 +-
+ .../external/cognition/CognitiveViewBuilder.java   |  78 +++++-
+ aibot-dsh-m0/bridge-tests/BridgeCoreTest.java      |  59 +++-
+ aibot-dsh-m0/bridge-tests/FakeBridgeServer.java    |  17 +-
+ aibot-dsh-m0/dsh-plugin/test/FakeBridgeServer.java |  17 +-
+ aibot-dsh-m0/evidence/installer-tests.txt          |   2 +-
+ aibot-dsh-m0/evidence/java-core-tests.txt          |  22 +-
+ aibot-dsh-m0/evidence/node-tests.txt               | 132 +++++----
+ aibot-dsh-m0/scripts/apply_to_aibot.py             |  63 ++++-
+ 16 files changed, 620 insertions(+), 344 deletions(-)

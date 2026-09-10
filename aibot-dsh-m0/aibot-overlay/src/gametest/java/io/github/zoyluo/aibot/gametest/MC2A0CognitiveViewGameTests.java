@@ -155,8 +155,10 @@ public final class MC2A0CognitiveViewGameTests implements FabricGameTest {
                 uncertaintyListed = true;
         }
         require(context, uncertaintyListed, "pending pickup must appear in scene.uncertainty");
-        // drill-down evidence keeps the same typed semantics (INSP-2: R2.1 states are not flattened)
-        String evidence = snapshot.inspectIndex().get(card.get("evidence_ref").getAsString()).get("evidence");
+        // drill-down evidence keeps the same typed semantics (INSP-2: R2.1 states are not flattened);
+        // MC-2A0.1:detail 由 materialize 按需展开,freshness 与 view 卡同源(snapshot.gameTime)。
+        String evidence = CognitiveInspector.materialize(f.bot, null, snapshot.gameTime(),
+                card.get("evidence_ref").getAsString(), "evidence");
         JsonObject evidenceJson = JsonParser.parseString(evidence).getAsJsonObject();
         require(context, evidenceJson.get("recovery_obligation").getAsBoolean(), "inspect evidence keeps the obligation");
         require(context, evidenceJson.get("pickup_baseline").getAsInt() == 3, "pickup_baseline must round-trip");
@@ -250,7 +252,9 @@ public final class MC2A0CognitiveViewGameTests implements FabricGameTest {
         JsonObject registryBefore = SemanticWorldRegistry.observe(f.bot);
         var snapshot = CognitiveViewBuilder.build(f.bot, null, null);
         String ref = "mc://" + SemanticWorldRegistry.worldId() + "/minecraft%3Aoverworld/structure/mc2a0_bounded";
-        String baseline = snapshot.inspectIndex().get(ref).get("baseline");
+        // MC-2A0.1:baseline 档按需 materialize(bot 在 cabin 外 9 格,墙体遮挡 → 非 LIVE,
+        // missing 未知绝不伪装成确定的 0,missing_sample 为空仍满足有界断言)。
+        String baseline = CognitiveInspector.materialize(f.bot, null, snapshot.gameTime(), ref, "baseline");
         JsonObject baselineJson = JsonParser.parseString(baseline).getAsJsonObject();
         int baselineCells = baselineJson.get("baseline_cells").getAsInt();
         require(context, baselineCells > 0 && baselineCells <= 4096, "baseline count must be bounded");

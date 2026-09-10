@@ -85,8 +85,39 @@ public final class CognitiveViewBuilder {
         String sceneJson = CanonicalJson.write(scene);
         if (sceneJson.getBytes(StandardCharsets.UTF_8).length > CognitiveSnapshot.VIEW_MAX_BYTES)
             throw new BridgeFault(500, "cognitive_view_exceeds_hard_limit");
-        Map<String, Map<String, String>> index = CognitiveInspector.buildIndex(bot, worldId, dimension, semantic);
+        // MC-2A0.1 LAZY-1:快照只携带轻量 EvidenceDescriptor 句柄,绝不预计算
+        // baseline/cells/evidence detail——那些由 mc_inspect 按需 materialize。
+        Map<String, CognitiveSnapshot.EvidenceDescriptor> index = descriptorIndex(worldId, dimension, semantic);
         return new CognitiveSnapshot.Snapshot(sceneJson, sha256(sceneJson), gameTime, index);
+    }
+
+    /** ref -> 轻量身份句柄;纯 semantic 快照遍历,零世界读、零 detail 展开。 */
+    private static Map<String, CognitiveSnapshot.EvidenceDescriptor> descriptorIndex(String worldId, String dimension,
+                                                                                     JsonObject semantic) {
+        Map<String, CognitiveSnapshot.EvidenceDescriptor> index = new LinkedHashMap<>();
+        JsonArray structures = semantic.getAsJsonArray("structures");
+        if (structures != null) for (JsonElement element : structures) {
+            String id = CognitiveInspector.stringOf(element.getAsJsonObject(), "id");
+            if (id == null) continue;
+            String kind = orEmpty(CognitiveInspector.stringOf(element.getAsJsonObject(), "kind"));
+            String ref = EvidenceRef.format(worldId, dimension, "structure", id);
+            index.put(ref, new CognitiveSnapshot.EvidenceDescriptor(ref, "structure", id, kind));
+        }
+        JsonArray farms = semantic.getAsJsonArray("farms");
+        if (farms != null) for (JsonElement element : farms) {
+            String id = CognitiveInspector.stringOf(element.getAsJsonObject(), "id");
+            if (id == null) continue;
+            String ref = EvidenceRef.format(worldId, dimension, "farm", id);
+            index.put(ref, new CognitiveSnapshot.EvidenceDescriptor(ref, "farm", id, "farm"));
+        }
+        JsonArray opportunities = semantic.getAsJsonArray("resource_opportunities");
+        if (opportunities != null) for (JsonElement element : opportunities) {
+            String id = CognitiveInspector.stringOf(element.getAsJsonObject(), "id");
+            if (id == null) continue;
+            String ref = EvidenceRef.format(worldId, dimension, "opportunity", id);
+            index.put(ref, new CognitiveSnapshot.EvidenceDescriptor(ref, "opportunity", id, "resource_opportunity"));
+        }
+        return index;
     }
 
     // ---- scene.world / scene.self ----
@@ -159,35 +190,52 @@ public final class CognitiveViewBuilder {
                                                               List<Map<String, Object>> uncertainty) {
         Map<String, Object> section = CanonicalJson.object();
 
-        // structures: 按 object_id 确定排序
+        // structures: 按 object_id 确定排序;成员与顺序以 semantic 快照为准(frozen 友好)。
+        // MC-2A0.1 P0-1:durable facts(id/role/baseline 计数)与 current integrity 显式分层;
+        // 当前完整性只来自 StructureKnowledge 的合法逐格验证——粗筛外绝不扫描(BOUND-2),
+        // 非 LIVE 时不确定绝不伪装成确定事实(BOUND-4)。绝不透传 observe 的远程 integrity。
+        Map<String, SemanticWorldRegistry.StructureEvidence> evidenceById = new LinkedHashMap<>();
+        for (SemanticWorldRegistry.StructureEvidence evidence : SemanticWorldRegistry.structureEvidences(bot))
+            evidenceById.put(evidence.id(), evidence);
         List<Map<String, Object>> structureCards = new ArrayList<>();
         JsonArray structures = semantic.getAsJsonArray("structures");
         if (structures != null) {
             List<JsonElement> sorted = new ArrayList<>();
             for (JsonElement element : structures) sorted.add(element);
             sorted.sort(Comparator.comparing(e -> orEmpty(CognitiveInspector.stringOf(e.getAsJsonObject(), "id"))));
+            long tick = bot.getServer().getTicks();
             for (JsonElement element : sorted) {
                 if (structureCards.size() >= MAX_STRUCTURE_CARDS) break;
                 JsonObject observed = element.getAsJsonObject();
                 String id = CognitiveInspector.stringOf(observed, "id");
                 if (id == null) continue;
+                String role = orEmpty(CognitiveInspector.stringOf(observed, "kind"));
+                String ref = EvidenceRef.format(worldId, dimension, "structure", id);
+                SemanticWorldRegistry.StructureEvidence evidence = evidenceById.get(id);
+                StructureKnowledge.Assessment assessment = evidence == null
+                        ? StructureKnowledge.Assessment.unknown("not_currently_verifiable")
+                        : StructureKnowledge.assess(bot, evidence, gameTime, tick);
                 Map<String, Object> card = CanonicalJson.object();
-                card.put("evidence_ref", EvidenceRef.format(worldId, dimension, "structure", id));
+                card.put("evidence_ref", ref);
                 card.put("kind", "structure");
                 card.put("object_id", id);
-                card.put("role", CognitiveInspector.stringOf(observed, "kind"));
-                card.put("knowledge", "VERIFIED_LIVE");
-                card.put("freshness", "LIVE");
+                card.put("role", role);
+                card.put("knowledge", assessment.knowledge());
+                card.put("freshness", assessment.freshness());
                 Map<String, Object> summary = CanonicalJson.object();
-                summary.put("baseline_cells", (long) CognitiveInspector.intOf(observed, "integrity_expected"));
-                Map<String, Object> integrity = CanonicalJson.object();
-                integrity.put("matched", (long) CognitiveInspector.intOf(observed, "integrity_matched"));
-                integrity.put("missing", (long) CognitiveInspector.intOf(observed, "integrity_missing"));
-                integrity.put("wrong", (long) CognitiveInspector.intOf(observed, "integrity_wrong"));
-                integrity.put("repairable", CognitiveInspector.boolOf(observed, "repairable"));
-                summary.put("integrity", integrity);
+                // baseline_cells 是 durable 注册事实(基线快照计数),不需要当前可见。
+                summary.put("baseline_cells", evidence != null ? (long) evidence.cells().size()
+                        : (long) CognitiveInspector.intOf(observed, "snapshot_cells"));
+                summary.put("current_integrity", CognitiveInspector.currentIntegrityOf(assessment));
                 card.put("summary", summary);
                 structureCards.add(card);
+                if (!"VERIFIED_LIVE".equals(assessment.knowledge())) {
+                    Map<String, Object> entry = CanonicalJson.object();
+                    entry.put("scope_ref", ref);
+                    entry.put("field", "current_integrity");
+                    entry.put("reason", "not_currently_verifiable");
+                    uncertainty.add(entry);
+                }
             }
         }
         section.put("structures", collection(structureCards, sizeOf(structures)));
@@ -314,7 +362,9 @@ public final class CognitiveViewBuilder {
         if (!active) execution.put("state", "IDLE");
         else if (status.state() == TaskState.PAUSED) execution.put("state", "PAUSED");
         else execution.put("state", "RUNNING");
-        execution.put("current_task", status.name());
+        // MC-2A0.1 EXEC-1:IDLE 时 TaskManager.status 仍可能残留上一个任务的名字——
+        // 没有 active execution 就绝不能把陈旧名字当 current_task 呈现,置 null。
+        execution.put("current_task", active ? status.name() : null);
         execution.put("progress_bucket", progressBucket(active, status.progress()));
         execution.put("safety_active",
                 TaskManager.INSTANCE.activeOrigin(bot).map(origin -> origin.safety()).orElse(false));

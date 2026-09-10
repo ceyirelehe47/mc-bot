@@ -32,8 +32,20 @@ public final class BridgeKernel {
     private CognitiveSnapshot.Snapshot cognitive;
     private long cognitiveTick=-1, lastServerTick=-1;
     private String cognitiveFault="";
+    // MC-2A0.1:inspect materialize 与 inspect-local 共用同一条 server 线程查询队列和
+    // 同一份"每 tick 至多执行一个"预算(PERF-1);deadline 过期的查询先回收再谈执行(PERF-2)。
     private final ArrayDeque<LocalQuery> localQueries=new ArrayDeque<>();
-    private record LocalQuery(int radius, String detail, CompletableFuture<String> future) {}
+    private static final int MAX_QUEUED_QUERIES=4;
+    private static final long QUERY_DEADLINE_MS=5000;
+    private record LocalQuery(String kind,String ref,int radius,String detail,
+                              CompletableFuture<String> future,long deadline) {
+        static LocalQuery local(int radius,String detail,CompletableFuture<String> future,long deadline) {
+            return new LocalQuery("local","",radius,detail,future,deadline);
+        }
+        static LocalQuery inspect(String ref,String detail,CompletableFuture<String> future,long deadline) {
+            return new LocalQuery("inspect",ref,0,detail,future,deadline);
+        }
+    }
 
     private static final class Execution {
         String id, request, fingerprint, owner, operation, arguments, admittingLeaseEpoch, bodyId, state="accepted", reason="";
@@ -177,26 +189,31 @@ public final class BridgeKernel {
         out.put("scene",new JsonOutput.Raw(cognitive.sceneJson()));
         return out;
     }
-    public synchronized Map<String,Object> inspect(String ref,String detail) {
+    /**
+     * MC-2A0.1 inspect 异步化:fail-fast 校验(ref 解析/descriptor 命中/detail 白名单)同步完成,
+     * materialize 本体进 server 线程查询队列(LAZY-3),HTTP 线程无锁等待 future。
+     * 语义不变:不清 needsReconcile、不占 execution slot、busy-safe、read-only。
+     */
+    public synchronized CompletableFuture<String> submitInspectQuery(String ref,String detail) {
         requireReady();
         if(ref==null || ref.isBlank()) throw new BridgeFault(400,"invalid_evidence_ref");
-        EvidenceRef.parse(ref); // malformed 一律 400 fail-closed
+        io.github.zoyluo.aibot.external.cognition.EvidenceRef.Parsed parsed= // malformed 一律 400 fail-closed
+                io.github.zoyluo.aibot.external.cognition.EvidenceRef.parse(ref);
         if(cognitive==null) throw new BridgeFault(503,"cognitive_view_unavailable:"+cognitiveFault);
-        Map<String,String> details=cognitive.inspectIndex().get(ref);
+        CognitiveSnapshot.EvidenceDescriptor descriptor=cognitive.inspectIndex().get(ref);
         // foreign world / dimension policy / kind mismatch / unknown object 统一 fail-closed
-        if(details==null) throw new BridgeFault(404,"evidence_ref_not_in_current_view:foreign_or_unknown_or_kind_mismatch");
+        if(descriptor==null) throw new BridgeFault(404,"evidence_ref_not_in_current_view:foreign_or_unknown_or_kind_mismatch");
         String level=detail==null||detail.isBlank()?"summary":detail;
-        String json=details.get(level);
-        if(json==null) throw new BridgeFault(400,"unsupported_detail_level:"+level);
-        Map<String,Object> meta=new LinkedHashMap<>();
-        meta.put("generated_server_tick",lastServerTick);
-        Map<String,Object> out=new LinkedHashMap<>();
-        out.put("schema","mc.evidence.v0");
-        out.put("ref",ref);
-        out.put("detail",level);
-        out.put("meta",meta);
-        out.put("evidence",new JsonOutput.Raw(json));
-        return out;
+        java.util.Set<String> allowed=CognitiveSnapshot.INSPECT_DETAILS.get(descriptor.kind());
+        if(allowed==null || !allowed.contains(level)) throw new BridgeFault(400,"unsupported_detail_level:"+level);
+        if(localQueries.size()>=MAX_QUEUED_QUERIES) throw new BridgeFault(429,"too_many_local_queries");
+        CompletableFuture<String> future=new CompletableFuture<>();
+        localQueries.add(LocalQuery.inspect(ref,level,future,mono.getAsLong()+QUERY_DEADLINE_MS));
+        return future;
+    }
+    /** 当前认知快照的构建时刻 game time(materialize freshness 与 view 卡同源,FRESH-1)。 */
+    public synchronized long cognitiveGameTime() {
+        return cognitive==null ? -1L : cognitive.gameTime();
     }
     /**
      * 校验并入队 server 线程局部查询,立即返回 future。
@@ -207,9 +224,9 @@ public final class BridgeKernel {
         if(radius<1 || radius>16) throw new BridgeFault(400,"radius_out_of_range_1_16");
         String level=detail==null||detail.isBlank()?"summary":detail;
         if(!CognitiveSnapshot.LOCAL_DETAILS.contains(level)) throw new BridgeFault(400,"invalid_detail");
-        if(localQueries.size()>=4) throw new BridgeFault(429,"too_many_local_queries");
+        if(localQueries.size()>=MAX_QUEUED_QUERIES) throw new BridgeFault(429,"too_many_local_queries");
         CompletableFuture<String> future=new CompletableFuture<>();
-        localQueries.add(new LocalQuery(radius,level,future));
+        localQueries.add(LocalQuery.local(radius,level,future,mono.getAsLong()+QUERY_DEADLINE_MS));
         return future;
     }
     public synchronized Map<String,Object> execution(String id) {
@@ -321,11 +338,23 @@ public final class BridgeKernel {
             }
             if(pauseRequested) { backend.pause(); pauseRequested=false; }
             while(!controlQueue.isEmpty()) applyControl(controlQueue.remove());
-            // inspect-local 查询在 server 线程执行;异常原样传回等待中的 HTTP 线程。
-            while(!localQueries.isEmpty()) {
+            // MC-2A0.1 认知查询调度(PERF-1/PERF-2):deadline 已过的排队查询先 fail 回收——
+            // 客户端早已超时放弃,server 绝不继续积压执行;随后每 tick 至多执行一个
+            // expensive 查询(materialize 或 inspect-local),剩余留队,绝不清空 burst。
+            long now=mono.getAsLong();
+            while(!localQueries.isEmpty() && localQueries.peek().deadline()<=now) {
+                LocalQuery expired=localQueries.poll();
+                if(!expired.future().isDone())
+                    expired.future().completeExceptionally(new BridgeFault(503,"query_deadline_expired"));
+            }
+            if(!localQueries.isEmpty()) {
                 LocalQuery query=localQueries.poll();
-                try { query.future().complete(backend.inspectLocalJson(query.radius(),query.detail())); }
-                catch(RuntimeException queryFailure) { query.future().completeExceptionally(queryFailure); }
+                try {
+                    String json="inspect".equals(query.kind())
+                            ? backend.materializeEvidence(query.ref(),query.detail(),cognitiveGameTime())
+                            : backend.inspectLocalJson(query.radius(),query.detail());
+                    query.future().complete(json);
+                } catch(RuntimeException queryFailure) { query.future().completeExceptionally(queryFailure); }
             }
             Execution e=active;
             if(e==null) return;

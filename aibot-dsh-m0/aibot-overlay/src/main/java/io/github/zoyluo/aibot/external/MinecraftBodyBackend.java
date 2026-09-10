@@ -97,6 +97,14 @@ public final class MinecraftBodyBackend implements BodyBackend {
         if(bot==null || !bot.isAlive())throw new BridgeFault(409,"body_unavailable");
         return io.github.zoyluo.aibot.external.cognition.CognitiveInspector.inspectLocalJson(bot,radius,detail);
     }
+    /** MC-2A0.1:on-demand materialize,复用 observeJson 同一份 semantic 缓存,绝不做第二次全扫。 */
+    @Override public String materializeEvidence(String ref,String detail,long gameTime) {
+        onThread();
+        if(bot==null || !bot.isAlive())throw new BridgeFault(409,"body_unavailable");
+        refreshCaches();
+        JsonObject semanticSnapshot=semantic!=null && semantic.isJsonObject() ? semantic.getAsJsonObject() : null;
+        return io.github.zoyluo.aibot.external.cognition.CognitiveInspector.materialize(bot,semanticSnapshot,gameTime,ref,detail);
+    }
     @Override public long serverTick() { onThread(); return server.getTicks(); }
     private Map<String,Integer> inventory() {
         Map<String,Integer> counts=new TreeMap<>();

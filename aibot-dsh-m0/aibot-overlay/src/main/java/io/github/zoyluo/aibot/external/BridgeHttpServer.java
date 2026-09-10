@@ -58,8 +58,13 @@ public final class BridgeHttpServer implements AutoCloseable {
                 // MC-2A0 只读认知查询:query semantics,POST 只是参数通道。
                 result=kernel.view();
             } else if(method.equals("POST") && path.equals("/v1/inspect")) {
-                Map<String,String> view=query(x.getRequestURI().getRawQuery());
-                result=kernel.inspect(view.get("ref"),view.get("detail"));
+                // MC-2A0.1:ref/detail fail-fast 校验同步返回(400/404/429/503),materialize
+                // 本体由 server 线程查询队列按每 tick 预算完成,HTTP 线程无锁等待。
+                Map<String,String> inspect=query(x.getRequestURI().getRawQuery());
+                String ref=inspect.get("ref");
+                String rawDetail=inspect.get("detail");
+                String level=rawDetail==null||rawDetail.isBlank()?"summary":rawDetail;
+                result=awaitEvidence(kernel.submitInspectQuery(ref,rawDetail),kernel.cognitiveGameTime(),ref,level);
             } else if(method.equals("POST") && path.equals("/v1/inspect-local")) {
                 Map<String,String> local=query(x.getRequestURI().getRawQuery());
                 int radius;
@@ -88,18 +93,29 @@ public final class BridgeHttpServer implements AutoCloseable {
     }
     /** HTTP 线程无锁等待 server 线程完成局部查询(kernel synchronized,持锁等待会死锁)。 */
     private static Map<String,Object> awaitLocal(java.util.concurrent.CompletableFuture<String> future) {
-        String json;
-        try { json=future.get(5,TimeUnit.SECONDS); }
+        return Map.of("schema","mc.local_view.v0_wrapper","snapshot",new JsonOutput.Raw(awaitJson(future)));
+    }
+    /** MC-2A0.1:等待单个 evidence 的 on-demand materialize 并包回 mc.evidence.v0 响应。 */
+    private static Map<String,Object> awaitEvidence(java.util.concurrent.CompletableFuture<String> future,
+                                                    long gameTime,String ref,String detail) {
+        Map<String,Object> meta=new LinkedHashMap<>();
+        meta.put("generated_game_time",gameTime);
+        Map<String,Object> out=new LinkedHashMap<>();
+        out.put("schema","mc.evidence.v0");
+        out.put("ref",ref);
+        out.put("detail",detail);
+        out.put("meta",meta);
+        out.put("evidence",new JsonOutput.Raw(awaitJson(future)));
+        return out;
+    }
+    private static String awaitJson(java.util.concurrent.CompletableFuture<String> future) {
+        try { return future.get(5,TimeUnit.SECONDS); }
         catch(java.util.concurrent.TimeoutException timeout) { throw new BridgeFault(503,"query_timeout"); }
         catch(java.util.concurrent.ExecutionException execution) {
             if(execution.getCause() instanceof BridgeFault fault) throw fault;
             throw new BridgeFault(500,"query_failed");
         }
         catch(InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new BridgeFault(503,"server_stopping"); }
-        Map<String,Object> out=new LinkedHashMap<>();
-        out.put("schema","mc.local_view.v0_wrapper");
-        out.put("snapshot",new JsonOutput.Raw(json));
-        return out;
     }
     private static String segment(String path,int index) {
         String[] parts=path.split("/",-1);

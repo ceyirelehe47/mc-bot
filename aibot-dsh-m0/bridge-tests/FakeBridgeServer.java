@@ -28,12 +28,19 @@ public final class FakeBridgeServer {
                 return "{\"body_id\":\"fake-body-1\",\"physical_starts\":" + physicalStarts.get() + "}";
             }
             @Override public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal) {
-                java.util.Map<String,String> details = new java.util.LinkedHashMap<>();
-                details.put("summary", "{\"object_id\":\"fake_home\",\"kind\":\"structure\",\"summary\":{\"baseline_cells\":9}}");
-                details.put("baseline", "{\"object_id\":\"fake_home\",\"baseline_cells\":9}");
-                java.util.Map<String,java.util.Map<String,String>> index = new java.util.LinkedHashMap<>();
-                index.put(fakeRef, details);
+                java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index = new java.util.LinkedHashMap<>();
+                index.put(fakeRef, new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor(
+                        fakeRef, "structure", "fake_home", "HOME"));
                 return new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot(fakeScene, fakeHash, 12345L, index);
+            }
+            @Override public String materializeEvidence(String ref, String detail, long gameTime) {
+                if (!fakeRef.equals(ref)) return null;
+                String level = detail == null || detail.isBlank() ? "summary" : detail;
+                return switch (level) {
+                    case "integrity" -> "{\"object_id\":\"fake_home\",\"integrity\":{\"expected\":9,\"matched\":9,\"missing\":0,\"wrong\":0}}";
+                    case "baseline" -> "{\"object_id\":\"fake_home\",\"baseline_cells\":9}";
+                    default -> "{\"object_id\":\"fake_home\",\"kind\":\"structure\",\"summary\":{\"baseline_cells\":9}}";
+                };
             }
             @Override public String inspectLocalJson(int radius, String detail) {
                 int effective = Math.min(radius, 8);

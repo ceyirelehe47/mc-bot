@@ -1,0 +1,19 @@
+ M aibot-dsh-m0/SHA256SUMS
+ M aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A0CognitiveViewGameTests.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveInspector.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveSnapshot.java
+ M aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveViewBuilder.java
+ M aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
+ M aibot-dsh-m0/bridge-tests/FakeBridgeServer.java
+ M aibot-dsh-m0/dsh-plugin/test/FakeBridgeServer.java
+ M aibot-dsh-m0/evidence/installer-tests.txt
+ M aibot-dsh-m0/evidence/java-core-tests.txt
+ M aibot-dsh-m0/evidence/node-tests.txt
+ M aibot-dsh-m0/scripts/apply_to_aibot.py
+?? aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01CognitiveBoundaryGameTests.java
+?? aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/StructureKnowledge.java
+?? aibot-mc2a01-delivery/

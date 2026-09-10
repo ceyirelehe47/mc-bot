@@ -12,17 +12,27 @@ public final class BridgeCoreTest {
     static final class FakeBackend implements BodyBackend {
         boolean alive=true; String id="body-1"; String state="running"; int starts,pauses,resumes,cancels; boolean failStart;
         long tick; String localJson="{\"schema\":\"mc.local_view.v0\"}";
+        int inspectLocals, materializes; // MC-2A0.1 scheduling-budget counters
         static final String SCENE="{\"world\":{\"world_id\":\"core-test-world\"}}";
+        static final String HOME_REF="mc://core-test-world/minecraft%3Aoverworld/structure/home1";
         public boolean ready(){return alive;} public String bodyId(){return id;}
         public long serverTick(){return ++tick;}
         public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal){
-            java.util.Map<String,String> details=new java.util.LinkedHashMap<>();
-            details.put("summary","{\"object_id\":\"home1\"}");
-            java.util.Map<String,java.util.Map<String,String>> index=new java.util.LinkedHashMap<>();
-            index.put("mc://core-test-world/minecraft%3Aoverworld/structure/home1",details);
+            java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index=new java.util.LinkedHashMap<>();
+            index.put(HOME_REF,new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor(
+                    HOME_REF,"structure","home1","HOME"));
             return new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot(SCENE,"cafe".repeat(16),42L,index);
         }
-        public String inspectLocalJson(int radius,String detail){return localJson;}
+        public String inspectLocalJson(int radius,String detail){inspectLocals++;return localJson;}
+        public String materializeEvidence(String ref,String detail,long gameTime){
+            materializes++;
+            if(!HOME_REF.equals(ref)) return null;
+            return switch(detail==null?"summary":detail){
+                case "integrity" -> "{\"object_id\":\"home1\",\"integrity\":{\"expected\":9,\"matched\":8,\"missing\":1,\"wrong\":0}}";
+                case "baseline" -> "{\"object_id\":\"home1\",\"baseline_cells\":9}";
+                default -> "{\"object_id\":\"home1\"}";
+            };
+        }
         public String observeJson(){return "{\"health\":20,\"inventory\":{}}";}
         public Handle start(String op,String args){ starts++; if(failStart)throw new IllegalStateException(); state="running"; return ()->new Snapshot(state,.5,""); }
         public void pause(){pauses++;if(state.equals("running"))state="paused";}
@@ -55,11 +65,15 @@ public final class BridgeCoreTest {
             check(f.kernel.status().get("needs_reconcile").equals(true),"view must not clear needs_reconcile");
             String t=claim(f);
             fault(409,"observe_required",()->f.kernel.submit(t,"new-work","gather","{}"));
-            fault(400,"invalid_evidence_ref",()->f.kernel.inspect("garbage",null));
-            fault(404,"evidence_ref_not_in_current_view",()->f.kernel.inspect("mc://other/minecraft%3Aoverworld/structure/home1",null));
-            var evidence=f.kernel.inspect("mc://core-test-world/minecraft%3Aoverworld/structure/home1",null);
-            check(evidence.get("detail").equals("summary"),"inspect summary detail");
-            fault(400,"unsupported_detail_level",()->f.kernel.inspect("mc://core-test-world/minecraft%3Aoverworld/structure/home1","baseline"));
+            // MC-2A0.1: inspect fail-fast validation stays synchronous (400/404 from submit);
+            // the materialization itself rides the server-thread query queue and returns a future.
+            fault(400,"invalid_evidence_ref",()->f.kernel.submitInspectQuery("garbage",null));
+            fault(404,"evidence_ref_not_in_current_view",()->f.kernel.submitInspectQuery("mc://other/minecraft%3Aoverworld/structure/home1",null));
+            var inspectFuture=f.kernel.submitInspectQuery(FakeBackend.HOME_REF,null);
+            f.kernel.tick(); // single-threaded suite: the server-thread queue only drains on tick
+            var evidence=inspectFuture.get(5,TimeUnit.SECONDS);
+            check(evidence.contains("\"object_id\":\"home1\""),"inspect summary materializes on demand");
+            fault(400,"unsupported_detail_level",()->f.kernel.submitInspectQuery(FakeBackend.HOME_REF,"cells"));
             fault(400,"radius_out_of_range",()->f.kernel.submitLocalQuery(0,"summary"));
             var query=f.kernel.submitLocalQuery(4,"summary");
             check(!query.isDone(),"local query waits for the server thread");
@@ -67,6 +81,31 @@ public final class BridgeCoreTest {
             check(query.isDone() && query.get().contains("mc.local_view.v0"),"local query completes on tick thread");
             f.kernel.observe();
             check(f.kernel.status().get("needs_reconcile").equals(false),"only observe unlocks new work");
+
+            // MC-2A0.1 PERF-1: at most one expensive cognitive query executes per server tick —
+            // a queued burst must spread across ticks instead of draining in one burst.
+            int doneBefore=0; var q1=f.kernel.submitLocalQuery(4,"summary");
+            var q2=f.kernel.submitLocalQuery(5,"summary"); var q3=f.kernel.submitLocalQuery(6,"summary");
+            f.kernel.tick();
+            doneBefore=(q1.isDone()?1:0)+(q2.isDone()?1:0)+(q3.isDone()?1:0);
+            check(doneBefore==1,"one expensive local query per tick (got "+doneBefore+")");
+            f.kernel.tick(); f.kernel.tick();
+            check(q1.isDone()&&q2.isDone()&&q3.isDone(),"queued queries drain across ticks");
+            // MC-2A0.1 PERF-2: a query whose HTTP deadline already expired is cancelled, never executed.
+            var stale=f.kernel.submitLocalQuery(4,"summary");
+            f.time.addAndGet(6000); f.kernel.tick();
+            check(stale.isCompletedExceptionally(),"expired query fails the waiter");
+            check(f.body.inspectLocals==4,"expired query never executes on the server thread (inspectLocals="+f.body.inspectLocals+")");
+            // MC-2A0.1 LAZY-1: periodic view refreshes never materialize inspect details.
+            int materializedBefore=f.body.materializes;
+            for(int i=0;i<5;i++) f.kernel.tick();
+            f.kernel.view();
+            check(f.body.materializes==materializedBefore,"view refresh materializes zero inspect details");
+            var baselineFuture=f.kernel.submitInspectQuery(FakeBackend.HOME_REF,"baseline");
+            f.kernel.tick();
+            var one=baselineFuture.get(5,TimeUnit.SECONDS);
+            check(f.body.materializes==materializedBefore+1,"a single inspect materializes exactly one detail");
+            check(one.contains("baseline_cells"),"baseline detail content");
         }        check(JsonOutput.encode(Map.of("x","\"\\\n中文😀")).equals("{\"x\":\"\\\"\\\\\\n中文\\ud83d\\ude00\"}"),"JSON escaping");
         try(Fixture f=fixture()) {
             String t=claim(f);

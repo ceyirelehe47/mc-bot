@@ -20,13 +20,29 @@ public final class CognitiveSnapshot {
     public static final Set<String> LOCAL_DETAILS = Set.of("summary", "blocks", "entities", "all");
 
     /**
+     * MC-2A0.1: mc_inspect 的 detail 档位按 evidence kind 白名单化(LAZY-3:
+     * 只 materialize 被请求的 ref+detail,未知档位在协议层即 400 fail-closed)。
+     */
+    public static final Map<String, Set<String>> INSPECT_DETAILS = Map.of(
+            "structure", Set.of("summary", "integrity", "baseline"),
+            "farm", Set.of("summary", "cells"),
+            "opportunity", Set.of("summary", "evidence"));
+
+    /**
+     * 轻量 evidence 句柄(LAZY-1):view 快照只携带 ref 与 durable 身份字段,
+     * 不携带 baseline/cells/evidence 等 detail JSON——那些由 mc_inspect 按需 materialize。
+     */
+    public record EvidenceDescriptor(String evidenceRef, String kind, String objectId, String role) {}
+
+    /**
      * server 线程构建、kernel 缓存的只读快照。
      *
      * @param sceneJson    canonical scene 字节(meta 不含)
      * @param sceneHash    sceneJson 的 SHA-256 hex(小写);kernel 以 "sha256:" 前缀对外
-     * @param gameTime     构建时刻的 world.getTime(),只进 meta 不进 scene
-     * @param inspectIndex evidence_ref -> {detail 档位 -> canonical JSON}
+     * @param gameTime     构建时刻的 world.getTime(),只进 meta 不进 scene;materialize 的
+     *                     freshness 也以此为准(三处一致:view 卡/inspect summary/evidence)
+     * @param inspectIndex evidence_ref -> 轻量 descriptor(不是 detail JSON)
      */
     public record Snapshot(String sceneJson, String sceneHash, long gameTime,
-                           Map<String, Map<String, String>> inspectIndex) {}
+                           Map<String, EvidenceDescriptor> inspectIndex) {}
 }
