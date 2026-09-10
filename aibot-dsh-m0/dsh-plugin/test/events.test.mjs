@@ -15,6 +15,7 @@ test('only important or terminal events wake models, not action progress',()=>{
   assert.equal(shouldDeliver(event(1,'execution','accepted')),false);
   assert.equal(shouldDeliver(event(1)),true);assert.equal(shouldDeliver(event(1,'death','')),true);
   assert.equal(shouldDeliver(event(1,'survival_alert','')),true);
+  assert.equal(shouldDeliver(event(1,'resource_opportunity_actionable','')),true);
 });
 test('idle followup, busy urgent steer, pause inject-only use public ingress',()=>{
   const a=agent();enqueueEvents(a,api,'epoch',[event(1)]);assert.equal(a.calls[0][0],'followup');

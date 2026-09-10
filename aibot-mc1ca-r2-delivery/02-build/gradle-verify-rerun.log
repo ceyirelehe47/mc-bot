@@ -1,0 +1,87 @@
+
+> Configure project :
+Fabric Loom: 1.16.2
+
+> Task :clean
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :compileClientJava
+> Task :processClientResources
+> Task :clientClasses
+> Task :compileTestJava
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+> Task :test
+
+[Incubating] Problems report is available at: file:///D:/code/mc-experiment/aibot/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.4.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 47s
+7 actionable tasks: 7 executed
+=== RUNGAMETEST ===
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] TASK event=task_assigned bot=ShelterCanopyNightGT {name=shelter, origin=VERIFY, params=Emergency shelter phase=BUILD placed=0 remaining=10 observation_reseals=0 pressured_egress=0 daylight_ticks=0 exit_age=0 force_pressure_exit=false, origin_reason=gametest_shelter_occluded_surface_night}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=place bot=ShelterCanopyNightGT {pos=-3649067,64,-12712741, item=minecraft:dirt, face=up}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=capability_decision bot=ShelterCanopyNightGT {reason=DENIED_STRICT_SURVIVAL, allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_block_query}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=place bot=ShelterCanopyNightGT {pos=-3649067,65,-12712741, item=minecraft:dirt, face=up}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=place bot=ShelterCanopyNightGT {pos=-3649066,64,-12712740, item=minecraft:dirt, face=up}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=place bot=ShelterCanopyNightGT {pos=-3649066,65,-12712740, item=minecraft:dirt, face=up}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=place bot=ShelterCanopyNightGT {pos=-3649067,64,-12712739, item=minecraft:dirt, face=up}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=place bot=ShelterCanopyNightGT {pos=-3649067,65,-12712739, item=minecraft:dirt, face=up}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=place bot=ShelterCanopyNightGT {pos=-3649068,64,-12712740, item=minecraft:dirt, face=up}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=place bot=ShelterCanopyNightGT {pos=-3649068,65,-12712740, item=minecraft:dirt, face=up}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=fake_player_jump bot=ShelterCanopyNightGT {reason=shelter_roof_support_view, to=BlockPos{x=-3649067, y=65, z=-12712740}, from=BlockPos{x=-3649067, y=64, z=-12712740}}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=place bot=ShelterCanopyNightGT {pos=-3649067,66,-12712741, item=minecraft:dirt, face=up}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=place bot=ShelterCanopyNightGT {pos=-3649067,66,-12712740, item=minecraft:dirt, face=south}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=shelter_hold_started bot=ShelterCanopyNightGT {placed=10}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=capability_decision bot=ShelterCanopyNightGT {reason=DENIED_STRICT_SURVIVAL, allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=diagnostic_nearby}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=diag_snapshot bot=ShelterCanopyNightGT {inv=minecraft:dirtx10, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=-3649067,64,-12712740, fall=0.0, held=minecraft:dirtx10, task_state=RUNNING, submerged=false, light=0, step=, in_lava=false, task_phase=HOLD, goal=none, task_progress=0.8, task=shelter, mode=survival, air=300, food=20, path_idle=true}
+[12:17:26] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_]
+[12:17:26] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_]
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=diag_snapshot bot=ShelterCanopyNightGT {inv=minecraft:dirtx10, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=-3649067,64,-12712740, fall=0.0, held=minecraft:dirtx10, task_state=RUNNING, submerged=false, light=0, step=, in_lava=false, task_phase=HOLD, goal=none, task_progress=0.8, task=shelter, mode=survival, air=300, food=20, path_idle=true}
+[12:17:26] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_]
+[12:17:26] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_]
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=diag_snapshot bot=ShelterCanopyNightGT {inv=minecraft:dirtx10, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=-3649067,64,-12712740, fall=0.0, held=minecraft:dirtx10, task_state=RUNNING, submerged=false, light=0, step=, in_lava=false, task_phase=HOLD, goal=none, task_progress=0.8, task=shelter, mode=survival, air=300, food=20, path_idle=true}
+[12:17:26] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_]
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=capability_decision bot=ShelterCanopyNightGT {reason=DENIED_STRICT_SURVIVAL, allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_block_query}
+[12:17:26] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_]
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=capability_decision bot=ShelterCanopyNightGT {reason=DENIED_STRICT_SURVIVAL, allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=diagnostic_nearby}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] ACTION event=diag_snapshot bot=ShelterCanopyNightGT {inv=minecraft:dirtx10, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=-3649067,64,-12712740, fall=0.0, held=minecraft:dirtx10, task_state=RUNNING, submerged=false, light=0, step=, in_lava=false, task_phase=HOLD, goal=none, task_progress=0.8, task=shelter, mode=survival, air=300, food=20, path_idle=true}
+[12:17:26] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_]
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] TASK event=task_cancelled bot=ShelterCanopyNightGT {reason=gametest_complete, name=shelter}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] COMM event=conversation_reset bot=ShelterCanopyNightGT {}
+[12:17:26] [Server thread/INFO] (Minecraft) ShelterCanopyNightGT lost connection: AIBot despawn
+[12:17:26] [Server thread/INFO] (Minecraft) ShelterCanopyNightGT left the game
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] LIFECYCLE event=bot_despawned bot=ShelterCanopyNightGT {reason=command_or_shutdown}
+[12:17:26] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++]
+[12:17:26] [Server thread/INFO] (Minecraft) ========= 600 GAME TESTS COMPLETE IN 3.508 min ======================
+[12:17:26] [Server thread/INFO] (Minecraft) All 600 required tests passed :)
+[12:17:26] [Server thread/INFO] (Minecraft) ====================================================
+[12:17:26] [AIBotPersistenceWriter/INFO] (aibot) [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {atomic_move=true, schema=1, jobs=0, bots=0, path=.\world\.\aibot\runtime.json}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] LIFECYCLE event=server_stopping bot=- {}
+[12:17:26] [AIBotPersistenceWriter/INFO] (aibot) [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {atomic_move=true, schema=1, jobs=0, bots=0, path=.\world\.\aibot\runtime.json}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] LIFECYCLE event=all_bots_cleared bot=- {count=0}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] TASK event=jobs_cleared bot=- {}
+[12:17:26] [Server thread/INFO] (aibot) [AIBot] LIFECYCLE event=server_runtime_stopped bot=- {persisted_bots=0}
+[12:17:27] [Server thread/INFO] (Minecraft) Stopping server
+[12:17:27] [Server thread/INFO] (Minecraft) Saving players
+[12:17:27] [Server thread/INFO] (Minecraft) Saving worlds
+[12:17:27] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[12:17:28] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[12:17:28] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[12:17:28] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (world): All chunks are saved
+[12:17:28] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[12:17:28] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[12:17:28] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage: All dimensions are saved
+[12:17:28] [Server thread/INFO] (Minecraft) Game test server shutting down
+
+[Incubating] Problems report is available at: file:///D:/code/mc-experiment/aibot/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 4m 20s
+11 actionable tasks: 4 executed, 7 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.0/userguide/configuration_cache_enabling.html

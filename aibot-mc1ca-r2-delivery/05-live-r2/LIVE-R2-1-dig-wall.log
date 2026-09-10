@@ -1,0 +1,2 @@
+[09:59:15] [Server thread/WARN]: [AIBot] TASK event=task_failed bot=Bob {name=move, reason=move_dig_no_progress, elapsed_ticks=223}
+[10:06:51] [Server thread/WARN]: [AIBot] TASK event=task_failed bot=Bob {name=gather, reason=no_resource_after_explore, elapsed_ticks=5421}

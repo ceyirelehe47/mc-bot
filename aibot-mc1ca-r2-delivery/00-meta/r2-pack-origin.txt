@@ -1,0 +1,3 @@
+R2 pack source: /root/download/aibot-mc1ca-r2-repair.zip @ mcp-remote (117.72.194.243)
+zip md5: 981d3f50d1dca3287649691b7dacef47
+local: C:/Users/15027/Downloads/aibot-mc1ca-r2-repair.zip

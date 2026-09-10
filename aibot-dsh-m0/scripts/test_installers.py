@@ -51,8 +51,8 @@ class InstallerTest(unittest.TestCase):
         with patch.object(module,'BASE',head),self.assertRaisesRegex(ValueError,'dirty'):module.plan(self.root)
         self.assertEqual((self.root/'keep.txt').read_text(),'local change')
     def test_all_modification_manifests_have_valid_blob_ids_and_counts(self):
-        # f7dc7ba 基线 10 → R1 后 12 → MC-1C-A 后 15(上游锚点文件数)
-        self.assertEqual(len(module.CHANGES),16)
+        # f7dc7ba 基线 10 → R1 后 12 → MC-1C-A 16 → R2 19 upstream anchor files
+        self.assertEqual(len(module.CHANGES),19)
         for name,(sha,rules) in module.CHANGES.items():
             self.assertRegex(sha,r'^[a-f0-9]{40}$');self.assertGreater(len(rules),0)
             for old,new,count in rules:self.assertTrue(old);self.assertNotEqual(old,new);self.assertGreater(count,0)

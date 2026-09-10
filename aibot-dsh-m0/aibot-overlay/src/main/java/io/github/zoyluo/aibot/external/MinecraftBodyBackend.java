@@ -29,6 +29,9 @@ public final class MinecraftBodyBackend implements BodyBackend {
     private JsonElement perception;
     private int perceptionTick;
     private String perceptionDimension="";
+    private JsonElement semantic;
+    private int semanticTick;
+    private String semanticDimension="";
     private final String name;
     public MinecraftBodyBackend(MinecraftServer server,String name) { this.server=server; this.name=name; }
     private void onThread() { if(!server.isOnThread())throw new IllegalStateException("minecraft_access_off_server_thread"); }
@@ -43,7 +46,7 @@ public final class MinecraftBodyBackend implements BodyBackend {
                 BrainCoordinator.INSTANCE.reset(bot);
                 return null;
             });
-            prepared=bot; managed=null; perception=null;
+            prepared=bot; managed=null; perception=null; semantic=null;
         }
         return true;
     }
@@ -57,13 +60,17 @@ public final class MinecraftBodyBackend implements BodyBackend {
         out.addProperty("dimension",bot.getServerWorld().getRegistryKey().getValue().toString());
         JsonObject position=new JsonObject(); position.addProperty("x",bot.getX());position.addProperty("y",bot.getY());position.addProperty("z",bot.getZ());out.add("position",position);
         out.add("inventory",GSON.toJsonTree(inventory()));
-        out.add("semantic_world",SemanticWorldRegistry.observe(bot));
         String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
         int tick=server.getTicks();
         if(perception==null || tick-perceptionTick>=10 || tick<perceptionTick || !dimension.equals(perceptionDimension)) {
             perception=JsonParser.parseString(PerceptionCollector.collect(bot).toJson());
             perceptionTick=tick;perceptionDimension=dimension;
         }
+        if(semantic==null || tick-semanticTick>=10 || tick<semanticTick || !dimension.equals(semanticDimension)) {
+            semantic=SemanticWorldRegistry.observe(bot); semanticTick=tick; semanticDimension=dimension;
+        }
+        out.add("semantic_world",semantic);
+        out.addProperty("semantic_age_ticks",Math.max(0,tick-semanticTick));
         out.add("perception",perception);
         out.addProperty("perception_age_ticks",Math.max(0,tick-perceptionTick));
         out.addProperty("safety_active",TaskManager.INSTANCE.activeOrigin(bot).map(TaskOrigin::safety).orElse(false));
@@ -91,13 +98,15 @@ public final class MinecraftBodyBackend implements BodyBackend {
             case "smelt" -> Set.of("input_item","output_item","count");
             case "say" -> Set.of("message");
             case "register_home" -> Set.of("name","radius","below","above");
+            case "capture_home","repair_home" -> Set.of("name");
             case "register_farm" -> Set.of("name","radius","crop");
             case "tend_farm" -> Set.of("name");
+            case "mine_opportunity" -> Set.of("id");
             case "eat","set_base","deposit" -> Set.of();
             default -> throw new BridgeFault(400,"unsupported_operation");
         };
         if(!allowed.containsAll(args.keySet()))throw new BridgeFault(400,"unknown_argument");
-        Task task;Item target=null;int count=0;BlockPos goal=null;
+        Task task;Item target=null;int count=0;BlockPos goal=null;String semanticId=null;
         switch(operation) {
             case "goto" -> {
                 if(!args.has("allow_terrain_changes") || !args.get("allow_terrain_changes").isJsonPrimitive()
@@ -123,6 +132,27 @@ public final class MinecraftBodyBackend implements BodyBackend {
                     throw semanticFault(semanticFailure);
                 }
             }
+            case "capture_home" -> {
+                try {
+                    var registration=SemanticWorldRegistry.captureHome(bot,optionalString(args,"name","home",48));
+                    return semanticRegistrationHandle(registration);
+                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
+                    throw semanticFault(semanticFailure);
+                }
+            }
+            case "repair_home" -> {
+                try {
+                    semanticId=optionalString(args,"name","home",48);
+                    var plan=SemanticWorldRegistry.homeRepairPlan(bot,semanticId);
+                    if(plan.wrong()>0) throw new BridgeFault(409,"home_repair_v1_conflicting_cells:"+plan.wrong());
+                    if(plan.missing()==0) return ()->new Snapshot("completed",1,"home_desired_cells_already_satisfied");
+                    task=new BuildTask(plan.blueprint(),plan.anchor(),false,false);
+                } catch (BridgeFault bridgeFault) {
+                    throw bridgeFault;
+                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
+                    throw semanticFault(semanticFailure);
+                }
+            }
             case "register_farm" -> {
                 try {
                     var registration=SemanticWorldRegistry.registerFarm(bot,
@@ -135,10 +165,18 @@ public final class MinecraftBodyBackend implements BodyBackend {
                 }
             }
             case "tend_farm" -> {
-                String farmId=optionalString(args,"name","farm",32);
+                String farmId=optionalString(args,"name","farm",48);
                 var farm=SemanticWorldRegistry.farm(bot,farmId)
-                        .orElseThrow(()->new BridgeFault(404,"farm_not_registered_or_wrong_dimension"));
+                        .orElseThrow(()->new BridgeFault(404,"farm_not_registered_or_wrong_dimension_or_needs_reregister"));
                 task=new FarmTask(farm.center(),farm.radius(),farm.seed(),farm.crop(),false,false);
+            }
+            case "mine_opportunity" -> {
+                String opportunityId=string(args,"id",48);
+                var opportunity=SemanticWorldRegistry.opportunity(bot,opportunityId)
+                        .orElseThrow(()->new BridgeFault(404,"resource_opportunity_not_found_in_current_dimension"));
+                if(!"ACTIONABLE".equals(opportunity.status()))
+                    throw new BridgeFault(409,"resource_opportunity_blocked:"+opportunity.blockedReason());
+                task=new KnownResourceTask(opportunity);
             }
             case "deposit" -> task=new StockpileTask(true);
             case "set_base" -> {
@@ -158,7 +196,7 @@ public final class MinecraftBodyBackend implements BodyBackend {
                 || bot.getActionPack().hasActiveActions())throw new BridgeFault(409,"body_busy_safety_or_legacy_work");
         if(TaskManager.INSTANCE.isUserPaused(bot))throw new BridgeFault(409,"body_user_paused");
         AIPlayerEntity executionBody=bot;
-        Item expected=target; int quota=count; BlockPos destination=goal;
+        Item expected=target; int quota=count; BlockPos destination=goal; String semantic=semanticId;
         ExternalBodyAccess.dispatch(()->{
             TaskManager.INSTANCE.assign(executionBody,task,TaskOrigin.of(TaskOrigin.Kind.LLM_TOOL,"external_dsh"));return null;
         });
@@ -180,12 +218,21 @@ public final class MinecraftBodyBackend implements BodyBackend {
             if(state.equals("paused"))reason=TaskManager.INSTANCE.isUserPaused(bot)?"user_or_lease_pause":"safety_preempted";
             if(state.equals("completed")) {
                 if(operation.equals("gather")) {
-                    int actual=inventory().getOrDefault(Registries.ITEM.getId(expected).toString(),0);
-                    if(actual<quota)return new Snapshot("failed",s.progress(),"gather_postcondition_missing:observed="+actual+":quota="+quota);
-                    reason="inventory_quota_verified:observed="+actual;
+                    int actual=GatherQuotaTask.acceptedInventoryCount(bot,expected);
+                    if(actual<quota)return new Snapshot("failed",s.progress(),"gather_postcondition_missing:accepted="+actual+":quota="+quota);
+                    reason="inventory_family_or_exact_quota_verified:accepted="+actual;
                 } else if(operation.equals("goto")) {
                     if(bot.getBlockPos().getSquaredDistance(destination)>9)return new Snapshot("failed",s.progress(),"goto_postcondition_not_within_3_blocks");
                     reason="arrival_within_3_blocks_verified";
+                } else if(operation.equals("repair_home")) {
+                    try {
+                        var verify=SemanticWorldRegistry.homeRepairPlan(bot,semantic);
+                        if(verify.missing()>0 || verify.wrong()>0)
+                            return new Snapshot("failed",s.progress(),"home_repair_postcondition_missing="+verify.missing()+":wrong="+verify.wrong());
+                        reason="home_missing_only_repair_verified";
+                    } catch(RuntimeException verifyFailure) {
+                        return new Snapshot("failed",s.progress(),"home_repair_postcondition_error:"+verifyFailure.getClass().getSimpleName());
+                    }
                 } else reason="upstream_task_completed_reobserve_for_user_goal_verification";
             }
             return new Snapshot(state,s.progress(),reason);

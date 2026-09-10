@@ -1,6 +1,8 @@
 package io.github.zoyluo.aibot.external;
 
 import io.github.zoyluo.aibot.entity.AIPlayerEntity;
+import io.github.zoyluo.aibot.task.Task;
+import io.github.zoyluo.aibot.task.TaskManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.registry.tag.BlockTags;
@@ -9,36 +11,75 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 import java.util.ArrayDeque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
-/** Conservative, deterministic evidence test for natural tree logs. Unknown logs are NOT resources. */
+/** Conservative natural-tree proof plus one active-gather scoped cluster lease. */
 public final class NaturalTreeClassifier {
     private static final int MAX_LOGS = 32;
     private static final int MAX_HORIZONTAL_FROM_SEED = 5;
     private static final int MAX_VERTICAL_FROM_SEED = 10;
     private static final int MIN_LOGS = 2;
     private static final int MIN_NEARBY_LEAVES = 4;
+    private static final Map<UUID, HarvestLease> LEASES = new HashMap<>();
 
     private NaturalTreeClassifier() {}
 
+    private record Cluster(Set<Long> logs, boolean rooted, int leaves) {}
+    private record HarvestLease(Task owner, String dimension, Set<Long> logs) {}
+
     public static boolean isHarvestCandidate(AIPlayerEntity bot, BlockPos pos) {
-        if (!BreakPolicy.mayBreak(bot, pos)) {
-            return false;
-        }
+        if (!BreakPolicy.mayBreak(bot, pos)) return false;
         BlockState state = bot.getServerWorld().getBlockState(pos);
-        return !state.isIn(BlockTags.LOGS) || isNaturalTreeLog(bot, pos);
+        if (!state.isIn(BlockTags.LOGS)) return true;
+        return leasedToActiveGather(bot, pos) || isNaturalTreeLog(bot, pos);
+    }
+
+    /**
+     * Freeze the initially-proven connected log set to the current active gather task. Without this,
+     * chopping the dirt-rooted trunk destroys the evidence used to classify the still-natural upper
+     * trunk, leaving floating trees. The lease never authorizes protected cells and never survives
+     * task replacement/restart.
+     */
+    public static void acquireHarvestCluster(AIPlayerEntity bot, BlockPos seed) {
+        if (bot == null || seed == null || !ExternalBodyAccess.reserved(bot)) return;
+        Task owner = TaskManager.INSTANCE.getActive(bot).orElse(null);
+        if (owner == null || !"gather".equals(owner.name())) return;
+        if (!bot.getServerWorld().getBlockState(seed).isIn(BlockTags.LOGS) || !BreakPolicy.mayBreak(bot, seed)) return;
+        Cluster cluster = inspect(bot, seed);
+        if (!cluster.rooted || cluster.logs.size() < MIN_LOGS || cluster.leaves < MIN_NEARBY_LEAVES) return;
+        LEASES.put(bot.getUuid(), new HarvestLease(owner, dimension(bot), Set.copyOf(cluster.logs)));
     }
 
     public static boolean isNaturalTreeLog(AIPlayerEntity bot, BlockPos seed) {
-        if (bot == null || seed == null || !ExternalBodyAccess.reserved(bot)) {
-            return bot != null && seed != null && bot.getServerWorld().getBlockState(seed).isIn(BlockTags.LOGS);
-        }
-        ServerWorld world = bot.getServerWorld();
-        if (!world.getBlockState(seed).isIn(BlockTags.LOGS) || !BreakPolicy.mayBreak(bot, seed)) {
+        if (bot == null || seed == null) return false;
+        if (!ExternalBodyAccess.reserved(bot)) return bot.getServerWorld().getBlockState(seed).isIn(BlockTags.LOGS);
+        if (!bot.getServerWorld().getBlockState(seed).isIn(BlockTags.LOGS) || !BreakPolicy.mayBreak(bot, seed)) return false;
+        Cluster cluster = inspect(bot, seed);
+        return cluster.rooted && cluster.logs.size() >= MIN_LOGS && cluster.leaves >= MIN_NEARBY_LEAVES;
+    }
+
+    private static boolean leasedToActiveGather(AIPlayerEntity bot, BlockPos pos) {
+        HarvestLease lease = LEASES.get(bot.getUuid());
+        if (lease == null) return false;
+        Task active = TaskManager.INSTANCE.getActive(bot).orElse(null);
+        Task paused = TaskManager.INSTANCE.peekPaused(bot).orElse(null);
+        boolean ownerStillManaged = (active == lease.owner || paused == lease.owner)
+                && (lease.owner.state() == io.github.zoyluo.aibot.task.TaskState.RUNNING
+                || lease.owner.state() == io.github.zoyluo.aibot.task.TaskState.PAUSED);
+        if (!ownerStillManaged || !lease.dimension.equals(dimension(bot))) {
+            LEASES.remove(bot.getUuid());
             return false;
         }
+        return lease.logs.contains(pos.asLong()) && BreakPolicy.mayBreak(bot, pos)
+                && bot.getServerWorld().getBlockState(pos).isIn(BlockTags.LOGS);
+    }
 
+    private static Cluster inspect(AIPlayerEntity bot, BlockPos seed) {
+        ServerWorld world = bot.getServerWorld();
         ArrayDeque<BlockPos> open = new ArrayDeque<>();
         Set<Long> logs = new HashSet<>();
         Set<Long> leaves = new HashSet<>();
@@ -49,33 +90,23 @@ public final class NaturalTreeClassifier {
         while (!open.isEmpty() && logs.size() <= MAX_LOGS) {
             BlockPos current = open.removeFirst();
             if (isPlausibleRoot(world.getBlockState(current.down()))
-                    && !world.getBlockState(current.down()).isIn(BlockTags.LOGS)) {
-                rooted = true;
-            }
+                    && !world.getBlockState(current.down()).isIn(BlockTags.LOGS)) rooted = true;
             for (BlockPos nearby : BlockPos.iterate(current.add(-1, -1, -1), current.add(1, 1, 1))) {
-                if (world.getBlockState(nearby).isIn(BlockTags.LEAVES)) {
-                    leaves.add(nearby.asLong());
-                }
+                if (world.getBlockState(nearby).isIn(BlockTags.LEAVES)) leaves.add(nearby.asLong());
             }
             for (Direction direction : Direction.values()) {
                 BlockPos next = current.offset(direction);
                 if (Math.abs(next.getX() - seed.getX()) > MAX_HORIZONTAL_FROM_SEED
                         || Math.abs(next.getZ() - seed.getZ()) > MAX_HORIZONTAL_FROM_SEED
-                        || Math.abs(next.getY() - seed.getY()) > MAX_VERTICAL_FROM_SEED) {
-                    continue;
-                }
+                        || Math.abs(next.getY() - seed.getY()) > MAX_VERTICAL_FROM_SEED) continue;
                 if (!world.getBlockState(next).isIn(BlockTags.LOGS)
                         || !BreakPolicy.mayBreak(bot, next)
-                        || !logs.add(next.asLong())) {
-                    continue;
-                }
+                        || !logs.add(next.asLong())) continue;
                 open.addLast(next.toImmutable());
-                if (logs.size() > MAX_LOGS) {
-                    return false; // giant/ambiguous log structures fail closed in this slice
-                }
+                if (logs.size() > MAX_LOGS) return new Cluster(Set.of(), false, 0);
             }
         }
-        return rooted && logs.size() >= MIN_LOGS && leaves.size() >= MIN_NEARBY_LEAVES;
+        return new Cluster(Set.copyOf(logs), rooted, leaves.size());
     }
 
     private static boolean isPlausibleRoot(BlockState state) {
@@ -86,5 +117,9 @@ public final class NaturalTreeClassifier {
                 || state.isOf(Blocks.ROOTED_DIRT)
                 || state.isOf(Blocks.MYCELIUM)
                 || state.isOf(Blocks.MOSS_BLOCK);
+    }
+
+    private static String dimension(AIPlayerEntity bot) {
+        return bot.getServerWorld().getRegistryKey().getValue().toString();
     }
 }

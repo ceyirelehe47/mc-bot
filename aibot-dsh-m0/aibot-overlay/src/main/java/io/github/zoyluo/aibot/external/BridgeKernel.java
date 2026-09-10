@@ -7,7 +7,7 @@ import java.util.function.LongSupplier;
 
 /** Protocol-independent, single-body coordinator. HTTP threads may only admit work/read caches. */
 public final class BridgeKernel {
-    public static final Set<String> OPERATIONS=Set.of("goto","gather","craft","smelt","eat","set_base","deposit","say","register_home","register_farm","tend_farm");
+    public static final Set<String> OPERATIONS=Set.of("goto","gather","craft","smelt","eat","set_base","deposit","say","register_home","capture_home","repair_home","register_farm","tend_farm","mine_opportunity");
     private static final Set<String> TERMINAL=Set.of("completed","failed","cancelled","outcome_unknown");
     private static final int MAX_EXECUTIONS=1024, MAX_CONTROLS=2048;
     private static final long LEASE_MS=30000, OBSERVATION_MAX_AGE_MS=5000;

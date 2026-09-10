@@ -168,6 +168,14 @@ CHANGES = {
   ('String normalized = normalizeReason(origin, reason);',
    'if (origin != ControlOrigin.SYSTEM) '+ACCESS+'.checkTool(bot);\n        String normalized = normalizeReason(origin, reason);', 2),
  ]),
+ 'task/FarmTask.java': ('ce82c371f75cfeed591442e37a862490f78ec5ed', [
+  ('''                .filter(pos -> io.github.zoyluo.aibot.mode.ObservableWorldQuery.canObserveBlock(bot, pos)
+                        || io.github.zoyluo.aibot.mode.ObservableWorldQuery.canObserveBlock(bot, pos.up()))
+''',
+   '''                .filter(pos -> io.github.zoyluo.aibot.external.SemanticWorldRegistry
+                        .farmSurveyCellObservable(bot, areaCenter, radius, crop, pos))
+''', 1),
+ ]),
  'task/GatherQuotaTask.java': ('f3b4d48379024e859a8844dc6b870de9dccf4d16', [
   # MC-1C-A 补口:OreProspector 的 prospect/explore 选目标路径也要过自然树分类器,
   # 否则保护区原木/ambiguous log 会被选为 harvest 目标(挖掘层硬门仍会拦,但会
@@ -184,6 +192,45 @@ CHANGES = {
    '''            BlockPos seen = OreProspector.nearest(bot, 16,
                     state -> harvestBlocks.contains(state.getBlock()),
                     pos -> io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos));''', 1),
+  ('''    private void startHarvest(AIPlayerEntity bot) {
+        countBeforeHarvest = countAccepted(bot);''',
+   '''    private void startHarvest(AIPlayerEntity bot) {
+        io.github.zoyluo.aibot.external.NaturalTreeClassifier.acquireHarvestCluster(bot, targetPos);
+        countBeforeHarvest = countAccepted(bot);''', 1),
+ ]),
+ 'action/BlockMiner.java': ('9daf997724dddecdf363611a50c904315a3c6077', [
+  ('''            Direction face = faceToward(bot, target);
+            MiningAction.startMining(bot, target, face);
+            started = true;
+''',
+   '''            Direction face = faceToward(bot, target);
+            ActionResult startResult = MiningAction.startMining(bot, target, face);
+            if (startResult.isFailed()) {
+                bot.getActionPack().stopMining();
+                failureReason = startResult.reason();
+                target = null;
+                started = false;
+                return Status.FAILED;
+            }
+            started = true;
+''', 1),
+ ]),
+ 'action/MiningController.java': ('2bdc648d49c9d49a20fd74231efee3803c1b3326', [
+  ('''        if (state.isAir()) {
+            resetProgress(player);
+            return ActionResult.SUCCESS;
+        }
+''',
+   '''        if (state.isAir()) {
+            resetProgress(player);
+            return ActionResult.SUCCESS;
+        }
+        var bodyBreakDecision = io.github.zoyluo.aibot.external.BreakPolicy.decide(player, pos);
+        if (!bodyBreakDecision.allowed()) {
+            abort(player);
+            return ActionResult.failed(bodyBreakDecision.reason());
+        }
+''', 1),
  ]),
  'action/MiningAction.java': ('5316998b8c65d69052a1d5e20e0c1ad033ad8805', [
   ('''public static ActionResult startMining(AIPlayerEntity player, BlockPos pos, Direction face) {
@@ -227,7 +274,8 @@ CHANGES = {
    '''if (state.isIn(BlockTags.LOGS)
                 && io.github.zoyluo.aibot.external.NaturalTreeClassifier.isNaturalTreeLog(bot, pos)) {
             addHighlight(highlights, "nearest_tree", Registries.BLOCK.getId(state.getBlock()).toString(), pos, distance);
-        }''', 1),
+        }
+        io.github.zoyluo.aibot.external.SemanticWorldRegistry.observeVisibleBlock(bot, pos, state);''', 1),
  ]),
 }
 
@@ -236,7 +284,7 @@ CHANGES = {
 EXTRA_CHANGES={
  'src/gametest/resources/fabric.mod.json': ('25ecb31ca127ed2e9d57ccb9b5c223066092f3e5', [
   ('"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",',
-   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",', 1),
+   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",', 1),
  ]),
 }
 

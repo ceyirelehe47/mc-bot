@@ -1,0 +1,7 @@
+MC_BOT_REPOSITORY=ceyirelehe47/mc-bot
+MC_BOT_BRANCH=experiment/mc1ca-structure-semantics
+MC_BOT_BASE_COMMIT=e8cb2bd1f6ea120a6ee745efc5b972b1c1680c4b
+UPSTREAM_AIBOT_REPOSITORY=zoyluoblue/mc_aiplayer
+UPSTREAM_AIBOT_COMMIT=a029fa6a3760fd0f83834c104051b041d986da60
+DSH_REPOSITORY=deepseek-ai/deepseek-harness
+DSH_COMMIT=5dda764ed3aa172535a7967b06ff95d9cbfe536a

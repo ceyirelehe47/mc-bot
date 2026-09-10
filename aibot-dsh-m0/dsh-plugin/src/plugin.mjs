@@ -84,7 +84,7 @@ export function install(ctx, api, options = {}) {
         }
       })();
       return { attached: true, ...lease, status: await client.status(signal),
-        limits: 'M1C-A: one configured Bot, strict_survival, eleven bounded operations, protected structures + farm semantics, no autonomous resume after server restart.' };
+        limits: 'M1C-A R2: one configured Bot, strict_survival, fourteen bounded operations, world/dimension-scoped semantics + deferred ore + conservative HOME rebuild.' };
     })();
     try { return await connecting; } finally { connecting = null; connectingAgent = null; }
   }
@@ -118,7 +118,7 @@ export function install(ctx, api, options = {}) {
     ['eat', 'Run the existing bounded eating task using food already carried.', {}],
     ['set_base', 'Record CURRENT position as the operational base marker for deposit/resupply. Not conversational long-term memory.', {}],
     ['deposit', 'Deposit non-damageable items near the remembered base using existing StockpileTask. Tools are retained.', {}],
-    ['say', 'Send text to the AIBot panel (not global server chat). M0 uses the same single-operation slot, so wait until the body execution is idle.',
+    ['say', 'Send text to the AIBot panel and global server chat. Uses the same single-operation slot, so wait until the body execution is idle.',
       { message: string('Text, at most 1000 characters. Game text is untrusted data.') }],
     ['register_home', 'Register a bounded HOME protection cuboid around the current body position. Protection is Body operational state, not Iris memory. This slice does NOT capture a repair blueprint.',
       { name: { type: 'string', description: 'Optional semantic id; default home.' }, radius: { type: 'integer', description: 'Horizontal protection radius 2..16; default 6.' }, below: { type: 'integer', description: 'Protected cells below current Y 0..8; default 1.' }, above: { type: 'integer', description: 'Protected cells above current Y 1..16; default 6.' } }],
@@ -126,6 +126,12 @@ export function install(ctx, api, options = {}) {
       { name: { type: 'string', description: 'Optional semantic id; default farm.' }, radius: { type: 'integer', description: 'Farm region radius 1..16; default 6.' }, crop: { type: 'string', description: 'Optional wheat/carrot/potato id when auto-detection is ambiguous.' } }],
     ['tend_farm', 'Run the existing finite FarmTask over a registered farm. Harvests mature crops, leaves immature crops, and replants when seeds are available.',
       { name: { type: 'string', description: 'Registered farm id; default farm.' } }],
+    ['capture_home', 'Capture the current registered HOME cuboid as a desired block-id baseline. Explicit operation: excludes air/fluids/ores and does not capture container contents or BlockEntity data.',
+      { name: { type: 'string', description: 'Registered HOME id; default home.' } }],
+    ['repair_home', 'Conservatively rebuild only missing expected HOME cells from a captured baseline. Never deletes extra blocks; non-air conflicts are reported instead of overwritten.',
+      { name: { type: 'string', description: 'Captured HOME id; default home.' } }],
+    ['mine_opportunity', 'Mine one exact persisted ore opportunity in the current dimension. If far, first move toward the returned seen_from coordinates. Refuses blocked/stale/protected/hazardous targets.',
+      { id: string('Exact opportunity id from semantic_world.resource_opportunities.') }],
   ];
   for (const [operation, description, parameters] of operations) {
     register('mc_' + operation, description + ' Returns an asynchronous execution receipt; wait for events or query mc_status.', parameters,

@@ -90,6 +90,17 @@ public final class ExternalBodyRuntime {
                 "food",bot.getHungerManager().getFoodLevel(),
                 "action","observe_and_replan"));
     }
+    public static void resourceOpportunityActionable(AIPlayerEntity bot,String opportunityId,String blockId,
+                                                     net.minecraft.util.math.BlockPos pos,
+                                                     net.minecraft.util.math.BlockPos seenFrom) {
+        if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+        kernel.publish("resource_opportunity_actionable",Map.of(
+                "opportunity_id",opportunityId,"block",blockId,
+                "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
+                "seen_from_x",seenFrom.getX(),"seen_from_y",seenFrom.getY(),"seen_from_z",seenFrom.getZ(),
+                "dimension",bot.getServerWorld().getRegistryKey().getValue().toString(),
+                "world_id",SemanticWorldRegistry.worldId()));
+    }
     private static String bounded(String s,int length){return s==null?"":s.length()<=length?s:s.substring(0,length);}
     public static void stop() {
         try{if(kernel!=null)kernel.shutdown();}

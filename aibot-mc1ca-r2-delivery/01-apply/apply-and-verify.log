@@ -1,0 +1,28 @@
+== apply_r2 plan ==
+REFUSED: tracked worktree dirty
+
+== verify_r2_source ==
+R2 SOURCE VERIFY: PASS (static markers + installer py_compile only; real Java/Fabric/DSH execution still required)
+
+== pack escape-bug fix note ==
+apply_r2_to_mc_bot.py patch_installer gametest-entry anchor had one extra backslash escape level (MC1CASemanticsGameTests\" vs actual MC1CASemanticsGameTests") and a real-newline vs literal-\n mismatch; fixed locally in pack copy (2 lines + test_r2_pack.py sample) per subagent audit; remote original untouched.
+== git diff --stat (R2 应用后 vs e8cb2bd, 代码文件) ==
+ .../zoyluo/aibot/gametest/MC1CAR2GameTests.java    | 177 +++++++
+ .../github/zoyluo/aibot/external/BridgeKernel.java |   2 +-
+ .../zoyluo/aibot/external/ExternalBodyRuntime.java |  11 +
+ .../zoyluo/aibot/external/KnownResourceTask.java   | 156 ++++++
+ .../aibot/external/MinecraftBodyBackend.java       |  65 ++-
+ .../aibot/external/NaturalTreeClassifier.java      |  87 +++-
+ .../aibot/external/SemanticWorldRegistry.java      | 570 ++++++++++++++++++---
+ aibot-dsh-m0/dsh-plugin/src/events.mjs             |   2 +-
+ aibot-dsh-m0/dsh-plugin/src/plugin.mjs             |  10 +-
+ aibot-dsh-m0/dsh-plugin/test/events.test.mjs       |   1 +
+ aibot-dsh-m0/dsh-plugin/test/plugin.test.mjs       |   4 +-
+ aibot-dsh-m0/scripts/apply_to_aibot.py             |  52 +-
+ aibot-dsh-m0/scripts/test_installers.py            |   4 +-
+ 13 files changed, 1023 insertions(+), 118 deletions(-)
+
+== blob 一致性：mc-bot overlay 与上游 D:/code/mc-experiment/aibot(已应用) 的 R2 关键文件 ==
+SemanticWorldRegistry: mc-bot=63474f1bcea854240e429ef72af10b361c08205a upstream-applied=63474f1bcea854240e429ef72af10b361c08205a match=YES
+KnownResourceTask: mc-bot=75eac07268088c2d1e53b67db4d0e2730ed3e88b upstream-applied=75eac07268088c2d1e53b67db4d0e2730ed3e88b match=YES
+NaturalTreeClassifier: mc-bot=4f006bc18eea2ed3f934da068bd8c1de2d993cf4 upstream-applied=4f006bc18eea2ed3f934da068bd8c1de2d993cf4 match=YES
