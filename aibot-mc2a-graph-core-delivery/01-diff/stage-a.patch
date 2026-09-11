@@ -1,0 +1,240 @@
+diff --git a/aibot-dsh-m0/SHA256SUMS b/aibot-dsh-m0/SHA256SUMS
+index 4459c33..c57637e 100644
+--- a/aibot-dsh-m0/SHA256SUMS
++++ b/aibot-dsh-m0/SHA256SUMS
+@@ -5,7 +5,7 @@ d09ec1adb1255fe5fca15844cfec86aab5677b4d8cefe78090f71bd95c1d5aa6  aibot-overlay/
+ 21192bc79e5ac3ad7f85a8a480650e6584263caea9b3d2be72d9595ecdb99663  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CASemanticsGameTests.java
+ 70bb94d965c39a6683114f5851e46cb4f40542505d3f43f3a9333211b6f008ed  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01CognitiveBoundaryGameTests.java
+ 8402333c70be2cfad393de9f700a5a9320adc96cb1222ec13a1a46e5bbec0374  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01FClosureGameTests.java
+-dd67fcd5f9e00a5f47c20e9bc5fb6f61ecbdcfb4a107057dfdae20998f5866b2  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
++d19f27c2b895b4c427cab0403e91d63059f820338492f1667491c7acd43436d1  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
+ 761dccf15a2d6b3e43bac3a867b6635155aadcee7347a72a3661a92d9654792b  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A0CognitiveViewGameTests.java
+ 84bfced101a24b8fb32d3fcff3060d52f664c4d5bb85f442959e634c95505366  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+ 73cea3d91de06f6b6535d2499fe00164fdf5a48b8d5803709bde8a4b5de41588  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BreakPolicy.java
+@@ -30,6 +30,7 @@ f127d98a2f18ae61026d21f6aee22b121ae6335426a07c92afc6c594dbe52179  aibot-overlay/
+ 0a856caa0f3e9f1d5746f6c1a3ad25f82e2e92af126cf19f21d9e43864855c48  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
+ f67eafd4066d92c844c39634ec7ce5144a91f0e6c7a1c57695f2bfa50e84ecb6  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/cognition/CognitiveCanonicalizationTest.java
+ 715f92a6d45615f09ba1ba00d869333424fe8767732fb739c24ad151d1d23c83  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TreeHarvestSourceContractTest.java
++402298d4cc2129eb5000699cd508fa4f80db16c8966054c58d09b54a389ee7db  aibot-overlay/src/test/java/io/github/zoyluo/aibot/task/TreeAccessContinuationSourceContractTest.java
+ a5d9e7654839fa94e1a5827bf12f3b8ec7850eb45de63c36e1f3ab314a14f7b3  BASELINES.json
+ d2ec3382024107c0773fb279f4a4eb1c6be3edb429c2603d93bd86fca973b257  bridge-tests/BridgeCoreTest.java
+ 171b0ddb09e87d31455bc991f6aeca311ab95fae659a1ef1551e0269cc32e8a3  bridge-tests/FakeBridgeServer.java
+@@ -134,7 +135,7 @@ dc5685a6c9228bff3573e7e5b1c0f01d79917e22267050808d1ef58ccb750796  evidence/patch
+ ea9c5ad0c24849895aaa8aaec1fe306237d2b9bf5a51e8ef49307a3c1fdb04ed  evidence/source-review.json
+ f36de2be18d12399babe177a0516ac9d399859f3ead731cd06db38fd8e559377  integration/UPSTREAM_BLOBS.json
+ bcd67ba3449c762ebe7b05676f2df63b13ee31bbf7a9846b85b86d97052b06a1  README.zh-CN.md
+-f3f7989c6746a573173b2358b27fe43c38497f12b83bfb3cf75dea936c2553e7  scripts/apply_to_aibot.py
++245fcd8d297fa14b56b5cb26b471b9ba6bc9793eb8c6b1a7861c851cb12b6e7d  scripts/apply_to_aibot.py
+ ed3c8e4f25aa1ac7040016f63cc3f60366f7b89ff6184fb0349230890ee59c5c  scripts/gen_sums.py
+ 2998c9e64070e49795daf13683f4b985b6121defe8a59d00cc11994efb268de7  scripts/inspect_bridge.mjs
+ 927171b7d97f166b257d622320798a4f59d7ab9ba9398a3ae94b003d0fbdad07  scripts/install_dsh_plugin.py
+diff --git a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
+index 012e7c1..1f68124 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
++++ b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
+@@ -169,6 +169,107 @@ public final class MC2A02TreeHarvestGameTests implements FabricGameTest {
+         });
+     }
+ 
++    /**
++     * MC-2A0.2F regression for LIVE D-1: the GatherQuotaTask state machine itself must retain
++     * support #1 as an active working surface long enough for TreeHarvestWorkset.tickAccess to
++     * stack support #2. Driving TreeHarvestWorkset directly was already green and therefore did
++     * not catch the old SURVEY -> TREE_CLEANUP oscillation.
++     */
++    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE,
++            batchId = "mc2a02_access_state", tickLimit = 2800)
++    public void mc2a02GatherKeepsTemporarySupportsUntilHigherWorkFaceIsReached(TestContext context) {
++        Fixture f = fixture(context, 14);
++        // The reserved body's inventory survives despawn/respawn across batches; the quota
++        // counts any log family already held, so stale logs would satisfy quota=1 on tick one.
++        f.bot.getInventory().clear();
++        BlockPos base = naturalTree(f, 1, 8);
++        InventoryAction.giveItem(f.bot, new ItemStack(Items.IRON_AXE));
++        InventoryAction.giveItem(f.bot, new ItemStack(Items.DIRT, 24));
++        GatherQuotaTask task = new GatherQuotaTask(
++                Items.OAK_LOG, 1, "gt-access-continuation-owner");
++
++        // LIVE D-1 trigger geometry: the task's own acquire is eye-bounded, so the frozen
++        // proof is taken from a 3-block stand beside the trunk (full 8-log proof). Once the
++        // workset exists the stand is removed and the body continues from the ground, where
++        // the remaining high logs are reachable only by stacking TREE_ACCESS supports.
++        BlockPos stand = f.start;
++        for (int i = 0; i < 3; i++) set(f.world, stand.up(i), Blocks.DIRT);
++        f.bot.teleport(f.world, stand.getX() + .5D, stand.getY() + 3, stand.getZ() + .5D, Set.of(), 0, 0, true);
++        f.bot.setOnGround(true);
++
++        boolean[] assigned = {false};
++        boolean[] droppedToGround = {false};
++        int[] fenceSettle = {0};
++        int[] maxConcurrentPlaced = {0};
++        boolean[] sawTwoConcurrent = {false};
++        boolean[] sawReverseCleanupAfterStack = {false};
++
++        context.runAtEveryTick(() -> {
++            if (!assigned[0]) {
++                // Match the production external-body fence rule used by the quota regression.
++                if (++fenceSettle[0] <= 5) return;
++                assign(f.bot, task, "gt-access-continuation-owner");
++                assigned[0] = true;
++                return;
++            }
++
++            if (task.state() == TaskState.FAILED || task.state() == TaskState.CANCELLED) {
++                failAndDespawn(context, f,
++                        "gather ended " + task.state() + ":" + task.failureReason()
++                                + " maxConcurrentPlaced=" + maxConcurrentPlaced[0]);
++                return;
++            }
++            if (task.state() == TaskState.COMPLETED) {
++                require(context, droppedToGround[0],
++                        "task completed before the elevated stand was consumed; candidates proof was never full");
++                require(context, sawTwoConcurrent[0],
++                        "task never kept support #1 long enough to place support #2; max="
++                                + maxConcurrentPlaced[0]);
++                require(context, sawReverseCleanupAfterStack[0],
++                        "stacked TREE_ACCESS supports were never reverse-cleaned before completion");
++                for (int i = 0; i < 8; i++) {
++                    require(context, !f.world.getBlockState(base.up(i)).isOf(Blocks.OAK_LOG),
++                            "committed tall-tree log left at " + base.up(i));
++                    require(context, !f.world.getBlockState(base.up(i)).isOf(Blocks.DIRT),
++                            "owned TREE_ACCESS scaffold left at " + base.up(i));
++                }
++                finish(context, f);
++                return;
++            }
++
++            TreeHarvestWorkset.Snapshot snapshot = task.treeWorksetSnapshot();
++            if (snapshot == null) return;
++            if (!droppedToGround[0]) {
++                if (snapshot.candidates().size() < 8) return;
++                for (int i = 0; i < 3; i++) set(f.world, stand.up(i), Blocks.AIR);
++                f.bot.teleport(f.world, stand.getX() + .5D, stand.getY(), stand.getZ() + .5D, Set.of(), 0, 0, true);
++                f.bot.setOnGround(true);
++                droppedToGround[0] = true;
++                return;
++            }
++            List<TreeHarvestWorkset.TemporarySupport> placed = snapshot.supports().stream()
++                    .filter(s -> s.state() == TreeHarvestWorkset.SupportState.PLACED)
++                    .toList();
++            maxConcurrentPlaced[0] = Math.max(maxConcurrentPlaced[0], placed.size());
++            if (placed.size() >= 2) {
++                sawTwoConcurrent[0] = true;
++                require(context,
++                        placed.stream().map(TreeHarvestWorkset.TemporarySupport::pos)
++                                .distinct().count() >= 2,
++                        "two concurrent receipts must represent distinct support cells: " + placed);
++                require(context,
++                        placed.stream().allMatch(s ->
++                                "gt-access-continuation-owner".equals(s.ownerExecution())
++                                        && "TREE_ACCESS".equals(s.purpose())),
++                        "stacked support lost exact execution provenance: " + placed);
++            }
++            if (sawTwoConcurrent[0] && !snapshot.supports().isEmpty()
++                    && placed.isEmpty()) {
++                sawReverseCleanupAfterStack[0] = true;
++            }
++        });
++    }
++
+     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc2a02_debt", tickLimit = 500)
+     public void mc2a02ModifiedOwnedSupportBecomesCleanupDebtAndIsNotRemoved(TestContext context) {
+         Fixture f = fixture(context, 14);
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/task/TreeAccessContinuationSourceContractTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/task/TreeAccessContinuationSourceContractTest.java
+new file mode 100644
+index 0000000..28644dc
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/task/TreeAccessContinuationSourceContractTest.java
+@@ -0,0 +1,56 @@
++package io.github.zoyluo.aibot.task;
++
++import org.junit.jupiter.api.Test;
++
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++
++import static org.junit.jupiter.api.Assertions.assertFalse;
++import static org.junit.jupiter.api.Assertions.assertTrue;
++
++/**
++ * Source-contract guard for the MC-2A0.2F state-machine closure.
++ *
++ * The physical TreeHarvestWorkset already knows how to stack supports. The regression lived in
++ * GatherQuotaTask: SURVEY treated the mere existence of support #1 as a request to clean it up.
++ */
++final class TreeAccessContinuationSourceContractTest {
++    private static final Path TASK =
++            Path.of("src/main/java/io/github/zoyluo/aibot/task/GatherQuotaTask.java");
++
++    @Test
++    void activeTreeAccessSupportIsContinuationStateNotImmediateCleanupTrigger() throws IOException {
++        String source = Files.readString(TASK);
++        int surveyStart = source.indexOf("private void surveyCommittedTree(AIPlayerEntity bot)");
++        int cleanupStart = source.indexOf("private void treeCleanup(AIPlayerEntity bot)", surveyStart);
++        assertTrue(surveyStart >= 0 && cleanupStart > surveyStart,
++                "MC-2A0.2 committed-tree state-machine methods must exist");
++
++        String survey = source.substring(surveyStart, cleanupStart);
++        assertTrue(survey.contains("treeWorkset.tickAccess(bot, next)"),
++                "SURVEY must keep driving the same workset access transaction");
++        assertFalse(survey.contains("if (treeWorkset.hasTemporarySupports())"),
++                "a live TREE_ACCESS receipt must not immediately route SURVEY into cleanup");
++
++        // Cleanup authority still exists, but only from explicit lifecycle points.
++        assertTrue(source.contains("case TREE_CLEANUP -> treeCleanup(bot);"));
++        assertTrue(source.contains(
++                "phase = treeWorkset != null && treeWorkset.hasTemporarySupports()"));
++        assertTrue(source.contains("? Phase.TREE_CLEANUP : Phase.PICKUP;"),
++                "a resolved committed log with owned supports must still enter reverse cleanup");
++    }
++
++    @Test
++    void genericPathPillarRemainsOutsideTreeAccessOwnership() throws IOException {
++        String workset = Files.readString(Path.of(
++                "src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java"));
++        // Javadoc explicitly contrasts TREE_ACCESS with the generic pillar; only executable
++        // code is the ownership boundary being asserted here.
++        String codeOnly=workset.replaceAll("(?s)/\\*.*?\\*/","");
++        assertFalse(codeOnly.contains("PILLAR_UP"));
++        assertTrue(workset.contains("\"TREE_ACCESS\""));
++        assertTrue(workset.contains("ownerExecution"),
++                "tree support receipts must remain execution-scoped");
++    }
++}
+diff --git a/aibot-dsh-m0/scripts/apply_to_aibot.py b/aibot-dsh-m0/scripts/apply_to_aibot.py
+index 3b56348..c43c28f 100644
+--- a/aibot-dsh-m0/scripts/apply_to_aibot.py
++++ b/aibot-dsh-m0/scripts/apply_to_aibot.py
+@@ -569,6 +569,31 @@ CHANGES = {
+     private int countAccepted(AIPlayerEntity bot) {
+         return acceptedInventoryCount(bot, targetItem);
+     }''', 1),
++  # MC-2A0.2F closure: a placed TREE_ACCESS support is continuation state, not a
++  # cleanup trigger. The old generated state machine entered TREE_CLEANUP on the
++  # very next tick after placing support #1, removed it, then returned to SURVEY
++  # and placed the same cell again forever. TreeHarvestWorkset.tickAccess already
++  # proves/owns the top pose and can stack support #2+; keep those receipts live
++  # until the current committed log is resolved (harvest() then explicitly enters
++  # TREE_CLEANUP), or until a blocker/debt path explicitly requests cleanup.
++  ('''    private void surveyCommittedTree(AIPlayerEntity bot) {
++        treeWorkset.reconcile(bot);
++        if (treeWorkset.hasCleanupDebt()) {
++            fail("tree_cleanup_debt:" + treeWorkset.cleanupDebt());
++            return;
++        }
++        if (treeWorkset.hasTemporarySupports()) {
++            phase = Phase.TREE_CLEANUP;
++            return;
++        }
++        if (treeWorkset.hasPendingPickup()) {''',
++   '''    private void surveyCommittedTree(AIPlayerEntity bot) {
++        treeWorkset.reconcile(bot);
++        if (treeWorkset.hasCleanupDebt()) {
++            fail("tree_cleanup_debt:" + treeWorkset.cleanupDebt());
++            return;
++        }
++        if (treeWorkset.hasPendingPickup()) {''', 1),
+  ]),
+  'action/BlockMiner.java': ('9daf997724dddecdf363611a50c904315a3c6077', [
+   ('''            Direction face = faceToward(bot, target);

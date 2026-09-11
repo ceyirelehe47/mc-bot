@@ -1,0 +1,923 @@
+diff --git a/aibot-dsh-m0/SHA256SUMS b/aibot-dsh-m0/SHA256SUMS
+index c57637e..0038283 100644
+--- a/aibot-dsh-m0/SHA256SUMS
++++ b/aibot-dsh-m0/SHA256SUMS
+@@ -7,12 +7,12 @@ d09ec1adb1255fe5fca15844cfec86aab5677b4d8cefe78090f71bd95c1d5aa6  aibot-overlay/
+ 8402333c70be2cfad393de9f700a5a9320adc96cb1222ec13a1a46e5bbec0374  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01FClosureGameTests.java
+ d19f27c2b895b4c427cab0403e91d63059f820338492f1667491c7acd43436d1  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
+ 761dccf15a2d6b3e43bac3a867b6635155aadcee7347a72a3661a92d9654792b  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A0CognitiveViewGameTests.java
+-84bfced101a24b8fb32d3fcff3060d52f664c4d5bb85f442959e634c95505366  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
++f86186d288889cc1dabfb620f9371f98b6e410d34102d96e451d951064851031  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+ 73cea3d91de06f6b6535d2499fe00164fdf5a48b8d5803709bde8a4b5de41588  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BreakPolicy.java
+ dc505946bacfdda09068a4f33ff9ec372436fe06fef06c52c6624b53d70e26e1  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeFault.java
+-6159cdb4e8c0a470fce4586da1ec7864029961dce6655b21432a91f93590b609  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
++0f29a3bba773e96ad17f90be012a839230161eb0cdc383fae60cae122ffc9171  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
+ b34ee4eabe2d578f3c5f7b8b471e699957a54510e8d7e9775ab184dc7ac49f14  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeJournal.java
+-a409add0b850f95d378f08449c770eb083d76a764bd3c05e13fd13995b142006  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
++815fca63a18087221681fc11d577969a9fd1cbb606dbe655a8ebcc995940540e  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+ dd39e0913f021d781975f59b6438e898427c31ffdb0d92eaf664123b623223d6  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CanonicalJson.java
+ 844082a96f195297e0964634db74393644fd957c2aa27a899878b459482c30d9  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveInspector.java
+ 408163155c219f6dfe357e78168af39e9d03670337b59622a382814147df064a  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveSnapshot.java
+@@ -20,15 +20,18 @@ dd39e0913f021d781975f59b6438e898427c31ffdb0d92eaf664123b623223d6  aibot-overlay/
+ 406469e8ec89679b647580b59501ea4887bebfc4598d1e90e2c6b3f904b99b6b  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/EvidenceRef.java
+ 0f0501c7cccead59093e71cc94ed412b48768e3ad5bba8249d43a384a9c81627  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/StructureKnowledge.java
+ 38f92dea13b36cb38bed701b75e1dae1c5e7cd43d87435b0d1ac8f887e85c5ef  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
+-8f10bdf5dd9fb250033db953a8a841f776cd6f21abeaec9aeb18778581934401  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
++29118fd8f5e409b18922ed3dad4182ab494e12b7db06e060ff468f7f70af81ba  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+ 2aa84671efa0545c7247d36d92ab3d899222798f1d5158e4b0af34b3fcbef575  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/HomeBlockEquivalence.java
+ aadb1abb0cebe4658c20bce3267566105c11ac2a9aaf05c0fc7b6b75dc01acc9  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/JsonOutput.java
+ 1ab3f12711cc4b33f26a9cdb41c0c8279f40c0d3a7dd15fd91cd4a2a10a0ac09  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java
+-a5b541a62ddbe25a03c1b5ca480b8972b951ab8ad73ee82c24793a55e10c2428  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
++8e0a3cc6b0810ba11481f4b50fbf2fc04b1da2010e6d41828312b067e1f707b8  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+ f127d98a2f18ae61026d21f6aee22b121ae6335426a07c92afc6c594dbe52179  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/NaturalTreeClassifier.java
+ 8043330c8cd6536da6881762e5574bde9a737e6cb7d9222133885c6df2731222  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
++ac60b411ec608fda0d8c86802d07bdc08d107e850ff0398a07e931c79c8169bf  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
+ 0a856caa0f3e9f1d5746f6c1a3ad25f82e2e92af126cf19f21d9e43864855c48  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
+ f67eafd4066d92c844c39634ec7ce5144a91f0e6c7a1c57695f2bfa50e84ecb6  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/cognition/CognitiveCanonicalizationTest.java
++8d4f02fbcc991f980ba34ee24afde8b42b6bfe94230662a44f053a06741908e4  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphBridgeSourceContractTest.java
++cfb34fa1f8d625457bd18bb064bcc11e1719de9fc28900181e63edef8c9819d2  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
+ 715f92a6d45615f09ba1ba00d869333424fe8767732fb739c24ad151d1d23c83  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TreeHarvestSourceContractTest.java
+ 402298d4cc2129eb5000699cd508fa4f80db16c8966054c58d09b54a389ee7db  aibot-overlay/src/test/java/io/github/zoyluo/aibot/task/TreeAccessContinuationSourceContractTest.java
+ a5d9e7654839fa94e1a5827bf12f3b8ec7850eb45de63c36e1f3ab314a14f7b3  BASELINES.json
+@@ -37,16 +40,16 @@ d2ec3382024107c0773fb279f4a4eb1c6be3edb429c2603d93bd86fca973b257  bridge-tests/B
+ c6ac2a30c4bbe8f4c940381ba66c6170624326dd3883eb611f280d990c7e89f4  docs/GLM_HANDOFF.zh-CN.md
+ 15e98e4de9ad6734654f6eace6b5df4fde1ccade112a996ce1ce73a698f17b98  docs/IMPLEMENTATION.zh-CN.md
+ 051c7b8027b31da758cd74e05c4122f3600c5742382ee273b4cb969753b113ed  dsh-plugin/package.json
+-3687d4fce516eaf1d75b765370aa1ce3a8be3f20c9ef2e496d3dcf36d7546c60  dsh-plugin/src/client.mjs
++7f4b56fcd01caf6d5142e2c375aa03946c11addba4d38196a1011935deaa9372  dsh-plugin/src/client.mjs
+ 4aa7c0bb411b274c643195450e8947c32a856d7bab6c75ab72a3fa020ac13f0a  dsh-plugin/src/cursor.mjs
+ a730a6b2fbc854e3b2373eca0b59f8ec9ca9d08d30dd4cd81263b71138f9dd73  dsh-plugin/src/events.mjs
+ 5bba18b13346761fe4a695cd6aa86d8213ba3f5665c90e79aabdf23838bbd2c8  dsh-plugin/src/index.ts
+-d7679e130dfb9692a8359a6d80948808053ecadaf92a0d886d5f3791f13fbfb8  dsh-plugin/src/plugin.mjs
++b5137bbcb16b6c3a25f4a1e36dfb7bb2b76e803716e107c229da5853cc21b871  dsh-plugin/src/plugin.mjs
+ 483807e62afcedaab35a82799e688b81b391e1c1f2195ff7b851c198b163d3fc  dsh-plugin/test/client.test.mjs
+ efd02d7170afbfc4c5ba8c27102b6e06ac1edc33df90a873cc49f4efb1df0e5c  dsh-plugin/test/events.test.mjs
+ 171b0ddb09e87d31455bc991f6aeca311ab95fae659a1ef1551e0269cc32e8a3  dsh-plugin/test/FakeBridgeServer.java
+ 1c7eeb58ab8da020082122b1cbe571431fe3ec7c23faa671ee4eebd2475561bc  dsh-plugin/test/http-integration.test.mjs
+-8ecc096cfd6a9f0899d796c1b3d57310e0687bf7aedb8d3ac8839b036b3adb05  dsh-plugin/test/plugin.test.mjs
++3543e819128f9844334e1b3a693d147d7700656987523d5be7c79e4b306e19cb  dsh-plugin/test/plugin.test.mjs
+ 9a985741d658fccf3c818ab84903e895ed7c061d84df6f86f96b9e95ef1dfe10  evidence/aibot-external-body-m0.patch
+ ca3481ca96325acae0a44b629f64f7f9f0268a5df0be1effbd5aecda91415876  evidence/baseline-gradle-build.txt
+ ae3edaf7d2e0cdfbd9919e0c89fcabbc6c593118515e82a13567005dc10bbf08  evidence/baseline-test-report/test/css/base-style.css
+@@ -139,7 +142,7 @@ bcd67ba3449c762ebe7b05676f2df63b13ee31bbf7a9846b85b86d97052b06a1  README.zh-CN.m
+ ed3c8e4f25aa1ac7040016f63cc3f60366f7b89ff6184fb0349230890ee59c5c  scripts/gen_sums.py
+ 2998c9e64070e49795daf13683f4b985b6121defe8a59d00cc11994efb268de7  scripts/inspect_bridge.mjs
+ 927171b7d97f166b257d622320798a4f59d7ab9ba9398a3ae94b003d0fbdad07  scripts/install_dsh_plugin.py
+-cd0d328d5471cf90d2d7f7fbd2dd116be5a126019fe228bf2c3a5e59db6fdc12  scripts/test.sh
++3e3b3f695024c48a4dad1aea9026b78ea1607999a6a53678664d5e61570d9f0e  scripts/test.sh
+ cecb19297b624492256d352196c99c5043cbddc22c883712bae0f92cff1b04bb  scripts/test_installers.py
+ f87530c098dac204ca29ff73c1ed96599cc617a29e2b738525f2e71e5e529a48  UPSTREAM-NOTICE.md
+ c5a74497c5da20a057c6e89ea9d9f7ca138cea180a07430af2aa2e9ec8146329  VERIFICATION.json
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+index 4942054..095c85f 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+@@ -41,6 +41,30 @@ public interface BodyBackend {
+     default long serverTick() {
+         return -1L;
+     }
++    // ---- MC-2A Graph Core: postconditions are revalidated on the server thread ----
++    enum GraphPostconditionState { SATISFIED, UNSATISFIED, UNKNOWN }
++    record GraphPostconditionResult(GraphPostconditionState state,String reason) {
++        public GraphPostconditionResult {
++            java.util.Objects.requireNonNull(state);
++            reason=reason==null?"":reason;
++        }
++        public static GraphPostconditionResult satisfied(String reason) {
++            return new GraphPostconditionResult(GraphPostconditionState.SATISFIED,reason);
++        }
++        public static GraphPostconditionResult unsatisfied(String reason) {
++            return new GraphPostconditionResult(GraphPostconditionState.UNSATISFIED,reason);
++        }
++        public static GraphPostconditionResult unknown(String reason) {
++            return new GraphPostconditionResult(GraphPostconditionState.UNKNOWN,reason);
++        }
++    }
++    /**
++     * Read-only proof used after a physical execution terminates. Never starts/replays work.
++     * Backends that cannot prove a postcondition must return UNKNOWN, never false certainty.
++     */
++    default GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition postcondition) {
++        return GraphPostconditionResult.unknown("backend_postcondition_not_supported");
++    }
+     interface Handle {
+         /** No lookup of global lastStatus: that could refer to a different safety task. */
+         Snapshot snapshot();
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
+index 0517078..6a6e0d7 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
+@@ -71,6 +71,20 @@ public final class BridgeHttpServer implements AutoCloseable {
+                 try { radius=Integer.parseInt(local.getOrDefault("radius","4")); }
+                 catch(NumberFormatException bad) { throw new BridgeFault(400,"invalid_radius"); }
+                 result=awaitLocal(kernel.submitLocalQuery(radius,local.get("detail")));
++            } else if(method.equals("GET") && path.equals("/v1/graphs")) {
++                result=kernel.graphList();
++            } else if(method.equals("POST") && path.equals("/v1/graphs/opportunity")) {
++                Map<String,String> q=query(x.getRequestURI().getRawQuery());
++                result=kernel.graphPlanOpportunity(lease,q.get("plan_key"),q.get("ref")); status=201;
++            } else if(path.startsWith("/v1/graphs/")) {
++                String[] parts=path.split("/",-1);
++                if(parts.length==4 && method.equals("GET")) {
++                    result=kernel.graphInspect(parts[3]);
++                } else if(parts.length==5 && method.equals("POST") && "run-next".equals(parts[4])) {
++                    result=kernel.graphRunNext(lease,request,parts[3]); status=202;
++                } else if(parts.length==5 && method.equals("POST") && "cancel".equals(parts[4])) {
++                    result=kernel.graphCancel(lease,parts[3],query(x.getRequestURI().getRawQuery()).get("reason"));
++                } else throw new BridgeFault(404,"route_not_found");
+             } else if(path.startsWith("/v1/executions/")) {
+                 String[] parts=path.split("/",-1);
+                 if(parts.length==4 && method.equals("POST")) {
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+index 2ee6155..b918167 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+@@ -16,6 +16,7 @@ public final class BridgeKernel {
+     private static final long LEASE_MS=30000, OBSERVATION_MAX_AGE_MS=5000;
+     private final BridgeJournal journal;
+     private final BodyBackend backend;
++    private final TaskGraphStore graphs;
+     private final LongSupplier mono;
+     private final Map<String,Execution> byId=new LinkedHashMap<>();
+     private final Map<String,Execution> byRequest=new HashMap<>();
+@@ -67,10 +68,16 @@ public final class BridgeKernel {
+         }
+     }
+     public BridgeKernel(BridgeJournal journal, BodyBackend backend) {
+-        this(journal,backend,()->System.nanoTime()/1_000_000L);
++        this(journal,backend,()->System.nanoTime()/1_000_000L,TaskGraphStore.memory());
+     }
+     public BridgeKernel(BridgeJournal journal,BodyBackend backend,LongSupplier monotonicMillis) {
+-        this.journal=journal; this.backend=backend; this.mono=monotonicMillis;
++        this(journal,backend,monotonicMillis,TaskGraphStore.memory());
++    }
++    public BridgeKernel(BridgeJournal journal,BodyBackend backend,TaskGraphStore graphs) {
++        this(journal,backend,()->System.nanoTime()/1_000_000L,graphs);
++    }
++    BridgeKernel(BridgeJournal journal,BodyBackend backend,LongSupplier monotonicMillis,TaskGraphStore graphs) {
++        this.journal=journal; this.backend=backend; this.mono=monotonicMillis; this.graphs=Objects.requireNonNull(graphs);
+         recover();
+         event("runtime_started","",Map.of("runtime_epoch",runtimeEpoch));
+     }
+@@ -237,6 +244,51 @@ public final class BridgeKernel {
+         Control c=controls.get(id); if(c!=null) return c.wire();
+         throw new BridgeFault(404,"request_not_found");
+     }
++    // ---- MC-2A Graph Core v0: explicit plan -> durable fragment -> explicit dispatch ----
++    public synchronized Map<String,Object> graphList() {
++        requireHealthy(); return graphs.list();
++    }
++    public synchronized Map<String,Object> graphInspect(String graphId) {
++        requireHealthy(); return graphs.inspect(graphId);
++    }
++    public synchronized Map<String,Object> graphPlanOpportunity(String supplied,String planKey,String evidenceRef) {
++        requireLease(supplied); requireReady(); identifier(planKey);
++        if(evidenceRef==null || evidenceRef.isBlank()) throw new BridgeFault(400,"invalid_evidence_ref");
++        EvidenceRef.Parsed parsed=EvidenceRef.parse(evidenceRef);
++        if(!"opportunity".equals(parsed.kind())) throw new BridgeFault(400,"graph_plan_requires_opportunity_ref");
++        if(cognitive==null) throw new BridgeFault(503,"cognitive_view_unavailable:"+cognitiveFault);
++        CognitiveSnapshot.EvidenceDescriptor descriptor=cognitive.inspectIndex().get(evidenceRef);
++        if(descriptor==null) throw new BridgeFault(404,"evidence_ref_not_in_current_view");
++        return graphs.planOpportunity(planKey,new TaskGraphStore.SpatialRef(
++                parsed.worldId(),parsed.dimension(),parsed.objectId()));
++    }
++    public synchronized Map<String,Object> graphRunNext(String supplied,String callerRequest,String graphId) {
++        requireLease(supplied); identifier(callerRequest); requireReady();
++        if(needsReconcile) throw new BridgeFault(409,"observe_required_before_new_work");
++        Optional<String> already=graphs.runningExecution(graphId);
++        if(already.isPresent()) return Map.of("graph",graphs.inspect(graphId),"execution",execution(already.get()));
++        if(active!=null) throw new BridgeFault(409,"execution_in_progress");
++        TaskGraphStore.Dispatch d=graphs.prepareDispatch(graphId);
++        try {
++            Map<String,Object> execution=submit(supplied,d.requestId(),d.operation(),d.arguments());
++            String executionId=String.valueOf(execution.get("execution_id"));
++            graphs.attachExecution(d,executionId);
++            return Map.of("graph",graphs.inspect(graphId),"execution",execution);
++        } catch(RuntimeException failure) {
++            graphs.rejectPreparedDispatch(d,failure instanceof BridgeFault f?f.code:failure.getClass().getSimpleName());
++            throw failure;
++        }
++    }
++    public synchronized Map<String,Object> graphCancel(String supplied,String graphId,String reason) {
++        requireLease(supplied);
++        Optional<String> running=graphs.runningExecution(graphId);
++        if(running.isPresent()) {
++            Execution e=byId.get(running.get());
++            if(e!=null && !TERMINAL.contains(e.state))
++                throw new BridgeFault(409,"graph_has_running_execution_cancel_execution_first");
++        }
++        return graphs.cancel(graphId,reason==null?"external_replan":reason);
++    }
+     private static String fingerprint(String type,String payload) {
+         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                 .digest((type+"\n"+payload).getBytes(StandardCharsets.UTF_8))); }
+@@ -298,6 +350,8 @@ public final class BridgeKernel {
+         try { persistExecution(e,false); }
+         catch(RuntimeException ex) { e.state=oldState; e.progress=oldProgress; e.reason=oldReason; throw ex; }
+         if(TERMINAL.contains(state) && active==e) active=null;
++        if(TERMINAL.contains(state))
++            graphs.executionTerminal(e.id,state,backend::verifyGraphPostcondition);
+     }
+     private void event(String kind,String executionId,Map<String,Object> payload) {
+         journal.append(Map.of("kind",kind,"execution_id",executionId,"payload",JsonOutput.encode(payload)));
+@@ -328,6 +382,9 @@ public final class BridgeKernel {
+             }
+             ready=true; observation=backend.observeJson(); observedAt=mono.getAsLong();
+             lastServerTick=backend.serverTick();
++            // Reconcile-only: a suspended graph may become DONE if the world now proves its
++            // postcondition. This path never re-dispatches an unknown mutation.
++            graphs.reconcileSuspended(backend::verifyGraphPostcondition);
+             // 认知快照独立刷新:构建失败只令 view/inspect 503,绝不拖垮 observe/execution 主链。
+             if(cognitive==null || lastServerTick-cognitiveTick>=5 || lastServerTick<cognitiveTick) {
+                 try { cognitive=backend.cognitiveSnapshot(journal); cognitiveTick=lastServerTick; cognitiveFault=""; }
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+index d60771c..e2f7bb5 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+@@ -26,8 +26,10 @@ public final class ExternalBodyRuntime {
+             String token=System.getenv("AIBOT_BRIDGE_TOKEN");
+             int port=Integer.parseInt(System.getenv().getOrDefault("AIBOT_BRIDGE_PORT","8765"));
+             if(port<1024 || port>65535)throw new IllegalArgumentException("invalid_bridge_port");
+-            journal=new BridgeJournal(server.getSavePath(WorldSavePath.ROOT).resolve("aibot/external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".journal"),System::currentTimeMillis);
+-            kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME));
++            var bodyRoot=server.getSavePath(WorldSavePath.ROOT).resolve("aibot");
++            journal=new BridgeJournal(bodyRoot.resolve("external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".journal"),System::currentTimeMillis);
++            var graphs=new TaskGraphStore(bodyRoot.resolve("task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".bin"),System::currentTimeMillis);
++            kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME),graphs);
+             kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
+             http=new BridgeHttpServer(kernel,port,token);http.start();
+             observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+index 5ca4a17..3c6622a 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+@@ -107,6 +107,23 @@ public final class MinecraftBodyBackend implements BodyBackend {
+         return io.github.zoyluo.aibot.external.cognition.CognitiveInspector.materialize(bot,semanticSnapshot,gameTime,ref,detail);
+     }
+     @Override public long serverTick() { onThread(); return server.getTicks(); }
++    @Override public GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition postcondition) {
++        onThread();
++        if(bot==null || !bot.isAlive()) return GraphPostconditionResult.unknown("body_unavailable");
++        TaskGraphStore.SpatialRef ref=postcondition.subject();
++        if(!SemanticWorldRegistry.worldId().equals(ref.worldId()))
++            return GraphPostconditionResult.unknown("world_scope_mismatch");
++        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
++        if(!dimension.equals(ref.dimensionId()))
++            return GraphPostconditionResult.unknown("dimension_not_current");
++        if("OPPORTUNITY_RESOLVED".equals(postcondition.kind())) {
++            var remaining=SemanticWorldRegistry.opportunity(bot,ref.objectId());
++            return remaining.isEmpty()
++                    ? GraphPostconditionResult.satisfied("opportunity_absent_from_current_registry")
++                    : GraphPostconditionResult.unsatisfied("opportunity_still_"+remaining.get().status().toLowerCase(java.util.Locale.ROOT));
++        }
++        return GraphPostconditionResult.unknown("unsupported_graph_postcondition");
++    }
+     private Map<String,Integer> inventory() {
+         Map<String,Integer> counts=new TreeMap<>();
+         for(int i=0;i<bot.getInventory().size();i++) {
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
+new file mode 100644
+index 0000000..e267f11
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
+@@ -0,0 +1,399 @@
++package io.github.zoyluo.aibot.external;
++
++import java.io.*;
++import java.nio.channels.FileChannel;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.*;
++import java.security.MessageDigest;
++import java.security.NoSuchAlgorithmException;
++import java.util.*;
++import java.util.function.Function;
++import java.util.function.LongSupplier;
++
++/**
++ * MC-2A Graph Core v0.
++ *
++ * <p>Durable operational DAG state only. This is deliberately not a planner and owns no Minecraft
++ * mutation authority. A node may start physical work only when BridgeKernel explicitly dispatches
++ * it through the existing execution ledger.</p>
++ */
++public final class TaskGraphStore {
++    private static final byte[] MAGIC="AIBODYGR1".getBytes(StandardCharsets.US_ASCII);
++    private static final int VERSION=1, MAX_GRAPHS=128, MAX_NODES=64, MAX_DEPS=16;
++    private static final long MAX_BYTES=2L*1024*1024;
++
++    public enum NodeState {
++        PENDING, BLOCKED, READY, RUNNING, SUSPENDED, DONE, FAILED, CANCELLED, STALE
++    }
++    public record SpatialRef(String worldId,String dimensionId,String objectId) {
++        public SpatialRef {
++            worldId=boundedId(worldId,"world_id",160);
++            dimensionId=boundedId(dimensionId,"dimension_id",160);
++            objectId=boundedId(objectId,"object_id",160);
++        }
++        String claimKey(String kind) { return kind+"|"+worldId+"|"+dimensionId+"|"+objectId; }
++        Map<String,Object> wire() {
++            return Map.of("world_id",worldId,"dimension_id",dimensionId,"object_id",objectId);
++        }
++    }
++    public record Postcondition(String kind,SpatialRef subject) {
++        public Postcondition {
++            if(!Set.of("OPPORTUNITY_RESOLVED").contains(kind)) throw new IllegalArgumentException("unsupported_graph_postcondition");
++            Objects.requireNonNull(subject);
++        }
++    }
++    public record NodeSpec(String id,Set<String> dependencies,String operation,String arguments,
++                           SpatialRef subject,Postcondition postcondition,String resourceClaim) {
++        public NodeSpec {
++            id=boundedId(id,"node_id",96);
++            dependencies=dependencies==null?Set.of():Set.copyOf(dependencies);
++            if(dependencies.size()>MAX_DEPS) throw new IllegalArgumentException("too_many_dependencies");
++            if(operation==null || !BridgeKernel.OPERATIONS.contains(operation)) throw new IllegalArgumentException("unsupported_graph_operation");
++            if(arguments==null || arguments.getBytes(StandardCharsets.UTF_8).length>16384) throw new IllegalArgumentException("graph_arguments_too_large");
++            Objects.requireNonNull(subject); Objects.requireNonNull(postcondition);
++            resourceClaim=boundedId(resourceClaim,"resource_claim",400);
++        }
++    }
++    public record Dispatch(String graphId,String nodeId,String requestId,String operation,String arguments) {}
++    private static final class Node {
++        String id,operation,arguments,resourceClaim,executionId="",dispatchRequest="",reason="";
++        SpatialRef subject; Postcondition postcondition;
++        LinkedHashSet<String> dependencies=new LinkedHashSet<>();
++        NodeState state=NodeState.PENDING;
++        int attempt;
++    }
++    private static final class Graph {
++        String id,producerKey,planKey,producerKind;
++        long createdAt,updatedAt;
++        LinkedHashMap<String,Node> nodes=new LinkedHashMap<>();
++    }
++
++    private final Path path;
++    private final LongSupplier clock;
++    private final LinkedHashMap<String,Graph> graphs=new LinkedHashMap<>();
++    private final HashMap<String,String> producerIndex=new HashMap<>();
++    private final HashMap<String,String> claims=new HashMap<>();
++
++    public TaskGraphStore(Path path,LongSupplier clock) {
++        this.path=path==null?null:path.toAbsolutePath();
++        this.clock=Objects.requireNonNull(clock);
++        load();
++    }
++    public static TaskGraphStore memory() { return new TaskGraphStore(null,System::currentTimeMillis); }
++
++    /** Explicit LLM/user plan decision -> one finite operational fragment. No autonomous goal creation. */
++    public synchronized Map<String,Object> planOpportunity(String planKey,SpatialRef ref) {
++        planKey=boundedId(planKey,"plan_key",120);
++        String producerKey="opportunity|"+planKey+"|"+ref.worldId()+"|"+ref.dimensionId()+"|"+ref.objectId();
++        String existing=producerIndex.get(producerKey);
++        if(existing!=null) return inspect(existing);
++
++        String claim=ref.claimKey("opportunity");
++        String claimant=claims.get(claim);
++        if(claimant!=null && graphOwnsLiveClaim(graphs.get(claimant),claim))
++            throw new BridgeFault(409,"graph_resource_claim_conflict:"+claimant);
++
++        String graphId="graph-"+hash(producerKey).substring(0,24);
++        String nodeId="n-mine-"+hash(ref.objectId()).substring(0,12);
++        NodeSpec spec=new NodeSpec(nodeId,Set.of(),"mine_opportunity",
++                JsonOutput.encode(Map.of("id",ref.objectId())),ref,
++                new Postcondition("OPPORTUNITY_RESOLVED",ref),claim);
++        Graph g=createFragment(graphId,producerKey,planKey,"OPPORTUNITY_EXPLICIT",List.of(spec));
++        save();
++        return graphWire(g,true);
++    }
++
++    /** Generic finite-DAG seam for future deterministic producers. Not exposed as an LLM tool. */
++    private synchronized Graph createFragment(String graphId,String producerKey,String planKey,String producerKind,
++                                      List<NodeSpec> specs) {
++        if(graphs.size()>=MAX_GRAPHS) throw new BridgeFault(503,"task_graph_capacity_exhausted");
++        if(specs==null || specs.isEmpty() || specs.size()>MAX_NODES) throw new BridgeFault(400,"invalid_graph_fragment_size");
++        if(graphs.containsKey(graphId)) throw new BridgeFault(409,"graph_id_conflict");
++        Graph g=new Graph(); g.id=boundedId(graphId,"graph_id",96);
++        g.producerKey=boundedId(producerKey,"producer_key",400);
++        g.planKey=boundedId(planKey,"plan_key",120);
++        g.producerKind=boundedId(producerKind,"producer_kind",80);
++        g.createdAt=g.updatedAt=clock.getAsLong();
++        for(NodeSpec spec:specs) {
++            if(g.nodes.containsKey(spec.id())) throw new BridgeFault(400,"duplicate_graph_node");
++            Node n=new Node(); n.id=spec.id(); n.dependencies.addAll(spec.dependencies());
++            n.operation=spec.operation(); n.arguments=spec.arguments(); n.subject=spec.subject();
++            n.postcondition=spec.postcondition(); n.resourceClaim=spec.resourceClaim();
++            g.nodes.put(n.id,n);
++        }
++        validateDag(g);
++        for(Node n:g.nodes.values()) {
++            String owner=claims.get(n.resourceClaim);
++            if(owner!=null && graphOwnsLiveClaim(graphs.get(owner),n.resourceClaim))
++                throw new BridgeFault(409,"graph_resource_claim_conflict:"+owner);
++        }
++        refreshReadiness(g);
++        graphs.put(g.id,g); producerIndex.put(g.producerKey,g.id);
++        for(Node n:g.nodes.values()) if(isClaimHolding(n.state)) claims.put(n.resourceClaim,g.id);
++        return g;
++    }
++
++    public synchronized Map<String,Object> list() {
++        ArrayList<Map<String,Object>> items=new ArrayList<>();
++        for(Graph g:graphs.values()) items.add(graphWire(g,false));
++        return Map.of("schema","mc.task_graph.v0","graphs",items,"count",items.size());
++    }
++    public synchronized Map<String,Object> inspect(String graphId) {
++        Graph g=graphs.get(graphId);
++        if(g==null) throw new BridgeFault(404,"graph_not_found");
++        return graphWire(g,true);
++    }
++    public synchronized Optional<String> runningExecution(String graphId) {
++        Graph g=requireGraph(graphId);
++        return g.nodes.values().stream()
++                .filter(n->n.state==NodeState.RUNNING && !n.executionId.isBlank())
++                .map(n->n.executionId).findFirst();
++    }
++
++    /**
++     * Durable RUNNING admission comes before BridgeKernel physical submission. If known admission
++     * fails before an execution receipt exists, rejectPreparedDispatch rolls back to READY.
++     */
++    public synchronized Dispatch prepareDispatch(String graphId) {
++        Graph g=requireGraph(graphId);
++        for(Node n:g.nodes.values()) {
++            if(n.state==NodeState.RUNNING) throw new BridgeFault(409,"graph_node_already_running");
++            if(n.state==NodeState.SUSPENDED) throw new BridgeFault(409,"graph_suspended_reconcile_or_cancel");
++        }
++        refreshReadiness(g);
++        Node chosen=g.nodes.values().stream().filter(n->n.state==NodeState.READY)
++                .min(Comparator.comparing(n->n.id)).orElse(null);
++        if(chosen==null) throw new BridgeFault(409,"graph_has_no_ready_node");
++        chosen.state=NodeState.RUNNING; chosen.reason="dispatch_admitted";
++        chosen.attempt++;
++        chosen.dispatchRequest="graphd-"+hash(g.id+"|"+chosen.id+"|"+chosen.attempt).substring(0,40);
++        g.updatedAt=clock.getAsLong(); save();
++        return new Dispatch(g.id,chosen.id,chosen.dispatchRequest,chosen.operation,chosen.arguments);
++    }
++    public synchronized void attachExecution(Dispatch d,String executionId) {
++        Graph g=requireGraph(d.graphId()); Node n=requireNode(g,d.nodeId());
++        if(n.state!=NodeState.RUNNING || !n.dispatchRequest.equals(d.requestId()))
++            throw new BridgeFault(503,"graph_dispatch_state_mismatch");
++        n.executionId=boundedId(executionId,"execution_id",160);
++        n.reason="execution_attached"; g.updatedAt=clock.getAsLong(); save();
++    }
++    public synchronized void rejectPreparedDispatch(Dispatch d,String reason) {
++        Graph g=graphs.get(d.graphId()); if(g==null)return;
++        Node n=g.nodes.get(d.nodeId()); if(n==null)return;
++        if(n.state==NodeState.RUNNING && n.executionId.isBlank() && n.dispatchRequest.equals(d.requestId())) {
++            n.state=NodeState.READY; n.reason="dispatch_rejected:"+bound(reason,160);
++            n.dispatchRequest=""; g.updatedAt=clock.getAsLong(); save();
++        }
++    }
++
++    public synchronized void executionTerminal(String executionId,String state,
++            Function<Postcondition,BodyBackend.GraphPostconditionResult> verifier) {
++        for(Graph g:graphs.values()) for(Node n:g.nodes.values()) {
++            if(!executionId.equals(n.executionId)) continue;
++            if(n.state!=NodeState.RUNNING && n.state!=NodeState.SUSPENDED) return;
++            switch(state) {
++                case "completed" -> {
++                    BodyBackend.GraphPostconditionResult v=verifier.apply(n.postcondition);
++                    if(v.state()==BodyBackend.GraphPostconditionState.SATISFIED) {
++                        n.state=NodeState.DONE; n.reason="postcondition_satisfied:"+bound(v.reason(),160);
++                    } else if(v.state()==BodyBackend.GraphPostconditionState.UNSATISFIED) {
++                        n.state=NodeState.STALE; n.reason="postcondition_unsatisfied:"+bound(v.reason(),160);
++                    } else {
++                        n.state=NodeState.SUSPENDED; n.reason="postcondition_unknown:"+bound(v.reason(),160);
++                    }
++                }
++                case "failed" -> { n.state=NodeState.FAILED; n.reason="execution_failed"; }
++                case "cancelled" -> { n.state=NodeState.CANCELLED; n.reason="execution_cancelled"; }
++                case "outcome_unknown" -> { n.state=NodeState.SUSPENDED; n.reason="execution_outcome_unknown_no_replay"; }
++                default -> { return; }
++            }
++            g.updatedAt=clock.getAsLong(); refreshReadiness(g); rebuildClaims(); save(); return;
++        }
++    }
++
++    /** Restart / stale-evidence reconcile never dispatches. It can only prove a suspended node DONE. */
++    public synchronized void reconcileSuspended(Function<Postcondition,BodyBackend.GraphPostconditionResult> verifier) {
++        boolean dirty=false;
++        for(Graph g:graphs.values()) for(Node n:g.nodes.values()) if(n.state==NodeState.SUSPENDED) {
++            BodyBackend.GraphPostconditionResult v=verifier.apply(n.postcondition);
++            if(v.state()==BodyBackend.GraphPostconditionState.SATISFIED) {
++                n.state=NodeState.DONE; n.reason="reconciled_postcondition_satisfied:"+bound(v.reason(),160);
++                g.updatedAt=clock.getAsLong(); refreshReadiness(g); dirty=true;
++            }
++        }
++        if(dirty) { rebuildClaims(); save(); }
++    }
++
++    public synchronized Map<String,Object> cancel(String graphId,String reason) {
++        Graph g=requireGraph(graphId);
++        for(Node n:g.nodes.values()) if(n.state==NodeState.RUNNING)
++            throw new BridgeFault(409,"graph_has_running_execution_cancel_execution_first");
++        for(Node n:g.nodes.values()) if(isClaimHolding(n.state)) {
++            n.state=NodeState.CANCELLED; n.reason="graph_cancelled:"+bound(reason,160);
++        }
++        g.updatedAt=clock.getAsLong(); rebuildClaims(); save();
++        return graphWire(g,true);
++    }
++
++    private void refreshReadiness(Graph g) {
++        for(Node n:g.nodes.values()) if(n.state==NodeState.PENDING || n.state==NodeState.READY || n.state==NodeState.BLOCKED) {
++            boolean terminalBlock=false, allDone=true;
++            for(String depId:n.dependencies) {
++                Node dep=g.nodes.get(depId);
++                if(dep==null) throw new BridgeFault(503,"graph_dependency_missing");
++                if(Set.of(NodeState.FAILED,NodeState.CANCELLED,NodeState.STALE).contains(dep.state)) terminalBlock=true;
++                if(dep.state!=NodeState.DONE) allDone=false;
++            }
++            if(terminalBlock) { n.state=NodeState.BLOCKED; n.reason="dependency_terminal"; }
++            else if(allDone) { n.state=NodeState.READY; n.reason="dependencies_satisfied"; }
++            else { n.state=NodeState.PENDING; n.reason="waiting_dependencies"; }
++        }
++    }
++    private void validateDag(Graph g) {
++        for(Node n:g.nodes.values()) for(String dep:n.dependencies)
++            if(!g.nodes.containsKey(dep) || dep.equals(n.id)) throw new BridgeFault(400,"invalid_graph_dependency");
++        HashMap<String,Integer> marks=new HashMap<>();
++        for(String id:g.nodes.keySet()) visit(g,id,marks);
++    }
++    private static void visit(Graph g,String id,Map<String,Integer> marks) {
++        int mark=marks.getOrDefault(id,0);
++        if(mark==1) throw new BridgeFault(400,"graph_cycle");
++        if(mark==2)return;
++        marks.put(id,1);
++        for(String dep:g.nodes.get(id).dependencies) visit(g,dep,marks);
++        marks.put(id,2);
++    }
++    private boolean graphOwnsLiveClaim(Graph g,String claim) {
++        return g!=null && g.nodes.values().stream().anyMatch(n->claim.equals(n.resourceClaim)&&isClaimHolding(n.state));
++    }
++    private static boolean isClaimHolding(NodeState s) {
++        return Set.of(NodeState.PENDING,NodeState.BLOCKED,NodeState.READY,NodeState.RUNNING,NodeState.SUSPENDED).contains(s);
++    }
++    private void rebuildClaims() {
++        claims.clear();
++        for(Graph g:graphs.values()) for(Node n:g.nodes.values()) if(isClaimHolding(n.state)) {
++            String prior=claims.putIfAbsent(n.resourceClaim,g.id);
++            if(prior!=null && !prior.equals(g.id)) throw new BridgeFault(503,"graph_claim_collision_persisted");
++        }
++    }
++
++    private Graph requireGraph(String id) {
++        Graph g=graphs.get(id); if(g==null)throw new BridgeFault(404,"graph_not_found"); return g;
++    }
++    private static Node requireNode(Graph g,String id) {
++        Node n=g.nodes.get(id); if(n==null)throw new BridgeFault(404,"graph_node_not_found"); return n;
++    }
++    private Map<String,Object> graphWire(Graph g,boolean includeNodes) {
++        LinkedHashMap<String,Object> out=new LinkedHashMap<>();
++        out.put("graph_id",g.id); out.put("producer_kind",g.producerKind); out.put("producer_key",g.producerKey);
++        out.put("plan_key",g.planKey); out.put("state",graphState(g));
++        out.put("created_at_ms",g.createdAt); out.put("updated_at_ms",g.updatedAt);
++        if(includeNodes) {
++            ArrayList<Map<String,Object>> nodes=new ArrayList<>();
++            for(Node n:g.nodes.values()) {
++                LinkedHashMap<String,Object> w=new LinkedHashMap<>();
++                w.put("node_id",n.id); w.put("state",n.state.name()); w.put("dependencies",List.copyOf(n.dependencies));
++                w.put("operation",n.operation); w.put("subject_ref",n.subject.wire());
++                w.put("postcondition",n.postcondition.kind()); w.put("resource_claim",n.resourceClaim);
++                w.put("execution_id",n.executionId); w.put("dispatch_request_id",n.dispatchRequest);
++                w.put("attempt",n.attempt); w.put("reason",n.reason); nodes.add(w);
++            }
++            out.put("nodes",nodes);
++        }
++        return out;
++    }
++    private static String graphState(Graph g) {
++        if(g.nodes.values().stream().anyMatch(n->n.state==NodeState.RUNNING))return"RUNNING";
++        if(g.nodes.values().stream().anyMatch(n->n.state==NodeState.SUSPENDED))return"SUSPENDED";
++        if(g.nodes.values().stream().allMatch(n->n.state==NodeState.DONE))return"DONE";
++        if(g.nodes.values().stream().anyMatch(n->n.state==NodeState.FAILED))return"FAILED";
++        if(g.nodes.values().stream().anyMatch(n->n.state==NodeState.STALE))return"STALE";
++        if(g.nodes.values().stream().allMatch(n->n.state==NodeState.CANCELLED))return"CANCELLED";
++        if(g.nodes.values().stream().anyMatch(n->n.state==NodeState.READY))return"READY";
++        if(g.nodes.values().stream().anyMatch(n->n.state==NodeState.BLOCKED))return"BLOCKED";
++        return"PENDING";
++    }
++
++    private void load() {
++        if(path==null || !Files.exists(path))return;
++        try {
++            if(Files.size(path)>MAX_BYTES)throw new IOException("graph_store_size_limit");
++            try(DataInputStream in=new DataInputStream(new BufferedInputStream(Files.newInputStream(path)))) {
++                byte[] magic=in.readNBytes(MAGIC.length); if(!Arrays.equals(magic,MAGIC))throw new IOException("bad_magic");
++                if(in.readInt()!=VERSION)throw new IOException("bad_version");
++                int count=in.readInt(); if(count<0||count>MAX_GRAPHS)throw new IOException("bad_graph_count");
++                for(int gi=0;gi<count;gi++) {
++                    Graph g=new Graph(); g.id=read(in,96);g.producerKey=read(in,400);g.planKey=read(in,120);g.producerKind=read(in,80);
++                    g.createdAt=in.readLong();g.updatedAt=in.readLong();
++                    int nc=in.readInt();if(nc<1||nc>MAX_NODES)throw new IOException("bad_node_count");
++                    for(int ni=0;ni<nc;ni++) {
++                        Node n=new Node();n.id=read(in,96);n.state=NodeState.valueOf(read(in,32));
++                        n.operation=read(in,80);n.arguments=read(in,16384);n.resourceClaim=read(in,400);
++                        n.subject=new SpatialRef(read(in,160),read(in,160),read(in,160));
++                        n.postcondition=new Postcondition(read(in,80),n.subject);
++                        n.executionId=read(in,160);n.dispatchRequest=read(in,160);n.reason=read(in,512);n.attempt=in.readInt();
++                        int dc=in.readInt();if(dc<0||dc>MAX_DEPS)throw new IOException("bad_dep_count");
++                        for(int di=0;di<dc;di++)n.dependencies.add(read(in,96));
++                        if(g.nodes.put(n.id,n)!=null)throw new IOException("duplicate_node");
++                    }
++                    validateDag(g);
++                    if(graphs.put(g.id,g)!=null)throw new IOException("duplicate_graph");
++                    if(producerIndex.put(g.producerKey,g.id)!=null)throw new IOException("duplicate_producer");
++                }
++                if(in.read()!=-1)throw new IOException("trailing_bytes");
++            }
++            rebuildClaims();
++            boolean dirty=false;
++            for(Graph g:graphs.values())for(Node n:g.nodes.values())if(n.state==NodeState.RUNNING){
++                n.state=NodeState.SUSPENDED;n.reason="restart_revalidation_required_no_replay";g.updatedAt=clock.getAsLong();dirty=true;
++            }
++            if(dirty){rebuildClaims();save();}
++        } catch(Exception e) {
++            graphs.clear();producerIndex.clear();claims.clear();
++            if(e instanceof BridgeFault f)throw f;
++            throw new BridgeFault(503,"task_graph_store_invalid");
++        }
++    }
++    private void save() {
++        if(path==null)return;
++        try {
++            Files.createDirectories(path.getParent());
++            Path temp=path.resolveSibling(path.getFileName()+".tmp");
++            try(DataOutputStream d=new DataOutputStream(new BufferedOutputStream(Files.newOutputStream(temp,
++                    StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING,StandardOpenOption.WRITE)))) {
++                d.write(MAGIC);d.writeInt(VERSION);d.writeInt(graphs.size());
++                for(Graph g:graphs.values()) {
++                    write(d,g.id,96);write(d,g.producerKey,400);write(d,g.planKey,120);write(d,g.producerKind,80);
++                    d.writeLong(g.createdAt);d.writeLong(g.updatedAt);d.writeInt(g.nodes.size());
++                    for(Node n:g.nodes.values()) {
++                        write(d,n.id,96);write(d,n.state.name(),32);write(d,n.operation,80);write(d,n.arguments,16384);
++                        write(d,n.resourceClaim,400);write(d,n.subject.worldId(),160);write(d,n.subject.dimensionId(),160);
++                        write(d,n.subject.objectId(),160);write(d,n.postcondition.kind(),80);write(d,n.executionId,160);
++                        write(d,n.dispatchRequest,160);write(d,n.reason,512);d.writeInt(n.attempt);
++                        d.writeInt(n.dependencies.size());for(String dep:n.dependencies)write(d,dep,96);
++                    }
++                }
++            }
++            if(Files.size(temp)>MAX_BYTES){Files.deleteIfExists(temp);throw new IOException("graph_store_size_limit");}
++            try(FileChannel ch=FileChannel.open(temp,StandardOpenOption.WRITE)){ch.force(true);}
++            try{Files.move(temp,path,StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);}
++            catch(AtomicMoveNotSupportedException e){Files.move(temp,path,StandardCopyOption.REPLACE_EXISTING);}
++        } catch(IOException e){throw new BridgeFault(503,"task_graph_store_io_failure");}
++    }
++    private static void write(DataOutputStream d,String value,int max)throws IOException{
++        byte[] b=value.getBytes(StandardCharsets.UTF_8);if(b.length>max)throw new IOException("string_too_large");d.writeInt(b.length);d.write(b);
++    }
++    private static String read(DataInputStream in,int max)throws IOException{
++        int n=in.readInt();if(n<0||n>max)throw new IOException("bad_string");return new String(in.readNBytes(n),StandardCharsets.UTF_8);
++    }
++    private static String boundedId(String value,String what,int max){
++        if(value==null||value.isBlank()||value.length()>max||value.chars().anyMatch(c->c<0x20))
++            throw new IllegalArgumentException("invalid_"+what);
++        return value;
++    }
++    private static String bound(String s,int max){return s==null?"":s.length()<=max?s:s.substring(0,max);}
++    private static String hash(String value){
++        try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}
++        catch(NoSuchAlgorithmException impossible){throw new AssertionError(impossible);}
++    }
++}
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphBridgeSourceContractTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphBridgeSourceContractTest.java
+new file mode 100644
+index 0000000..87327d5
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphBridgeSourceContractTest.java
+@@ -0,0 +1,46 @@
++package io.github.zoyluo.aibot.external;
++
++import org.junit.jupiter.api.Test;
++
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++final class TaskGraphBridgeSourceContractTest {
++    private static final Path KERNEL=Path.of("src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java");
++    private static final Path STORE=Path.of("src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java");
++
++    @Test void graphPhysicalDispatchMustReuseExistingBridgeExecutionLedger() throws IOException {
++        String source=Files.readString(KERNEL);
++        int start=source.indexOf("Map<String,Object> graphRunNext");
++        int end=source.indexOf("Map<String,Object> graphCancel",start);
++        assertTrue(start>=0 && end>start,"graph run/cancel seams missing");
++        String run=source.substring(start,end);
++        assertTrue(run.contains("submit(supplied,d.requestId(),d.operation(),d.arguments())"),
++                "Graph physical dispatch must enter the ordinary BridgeKernel.submit ledger");
++        assertFalse(run.contains("backend.start("),
++                "Graph must not create a second physical execution path");
++    }
++
++    @Test void graphPersistenceUsesSpatialRefsNotCopiedCoordinates() throws IOException {
++        String source=Files.readString(STORE);
++        int refStart=source.indexOf("record SpatialRef(");
++        int refEnd=source.indexOf("record Postcondition(",refStart);
++        assertTrue(refStart>=0 && refEnd>refStart);
++        String ref=source.substring(refStart,refEnd);
++        assertTrue(ref.contains("worldId") && ref.contains("dimensionId") && ref.contains("objectId"));
++        assertFalse(ref.matches("(?s).*\\b(x|y|z|seenX|seenY|seenZ)\\b.*"),
++                "SpatialRef must not duplicate mutable coordinates");
++    }
++
++    @Test void fixedTaskNodeLifecycleRemainsExplicit() throws IOException {
++        String source=Files.readString(STORE);
++        for(String state:new String[]{"PENDING","BLOCKED","READY","RUNNING","SUSPENDED",
++                "DONE","FAILED","CANCELLED","STALE"}) {
++            assertTrue(source.contains(state),"missing fixed graph node state "+state);
++        }
++        assertTrue(source.contains("restart_revalidation_required_no_replay"));
++    }
++}
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
+new file mode 100644
+index 0000000..2675c11
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
+@@ -0,0 +1,65 @@
++package io.github.zoyluo.aibot.external;
++
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.io.TempDir;
++
++import java.nio.file.Path;
++import java.util.Map;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++final class TaskGraphStoreTest {
++    @TempDir Path temp;
++
++    private static TaskGraphStore.SpatialRef ref(String id) {
++        return new TaskGraphStore.SpatialRef("world-a","minecraft:overworld",id);
++    }
++
++    @Test void producerIsIdempotentAndClaimsPreventCompetingPlan() {
++        TaskGraphStore store=new TaskGraphStore(temp.resolve("graphs.bin"),()->100L);
++        Map<String,Object> first=store.planOpportunity("plan-a",ref("opp-1"));
++        Map<String,Object> again=store.planOpportunity("plan-a",ref("opp-1"));
++        assertEquals(first.get("graph_id"),again.get("graph_id"));
++        BridgeFault conflict=assertThrows(BridgeFault.class,
++                ()->store.planOpportunity("plan-b",ref("opp-1")));
++        assertTrue(conflict.code.startsWith("graph_resource_claim_conflict"));
++    }
++
++    @Test void restartSuspendsRunningNodeAndNeverReplaysIt() {
++        Path file=temp.resolve("restart.bin");
++        TaskGraphStore a=new TaskGraphStore(file,()->100L);
++        String id=(String)a.planOpportunity("plan-a",ref("opp-1")).get("graph_id");
++        TaskGraphStore.Dispatch dispatch=a.prepareDispatch(id);
++        a.attachExecution(dispatch,"execution-1");
++
++        TaskGraphStore b=new TaskGraphStore(file,()->200L);
++        Map<String,Object> recovered=b.inspect(id);
++        assertEquals("SUSPENDED",recovered.get("state"));
++        BridgeFault blocked=assertThrows(BridgeFault.class,()->b.prepareDispatch(id));
++        assertEquals("graph_suspended_reconcile_or_cancel",blocked.code);
++
++        b.reconcileSuspended(pc->new BodyBackend.GraphPostconditionResult(
++                BodyBackend.GraphPostconditionState.SATISFIED,"opportunity_absent"));
++        assertEquals("DONE",b.inspect(id).get("state"));
++    }
++
++    @Test void completedExecutionNeedsPostconditionBeforeDone() {
++        TaskGraphStore store=TaskGraphStore.memory();
++        String id=(String)store.planOpportunity("plan-a",ref("opp-1")).get("graph_id");
++        TaskGraphStore.Dispatch d=store.prepareDispatch(id);store.attachExecution(d,"execution-1");
++        store.executionTerminal("execution-1","completed",pc->new BodyBackend.GraphPostconditionResult(
++                BodyBackend.GraphPostconditionState.UNSATISFIED,"still_present"));
++        assertEquals("STALE",store.inspect(id).get("state"));
++    }
++
++    @Test void outcomeUnknownSuspendsAndCancelReleasesClaim() {
++        TaskGraphStore store=TaskGraphStore.memory();
++        String id=(String)store.planOpportunity("plan-a",ref("opp-1")).get("graph_id");
++        TaskGraphStore.Dispatch d=store.prepareDispatch(id);store.attachExecution(d,"execution-1");
++        store.executionTerminal("execution-1","outcome_unknown",pc->BodyBackend.GraphPostconditionResult.unknown("unused"));
++        assertEquals("SUSPENDED",store.inspect(id).get("state"));
++        store.cancel(id,"replan");
++        assertEquals("CANCELLED",store.inspect(id).get("state"));
++        assertDoesNotThrow(()->store.planOpportunity("plan-b",ref("opp-1")));
++    }
++}
+diff --git a/aibot-dsh-m0/dsh-plugin/src/client.mjs b/aibot-dsh-m0/dsh-plugin/src/client.mjs
+index 272c7d3..2a5464e 100644
+--- a/aibot-dsh-m0/dsh-plugin/src/client.mjs
++++ b/aibot-dsh-m0/dsh-plugin/src/client.mjs
+@@ -92,6 +92,26 @@ export class BodyClient {
+   inspectLocal(radius, detail, signal) {
+     return this.request('POST', `/v1/inspect-local?radius=${encodeURIComponent(radius)}&detail=${encodeURIComponent(detail ?? 'summary')}`, { signal });
+   }
++  graphs(signal) { return this.request('GET', '/v1/graphs', { signal }); }
++  graphInspect(id, signal) { return this.request('GET', '/v1/graphs/' + encodeURIComponent(id), { signal }); }
++  graphPlanOpportunity(ref, planKey, signal) {
++    this.requireConnected();
++    return this.request('POST', `/v1/graphs/opportunity?plan_key=${encodeURIComponent(planKey)}&ref=${encodeURIComponent(ref)}`, { signal });
++  }
++  async graphRun(id, requestId, signal) {
++    this.requireConnected();
++    try {
++      return await this.request('POST', `/v1/graphs/${encodeURIComponent(id)}/run-next`, { requestId, signal });
++    } catch (e) {
++      if (e instanceof BridgeError && e.status < 500) throw e;
++      return { state: 'outcome_unknown', graph_id: id, lookup_required: true,
++        reason: 'Graph dispatch acknowledgement was lost. Inspect this exact graph; do not create a replacement plan.' };
++    }
++  }
++  graphCancel(id, reason, signal) {
++    this.requireConnected();
++    return this.request('POST', `/v1/graphs/${encodeURIComponent(id)}/cancel?reason=${encodeURIComponent(reason ?? 'external_replan')}`, { signal });
++  }
+   execution(id, signal) { return this.request('GET', '/v1/executions/' + encodeURIComponent(id), { signal }); }
+   async lookup(requestId, signal) {
+     const result = await this.request('GET', '/v1/requests/' + encodeURIComponent(requestId), { signal });
+diff --git a/aibot-dsh-m0/dsh-plugin/src/plugin.mjs b/aibot-dsh-m0/dsh-plugin/src/plugin.mjs
+index 2fa9294..120fd35 100644
+--- a/aibot-dsh-m0/dsh-plugin/src/plugin.mjs
++++ b/aibot-dsh-m0/dsh-plugin/src/plugin.mjs
+@@ -116,6 +116,24 @@ export function install(ctx, api, options = {}) {
+   register('mc_request_status', 'Resolve a lost acknowledgement with its exact request_id. Never resubmit an uncertain action using a new id.',
+     { request_id: string('Exact request_id from an outcome_unknown result.') },
+     async (args, exec) => bound(exec).client.lookup(args.request_id, exec.signal));
++  register('mc_graph_plan_opportunity', 'Persist one finite operational graph for an opportunity the LLM has explicitly chosen from the CURRENT mc_view. This records a plan decision; it does not start Minecraft work.',
++    { ref: string('Exact current opportunity evidence_ref copied from mc_view.'),
++      plan_key: string('Stable idempotency key for this explicit plan decision, e.g. obtain-iron-1.') },
++    async (args, exec) => bound(exec).client.graphPlanOpportunity(args.ref,args.plan_key,exec.signal));
++  register('mc_graph_inspect', 'Read durable Task Graph state. No graph_id lists graph summaries; an id returns nodes, dependencies, SpatialRefs, claims and execution bindings. Read-only.',
++    { graph_id: { type:'string', description:'Optional exact graph id.' } },
++    async (args, exec) => args.graph_id ? bound(exec).client.graphInspect(args.graph_id,exec.signal) : bound(exec).client.graphs(exec.signal));
++  register('mc_graph_run_next', 'Explicitly dispatch the next READY node of one durable graph through the SAME Bridge execution ledger as ordinary mc_* actions. The graph never invents a high-level goal and never blindly replays an unknown mutation.',
++    { graph_id: string('Exact graph id returned by mc_graph_plan_opportunity.') },
++    async (args, exec) => {
++      const b=bound(exec); b.autoWake=true;
++      const result=await b.client.graphRun(args.graph_id,requestKey(String(exec.agent.id),String(exec.callId)),exec.signal);
++      if(['accepted','running','paused'].includes(result?.execution?.state)) exec.concludeTurn();
++      return result;
++    });
++  register('mc_graph_cancel', 'Cancel a non-running graph so its resource claim can be released for explicit replanning. If a physical node is running, cancel that execution first.',
++    { graph_id: string('Exact graph id.'), reason: { type:'string', description:'Optional bounded replanning reason.' } },
++    async (args, exec) => bound(exec).client.graphCancel(args.graph_id,args.reason,exec.signal));
+ 
+   const operations = [
+     ['goto', 'Move within 128 blocks. Upstream navigation MAY DIG THROUGH TERRAIN if walking fails. Only use in an approved test world, with explicit allow_terrain_changes=true.',
+diff --git a/aibot-dsh-m0/dsh-plugin/test/plugin.test.mjs b/aibot-dsh-m0/dsh-plugin/test/plugin.test.mjs
+index 039e34b..eb9c3a7 100644
+--- a/aibot-dsh-m0/dsh-plugin/test/plugin.test.mjs
++++ b/aibot-dsh-m0/dsh-plugin/test/plugin.test.mjs
+@@ -12,6 +12,10 @@ function setup(){
+     async view(){return {schema:'mc.cognitive_view.v0',meta:{scene_hash:'sha256:x'},scene:{world:{}}};},
+     async inspect(ref,detail){return {schema:'mc.evidence.v0',ref,detail:detail??'summary'};},
+     async inspectLocal(radius,detail){return {schema:'mc.local_view.v0',radius_effective:Math.min(radius,8),detail:detail??'summary'};},
++    async graphs(){return {schema:'mc.task_graph.v0',graphs:[]};},async graphInspect(id){return {graph_id:id,state:'READY'};},
++    async graphPlanOpportunity(ref,planKey){return {graph_id:'graph-1',ref,plan_key:planKey,state:'READY'};},
++    async graphRun(id,requestId){submissions.push(['graphRun',id,requestId]);return {graph:{graph_id:id,state:'RUNNING'},execution:{state:'accepted',execution_id:'gx'}};},
++    async graphCancel(id,reason){return {graph_id:id,state:'CANCELLED',reason};},
+     async renew(){return{};},async execute(...args){submissions.push(args);return{state:'accepted',execution_id:'x'};},async control(...args){submissions.push(args);return{state:'accepted'};},
+     events(_cursor,signal){return new Promise((_,reject)=>{if(signal.aborted)reject(signal.reason);else signal.addEventListener('abort',()=>reject(signal.reason),{once:true});});}};
+   const store={value:null,async load(){return this.value;},async save(value){this.value={...value};}};
+@@ -25,16 +29,28 @@ function setup(){
+ }
+ test('native tools return canonical output values and expose bounded operations only',async()=>{
+   const f=setup();try{
+-    assert.equal(f.tools.size,25);for(const t of f.tools.values()){assert.equal(t.output.schema.type,'json');assert.equal(typeof t.execute,'function');}
++    assert.equal(f.tools.size,29);for(const t of f.tools.values()){assert.equal(t.output.schema.type,'json');assert.equal(typeof t.execute,'function');}
+     assert.ok(!f.tools.has('mc_shell'));assert.ok(!f.tools.has('mc_achieve_goal'));
+     assert.ok(f.tools.has('mc_register_home'));assert.ok(f.tools.has('mc_capture_home'));assert.ok(f.tools.has('mc_repair_home'));assert.ok(f.tools.has('mc_register_farm'));assert.ok(f.tools.has('mc_tend_farm'));assert.ok(f.tools.has('mc_mine_opportunity'));
+     assert.ok(f.tools.has('mc_view'));assert.ok(f.tools.has('mc_inspect'));assert.ok(f.tools.has('mc_inspect_local'));
++    assert.ok(f.tools.has('mc_graph_plan_opportunity'));assert.ok(f.tools.has('mc_graph_inspect'));assert.ok(f.tools.has('mc_graph_run_next'));assert.ok(f.tools.has('mc_graph_cancel'));
+     await assert.rejects(()=>f.call('mc_observe'),/not attached/);
+     await f.call('mc_connect');assert.equal((await f.call('mc_observe')).health,20);
+     assert.equal((await f.call('mc_gather',{item:'minecraft:oak_log',count:4})).state,'accepted');
+     assert.equal(f.submissions[0][2],requestKey('s1','call1'));assert.equal(f.concludes,1);
+   }finally{await f.impl.dispose();}
+ });
++test('graph tools separate durable planning/read from explicit physical dispatch',async()=>{
++  const f=setup();try{
++    await f.call('mc_connect');
++    const planned=await f.call('mc_graph_plan_opportunity',{ref:'mc://w/minecraft%3Aoverworld/opportunity/opp-1',plan_key:'iron-1'});
++    assert.equal(planned.graph_id,'graph-1');assert.equal(f.concludes,0);assert.equal(f.submissions.length,0);
++    const inspected=await f.call('mc_graph_inspect',{graph_id:'graph-1'});assert.equal(inspected.state,'READY');
++    const run=await f.call('mc_graph_run_next',{graph_id:'graph-1'},f.a,'graph-call');
++    assert.equal(run.execution.state,'accepted');assert.equal(f.concludes,1);
++    assert.equal(f.submissions[0][0],'graphRun');assert.equal(f.submissions[0][2],requestKey('s1','graph-call'));
++  }finally{await f.impl.dispose();}
++});
+ test('cognitive query tools are read-only: no turn conclusion, no execution slot, no lease mutation',async()=>{
+   const f=setup();try{
+     await assert.rejects(()=>f.call('mc_view'),/not attached/); // still requires an attached session
+diff --git a/aibot-dsh-m0/scripts/test.sh b/aibot-dsh-m0/scripts/test.sh
+index a28b164..8ad90cb 100644
+--- a/aibot-dsh-m0/scripts/test.sh
++++ b/aibot-dsh-m0/scripts/test.sh
+@@ -10,7 +10,7 @@ J=aibot-overlay/src/main/java/io/github/zoyluo/aibot/external
+   node --version
+   python3 --version
+ } | tee evidence/environment.txt
+-javac -d .build "$J"/{JsonOutput,BridgeFault,BridgeJournal,BodyBackend,BridgeKernel,BridgeHttpServer}.java \
++javac -d .build "$J"/{JsonOutput,BridgeFault,BridgeJournal,BodyBackend,TaskGraphStore,BridgeKernel,BridgeHttpServer}.java \
+   "$J"/cognition/{CognitiveSnapshot,EvidenceRef}.java \
+   bridge-tests/{BridgeCoreTest,FakeBridgeServer}.java
+ java -cp .build io.github.zoyluo.aibot.external.BridgeCoreTest | tee evidence/java-core-tests.txt

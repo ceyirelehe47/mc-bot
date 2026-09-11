@@ -1,0 +1,4 @@
+java version "23.0.2" 2025-01-21
+v22.19.0
+Python 3.13.7
+openjdk version "21.0.12.1" 2026-08-18 LTS
