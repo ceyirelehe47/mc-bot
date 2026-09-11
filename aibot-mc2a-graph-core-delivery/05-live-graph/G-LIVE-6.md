@@ -18,8 +18,11 @@ active_execution: None
 run-next → 409 graph_suspended_reconcile_or_cancel   <- 挂起节点阻断再分派(TG-15)
 ```
 
-- **零自动重放**:新 epoch 日志中旧 execution id `959f71a3` 0 次出现、
-  `task_assigned` 0 次——无任何物理变异被重放。
+- **零自动重放**:新 epoch 日志中旧 execution id `959f71a3` 0 次出现;重启完成至
+  reconcile 证明前的观察窗口内无任何 task_assigned(b8/b9 后续出现的 4 次
+  task_assigned 全部是显式桥请求——请求 id 见归档会话/驱动记录,即本场景自己
+  "模拟 LLM 重规划"的普通 mine_opportunity 与 G-LIVE-7 的显式 run-next——
+  无一是系统自动重放)。
 - **reconcile 只证不改**:机会仍在注册表时连续 observe×5,节点保持 SUSPENDED
   (外部移除的矿因空气格不可严格观察而不销账,注册表保留 LAST_KNWN——fail-closed)。
 - **世界已证 ⇒ 无重放转 DONE**:随后普通 `mine_opportunity` 执行(模拟 LLM 重规划)
@@ -35,5 +38,8 @@ node: DONE | reason=reconciled_postcondition_satisfied:opportunity_absent_from_c
 附:持久化 RUNNING 字节的 load()-转换(RUNNING→SUSPENDED)由确定性 JUnit
 `restartSuspendsRunningNodeAndNeverReplaysIt`(真实文件重载)覆盖;实机优雅停服
 在落盘前经 shutdown 的 outcome_unknown 转换达到同一终态,两层互补。
+**图状态原始 API 响应已归档**:`graph-api-responses.json`(验收后新 epoch 重载
+持久存储导出的全量 12 图终态,本场景 graph-e6f49a…=DONE/
+`reconciled_postcondition_satisfied`)。
 前置尝试 6b/6c/6d/6e 的 FAILED 均为场景工位/时序问题(路径节流、浮空矿无工位、
 近矿完成过快),图语义映射全程正确,详见对应 server-graph-b*.log。
