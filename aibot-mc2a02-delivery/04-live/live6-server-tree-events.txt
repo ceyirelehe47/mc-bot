@@ -1,0 +1,7 @@
+[22:31:55] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {origin=LLM_TOOL, name=gather, origin_reason=external_dsh:0daed956-0f5c-4278-aebf-88e3a08b5002, params=Gathering minecraft:oak_log 0/1 phase=SURVEY}
+[22:31:57] [Server thread/INFO]: [AIBot] ACTION event=tree_workset_acquired bot=Bob {logs=4, tree=80980dea-4a25-46fa-ab97-eeefcc8b4b39:minecraft:overworld:145685291176005, execution=0daed956-0f5c-4278-aebf-88e3a08b5002}
+[22:31:57] [Server thread/INFO]: [AIBot] ACTION event=tree_log_resolved bot=Bob {tree=80980dea-4a25-46fa-ab97-eeefcc8b4b39:minecraft:overworld:145685291176005, execution=0daed956-0f5c-4278-aebf-88e3a08b5002, pos=530, 69, 121}
+[22:31:58] [Server thread/INFO]: [AIBot] ACTION event=tree_log_resolved bot=Bob {tree=80980dea-4a25-46fa-ab97-eeefcc8b4b39:minecraft:overworld:145685291176005, execution=0daed956-0f5c-4278-aebf-88e3a08b5002, pos=530, 68, 121}
+[22:31:59] [Server thread/INFO]: [AIBot] ACTION event=tree_log_resolved bot=Bob {tree=80980dea-4a25-46fa-ab97-eeefcc8b4b39:minecraft:overworld:145685291176005, execution=0daed956-0f5c-4278-aebf-88e3a08b5002, pos=530, 70, 121}
+[22:32:00] [Server thread/INFO]: [AIBot] ACTION event=tree_log_resolved bot=Bob {tree=80980dea-4a25-46fa-ab97-eeefcc8b4b39:minecraft:overworld:145685291176005, execution=0daed956-0f5c-4278-aebf-88e3a08b5002, pos=530, 71, 121}
+[22:32:01] [Server thread/INFO]: [AIBot] ACTION event=tree_workset_complete bot=Bob {tree=80980dea-4a25-46fa-ab97-eeefcc8b4b39:minecraft:overworld:145685291176005, have=4/1, execution=0daed956-0f5c-4278-aebf-88e3a08b5002}

@@ -1,0 +1,2 @@
+3aa86160b8d62dcf530a5c243352a2f7320ab521c70044566856759cefb8b883 *aibot/build/libs/aibot-0.0.1.jar
+-rw-r--r-- 1 15027 197609 1768512 Sep 11 21:57 aibot/build/libs/aibot-0.0.1.jar

@@ -1,0 +1,263 @@
+TAP version 13
+# Subtest: restricts bridge to explicit IPv4 loopback with no credentials or path
+ok 1 - restricts bridge to explicit IPv4 loopback with no credentials or path
+  ---
+  duration_ms: 1.9235
+  type: 'test'
+  ...
+# Subtest: stable request identity scopes same tool-call id to one session
+ok 2 - stable request identity scopes same tool-call id to one session
+  ---
+  duration_ms: 0.9983
+  type: 'test'
+  ...
+# Subtest: canonical argument encoding and rejects lossy JSON
+ok 3 - canonical argument encoding and rejects lossy JSON
+  ---
+  duration_ms: 0.4797
+  type: 'test'
+  ...
+# Subtest: lease token stays out of model-facing connect return and enumerable client state
+ok 4 - lease token stays out of model-facing connect return and enumerable client state
+  ---
+  duration_ms: 23.0764
+  type: 'test'
+  ...
+# Subtest: lost acceptance is unknown, no blind retry, query unlocks next action
+ok 5 - lost acceptance is unknown, no blind retry, query unlocks next action
+  ---
+  duration_ms: 2.4015
+  type: 'test'
+  ...
+# Subtest: aborted call before admission does not perform mutation
+ok 6 - aborted call before admission does not perform mutation
+  ---
+  duration_ms: 0.6235
+  type: 'test'
+  ...
+# Subtest: explicit 4xx rejection is not represented as success or unknown
+ok 7 - explicit 4xx rejection is not represented as success or unknown
+  ---
+  duration_ms: 1.1376
+  type: 'test'
+  ...
+# Subtest: 5xx mutation remains unknown and lease rejection clears local ownership
+ok 8 - 5xx mutation remains unknown and lease rejection clears local ownership
+  ---
+  duration_ms: 2.4587
+  type: 'test'
+  ...
+# Subtest: mutations carry actual lease and stable JSON, release drops lease even on network failure
+ok 9 - mutations carry actual lease and stable JSON, release drops lease even on network failure
+  ---
+  duration_ms: 1.0041
+  type: 'test'
+  ...
+# Subtest: oversized or malformed successful transport response is not trusted
+ok 10 - oversized or malformed successful transport response is not trusted
+  ---
+  duration_ms: 1.2239
+  type: 'test'
+  ...
+# Subtest: cognitive queries use POST query semantics and propagate 4xx/5xx bridge errors
+ok 11 - cognitive queries use POST query semantics and propagate 4xx/5xx bridge errors
+  ---
+  duration_ms: 1.8293
+  type: 'test'
+  ...
+# Subtest: only important or terminal events wake models, not action progress
+ok 12 - only important or terminal events wake models, not action progress
+  ---
+  duration_ms: 1.5329
+  type: 'test'
+  ...
+# Subtest: ingress matrix: idle terminal steer, running urgent steer, running routine inject, autoWake false inject
+ok 13 - ingress matrix: idle terminal steer, running urgent steer, running routine inject, autoWake false inject
+  ---
+  duration_ms: 0.3995
+  type: 'test'
+  ...
+# Subtest: running routine event injects and never followups
+ok 14 - running routine event injects and never followups
+  ---
+  duration_ms: 0.7915
+  type: 'test'
+  ...
+# Subtest: running urgent event steers
+ok 15 - running urgent event steers
+  ---
+  duration_ms: 0.22
+  type: 'test'
+  ...
+# Subtest: idle wake-worthy event steers instead of followup
+ok 16 - idle wake-worthy event steers instead of followup
+  ---
+  duration_ms: 0.2291
+  type: 'test'
+  ...
+# Subtest: autoWake false injects without waking
+ok 17 - autoWake false injects without waking
+  ---
+  duration_ms: 0.216
+  type: 'test'
+  ...
+# Subtest: body event transport source contains no followup call
+ok 18 - body event transport source contains no followup call
+  ---
+  duration_ms: 1.7341
+  type: 'test'
+  ...
+# Subtest: game chat is plugin-attributed data, not human/system instructions
+ok 19 - game chat is plugin-attributed data, not human/system instructions
+  ---
+  duration_ms: 0.2668
+  type: 'test'
+  ...
+# Subtest: cursor persists atomically, preserves version and rejects malformed state
+ok 20 - cursor persists atomically, preserves version and rejects malformed state
+  ---
+  duration_ms: 28.7175
+  type: 'test'
+  ...
+# Subtest: pump checkpoints only after delivery and batches without dropping payloads
+ok 21 - pump checkpoints only after delivery and batches without dropping payloads
+  ---
+  duration_ms: 1.1856
+  type: 'test'
+  ...
+# Subtest: delivery failure never advances acknowledgement past failed event
+ok 22 - delivery failure never advances acknowledgement past failed event
+  ---
+  duration_ms: 0.5982
+  type: 'test'
+  ...
+# Subtest: gap produces explicit resync notice before replacing cursor
+ok 23 - gap produces explicit resync notice before replacing cursor
+  ---
+  duration_ms: 0.4602
+  type: 'test'
+  ...
+# Subtest: unannounced event gaps are rejected rather than silently skipped
+ok 24 - unannounced event gaps are rejected rather than silently skipped
+  ---
+  duration_ms: 0.3005
+  type: 'test'
+  ...
+# Subtest: successful say does not self-wake; failure and significant damage still deliver
+ok 25 - successful say does not self-wake; failure and significant damage still deliver
+  ---
+  duration_ms: 0.1502
+  type: 'test'
+  ...
+# Subtest: production Java HTTP + kernel + journal interoperates with real Node client (FAKE world)
+    # Subtest: rejects missing auth, wrong auth and browser Origin without changing the body
+    ok 1 - rejects missing auth, wrong auth and browser Origin without changing the body
+      ---
+      duration_ms: 101.3364
+      type: 'test'
+      ...
+    # Subtest: rejects duplicate query parameters, non-JSON mutation and oversized body
+    ok 2 - rejects duplicate query parameters, non-JSON mutation and oversized body
+      ---
+      duration_ms: 11.6645
+      type: 'test'
+      ...
+    # Subtest: a second session cannot acquire the body; credentials are not returned by status
+    ok 3 - a second session cannot acquire the body; credentials are not returned by status
+      ---
+      duration_ms: 14.5586
+      type: 'test'
+      ...
+    # Subtest: concurrent duplicate submissions run exactly one fake physical start
+    ok 4 - concurrent duplicate submissions run exactly one fake physical start
+      ---
+      duration_ms: 64.0584
+      type: 'test'
+      ...
+    # Subtest: pause/resume control receipts settle on game thread and hold the same execution
+    ok 5 - pause/resume control receipts settle on game thread and hold the same execution
+      ---
+      duration_ms: 129.2623
+      type: 'test'
+      ...
+    # Subtest: journal returns terminal event, replay is non-consuming and duplicate completed call does not rerun
+    ok 6 - journal returns terminal event, replay is non-consuming and duplicate completed call does not rerun
+      ---
+      duration_ms: 9.4672
+      type: 'test'
+      ...
+    # Subtest: MC-2A0 cognitive queries: stable hash, fail-closed refs, bounded local, busy-safe
+    ok 7 - MC-2A0 cognitive queries: stable hash, fail-closed refs, bounded local, busy-safe
+      ---
+      duration_ms: 94.6314
+      type: 'test'
+      ...
+    # Subtest: actual plugin transport worker enqueues a terminal wake into its fake DSH owner
+    ok 8 - actual plugin transport worker enqueues a terminal wake into its fake DSH owner
+      ---
+      duration_ms: 194.0583
+      type: 'test'
+      ...
+    1..8
+ok 26 - production Java HTTP + kernel + journal interoperates with real Node client (FAKE world)
+  ---
+  duration_ms: 1258.9439
+  type: 'test'
+  ...
+# Subtest: native tools return canonical output values and expose bounded operations only
+ok 27 - native tools return canonical output values and expose bounded operations only
+  ---
+  duration_ms: 5.3391
+  type: 'test'
+  ...
+# Subtest: cognitive query tools are read-only: no turn conclusion, no execution slot, no lease mutation
+ok 28 - cognitive query tools are read-only: no turn conclusion, no execution slot, no lease mutation
+  ---
+  duration_ms: 2.1716
+  type: 'test'
+  ...
+# Subtest: one DSH session owns the body and other sessions cannot submit or detach it
+ok 29 - one DSH session owns the body and other sessions cannot submit or detach it
+  ---
+  duration_ms: 1.61
+  type: 'test'
+  ...
+# Subtest: concurrent attach calls cannot give ownership to two sessions
+ok 30 - concurrent attach calls cannot give ownership to two sessions
+  ---
+  duration_ms: 0.7164
+  type: 'test'
+  ...
+# Subtest: plugin disposal releases once and prevents new calls
+ok 31 - plugin disposal releases once and prevents new calls
+  ---
+  duration_ms: 0.7168
+  type: 'test'
+  ...
+# Subtest: malformed cursor prevents acquiring a lease
+ok 32 - malformed cursor prevents acquiring a lease
+  ---
+  duration_ms: 0.7427
+  type: 'test'
+  ...
+# Subtest: an ephemeral host without a persistence barrier is rejected
+ok 33 - an ephemeral host without a persistence barrier is rejected
+  ---
+  duration_ms: 0.2666
+  type: 'test'
+  ...
+# Subtest: DSH flush failure keeps the incoming event cursor before the uncommitted message
+ok 34 - DSH flush failure keeps the incoming event cursor before the uncommitted message
+  ---
+  duration_ms: 9.0206
+  type: 'test'
+  ...
+1..34
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3158.3237

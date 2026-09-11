@@ -1,0 +1,1667 @@
+diff --git a/aibot-dsh-m0/SHA256SUMS b/aibot-dsh-m0/SHA256SUMS
+index 8053a45..4459c33 100644
+--- a/aibot-dsh-m0/SHA256SUMS
++++ b/aibot-dsh-m0/SHA256SUMS
+@@ -1,57 +1,56 @@
+ 3c3ae202767420edb12af08d53353945fb90f81181818e3af75b15777b76b3a9  .gitignore
+ eeebdfe650b1d8483ef76288ef8f08abad127691ae51978b013da715b955b99e  AGENTS.md
+-a5d9e7654839fa94e1a5827bf12f3b8ec7850eb45de63c36e1f3ab314a14f7b3  BASELINES.json
+-bcd67ba3449c762ebe7b05676f2df63b13ee31bbf7a9846b85b86d97052b06a1  README.zh-CN.md
+-f87530c098dac204ca29ff73c1ed96599cc617a29e2b738525f2e71e5e529a48  UPSTREAM-NOTICE.md
+-c5a74497c5da20a057c6e89ea9d9f7ca138cea180a07430af2aa2e9ec8146329  VERIFICATION.json
+ d09ec1adb1255fe5fca15844cfec86aab5677b4d8cefe78090f71bd95c1d5aa6  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CAR21GameTests.java
+ 677df9b3a5d427cc4d29ebd92b2385ec7391f6e56a665c595a418e05857b7abf  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CAR2GameTests.java
+ 21192bc79e5ac3ad7f85a8a480650e6584263caea9b3d2be72d9595ecdb99663  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CASemanticsGameTests.java
+-5ef97ba04c19092c5256b645a5f42173b685f39e10868667295298c640047a51  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01CognitiveBoundaryGameTests.java
+-de30c974405b8a065917ae095e52dea67cbbe4471ced1588ff234bcc038ce3b5  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01FClosureGameTests.java
+-39a9648f0026f33c692af21cb299c8b3b2df793cf0f953e221a110dc9e01ba05  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A0CognitiveViewGameTests.java
+-3ab8b008e157255bed75148645caa14f0771a867c623201f46da597f5f204fa9  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
++70bb94d965c39a6683114f5851e46cb4f40542505d3f43f3a9333211b6f008ed  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01CognitiveBoundaryGameTests.java
++8402333c70be2cfad393de9f700a5a9320adc96cb1222ec13a1a46e5bbec0374  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01FClosureGameTests.java
++dd67fcd5f9e00a5f47c20e9bc5fb6f61ecbdcfb4a107057dfdae20998f5866b2  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
++761dccf15a2d6b3e43bac3a867b6635155aadcee7347a72a3661a92d9654792b  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A0CognitiveViewGameTests.java
++84bfced101a24b8fb32d3fcff3060d52f664c4d5bb85f442959e634c95505366  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+ 73cea3d91de06f6b6535d2499fe00164fdf5a48b8d5803709bde8a4b5de41588  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BreakPolicy.java
+ dc505946bacfdda09068a4f33ff9ec372436fe06fef06c52c6624b53d70e26e1  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeFault.java
+-45c21cbc80057b351997f172861a71d4858af66872d50c4bcaf163a8d716b212  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
++6159cdb4e8c0a470fce4586da1ec7864029961dce6655b21432a91f93590b609  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
+ b34ee4eabe2d578f3c5f7b8b471e699957a54510e8d7e9775ab184dc7ac49f14  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeJournal.java
+-99f3ae4e9ca6fa0a6ae717add9423ff287307c39a04145b79da0a4bcaeb0cf54  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
++a409add0b850f95d378f08449c770eb083d76a764bd3c05e13fd13995b142006  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
++dd39e0913f021d781975f59b6438e898427c31ffdb0d92eaf664123b623223d6  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CanonicalJson.java
++844082a96f195297e0964634db74393644fd957c2aa27a899878b459482c30d9  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveInspector.java
++408163155c219f6dfe357e78168af39e9d03670337b59622a382814147df064a  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveSnapshot.java
++23b82ebbf66d2b48d20667edabfd3a9a04fd31c928e6e943e0d6e21efa1fb0b4  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveViewBuilder.java
++406469e8ec89679b647580b59501ea4887bebfc4598d1e90e2c6b3f904b99b6b  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/EvidenceRef.java
++0f0501c7cccead59093e71cc94ed412b48768e3ad5bba8249d43a384a9c81627  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/StructureKnowledge.java
+ 38f92dea13b36cb38bed701b75e1dae1c5e7cd43d87435b0d1ac8f887e85c5ef  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
+ 8f10bdf5dd9fb250033db953a8a841f776cd6f21abeaec9aeb18778581934401  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+ 2aa84671efa0545c7247d36d92ab3d899222798f1d5158e4b0af34b3fcbef575  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/HomeBlockEquivalence.java
+ aadb1abb0cebe4658c20bce3267566105c11ac2a9aaf05c0fc7b6b75dc01acc9  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/JsonOutput.java
+ 1ab3f12711cc4b33f26a9cdb41c0c8279f40c0d3a7dd15fd91cd4a2a10a0ac09  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java
+-e07467ad55aaa1d768db9bde59770c13beeee8250c9d5deb7ae8cbcdfba7cb15  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+-ad4f99364c0da4be0da622dd38c8fd4bc3a85d4a92dba7b7eaf0c1356c28de63  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/NaturalTreeClassifier.java
+-970647ee0efce5fba9e6b58f3a81f7a5de418dd850fc7b4c4c3f15e2c152bd81  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
+-c0bd7040e1263db8ff58b19d0f6074242bca31e36f5405cda5c0fefbfd92fdb5  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CanonicalJson.java
+-e317a18244b45cf84dbbc3d325d54e959bb269e544da490a180b48e09218011b  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveInspector.java
+-016840d42218ff49a9d49fcd693dd6f6556bf23fa3d779432bb2d30cf8d4a466  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveSnapshot.java
+-e17b829c192a4ed51e2908617e3b3fe43e668fa104a795f6547df1c86954b2d8  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveViewBuilder.java
+-2d1534caf06a7c9970b8786ef77f84a4c334f650bb6822d7eacf61ae297d9df4  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/EvidenceRef.java
+-5abe4d8bd7c0046a86c4af455dce6c00d670437cc7e6296177eb8ebfe111e8f7  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/StructureKnowledge.java
+-cfd0e43b4f3eeebcd6fc1cc50a7b9799a7c06ca65d669f05484428955adff808  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/cognition/CognitiveCanonicalizationTest.java
+-a6f289894e8f06553014b3dfe8ac45ab0f55472088512d6b0cde05565370a0f3  bridge-tests/BridgeCoreTest.java
+-854b3a144398faeaf5a7d09ec6c2f00ba895c6fbdc13240df5643ac25e135896  bridge-tests/FakeBridgeServer.java
+-cd1d7fef2827d5e0e89bd3f80b49457ae7753f9cdd7be81dab2f6eb49ce685ae  docs/GLM_HANDOFF.zh-CN.md
+-ab06151ad352bedd3e25981feb52cf49d2780196c9d16fbdc8acd2bffa184b24  docs/IMPLEMENTATION.zh-CN.md
++a5b541a62ddbe25a03c1b5ca480b8972b951ab8ad73ee82c24793a55e10c2428  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
++f127d98a2f18ae61026d21f6aee22b121ae6335426a07c92afc6c594dbe52179  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/NaturalTreeClassifier.java
++8043330c8cd6536da6881762e5574bde9a737e6cb7d9222133885c6df2731222  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
++0a856caa0f3e9f1d5746f6c1a3ad25f82e2e92af126cf19f21d9e43864855c48  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
++f67eafd4066d92c844c39634ec7ce5144a91f0e6c7a1c57695f2bfa50e84ecb6  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/cognition/CognitiveCanonicalizationTest.java
++715f92a6d45615f09ba1ba00d869333424fe8767732fb739c24ad151d1d23c83  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TreeHarvestSourceContractTest.java
++a5d9e7654839fa94e1a5827bf12f3b8ec7850eb45de63c36e1f3ab314a14f7b3  BASELINES.json
++d2ec3382024107c0773fb279f4a4eb1c6be3edb429c2603d93bd86fca973b257  bridge-tests/BridgeCoreTest.java
++171b0ddb09e87d31455bc991f6aeca311ab95fae659a1ef1551e0269cc32e8a3  bridge-tests/FakeBridgeServer.java
++c6ac2a30c4bbe8f4c940381ba66c6170624326dd3883eb611f280d990c7e89f4  docs/GLM_HANDOFF.zh-CN.md
++15e98e4de9ad6734654f6eace6b5df4fde1ccade112a996ce1ce73a698f17b98  docs/IMPLEMENTATION.zh-CN.md
+ 051c7b8027b31da758cd74e05c4122f3600c5742382ee273b4cb969753b113ed  dsh-plugin/package.json
+-aac12a34ad28c3af9c347caf40d3a944696c28fc07d768b0ecd07dff0c9ad8f7  dsh-plugin/src/client.mjs
++3687d4fce516eaf1d75b765370aa1ce3a8be3f20c9ef2e496d3dcf36d7546c60  dsh-plugin/src/client.mjs
+ 4aa7c0bb411b274c643195450e8947c32a856d7bab6c75ab72a3fa020ac13f0a  dsh-plugin/src/cursor.mjs
+-ff11978a40c277e038a58f12380f53ea1b48c06656cd2ffb6ed0275ebba263cb  dsh-plugin/src/events.mjs
++a730a6b2fbc854e3b2373eca0b59f8ec9ca9d08d30dd4cd81263b71138f9dd73  dsh-plugin/src/events.mjs
+ 5bba18b13346761fe4a695cd6aa86d8213ba3f5665c90e79aabdf23838bbd2c8  dsh-plugin/src/index.ts
+-7cfb66b0593443e93febf6ec702f4b58a2a3bd48fb7a90c9e5f3ba8c95b14d68  dsh-plugin/src/plugin.mjs
+-854b3a144398faeaf5a7d09ec6c2f00ba895c6fbdc13240df5643ac25e135896  dsh-plugin/test/FakeBridgeServer.java
+-fa386e9519571c7d5461a9247ee90f143552490986f0627a9c75b5acb9fc06b2  dsh-plugin/test/client.test.mjs
+-1f59eaa3d5804d77462ee38ef349b79888585a001844480f90da9a46e6c06552  dsh-plugin/test/events.test.mjs
+-e8f472bd084dca41b2ce304536d1f97a1bcb1d33067ab3c7536e7a9fa5724efe  dsh-plugin/test/http-integration.test.mjs
+-d2cc3351d4f78be27cf08bef8823c8df38cbdb1dcde80e238b3e146bcd1b15c9  dsh-plugin/test/plugin.test.mjs
++d7679e130dfb9692a8359a6d80948808053ecadaf92a0d886d5f3791f13fbfb8  dsh-plugin/src/plugin.mjs
++483807e62afcedaab35a82799e688b81b391e1c1f2195ff7b851c198b163d3fc  dsh-plugin/test/client.test.mjs
++efd02d7170afbfc4c5ba8c27102b6e06ac1edc33df90a873cc49f4efb1df0e5c  dsh-plugin/test/events.test.mjs
++171b0ddb09e87d31455bc991f6aeca311ab95fae659a1ef1551e0269cc32e8a3  dsh-plugin/test/FakeBridgeServer.java
++1c7eeb58ab8da020082122b1cbe571431fe3ec7c23faa671ee4eebd2475561bc  dsh-plugin/test/http-integration.test.mjs
++8ecc096cfd6a9f0899d796c1b3d57310e0687bf7aedb8d3ac8839b036b3adb05  dsh-plugin/test/plugin.test.mjs
+ 9a985741d658fccf3c818ab84903e895ed7c061d84df6f86f96b9e95ef1dfe10  evidence/aibot-external-body-m0.patch
+ ca3481ca96325acae0a44b629f64f7f9f0268a5df0be1effbd5aecda91415876  evidence/baseline-gradle-build.txt
+ ae3edaf7d2e0cdfbd9919e0c89fcabbc6c593118515e82a13567005dc10bbf08  evidence/baseline-test-report/test/css/base-style.css
+ 7e5a63bb31295a4a5627ca9d8f8bd463bd91c035577fa2b4d020713936083a08  evidence/baseline-test-report/test/css/style.css
+ cfa2c9dc79c79732e52629204602a3b5172ab2c1d25e945d764347a970180bf4  evidence/baseline-test-report/test/index.html
+-6d37ef063ca78e051678ce1b12c4bcd86fad3dc16d9986ac39c84fb4af64d7aa  evidence/baseline-test-report/test/io.github.zoyluo.aibot.DeepSeekThinkingConfigTest/index.html
+ 688be1ba9e65a49c25dea370dc477d63b4979811391a295c6a358e7c9fd1185d  evidence/baseline-test-report/test/io.github.zoyluo.aibot.action.BuildActionVisibilitySourceTest/index.html
+ 5b4c2eb6104a1aa30a1858469eac539e6b8e02cf017d7c9ca00ab9e02ad8dd43  evidence/baseline-test-report/test/io.github.zoyluo.aibot.action.ToolSelectorPolicyTest/index.html
+ c5bd24a537003e96166251b2a188cadfce9091b68b8a0e559bf689d2cb68826e  evidence/baseline-test-report/test/io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest/index.html
+@@ -61,6 +60,7 @@ a26070547333f13b6ce0260d41f650bc5bf4a6d56114153cc03e47546303cd7d  evidence/basel
+ 60053cb200f44bee0c566455f6f2801e934181825924c73241c281c96a30994d  evidence/baseline-test-report/test/io.github.zoyluo.aibot.brain.ToolRegistryStrictMiningBoundaryTest/index.html
+ 7ffc06f8f6ed0a5451023c2e9fc69428d18e7cd213cb8b50c05fb88d22d1ae44  evidence/baseline-test-report/test/io.github.zoyluo.aibot.coordination.JobScopeTest/index.html
+ 8c06bb23f0ba7d956d3b3960bb6fa56f6cb72081c3daae3fb4b22b1e8148f174  evidence/baseline-test-report/test/io.github.zoyluo.aibot.coordination.JobScopeTest/legacyJobWithoutScopeIsRejectedOnLoad().html
++6d37ef063ca78e051678ce1b12c4bcd86fad3dc16d9986ac39c84fb4af64d7aa  evidence/baseline-test-report/test/io.github.zoyluo.aibot.DeepSeekThinkingConfigTest/index.html
+ c0273f138527ff4bbedc70c9bc040e59c55eb94769e4705c7b18710a4e6df720  evidence/baseline-test-report/test/io.github.zoyluo.aibot.goal.AcquireWaterMissionFailurePolicyTest/index.html
+ d26160ecf9fd1259ddcecaca3b20fdd98e060a0952a11cc6da1a6b5f10bedd83  evidence/baseline-test-report/test/io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest/index.html
+ e547eaa92a50955f493e1406953bdf8306697bf323eac5e6629895c1f65bfc0e  evidence/baseline-test-report/test/io.github.zoyluo.aibot.goal.GoalExecutorHuntPickupCheckpointTest/index.html
+@@ -124,7 +124,7 @@ b22f89caee7bc79511be84ba197643258bdd7250bf5cd6687cc2ffaef7e7eff2  evidence/crash
+ f369c732df5d55b05a42a5171393f631529890b31c02c803a8178467eab85499  evidence/installer-tests.txt
+ 3842a5acff2a9b7d354083ea0f58ee1cad183f54a4a0f12e46f426b341179839  evidence/java-core-tests.txt
+ 19c56ab6f6d4bd47bc1500d91e6715626a534984bb9dc1b573285c0dae76a72d  evidence/network-availability.txt
+-f57010fb34e498b8a33eb0377c31611614059d08254f1176bd27bdac6e0f21d3  evidence/node-tests.txt
++45288c4d4578fcda14cff53807ccff098aecf2fa98892219ab2c935fff2495b3  evidence/node-tests.txt
+ 27cc2cd90ba23e750cd541a685016e05626630e34fbdadfbc21eea2f62f9e85b  evidence/patched-compile.txt
+ dc5685a6c9228bff3573e7e5b1c0f01d79917e22267050808d1ef58ccb750796  evidence/patched-test.txt
+ 5894c7f2f2f16353d6e24edb715ef26e1be99f6ba0e8f0ce18a1841404ab92ba  evidence/repeat-run-1.txt
+@@ -133,8 +133,12 @@ dc5685a6c9228bff3573e7e5b1c0f01d79917e22267050808d1ef58ccb750796  evidence/patch
+ 9df8fcfa673868e5add9ff2f98578943406969e7f5e7955ef5275a1800dfa8eb  evidence/source-review-glm.md
+ ea9c5ad0c24849895aaa8aaec1fe306237d2b9bf5a51e8ef49307a3c1fdb04ed  evidence/source-review.json
+ f36de2be18d12399babe177a0516ac9d399859f3ead731cd06db38fd8e559377  integration/UPSTREAM_BLOBS.json
+-064e24a566506e8616f45116d9c7c2470d10bd26fa6230113e38521214341df2  scripts/apply_to_aibot.py
++bcd67ba3449c762ebe7b05676f2df63b13ee31bbf7a9846b85b86d97052b06a1  README.zh-CN.md
++f3f7989c6746a573173b2358b27fe43c38497f12b83bfb3cf75dea936c2553e7  scripts/apply_to_aibot.py
++ed3c8e4f25aa1ac7040016f63cc3f60366f7b89ff6184fb0349230890ee59c5c  scripts/gen_sums.py
+ 2998c9e64070e49795daf13683f4b985b6121defe8a59d00cc11994efb268de7  scripts/inspect_bridge.mjs
+ 927171b7d97f166b257d622320798a4f59d7ab9ba9398a3ae94b003d0fbdad07  scripts/install_dsh_plugin.py
+-cfba1adeb0590126b2980d12b3d15410680f729753b456d31ae2e9a30da15733  scripts/test.sh
+-f012e2c85c1fd15f76c7d8e316f5aa3eba1504cd3e47b3d061e646956f74af0c  scripts/test_installers.py
++cd0d328d5471cf90d2d7f7fbd2dd116be5a126019fe228bf2c3a5e59db6fdc12  scripts/test.sh
++cecb19297b624492256d352196c99c5043cbddc22c883712bae0f92cff1b04bb  scripts/test_installers.py
++f87530c098dac204ca29ff73c1ed96599cc617a29e2b738525f2e71e5e529a48  UPSTREAM-NOTICE.md
++c5a74497c5da20a057c6e89ea9d9f7ca138cea180a07430af2aa2e9ec8146329  VERIFICATION.json
+diff --git a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
+new file mode 100644
+index 0000000..012e7c1
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
+@@ -0,0 +1,267 @@
++package io.github.zoyluo.aibot.gametest;
++
++import io.github.zoyluo.aibot.action.InventoryAction;
++import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.external.ExternalBodyAccess;
++import io.github.zoyluo.aibot.external.TreeHarvestWorkset;
++import io.github.zoyluo.aibot.manager.AIPlayerManager;
++import io.github.zoyluo.aibot.runtime.TaskOrigin;
++import io.github.zoyluo.aibot.task.GatherQuotaTask;
++import io.github.zoyluo.aibot.task.TaskManager;
++import io.github.zoyluo.aibot.task.TaskState;
++import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
++import net.minecraft.block.Block;
++import net.minecraft.block.Blocks;
++import net.minecraft.item.ItemStack;
++import net.minecraft.item.Items;
++import net.minecraft.server.world.ServerWorld;
++import net.minecraft.test.GameTest;
++import net.minecraft.test.TestContext;
++import net.minecraft.util.math.BlockPos;
++import net.minecraft.util.math.Vec3d;
++import net.minecraft.world.GameMode;
++
++import java.util.List;
++import java.util.Set;
++
++/** MC-2A0.2 required regressions for complete-tree semantics and support provenance. */
++public final class MC2A02TreeHarvestGameTests implements FabricGameTest {
++    private static final String BOT = "Mc1caBot"; // configured reserved body; distinct batch ids serialize reuse
++
++    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc2a02_quota", tickLimit = 1200)
++    public void mc2a02QuotaOneDoesNotTruncateCommittedTree(TestContext context) {
++        Fixture f = fixture(context, 14);
++        BlockPos base = naturalTree(f, 2, 4);
++        InventoryAction.giveItem(f.bot, new ItemStack(Items.IRON_AXE));
++        GatherQuotaTask task = new GatherQuotaTask(Items.OAK_LOG, 1, "gt-tree-quota-one");
++        boolean[] assigned = {false};
++        int[] fenceSettle = {0};
++        boolean[] sawWorkset = {false};
++        boolean[] sawQuotaWhileRunning = {false};
++        context.runAtEveryTick(() -> {
++            if (!assigned[0]) {
++                // The external-body bridge fences every fresh body instance with
++                // cancelAll(external_mode_enter) on the first kernel tick after respawn.
++                // Assigning gather in the spawn tick lets that fence kill the task, so
++                // let it fire first; gather itself must then survive to completion.
++                if (++fenceSettle[0] <= 5) return;
++                assign(f.bot, task, "gt-tree-quota-one");
++                assigned[0] = true;
++                return;
++            }
++            if (task.treeWorksetSnapshot() != null) sawWorkset[0] = true;
++            if (GatherQuotaTask.acceptedInventoryCount(f.bot, Items.OAK_LOG) >= 1
++                    && task.state() == TaskState.RUNNING) sawQuotaWhileRunning[0] = true;
++            if (task.state() == TaskState.FAILED || task.state() == TaskState.CANCELLED) {
++                failAndDespawn(context, f, "gather ended " + task.state() + ":" + task.failureReason());
++                return;
++            }
++            if (task.state() != TaskState.COMPLETED) return;
++            require(context, sawWorkset[0], "natural tree never acquired a TreeHarvestWorkset");
++            require(context, sawQuotaWhileRunning[0], "quota=1 must become true before current tree transaction completes");
++            for (int i = 0; i < 4; i++) {
++                require(context, !f.world.getBlockState(base.up(i)).isOf(Blocks.OAK_LOG),
++                        "committed log left floating at " + base.up(i));
++            }
++            require(context, GatherQuotaTask.acceptedInventoryCount(f.bot, Items.OAK_LOG) >= 1,
++                    "bounded gather postcondition missing");
++            finish(context, f);
++        });
++    }
++
++    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc2a02_frozen", tickLimit = 120)
++    public void mc2a02WorksetNeverAbsorbsNewOrNeighbourTreeLogs(TestContext context) {
++        Fixture f = fixture(context, 18);
++        BlockPos a = naturalTree(f, 2, 4);
++        BlockPos b = naturalTree(f, 10, 4);
++        GatherQuotaTask task = new GatherQuotaTask(Items.OAK_LOG, 1, "gt-frozen-tree");
++        assign(f.bot, task, "gt-frozen-tree");
++        TreeHarvestWorkset workset = TreeHarvestWorkset.acquire(f.bot, a, "gt-frozen-tree").orElseThrow();
++        Set<BlockPos> before = workset.snapshot().candidates();
++        BlockPos addedAfterProof = a.up(3).east();
++        set(f.world, addedAfterProof, Blocks.OAK_LOG);
++        workset.reconcile(f.bot);
++        Set<BlockPos> after = workset.snapshot().candidates();
++        require(context, before.equals(after), "candidate set changed after acquisition");
++        require(context, !after.contains(addedAfterProof), "newly attached log was silently absorbed");
++        require(context, after.stream().noneMatch(p -> p.getSquaredDistance(b) < 4),
++                "nearby second tree leaked into frozen workset");
++        finish(context, f);
++    }
++
++    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc2a02_pause", tickLimit = 120)
++    public void mc2a02SafetyPauseResumeKeepsSameTreeWorkset(TestContext context) {
++        Fixture f = fixture(context, 14);
++        naturalTree(f, 2, 4);
++        GatherQuotaTask task = new GatherQuotaTask(Items.OAK_LOG, 1, "gt-pause-owner");
++        assign(f.bot, task, "gt-pause-owner");
++        // One synchronous task step acquires the direct-reach root before any server-tick race.
++        task.tick(f.bot);
++        TreeHarvestWorkset.Snapshot before = task.treeWorksetSnapshot();
++        require(context, before != null, "tree workset not acquired on first direct harvest");
++        TaskManager.INSTANCE.pauseFor(f.bot, "gt_safety_like_preemption");
++        require(context, task.state() == TaskState.PAUSED, "gather did not pause");
++        TreeHarvestWorkset.Snapshot paused = task.treeWorksetSnapshot();
++        require(context, paused != null && paused.treeId().equals(before.treeId())
++                        && paused.ownerExecution().equals(before.ownerExecution())
++                        && paused.candidates().equals(before.candidates()),
++                "pause lost or rebuilt workset identity");
++        TaskManager.INSTANCE.resumeFromPause(f.bot);
++        require(context, task.state() == TaskState.RUNNING, "gather did not resume");
++        TreeHarvestWorkset.Snapshot resumed = task.treeWorksetSnapshot();
++        require(context, resumed != null && resumed.treeId().equals(before.treeId())
++                        && resumed.ownerExecution().equals("gt-pause-owner")
++                        && resumed.candidates().equals(before.candidates()),
++                "resume did not preserve exact workset/owner");
++        finish(context, f);
++    }
++
++    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc2a02_support", tickLimit = 600)
++    public void mc2a02TemporaryTreeSupportsAreOwnedAndReverseCleaned(TestContext context) {
++        Fixture f = fixture(context, 14);
++        BlockPos base = naturalTree(f, 1, 8); // bot starts immediately west of the access column
++        InventoryAction.giveItem(f.bot, new ItemStack(Items.DIRT, 16));
++        GatherQuotaTask task = new GatherQuotaTask(Items.OAK_LOG, 1, "gt-support-owner");
++        assign(f.bot, task, "gt-support-owner");
++        TreeHarvestWorkset workset = TreeHarvestWorkset.acquire(f.bot, base, "gt-support-owner").orElseThrow();
++        TaskManager.INSTANCE.pauseFor(f.bot, "hold_parent_while_driving_workset");
++        BlockPos top = base.up(7);
++        for (int i = 0; i < 7; i++) set(f.world, base.up(i), Blocks.AIR);
++        workset.reconcile(f.bot);
++        f.bot.teleport(f.world, base.getX() + .5D, base.getY(), base.getZ() + .5D, Set.of(), 0, 0, true);
++        f.bot.setOnGround(true);
++        BlockPos foreign = f.start.south(3);
++        set(f.world, foreign, Blocks.COBBLESTONE);
++        boolean[] accessReady = {false};
++        context.runAtEveryTick(() -> {
++            if (!accessReady[0]) {
++                TreeHarvestWorkset.StepResult access = workset.tickAccess(f.bot, top);
++                if (access.state() == TreeHarvestWorkset.StepState.BLOCKED
++                        || access.state() == TreeHarvestWorkset.StepState.DEBT) {
++                    failAndDespawn(context, f, "temporary access failed: " + access.reason());
++                    return;
++                }
++                if (access.state() != TreeHarvestWorkset.StepState.READY) return;
++                accessReady[0] = true;
++                List<TreeHarvestWorkset.TemporarySupport> placed = workset.snapshot().supports().stream()
++                        .filter(s -> s.state() == TreeHarvestWorkset.SupportState.PLACED).toList();
++                require(context, !placed.isEmpty(), "tall-tree access reached target without exercising temporary support");
++                require(context, placed.stream().allMatch(s -> s.ownerExecution().equals("gt-support-owner")
++                                && s.purpose().equals("TREE_ACCESS")),
++                        "support provenance/owner missing: " + placed);
++                set(f.world, top, Blocks.AIR);
++                workset.noteHarvested(f.bot, top);
++                return;
++            }
++            TreeHarvestWorkset.StepResult cleanup = workset.tickCleanup(f.bot);
++            if (cleanup.state() == TreeHarvestWorkset.StepState.DEBT) {
++                failAndDespawn(context, f, "reverse cleanup failed: " + cleanup.reason());
++                return;
++            }
++            if (cleanup.state() != TreeHarvestWorkset.StepState.COMPLETE) return;
++            workset.resolvePickupLoss(top, "fixture_manual_break_no_drop");
++            require(context, workset.treeComplete(), "TREE_COMPLETE must wait for supports + pickup reconciliation: " + workset.snapshot());
++            require(context, f.world.getBlockState(foreign).isOf(Blocks.COBBLESTONE),
++                    "foreign/persistent support was wrongly removed");
++            require(context, workset.snapshot().supports().stream().noneMatch(s -> s.state() == TreeHarvestWorkset.SupportState.PLACED),
++                    "owned support ledger still has unresolved PLACED entries");
++            finish(context, f);
++        });
++    }
++
++    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc2a02_debt", tickLimit = 500)
++    public void mc2a02ModifiedOwnedSupportBecomesCleanupDebtAndIsNotRemoved(TestContext context) {
++        Fixture f = fixture(context, 14);
++        BlockPos base = naturalTree(f, 1, 8);
++        InventoryAction.giveItem(f.bot, new ItemStack(Items.DIRT, 16));
++        GatherQuotaTask task = new GatherQuotaTask(Items.OAK_LOG, 1, "gt-debt-owner");
++        assign(f.bot, task, "gt-debt-owner");
++        TreeHarvestWorkset workset = TreeHarvestWorkset.acquire(f.bot, base, "gt-debt-owner").orElseThrow();
++        TaskManager.INSTANCE.pauseFor(f.bot, "hold_parent_while_driving_workset");
++        BlockPos top = base.up(7);
++        for (int i = 0; i < 7; i++) set(f.world, base.up(i), Blocks.AIR);
++        workset.reconcile(f.bot);
++        f.bot.teleport(f.world, base.getX() + .5D, base.getY(), base.getZ() + .5D, Set.of(), 0, 0, true);
++        f.bot.setOnGround(true);
++        context.runAtEveryTick(() -> {
++            if (!workset.hasTemporarySupports()) {
++                TreeHarvestWorkset.StepResult access = workset.tickAccess(f.bot, top);
++                if (access.state() == TreeHarvestWorkset.StepState.BLOCKED
++                        || access.state() == TreeHarvestWorkset.StepState.DEBT) {
++                    failAndDespawn(context, f, "access failed before debt fixture: " + access.reason());
++                }
++                return;
++            }
++            TreeHarvestWorkset.TemporarySupport own = workset.snapshot().supports().stream()
++                    .filter(s -> s.state() == TreeHarvestWorkset.SupportState.PLACED)
++                    .reduce((a, b) -> b).orElseThrow();
++            set(f.world, own.pos(), Blocks.GOLD_BLOCK); // external mutation destroys exact provenance match
++            TreeHarvestWorkset.StepResult cleanup = workset.tickCleanup(f.bot);
++            require(context, cleanup.state() == TreeHarvestWorkset.StepState.DEBT,
++                    "modified support must yield explicit debt: " + cleanup);
++            require(context, cleanup.reason().contains("support_conflict"),
++                    "typed conflict reason missing: " + cleanup.reason());
++            require(context, f.world.getBlockState(own.pos()).isOf(Blocks.GOLD_BLOCK),
++                    "foreign replacement must never be auto-removed");
++            require(context, !workset.treeComplete(), "cleanup debt must forbid TREE_COMPLETE");
++            finish(context, f);
++        });
++    }
++
++    private record Fixture(ServerWorld world, AIPlayerEntity bot, BlockPos start) {}
++
++    private static Fixture fixture(TestContext context, int east) {
++        ServerWorld world = context.getWorld();
++        BlockPos start = context.getAbsolutePos(new BlockPos(2, 2, 2));
++        for (int dx = -5; dx <= east; dx++) for (int dz = -6; dz <= 6; dz++) {
++            BlockPos feet = start.add(dx, 0, dz);
++            world.setBlockState(feet.down(), Blocks.STONE.getDefaultState(), Block.NOTIFY_ALL);
++            for (int dy = 0; dy <= 14; dy++) world.setBlockState(feet.up(dy), Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL);
++        }
++        AIPlayerManager.INSTANCE.despawn(world.getServer(), BOT);
++        AIPlayerEntity bot = AIPlayerManager.INSTANCE.spawn(world.getServer(), BOT, world,
++                Vec3d.ofBottomCenter(start), 0.0F, 0.0F, GameMode.SURVIVAL).orElseThrow();
++        bot.teleport(world, start.getX() + .5D, start.getY(), start.getZ() + .5D, Set.of(), 0, 0, true);
++        ExternalBodyAccess.activateReservation();
++        return new Fixture(world, bot, start);
++    }
++
++    private static BlockPos naturalTree(Fixture f, int east, int height) {
++        BlockPos base = f.start.east(east);
++        set(f.world, base.down(), Blocks.DIRT);
++        for (int i = 0; i < height; i++) set(f.world, base.up(i), Blocks.OAK_LOG);
++        BlockPos crown = base.up(height - 1);
++        set(f.world, crown.north(), Blocks.OAK_LEAVES);
++        set(f.world, crown.south(), Blocks.OAK_LEAVES);
++        set(f.world, crown.east(), Blocks.OAK_LEAVES);
++        set(f.world, crown.west(), Blocks.OAK_LEAVES);
++        return base;
++    }
++
++    private static void assign(AIPlayerEntity bot, GatherQuotaTask task, String reason) {
++        ExternalBodyAccess.dispatch(() -> {
++            TaskManager.INSTANCE.assign(bot, task, TaskOrigin.of(TaskOrigin.Kind.LLM_TOOL, reason));
++            return null;
++        });
++    }
++
++    private static void set(ServerWorld world, BlockPos pos, Block block) {
++        world.setBlockState(pos, block.getDefaultState(), Block.NOTIFY_ALL);
++    }
++
++    private static void require(TestContext context, boolean condition, String message) {
++        if (!condition) context.throwGameTestException(message);
++    }
++
++    private static void failAndDespawn(TestContext context, Fixture f, String message) {
++        TaskManager.INSTANCE.resetToIdle(f.bot);
++        AIPlayerManager.INSTANCE.despawn(f.bot.getServer(), BOT);
++        context.throwGameTestException(message);
++    }
++
++    private static void finish(TestContext context, Fixture f) {
++        TaskManager.INSTANCE.resetToIdle(f.bot);
++        AIPlayerManager.INSTANCE.despawn(f.bot.getServer(), BOT);
++        context.complete();
++    }
++}
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+index 0e66999..4942054 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+@@ -8,6 +8,13 @@ public interface BodyBackend {
+     String observeJson();
+     /** Must perform argument validation before mutation and retain the exact Task instance. */
+     Handle start(String operation,String argumentsJson);
++    /**
++     * Exact bounded-execution identity seam. Legacy/fake backends stay source-compatible while the
++     * real external body may bind execution-scoped operational provenance to its task.
++     */
++    default Handle start(String executionId,String operation,String argumentsJson) {
++        return start(operation,argumentsJson);
++    }
+     void pause();
+     void resume();
+     void cancel(String reason);
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+index 401644e..2ee6155 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+@@ -361,7 +361,7 @@ public final class BridgeKernel {
+             if(e.handle==null) {
+                 if(token==null || !Objects.equals(e.owner,owner) || !Objects.equals(e.admittingLeaseEpoch,leaseEpoch)) { transition(e,"cancelled",0,"lease_lost_before_dispatch"); return; }
+                 if(e.state.equals("paused")) return;
+-                try { e.handle=backend.start(e.operation,e.arguments); }
++                try { e.handle=backend.start(e.id,e.operation,e.arguments); }
+                 catch(BridgeFault validationFailure) { transition(e,"failed",0,validationFailure.code); return; }
+                 catch(RuntimeException startFailure) {
+                     try { backend.cancel("start_failure"); } catch(RuntimeException cleanup) { startFailure.addSuppressed(cleanup); }
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+index d737976..5ca4a17 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+@@ -116,7 +116,11 @@ public final class MinecraftBodyBackend implements BodyBackend {
+         return counts;
+     }
+     @Override public Handle start(String operation,String raw) {
++        return start("",operation,raw);
++    }
++    @Override public Handle start(String executionId,String operation,String raw) {
+         onThread();
++        executionId=executionId==null?"":executionId;
+         if(bot==null || !bot.isAlive())throw new BridgeFault(409,"body_unavailable");
+         if(!"strict_survival".equals(AIBotConfig.get().profile().configValue()))throw new BridgeFault(403,"strict_survival_required");
+         JsonObject args=parse(raw);
+@@ -144,7 +148,7 @@ public final class MinecraftBodyBackend implements BodyBackend {
+                 if(bot.getBlockPos().getSquaredDistance(goal)>128*128)throw new BridgeFault(400,"goto_distance_limit_128");
+                 task=new MoveTask(bot,goal);
+             }
+-            case "gather" -> {target=item(args,"item");count=integer(args,"count",1,256);task=new GatherQuotaTask(target,count);}
++            case "gather" -> {target=item(args,"item");count=integer(args,"count",1,256);task=new GatherQuotaTask(target,count,executionId);}
+             case "craft" -> {target=item(args,"item");count=integer(args,"count",1,64);task=new CraftTask(target,count);}
+             case "smelt" -> {target=item(args,"output_item");count=integer(args,"count",1,64);task=new SmeltTask(item(args,"input_item"),target,count);}
+             case "eat" -> task=new EatTask();
+@@ -238,8 +242,9 @@ public final class MinecraftBodyBackend implements BodyBackend {
+         if(TaskManager.INSTANCE.isUserPaused(bot))throw new BridgeFault(409,"body_user_paused");
+         AIPlayerEntity executionBody=bot;
+         Item expected=target; int quota=count; BlockPos destination=goal; String semantic=semanticId;
++        String executionOrigin=executionId.isBlank()?"external_dsh":"external_dsh:"+executionId;
+         ExternalBodyAccess.dispatch(()->{
+-            TaskManager.INSTANCE.assign(executionBody,task,TaskOrigin.of(TaskOrigin.Kind.LLM_TOOL,"external_dsh"));return null;
++            TaskManager.INSTANCE.assign(executionBody,task,TaskOrigin.of(TaskOrigin.Kind.LLM_TOOL,executionOrigin));return null;
+         });
+         managed=task;
+         return ()->{
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/NaturalTreeClassifier.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/NaturalTreeClassifier.java
+index 4f006bc..b6f385f 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/NaturalTreeClassifier.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/NaturalTreeClassifier.java
+@@ -14,6 +14,7 @@ import java.util.ArrayDeque;
+ import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.Map;
++import java.util.Optional;
+ import java.util.Set;
+ import java.util.UUID;
+ 
+@@ -31,6 +32,14 @@ public final class NaturalTreeClassifier {
+     private record Cluster(Set<Long> logs, boolean rooted, int leaves) {}
+     private record HarvestLease(Task owner, String dimension, Set<Long> logs) {}
+ 
++    /** Immutable proof frozen at initial natural-tree admission. It never expands after root removal. */
++    public record HarvestClusterProof(String dimension, Set<Long> logs) {
++        public HarvestClusterProof {
++            dimension = dimension == null ? "" : dimension;
++            logs = logs == null ? Set.of() : Set.copyOf(logs);
++        }
++    }
++
+     public static boolean isHarvestCandidate(AIPlayerEntity bot, BlockPos pos) {
+         if (!BreakPolicy.mayBreak(bot, pos)) return false;
+         BlockState state = bot.getServerWorld().getBlockState(pos);
+@@ -44,14 +53,17 @@ public final class NaturalTreeClassifier {
+      * trunk, leaving floating trees. The lease never authorizes protected cells and never survives
+      * task replacement/restart.
+      */
+-    public static void acquireHarvestCluster(AIPlayerEntity bot, BlockPos seed) {
+-        if (bot == null || seed == null || !ExternalBodyAccess.reserved(bot)) return;
++    public static Optional<HarvestClusterProof> acquireHarvestCluster(AIPlayerEntity bot, BlockPos seed) {
++        if (bot == null || seed == null || !ExternalBodyAccess.reserved(bot)) return Optional.empty();
+         Task owner = TaskManager.INSTANCE.getActive(bot).orElse(null);
+-        if (owner == null || !"gather".equals(owner.name())) return;
+-        if (!bot.getServerWorld().getBlockState(seed).isIn(BlockTags.LOGS) || !BreakPolicy.mayBreak(bot, seed)) return;
++        if (owner == null || !"gather".equals(owner.name())) return Optional.empty();
++        if (!bot.getServerWorld().getBlockState(seed).isIn(BlockTags.LOGS) || !BreakPolicy.mayBreak(bot, seed)) return Optional.empty();
+         Cluster cluster = inspect(bot, seed);
+-        if (!cluster.rooted || cluster.logs.size() < MIN_LOGS || cluster.leaves < MIN_NEARBY_LEAVES) return;
+-        LEASES.put(bot.getUuid(), new HarvestLease(owner, dimension(bot), Set.copyOf(cluster.logs)));
++        if (!cluster.rooted || cluster.logs.size() < MIN_LOGS || cluster.leaves < MIN_NEARBY_LEAVES) return Optional.empty();
++        String dimension = dimension(bot);
++        Set<Long> frozen = Set.copyOf(cluster.logs);
++        LEASES.put(bot.getUuid(), new HarvestLease(owner, dimension, frozen));
++        return Optional.of(new HarvestClusterProof(dimension, frozen));
+     }
+ 
+     public static boolean isNaturalTreeLog(AIPlayerEntity bot, BlockPos seed) {
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
+new file mode 100644
+index 0000000..0d01067
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
+@@ -0,0 +1,636 @@
++package io.github.zoyluo.aibot.external;
++
++import io.github.zoyluo.aibot.action.ActionResult;
++import io.github.zoyluo.aibot.action.BuildAction;
++import io.github.zoyluo.aibot.action.HarvestCore;
++import io.github.zoyluo.aibot.action.InventoryAction;
++import io.github.zoyluo.aibot.action.MaterialPalette;
++import io.github.zoyluo.aibot.action.MiningController;
++import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.log.BotLog;
++import io.github.zoyluo.aibot.mode.FakePlayerMotion;
++import io.github.zoyluo.aibot.mode.ObservableWorldQuery;
++import io.github.zoyluo.aibot.pathfinding.Standability;
++import net.minecraft.block.Block;
++import net.minecraft.block.BlockState;
++import net.minecraft.item.BlockItem;
++import net.minecraft.item.Item;
++import net.minecraft.item.Items;
++import net.minecraft.registry.Registries;
++import net.minecraft.registry.tag.BlockTags;
++import net.minecraft.server.world.ServerWorld;
++import net.minecraft.util.math.BlockPos;
++import net.minecraft.util.math.Direction;
++
++import java.util.ArrayList;
++import java.util.Comparator;
++import java.util.LinkedHashMap;
++import java.util.LinkedHashSet;
++import java.util.List;
++import java.util.Map;
++import java.util.Optional;
++import java.util.OptionalInt;
++import java.util.Set;
++
++/**
++ * MC-2A0.2 finite transaction for one already-proven natural tree.
++ *
++ * <p>This class deliberately does not discover a bigger tree after acquisition. The initial
++ * {@link NaturalTreeClassifier.HarvestClusterProof} freezes the exact committed log cells. The
++ * workset only reconciles those cells, owns only supports that this exact bounded execution placed,
++ * and never scans nearby dirt/cobble to infer ownership.</p>
++ *
++ * <p>Temporary tree access is intentionally separate from generic {@code PathExecutor.PILLAR_UP}.
++ * Ordinary path pillars remain persistent infrastructure. TREE_ACCESS uses a dedicated vertical
++ * support transaction with exact placement receipts and reverse cleanup.</p>
++ */
++public final class TreeHarvestWorkset {
++    private static final int MAX_ACCESS_BASE_DROP = 16;
++    private static final int MAX_ACCESS_TICKS = 600;
++    private static final int MAX_TEMP_SUPPORTS = 12;
++    private static final int MAX_CLEANUP_TICKS = 1200;
++
++    public enum StepState {
++        IN_PROGRESS,
++        READY,
++        COMPLETE,
++        BLOCKED,
++        DEBT
++    }
++
++    public record StepResult(StepState state, String reason) {
++        public StepResult {
++            reason = reason == null ? "" : reason;
++        }
++        public static StepResult progress() { return new StepResult(StepState.IN_PROGRESS, ""); }
++        public static StepResult ready() { return new StepResult(StepState.READY, ""); }
++        public static StepResult complete() { return new StepResult(StepState.COMPLETE, ""); }
++        public static StepResult blocked(String reason) { return new StepResult(StepState.BLOCKED, reason); }
++        public static StepResult debt(String reason) { return new StepResult(StepState.DEBT, reason); }
++    }
++
++    public enum SupportState {
++        PLACED,
++        REMOVED,
++        REMOVED_EXTERNALLY,
++        CONFLICT
++    }
++
++    public enum PickupState {
++        PENDING,
++        COLLECTED,
++        LOST
++    }
++
++    public record TemporarySupport(BlockPos pos,
++                                   String blockId,
++                                   String ownerExecution,
++                                   String purpose,
++                                   String originalState,
++                                   long placedAt,
++                                   SupportState state) {
++        public TemporarySupport {
++            pos = pos.toImmutable();
++            blockId = blockId == null ? "" : blockId;
++            ownerExecution = ownerExecution == null ? "" : ownerExecution;
++            purpose = purpose == null ? "TREE_ACCESS" : purpose;
++            originalState = originalState == null ? "" : originalState;
++            state = state == null ? SupportState.PLACED : state;
++        }
++        TemporarySupport withState(SupportState next) {
++            return new TemporarySupport(pos, blockId, ownerExecution, purpose, originalState, placedAt, next);
++        }
++    }
++
++    public record PickupObligation(BlockPos origin, PickupState state, String resolution) {
++        public PickupObligation {
++            origin = origin.toImmutable();
++            state = state == null ? PickupState.PENDING : state;
++            resolution = resolution == null ? "" : resolution;
++        }
++        PickupObligation resolve(PickupState next, String why) {
++            return new PickupObligation(origin, next, why);
++        }
++    }
++
++    public record Snapshot(String treeId,
++                           String worldId,
++                           String dimension,
++                           String ownerExecution,
++                           Set<BlockPos> candidates,
++                           Set<BlockPos> remaining,
++                           Set<BlockPos> completed,
++                           Map<BlockPos, String> blocked,
++                           List<TemporarySupport> supports,
++                           List<PickupObligation> pickups,
++                           String cleanupDebt,
++                           String abandonReason) {}
++
++    private final String treeId;
++    private final String worldId;
++    private final String dimension;
++    private final String ownerExecution;
++    private final LinkedHashSet<Long> candidates;
++    private final LinkedHashSet<Long> remaining;
++    private final LinkedHashSet<Long> completed = new LinkedHashSet<>();
++    private final LinkedHashMap<Long, String> blocked = new LinkedHashMap<>();
++    private final ArrayList<TemporarySupport> supports = new ArrayList<>();
++    private final LinkedHashMap<Long, PickupObligation> pickups = new LinkedHashMap<>();
++
++    private BlockPos accessTarget;
++    private BlockPos accessBase;
++    private boolean accessPathStarted;
++    private int accessTicks;
++    private final LinkedHashSet<Long> rejectedAccessBases = new LinkedHashSet<>();
++
++    private BlockPos cleanupPathTarget;
++    private boolean cleanupPathStarted;
++    private MiningController cleanupMiner;
++    private BlockPos cleanupMiningPos;
++    private int cleanupTicks;
++
++    private String cleanupDebt = "";
++    private String abandonReason = "";
++
++    private TreeHarvestWorkset(String treeId,
++                               String worldId,
++                               String dimension,
++                               String ownerExecution,
++                               Set<Long> candidateLogs) {
++        this.treeId = treeId;
++        this.worldId = worldId;
++        this.dimension = dimension;
++        this.ownerExecution = ownerExecution;
++        List<BlockPos> sorted = candidateLogs.stream()
++                .map(BlockPos::fromLong)
++                .sorted(Comparator.comparingInt(BlockPos::getY)
++                        .thenComparingInt(BlockPos::getX)
++                        .thenComparingInt(BlockPos::getZ))
++                .toList();
++        this.candidates = new LinkedHashSet<>();
++        for (BlockPos pos : sorted) this.candidates.add(pos.asLong());
++        this.remaining = new LinkedHashSet<>(this.candidates);
++    }
++
++    public static Optional<TreeHarvestWorkset> acquire(AIPlayerEntity bot,
++                                                       BlockPos seed,
++                                                       String ownerExecution) {
++        if (bot == null || seed == null || ownerExecution == null || ownerExecution.isBlank()) {
++            return Optional.empty();
++        }
++        Optional<NaturalTreeClassifier.HarvestClusterProof> proof =
++                NaturalTreeClassifier.acquireHarvestCluster(bot, seed);
++        if (proof.isEmpty() || proof.get().logs().isEmpty()) return Optional.empty();
++        String world = SemanticWorldRegistry.worldId();
++        String dimension = dimension(bot);
++        if (!dimension.equals(proof.get().dimension())) return Optional.empty();
++        String treeId = world + ":" + dimension + ":" + seed.asLong();
++        TreeHarvestWorkset workset = new TreeHarvestWorkset(
++                treeId, world, dimension, ownerExecution, proof.get().logs());
++        workset.reconcile(bot);
++        BotLog.action(bot, "tree_workset_acquired",
++                "tree", treeId,
++                "execution", ownerExecution,
++                "logs", workset.candidates.size());
++        return Optional.of(workset);
++    }
++
++    public String treeId() { return treeId; }
++    public String ownerExecution() { return ownerExecution; }
++    public boolean hasCleanupDebt() { return !cleanupDebt.isBlank(); }
++    public String cleanupDebt() { return cleanupDebt; }
++    public String unresolvedSupportSummary() {
++        return supports.stream()
++                .filter(s -> s.state() == SupportState.PLACED || s.state() == SupportState.CONFLICT)
++                .limit(MAX_TEMP_SUPPORTS)
++                .map(s -> s.pos().toShortString() + "=" + s.blockId() + "@" + s.state())
++                .reduce((a, b) -> a + ";" + b).orElse("");
++    }
++    public boolean hasTemporarySupports() {
++        return supports.stream().anyMatch(s -> s.state() == SupportState.PLACED);
++    }
++    public boolean hasPendingPickup() {
++        return pickups.values().stream().anyMatch(p -> p.state() == PickupState.PENDING);
++    }
++    public boolean hasBlockedLogs() { return !blocked.isEmpty(); }
++    public String blockedSummary() {
++        return blocked.entrySet().stream()
++                .map(e -> BlockPos.fromLong(e.getKey()).toShortString() + "=" + e.getValue())
++                .limit(4)
++                .reduce((a, b) -> a + "," + b).orElse("");
++    }
++    public boolean logsResolved() { return remaining.isEmpty() && blocked.isEmpty(); }
++    public boolean pickupsReconciled() {
++        return pickups.values().stream().noneMatch(p -> p.state() == PickupState.PENDING);
++    }
++    public boolean treeComplete() {
++        return logsResolved() && !hasTemporarySupports() && pickupsReconciled()
++                && cleanupDebt.isBlank() && abandonReason.isBlank();
++    }
++
++    public Snapshot snapshot() {
++        LinkedHashMap<BlockPos, String> blockedPositions = new LinkedHashMap<>();
++        for (var entry : blocked.entrySet()) {
++            blockedPositions.put(BlockPos.fromLong(entry.getKey()), entry.getValue());
++        }
++        return new Snapshot(treeId, worldId, dimension, ownerExecution,
++                positions(candidates), positions(remaining), positions(completed),
++                Map.copyOf(blockedPositions),
++                List.copyOf(supports), List.copyOf(pickups.values()), cleanupDebt, abandonReason);
++    }
++
++    public void onResume() {
++        accessPathStarted = false;
++        cleanupPathStarted = false;
++        cleanupMiner = null;
++        cleanupMiningPos = null;
++    }
++
++    public void abandon(String reason) {
++        abandonReason = reason == null ? "abandoned" : reason;
++        accessPathStarted = false;
++        cleanupPathStarted = false;
++        cleanupMiner = null;
++        cleanupMiningPos = null;
++    }
++
++    /** Reconcile only the frozen candidate cells. Never expands the tree after acquisition. */
++    public void reconcile(AIPlayerEntity bot) {
++        if (!scopeMatches(bot)) {
++            debt("tree_scope_changed");
++            return;
++        }
++        ServerWorld world = bot.getServerWorld();
++        for (long packed : new ArrayList<>(remaining)) {
++            BlockPos pos = BlockPos.fromLong(packed);
++            BlockState state = world.getBlockState(pos);
++            if (!state.isIn(BlockTags.LOGS)) {
++                remaining.remove(packed);
++                blocked.remove(packed);
++                completed.add(packed); // externally resolved exact committed cell; no pickup claim
++                continue;
++            }
++            if (!BreakPolicy.mayBreak(bot, pos)) {
++                blocked.put(packed, "break_policy:" + BreakPolicy.decide(bot, pos).reason());
++                remaining.remove(packed);
++            }
++        }
++    }
++
++    public BlockPos nextRemaining(AIPlayerEntity bot) {
++        reconcile(bot);
++        return remaining.stream()
++                .map(BlockPos::fromLong)
++                .min(Comparator.comparingInt(BlockPos::getY)
++                        .thenComparingDouble(pos -> pos.getSquaredDistance(bot.getBlockPos()))
++                        .thenComparingInt(BlockPos::getX)
++                        .thenComparingInt(BlockPos::getZ))
++                .orElse(null);
++    }
++
++    public void markBlocked(BlockPos pos, String reason) {
++        if (pos == null || !candidates.contains(pos.asLong())) return;
++        remaining.remove(pos.asLong());
++        blocked.put(pos.asLong(), reason == null ? "blocked" : reason);
++    }
++
++    /** Called only after the gather task has already entered HARVEST for this exact committed cell. */
++    public void noteHarvested(AIPlayerEntity bot, BlockPos origin) {
++        if (origin == null || !candidates.contains(origin.asLong())) return;
++        remaining.remove(origin.asLong());
++        blocked.remove(origin.asLong());
++        completed.add(origin.asLong());
++        pickups.put(origin.asLong(), new PickupObligation(origin, PickupState.PENDING, ""));
++        BotLog.action(bot, "tree_log_resolved",
++                "tree", treeId, "execution", ownerExecution, "pos", origin.toShortString());
++    }
++
++    public void resolvePickup(BlockPos origin, String proof) {
++        if (origin == null) return;
++        PickupObligation pending = pickups.get(origin.asLong());
++        if (pending == null || pending.state() != PickupState.PENDING) return;
++        pickups.put(origin.asLong(), pending.resolve(PickupState.COLLECTED,
++                proof == null ? "pickup_verified" : proof));
++    }
++
++    /** A bounded pickup deadline may resolve as loss; it is explicit, never silently forgotten. */
++    public void resolvePickupLoss(BlockPos origin, String reason) {
++        if (origin == null) return;
++        PickupObligation pending = pickups.get(origin.asLong());
++        if (pending == null || pending.state() != PickupState.PENDING) return;
++        pickups.put(origin.asLong(), pending.resolve(PickupState.LOST,
++                reason == null ? "pickup_not_recovered" : reason));
++    }
++
++    /**
++     * Obtain a read/interaction pose for one frozen log. Uses no generic PILLAR_UP: surface walking
++     * gets to a real ground base, then TREE_ACCESS supports are placed one level at a time and
++     * recorded only after a successful vanilla block placement.
++     */
++    public StepResult tickAccess(AIPlayerEntity bot, BlockPos target) {
++        if (hasCleanupDebt()) return StepResult.debt(cleanupDebt);
++        if (!scopeMatches(bot)) return debt("tree_scope_changed");
++        if (target == null || !remaining.contains(target.asLong())) return StepResult.blocked("target_not_in_remaining_workset");
++        BlockState targetState = bot.getServerWorld().getBlockState(target);
++        if (!targetState.isIn(BlockTags.LOGS)) {
++            reconcile(bot);
++            return StepResult.blocked("committed_log_already_resolved");
++        }
++        var breakDecision = BreakPolicy.decide(bot, target);
++        if (!breakDecision.allowed()) return StepResult.blocked("committed_log_protected:" + breakDecision.reason());
++        if (HarvestCore.canReach(bot, target) && ObservableWorldQuery.canObserveBlock(bot, target)) {
++            resetAccessTransient();
++            return StepResult.ready();
++        }
++
++        if (accessTarget == null || !accessTarget.equals(target)) {
++            if (hasTemporarySupports()) {
++                return debt("tree_access_target_changed_with_owned_supports");
++            }
++            resetAccessTransient();
++            accessTarget = target.toImmutable();
++        }
++        if (++accessTicks > MAX_ACCESS_TICKS) return StepResult.blocked("tree_access_timeout");
++
++        if (hasTemporarySupports()) {
++            TemporarySupport last = latestPlacedSupport();
++            if (last == null || !bot.getBlockPos().equals(last.pos().up())) {
++                return debt("tree_access_pose_lost_with_owned_supports");
++            }
++            return placeOneSupport(bot, target);
++        }
++
++        if (accessBase == null) {
++            accessBase = chooseAccessBase(bot, target);
++            if (accessBase == null) return StepResult.blocked("tree_access_no_safe_base");
++        }
++        if (!bot.getBlockPos().equals(accessBase)) {
++            if (accessPathStarted) {
++                if (!bot.getActionPack().isPathExecutorIdle()) return StepResult.progress();
++                rejectedAccessBases.add(accessBase.asLong());
++                accessBase = null;
++                accessPathStarted = false;
++                return StepResult.progress();
++            }
++            ActionResult path = bot.getActionPack().startSurfacePathTo(accessBase);
++            BlockPos resolved = bot.getActionPack().activePathGoal();
++            if (path.isFailed() || resolved == null || !resolved.equals(accessBase)) {
++                bot.getActionPack().stopAll();
++                rejectedAccessBases.add(accessBase.asLong());
++                accessBase = null;
++                return StepResult.progress();
++            }
++            accessPathStarted = true;
++            return StepResult.progress();
++        }
++        accessPathStarted = false;
++        return placeOneSupport(bot, target);
++    }
++
++    /** Reverse-clean exactly this execution's support receipts. */
++    public StepResult tickCleanup(AIPlayerEntity bot) {
++        if (hasCleanupDebt()) return StepResult.debt(cleanupDebt);
++        if (!scopeMatches(bot)) return debt("tree_cleanup_scope_changed");
++        if (++cleanupTicks > MAX_CLEANUP_TICKS) return debt("tree_cleanup_timeout");
++        TemporarySupport support = latestPlacedSupport();
++        if (support == null) {
++            resetCleanupTransient();
++            return StepResult.complete();
++        }
++        ServerWorld world = bot.getServerWorld();
++        BlockState actual = world.getBlockState(support.pos());
++        if (actual.isAir()) {
++            replaceSupportState(support.pos(), SupportState.REMOVED_EXTERNALLY);
++            resetCleanupTransient();
++            return StepResult.progress();
++        }
++        String actualId = Registries.BLOCK.getId(actual.getBlock()).toString();
++        if (!actualId.equals(support.blockId())) {
++            replaceSupportState(support.pos(), SupportState.CONFLICT);
++            return debt("tree_cleanup_support_conflict:" + support.pos().toShortString());
++        }
++        var breakDecision = BreakPolicy.decide(bot, support.pos());
++        if (!breakDecision.allowed()) return debt("tree_cleanup_protected:" + breakDecision.reason());
++
++        BlockPos cleanupStand = support.pos().up();
++        if (!bot.getBlockPos().equals(cleanupStand)) {
++            if (!Standability.isStandable(world, cleanupStand)) {
++                return debt("tree_cleanup_stand_not_available:" + cleanupStand.toShortString());
++            }
++            if (cleanupPathStarted && cleanupPathTarget != null && cleanupPathTarget.equals(cleanupStand)) {
++                if (!bot.getActionPack().isPathExecutorIdle()) return StepResult.progress();
++                return debt("tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
++            }
++            ActionResult path = bot.getActionPack().startSurfacePathTo(cleanupStand);
++            BlockPos resolved = bot.getActionPack().activePathGoal();
++            if (path.isFailed() || resolved == null || !resolved.equals(cleanupStand)) {
++                bot.getActionPack().stopAll();
++                return debt("tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
++            }
++            cleanupPathStarted = true;
++            cleanupPathTarget = cleanupStand.toImmutable();
++            return StepResult.progress();
++        }
++        cleanupPathStarted = false;
++        cleanupPathTarget = null;
++
++        String descentProblem = validateSafeDescentAfterRemoval(bot, support.pos());
++        if (descentProblem != null) return debt(descentProblem);
++
++        if (cleanupMiner == null || cleanupMiningPos == null || !cleanupMiningPos.equals(support.pos())) {
++            cleanupMiner = new MiningController(support.pos(), Direction.UP);
++            cleanupMiningPos = support.pos().toImmutable();
++        }
++        Block removedBlock = actual.getBlock();
++        ActionResult mining = cleanupMiner.tick(bot.getActionPack());
++        if (mining.isFailed()) {
++            cleanupMiner.abort(bot);
++            return debt("tree_cleanup_mining_failed:" + mining.reason());
++        }
++        if (mining.isInProgress()) return StepResult.progress();
++        cleanupMiner = null;
++        cleanupMiningPos = null;
++        if (!world.getBlockState(support.pos()).isAir()) {
++            return debt("tree_cleanup_block_still_present:" + support.pos().toShortString());
++        }
++        replaceSupportState(support.pos(), SupportState.REMOVED);
++        if (!FakePlayerMotion.stepToStandable(bot, support.pos(), "tree_access_reverse_cleanup")) {
++            return debt("tree_cleanup_descent_failed:" + support.pos().toShortString());
++        }
++        Item recovered = removedBlock.asItem();
++        if (recovered != Items.AIR) HarvestCore.forcePickupNearby(bot, recovered);
++        BotLog.action(bot, "tree_support_removed",
++                "tree", treeId,
++                "execution", ownerExecution,
++                "pos", support.pos().toShortString(),
++                "block", support.blockId());
++        return StepResult.progress();
++    }
++
++    private StepResult placeOneSupport(AIPlayerEntity bot, BlockPos target) {
++        if (HarvestCore.canReach(bot, target) && ObservableWorldQuery.canObserveBlock(bot, target)) {
++            resetAccessTransient();
++            return StepResult.ready();
++        }
++        if (supports.stream().filter(s -> s.state() == SupportState.PLACED).count() >= MAX_TEMP_SUPPORTS) {
++            return StepResult.blocked("tree_access_support_limit");
++        }
++        BlockPos place = bot.getBlockPos().toImmutable();
++        ServerWorld world = bot.getServerWorld();
++        if (!world.getBlockState(place).isAir() || !world.getFluidState(place).isEmpty()) {
++            return StepResult.blocked("tree_access_place_cell_not_air");
++        }
++        var placementPolicy = BreakPolicy.decide(bot, place);
++        if (!placementPolicy.allowed()) return StepResult.blocked("tree_access_protected:" + placementPolicy.reason());
++        BlockPos up = place.up();
++        if (!world.getBlockState(up).getCollisionShape(world, up).isEmpty()
++                || !world.getBlockState(up.up()).getCollisionShape(world, up.up()).isEmpty()
++                || !world.getFluidState(up).isEmpty()) {
++            return StepResult.blocked("tree_access_headroom_blocked");
++        }
++        OptionalInt slot = MaterialPalette.pickPathSupportBlockSlot(bot);
++        if (slot.isEmpty()) return StepResult.blocked("tree_access_no_support_material");
++        Item supportItem = bot.getInventory().getStack(slot.getAsInt()).getItem();
++        if (!(supportItem instanceof BlockItem)) return StepResult.blocked("tree_access_support_not_block_item");
++        InventoryAction.equipFromSlot(bot, slot.getAsInt());
++        String original = Registries.BLOCK.getId(world.getBlockState(place).getBlock()).toString();
++        if (!FakePlayerMotion.jumpTo(bot, up, "tree_access_pillar_jump")) {
++            return StepResult.blocked("tree_access_jump_blocked");
++        }
++        ActionResult placed = BuildAction.placeBlockAt(bot, place);
++        if (placed.isFailed()) {
++            FakePlayerMotion.stepToStandable(bot, place, "tree_access_place_rollback");
++            return StepResult.blocked("tree_access_place_failed:" + placed.reason());
++        }
++        BlockState after = world.getBlockState(place);
++        if (after.isAir()) {
++            FakePlayerMotion.stepToStandable(bot, place, "tree_access_missing_support_rollback");
++            return debt("tree_access_place_success_without_block");
++        }
++        String blockId = Registries.BLOCK.getId(after.getBlock()).toString();
++        supports.add(new TemporarySupport(place, blockId, ownerExecution, "TREE_ACCESS",
++                original, bot.getServer().getTicks(), SupportState.PLACED));
++        BotLog.action(bot, "tree_support_placed",
++                "tree", treeId,
++                "execution", ownerExecution,
++                "pos", place.toShortString(),
++                "block", blockId);
++        return StepResult.progress();
++    }
++
++    private BlockPos chooseAccessBase(AIPlayerEntity bot, BlockPos target) {
++        ServerWorld world = bot.getServerWorld();
++        ArrayList<BlockPos> candidates = new ArrayList<>();
++        int floor = Math.max(world.getBottomY() + 1, target.getY() - MAX_ACCESS_BASE_DROP);
++        int[][] offsets = {
++                // After lower committed trunk cells are resolved, the old trunk column itself is
++                // the safest access shaft: it avoids guessing through the leaf canopy.
++                {0, 0},
++                {1, 0}, {-1, 0}, {0, 1}, {0, -1},
++                {1, 1}, {1, -1}, {-1, 1}, {-1, -1},
++                {2, 0}, {-2, 0}, {0, 2}, {0, -2},
++                {3, 0}, {-3, 0}, {0, 3}, {0, -3}
++        };
++        for (int[] offset : offsets) {
++            for (int y = target.getY(); y >= floor; y--) {
++                BlockPos feet = new BlockPos(target.getX() + offset[0], y, target.getZ() + offset[1]);
++                if (rejectedAccessBases.contains(feet.asLong())) continue;
++                Standability.clearCache();
++                if (!Standability.isStandable(world, feet)) continue;
++                BlockState ground = world.getBlockState(feet.down());
++                if (ground.isIn(BlockTags.LOGS) || ground.isIn(BlockTags.LEAVES) || Standability.isDangerous(ground)) continue;
++                if (!clearAccessColumn(world, feet, target)) continue;
++                candidates.add(feet.toImmutable());
++                break;
++            }
++        }
++        return candidates.stream()
++                .min(Comparator.comparingDouble((BlockPos p) -> p.getSquaredDistance(bot.getBlockPos()))
++                        .thenComparingInt(BlockPos::getY)
++                        .thenComparingInt(BlockPos::getX)
++                        .thenComparingInt(BlockPos::getZ))
++                .orElse(null);
++    }
++
++    private static boolean clearAccessColumn(ServerWorld world, BlockPos base, BlockPos target) {
++        int topFeet = Math.max(base.getY(), target.getY() - 3);
++        for (int y = base.getY() + 1; y <= topFeet + 1; y++) {
++            BlockPos cell = new BlockPos(base.getX(), y, base.getZ());
++            if (!world.getFluidState(cell).isEmpty()
++                    || !world.getBlockState(cell).getCollisionShape(world, cell).isEmpty()) return false;
++        }
++        return true;
++    }
++
++    private String validateSafeDescentAfterRemoval(AIPlayerEntity bot, BlockPos support) {
++        ServerWorld world = bot.getServerWorld();
++        if (!bot.getBlockPos().equals(support.up())) return "tree_cleanup_not_above_support";
++        BlockState below = world.getBlockState(support.down());
++        if (!world.getFluidState(support).isEmpty() || !world.getFluidState(support.down()).isEmpty()) {
++            return "tree_cleanup_fluid_below_support";
++        }
++        if (below.getCollisionShape(world, support.down()).isEmpty() || Standability.isDangerous(below)) {
++            return "tree_cleanup_no_safe_landing_support";
++        }
++        if (!world.getBlockState(support.up()).getCollisionShape(world, support.up()).isEmpty()
++                || !world.getBlockState(support.up(2)).getCollisionShape(world, support.up(2)).isEmpty()) {
++            return "tree_cleanup_landing_column_blocked";
++        }
++        return null;
++    }
++
++    private boolean scopeMatches(AIPlayerEntity bot) {
++        if (bot == null || !dimension.equals(dimension(bot))) return false;
++        try { return worldId.equals(SemanticWorldRegistry.worldId()); }
++        catch (RuntimeException missingRegistry) { return false; }
++    }
++
++    private StepResult debt(String reason) {
++        if (cleanupDebt.isBlank()) cleanupDebt = reason == null ? "tree_cleanup_debt" : reason;
++        return StepResult.debt(cleanupDebt);
++    }
++
++    private TemporarySupport latestPlacedSupport() {
++        for (int i = supports.size() - 1; i >= 0; i--) {
++            TemporarySupport support = supports.get(i);
++            if (support.state() == SupportState.PLACED) return support;
++        }
++        return null;
++    }
++
++    private void replaceSupportState(BlockPos pos, SupportState state) {
++        for (int i = supports.size() - 1; i >= 0; i--) {
++            TemporarySupport support = supports.get(i);
++            if (support.pos().equals(pos) && support.state() == SupportState.PLACED) {
++                supports.set(i, support.withState(state));
++                return;
++            }
++        }
++    }
++
++    private void resetAccessTransient() {
++        accessTarget = null;
++        accessBase = null;
++        accessPathStarted = false;
++        accessTicks = 0;
++        rejectedAccessBases.clear();
++    }
++
++    private void resetCleanupTransient() {
++        cleanupPathTarget = null;
++        cleanupPathStarted = false;
++        cleanupMiner = null;
++        cleanupMiningPos = null;
++        cleanupTicks = 0;
++    }
++
++    private static Set<BlockPos> positions(Set<Long> packed) {
++        LinkedHashSet<BlockPos> result = new LinkedHashSet<>();
++        for (long value : packed) result.add(BlockPos.fromLong(value));
++        return Set.copyOf(result);
++    }
++
++    private static String dimension(AIPlayerEntity bot) {
++        return bot.getServerWorld().getRegistryKey().getValue().toString();
++    }
++}
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TreeHarvestSourceContractTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TreeHarvestSourceContractTest.java
+new file mode 100644
+index 0000000..3aeb483
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TreeHarvestSourceContractTest.java
+@@ -0,0 +1,46 @@
++package io.github.zoyluo.aibot.external;
++
++import org.junit.jupiter.api.Test;
++
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++
++import static org.junit.jupiter.api.Assertions.assertFalse;
++import static org.junit.jupiter.api.Assertions.assertTrue;
++
++/** Source-boundary regression for the MC-2A0.2 tree transaction. */
++final class TreeHarvestSourceContractTest {
++    private static final Path MAIN = Path.of("src/main/java/io/github/zoyluo/aibot");
++
++    @Test
++    void treeAccessIsExplicitlyOwnedAndDoesNotHijackGenericPillarInfrastructure() throws IOException {
++        String workset = Files.readString(MAIN.resolve("external/TreeHarvestWorkset.java"));
++        String gather = Files.readString(MAIN.resolve("task/GatherQuotaTask.java"));
++        String path = Files.readString(MAIN.resolve("pathfinding/PathExecutor.java"));
++
++        assertTrue(workset.contains("ownerExecution"));
++        assertTrue(workset.contains("TREE_ACCESS"));
++        assertTrue(workset.contains("support_conflict"));
++        assertTrue(workset.contains("BuildAction.placeBlockAt"));
++        assertTrue(gather.contains("countSoFar >= targetCount && treeWorkset == null"),
++                "quota may only terminate immediately when no tree transaction is active");
++        assertTrue(gather.contains("TreeHarvestWorkset")
++                && gather.contains(".acquire(bot, targetPos, externalExecutionId)"),
++                "external gather must acquire the tree workset bound to the exact execution");
++        assertFalse(path.contains("TreeHarvestWorkset"),
++                "generic PILLAR_UP must remain persistent and independent of tree cleanup");
++        assertFalse(path.contains("TREE_ACCESS"),
++                "tree-specific temporary ownership must not leak into the generic path executor");
++    }
++
++    @Test
++    void bridgePassesTheExactBoundedExecutionIdIntoTheBodyBackend() throws IOException {
++        String kernel = Files.readString(MAIN.resolve("external/BridgeKernel.java"));
++        String backend = Files.readString(MAIN.resolve("external/MinecraftBodyBackend.java"));
++        assertTrue(kernel.contains("backend.start(e.id,e.operation,e.arguments)"),
++                "BridgeKernel must pass its exact execution id into the backend dispatch");
++        assertTrue(backend.contains("new GatherQuotaTask(target,count,executionId)"),
++                "external gather must bind the exact bridge execution id into its tree workset");
++    }
++}
+diff --git a/aibot-dsh-m0/bridge-tests/BridgeCoreTest.java b/aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
+index d928f3d..7f230f4 100644
+--- a/aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
++++ b/aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
+@@ -11,6 +11,7 @@ public final class BridgeCoreTest {
+     static int passed;
+     static final class FakeBackend implements BodyBackend {
+         boolean alive=true; String id="body-1"; String state="running"; int starts,pauses,resumes,cancels; boolean failStart;
++        String lastExecutionId="";
+         long tick; String localJson="{\"schema\":\"mc.local_view.v0\"}";
+         int inspectLocals, materializes; // MC-2A0.1 scheduling-budget counters
+         static final String SCENE="{\"world\":{\"world_id\":\"core-test-world\"}}";
+@@ -35,6 +36,7 @@ public final class BridgeCoreTest {
+         }
+         public String observeJson(){return "{\"health\":20,\"inventory\":{}}";}
+         public Handle start(String op,String args){ starts++; if(failStart)throw new IllegalStateException(); state="running"; return ()->new Snapshot(state,.5,""); }
++        public Handle start(String executionId,String op,String args){ lastExecutionId=executionId; return start(op,args); }
+         public void pause(){pauses++;if(state.equals("running"))state="paused";}
+         public void resume(){resumes++;state="running";}
+         public void cancel(String reason){cancels++;state="cancelled";}
+@@ -121,6 +123,7 @@ public final class BridgeCoreTest {
+             fault(409,"idempotency_conflict",()->f.kernel.submit(t,"r1","gather","{\"count\":2}"));
+             fault(409,"execution_in_progress",()->f.kernel.submit(t,"r2","gather","{}"));
+             f.kernel.tick(); check(f.body.starts==1,"one physical dispatch");
++            check(id.equals(f.body.lastExecutionId),"backend receives exact bridge execution id");
+             check(f.kernel.execution(id).get("state").equals("running"),"running state");
+             f.kernel.control(t,"pause-1",id,"pause"); check(f.body.pauses==0,"controls are queued not run in HTTP thread");
+             f.kernel.tick();check(f.kernel.execution(id).get("state").equals("paused"),"pause preserves execution");
+diff --git a/aibot-dsh-m0/scripts/apply_to_aibot.py b/aibot-dsh-m0/scripts/apply_to_aibot.py
+index 5d72ee0..3b56348 100644
+--- a/aibot-dsh-m0/scripts/apply_to_aibot.py
++++ b/aibot-dsh-m0/scripts/apply_to_aibot.py
+@@ -192,11 +192,383 @@ CHANGES = {
+    '''            BlockPos seen = OreProspector.nearest(bot, 16,
+                     state -> harvestBlocks.contains(state.getBlock()),
+                     pos -> io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos));''', 1),
++  # MC-2A0.2: one exact bridge execution may own one frozen natural-tree transaction.
++  ('''        EXPLORE,
++        DONE''',
++   '''        EXPLORE,
++        TREE_CLEANUP,
++        DONE''', 1),
++  ('''    private final Item targetItem;
++    private final int targetCount;''',
++   '''    private final Item targetItem;
++    private final int targetCount;
++    private final String externalExecutionId;''', 1),
++  ('''    private int gotoStuckTick;
++
++    public GatherQuotaTask(Item targetItem, int targetCount) {
++        this.targetItem = targetItem;
++        this.targetCount = Math.max(1, targetCount);
++        this.acceptItems = acceptItemsFor(targetItem);
++        this.harvestBlocks = harvestBlocksFor(this.acceptItems);
++        this.probabilisticDrop = harvestBlocks.contains(Blocks.SHORT_GRASS)
++                || harvestBlocks.contains(Blocks.SWEET_BERRY_BUSH);
++    }''',
++   '''    private int gotoStuckTick;
++    private io.github.zoyluo.aibot.external.TreeHarvestWorkset treeWorkset;
++    private String treeTerminalReason = "";
++
++    public GatherQuotaTask(Item targetItem, int targetCount) {
++        this(targetItem, targetCount, "");
++    }
++
++    /** Exact external execution identity is optional so every internal/upstream caller stays source-compatible. */
++    public GatherQuotaTask(Item targetItem, int targetCount, String externalExecutionId) {
++        this.targetItem = targetItem;
++        this.targetCount = Math.max(1, targetCount);
++        this.externalExecutionId = externalExecutionId == null ? "" : externalExecutionId;
++        this.acceptItems = acceptItemsFor(targetItem);
++        this.harvestBlocks = harvestBlocksFor(this.acceptItems);
++        this.probabilisticDrop = harvestBlocks.contains(Blocks.SHORT_GRASS)
++                || harvestBlocks.contains(Blocks.SWEET_BERRY_BUSH);
++    }''', 1),
++  ('''    public double progress() {
++        return Math.min(1.0D, (double) countSoFar / targetCount);
++    }''',
++   '''    public double progress() {
++        double quotaProgress = Math.min(1.0D, (double) countSoFar / targetCount);
++        // A satisfied inventory quota is not terminal while this execution still owes the current tree.
++        if (treeWorkset != null && quotaProgress >= 1.0D && !treeWorkset.treeComplete()) return 0.99D;
++        return quotaProgress;
++    }
++
++    /** Read-only diagnostic seam used by GameTests/evidence; no mutation or controller authority. */
++    public io.github.zoyluo.aibot.external.TreeHarvestWorkset.Snapshot treeWorksetSnapshot() {
++        return treeWorkset == null ? null : treeWorkset.snapshot();
++    }''', 1),
++  ('''        countSoFar = countAccepted(bot);
++        if (countSoFar >= targetCount) {
++            clearPickupLedger();
++            phase = Phase.DONE;
++            return;
++        }
++        if (phase != Phase.HARVEST || targetPos == null || !isHarvestBlock(bot, targetPos)) {''',
++   '''        countSoFar = countAccepted(bot);
++        if (treeWorkset != null) treeWorkset.onResume();
++        if (countSoFar >= targetCount && treeWorkset == null) {
++            clearPickupLedger();
++            phase = Phase.DONE;
++            return;
++        }
++        if (phase != Phase.HARVEST || targetPos == null || !isHarvestBlock(bot, targetPos)) {''', 1),
++  ('''        if (countSoFar >= targetCount) {
++            bot.getActionPack().stopAll();
++            clearPickupLedger();
++            phase = Phase.DONE;
++        }
++        if (elapsed > 6000) {
++            fail("gather_timeout");
++            return;
++        }
++        // Do not re-enter SURVEY/EXPLORE every tick while swimming. That used to burn all eight
++        // exploration hops in place before NavSafetyNet's low-air threshold could take control.
++        if (waitForDryGround(bot)) {
++            return;
++        }''',
++   '''        if (countSoFar >= targetCount && treeWorkset == null) {
++            bot.getActionPack().stopAll();
++            clearPickupLedger();
++            phase = Phase.DONE;
++        }
++        if (elapsed > 6000 && phase != Phase.TREE_CLEANUP) {
++            if (treeWorkset != null) {
++                treeTerminalReason = "gather_timeout";
++                bot.getActionPack().stopAll();
++                phase = Phase.TREE_CLEANUP;
++            } else {
++                fail("gather_timeout");
++            }
++            return;
++        }
++        // Do not re-enter SURVEY/EXPLORE every tick while swimming. That used to burn all eight
++        // exploration hops in place before NavSafetyNet's low-air threshold could take control.
++        // Cleanup pauses the same way: the workset/support ledger lives on the task instance, so
++        // waiting for the shared water rescue cannot discard owned supports (TREE-5 semantics).
++        if (waitForDryGround(bot)) {
++            return;
++        }''', 1),
++  ('''        if (phase == Phase.SURVEY || phase == Phase.GOTO) {''',
++   '''        if (treeWorkset == null && (phase == Phase.SURVEY || phase == Phase.GOTO)) {''', 1),
++  ('''            case EXPLORE -> exploreMove(bot);
++            case DONE -> complete();''',
++   '''            case EXPLORE -> exploreMove(bot);
++            case TREE_CLEANUP -> treeCleanup(bot);
++            case DONE -> complete();''', 1),
++  ('''    private void survey(AIPlayerEntity bot) {
++        if (harvestBlocks.isEmpty()) {''',
++   '''    private void survey(AIPlayerEntity bot) {
++        if (treeWorkset != null) {
++            surveyCommittedTree(bot);
++            return;
++        }
++        if (harvestBlocks.isEmpty()) {''', 1),
++  ('''    private void harvest(AIPlayerEntity bot) {
++        if (targetPos == null || !isHarvestBlock(bot, targetPos)) {
++            invalidateConsumedResource(bot);
++            bot.getActionPack().stopAll(); // 砍倒后停稳,别带移动惯性漂离掉落物(实测砍完从树位漂走→捡不到)
++            pickupTicks = probabilisticDrop ? 30 : 120; // 概率掉落资源(种子/浆果)掉脚边、捡得快,少等
++            phase = Phase.PICKUP;
++            return;
++        }
++        if (elapsed - harvestStartedTick > HARVEST_LIMIT) {
++            bot.getActionPack().stopAll();
++            EpisodeMemory.INSTANCE.exclude(bot.getUuid(), targetPos,
++                    bot.getServer().getTicks(), EpisodeMemory.TTL_UNREACHABLE);
++            BotLog.action(bot, "gather_harvest_timeout", "pos", targetPos.toShortString());
++            targetPos = null;
++            clearPickupLedger();
++            resetSurveyWatchdog();
++            phase = Phase.SURVEY;
++            return;
++        }''',
++   '''    private void harvest(AIPlayerEntity bot) {
++        if (targetPos == null || !isHarvestBlock(bot, targetPos)) {
++            BlockPos harvested = targetPos == null ? null : targetPos.toImmutable();
++            if (treeWorkset != null && harvested != null) treeWorkset.noteHarvested(bot, harvested);
++            invalidateConsumedResource(bot);
++            bot.getActionPack().stopAll(); // 砍倒后停稳,别带移动惯性漂离掉落物(实测砍完从树位漂走→捡不到)
++            pickupTicks = probabilisticDrop ? 30 : 120; // 概率掉落资源(种子/浆果)掉脚边、捡得快,少等
++            phase = treeWorkset != null && treeWorkset.hasTemporarySupports()
++                    ? Phase.TREE_CLEANUP : Phase.PICKUP;
++            return;
++        }
++        if (elapsed - harvestStartedTick > HARVEST_LIMIT) {
++            bot.getActionPack().stopAll();
++            EpisodeMemory.INSTANCE.exclude(bot.getUuid(), targetPos,
++                    bot.getServer().getTicks(), EpisodeMemory.TTL_UNREACHABLE);
++            BotLog.action(bot, "gather_harvest_timeout", "pos", targetPos.toShortString());
++            if (treeWorkset != null) {
++                treeWorkset.markBlocked(targetPos, "harvest_timeout");
++                treeTerminalReason = "committed_log_harvest_timeout:" + targetPos.toShortString();
++                targetPos = null;
++                clearPickupLedger();
++                phase = Phase.TREE_CLEANUP;
++            } else {
++                targetPos = null;
++                clearPickupLedger();
++                resetSurveyWatchdog();
++                phase = Phase.SURVEY;
++            }
++            return;
++        }''', 1),
++  ('''            if (confirmPickup(bot, pickupStatNow)) {
++                return;
++            } else if (probabilisticDrop) {''',
++   '''            if (confirmPickup(bot, pickupStatNow)) {
++                return;
++            } else if (treeWorkset != null && pickupOrigin != null) {
++                // Exact tree pickup debt expired after the bounded physical chase. Reconcile as an
++                // explicit loss instead of silently forgetting this tree transaction.
++                BlockPos lost = pickupOrigin.toImmutable();
++                treeWorkset.resolvePickupLoss(lost, "bounded_pickup_not_recovered");
++                clearPickupLedger();
++                pickupMisses = 0;
++                continueAfterTreePickup(bot);
++            } else if (probabilisticDrop) {''', 1),
++  ('''        bot.getActionPack().stopAll();
++        pickupMisses = 0;
++        clearPickupLedger();
++        if (countSoFar >= targetCount) {
++            phase = Phase.DONE;
++        } else {''',
++   '''        bot.getActionPack().stopAll();
++        pickupMisses = 0;
++        if (treeWorkset != null && pickupOrigin != null) {
++            treeWorkset.resolvePickup(pickupOrigin,
++                    inventoryGain ? "inventory_delta" : "vanilla_pickup_stat_delta");
++            clearPickupLedger();
++            continueAfterTreePickup(bot);
++            return true;
++        }
++        clearPickupLedger();
++        if (countSoFar >= targetCount) {
++            phase = Phase.DONE;
++        } else {''', 1),
++  ('''    private void clearPickupLedger() {
++        pickupOrigin = null;
++        pickupOriginApproachLogged = false;
++    }''',
++   '''    /** Drive only the frozen log cells of an already acquired natural tree. */
++    private void surveyCommittedTree(AIPlayerEntity bot) {
++        treeWorkset.reconcile(bot);
++        if (treeWorkset.hasCleanupDebt()) {
++            fail("tree_cleanup_debt:" + treeWorkset.cleanupDebt());
++            return;
++        }
++        if (treeWorkset.hasTemporarySupports()) {
++            phase = Phase.TREE_CLEANUP;
++            return;
++        }
++        if (treeWorkset.hasPendingPickup()) {
++            phase = Phase.PICKUP;
++            return;
++        }
++        if (treeWorkset.hasBlockedLogs()) {
++            treeTerminalReason = "committed_log_blocked:" + treeWorkset.blockedSummary();
++            phase = Phase.TREE_CLEANUP;
++            return;
++        }
++        if (treeWorkset.logsResolved()) {
++            finishOrContinueTree(bot);
++            return;
++        }
++        if (HarvestCore.isInventoryFull(bot)) {
++            phase = Phase.DEPOSIT;
++            return;
++        }
++        BlockPos next = treeWorkset.nextRemaining(bot);
++        if (next == null) {
++            treeTerminalReason = "committed_tree_has_no_runnable_log";
++            phase = Phase.TREE_CLEANUP;
++            return;
++        }
++        var access = treeWorkset.tickAccess(bot, next);
++        switch (access.state()) {
++            case READY -> {
++                targetPos = next;
++                startHarvest(bot);
++            }
++            case IN_PROGRESS -> { }
++            case BLOCKED -> {
++                treeWorkset.markBlocked(next, access.reason());
++                treeTerminalReason = "committed_log_access_blocked:" + access.reason();
++                bot.getActionPack().stopAll();
++                phase = Phase.TREE_CLEANUP;
++            }
++            case DEBT -> fail("tree_cleanup_debt:" + access.reason());
++            case COMPLETE -> { }
++        }
++    }
++
++    /** Reverse-clean exact TREE_ACCESS receipts before pickup or terminal failure. */
++    private void treeCleanup(AIPlayerEntity bot) {
++        var cleanup = treeWorkset == null
++                ? io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepResult.complete()
++                : treeWorkset.tickCleanup(bot);
++        if (cleanup.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepState.IN_PROGRESS) return;
++        if (cleanup.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepState.DEBT) {
++            fail("tree_cleanup_debt:" + cleanup.reason());
++            return;
++        }
++        if (cleanup.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepState.BLOCKED) {
++            fail("tree_cleanup_blocked:" + cleanup.reason());
++            return;
++        }
++        if (!treeTerminalReason.isBlank()) {
++            fail(treeTerminalReason);
++            return;
++        }
++        if (treeWorkset != null && treeWorkset.hasPendingPickup()) {
++            phase = Phase.PICKUP;
++            return;
++        }
++        finishOrContinueTree(bot);
++    }
++
++    private void continueAfterTreePickup(AIPlayerEntity bot) {
++        if (treeWorkset == null) {
++            resetSurveyWatchdog();
++            phase = countSoFar >= targetCount ? Phase.DONE : Phase.SURVEY;
++            return;
++        }
++        if (treeWorkset.hasTemporarySupports()) {
++            phase = Phase.TREE_CLEANUP;
++            return;
++        }
++        finishOrContinueTree(bot);
++    }
++
++    private void finishOrContinueTree(AIPlayerEntity bot) {
++        if (treeWorkset == null) {
++            phase = countSoFar >= targetCount ? Phase.DONE : Phase.SURVEY;
++            return;
++        }
++        treeWorkset.reconcile(bot);
++        if (treeWorkset.hasCleanupDebt()) {
++            fail("tree_cleanup_debt:" + treeWorkset.cleanupDebt());
++            return;
++        }
++        if (treeWorkset.hasBlockedLogs()) {
++            fail("tree_committed_log_blocked:" + treeWorkset.blockedSummary());
++            return;
++        }
++        if (!treeWorkset.logsResolved()) {
++            resetSurveyWatchdog();
++            phase = Phase.SURVEY;
++            return;
++        }
++        if (treeWorkset.hasTemporarySupports()) {
++            phase = Phase.TREE_CLEANUP;
++            return;
++        }
++        if (treeWorkset.hasPendingPickup()) {
++            phase = Phase.PICKUP;
++            return;
++        }
++        if (!treeWorkset.treeComplete()) {
++            fail("tree_transaction_not_complete");
++            return;
++        }
++        BotLog.action(bot, "tree_workset_complete",
++                "tree", treeWorkset.treeId(),
++                "execution", treeWorkset.ownerExecution(),
++                "have", countSoFar + "/" + targetCount);
++        treeWorkset = null;
++        treeTerminalReason = "";
++        targetPos = null;
++        resetSurveyWatchdog();
++        phase = countSoFar >= targetCount ? Phase.DONE : Phase.SURVEY;
++    }
++
++    private void clearPickupLedger() {
++        pickupOrigin = null;
++        pickupOriginApproachLogged = false;
++    }''', 1),
+   ('''    private void startHarvest(AIPlayerEntity bot) {
+         countBeforeHarvest = countAccepted(bot);''',
+    '''    private void startHarvest(AIPlayerEntity bot) {
+-        io.github.zoyluo.aibot.external.NaturalTreeClassifier.acquireHarvestCluster(bot, targetPos);
++        if (treeWorkset == null) {
++            if (!externalExecutionId.isBlank()) {
++                treeWorkset = io.github.zoyluo.aibot.external.TreeHarvestWorkset
++                        .acquire(bot, targetPos, externalExecutionId).orElse(null);
++            } else {
++                // Preserve the R2 lease for legacy/internal gathers; only external bounded executions
++                // opt into the stronger MC-2A0.2 transaction semantics.
++                io.github.zoyluo.aibot.external.NaturalTreeClassifier.acquireHarvestCluster(bot, targetPos);
++            }
++        }
+         countBeforeHarvest = countAccepted(bot);''', 1),
++  ('''    private int countAccepted(AIPlayerEntity bot) {
++        return acceptedInventoryCount(bot, targetItem);
++    }''',
++   '''    @Override
++    protected void onAbort(AIPlayerEntity bot) {
++        if (treeWorkset != null) {
++            int supports = (int) treeWorkset.snapshot().supports().stream()
++                    .filter(s -> s.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.SupportState.PLACED)
++                    .count();
++            treeWorkset.abandon(failureReason == null || failureReason.isBlank() ? "task_aborted" : failureReason);
++            if (supports > 0) {
++                String base = failureReason == null || failureReason.isBlank() ? "aborted" : failureReason;
++                failureReason = base + ":tree_cleanup_debt_supports=" + supports
++                        + ":" + treeWorkset.unresolvedSupportSummary();
++            }
++        }
++        super.onAbort(bot);
++    }
++
++    private int countAccepted(AIPlayerEntity bot) {
++        return acceptedInventoryCount(bot, targetItem);
++    }''', 1),
+  ]),
+  'action/BlockMiner.java': ('9daf997724dddecdf363611a50c904315a3c6077', [
+   ('''            Direction face = faceToward(bot, target);
+@@ -332,7 +704,7 @@ CHANGES = {
+ EXTRA_CHANGES={
+  'src/gametest/resources/fabric.mod.json': ('25ecb31ca127ed2e9d57ccb9b5c223066092f3e5', [
+   ('"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",',
+-   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",', 1),
++   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A02TreeHarvestGameTests",', 1),
+  ]),
+  'src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java': ('07d61c3c7b180d12361b8ab6bbe8983f42ed30f4', [
+   ('        assertEquals(2, occurrences(buildTask, "isObservableStandable(bot, candidate)"),\n                "both work-pose scans must cross the observable-world boundary");\n',
+diff --git a/aibot-dsh-m0/scripts/gen_sums.py b/aibot-dsh-m0/scripts/gen_sums.py
+new file mode 100644
+index 0000000..85b2536
+--- /dev/null
++++ b/aibot-dsh-m0/scripts/gen_sums.py
+@@ -0,0 +1,23 @@
++#!/usr/bin/env python
++# -*- coding: utf-8 -*-
++"""Regenerate aibot-dsh-m0/SHA256SUMS: every file under the handoff dir except
++SHA256SUMS itself and __pycache__ trees. LF newlines, sorted by path."""
++import hashlib
++import pathlib
++
++root = pathlib.Path(r'D:\code\mc-bot\aibot-dsh-m0')
++entries = []
++for path in sorted(root.rglob('*')):
++    if not path.is_file():
++        continue
++    rel = path.relative_to(root).as_posix()
++    if rel == 'SHA256SUMS':
++        continue
++    if '__pycache__' in path.parts or '.build' in path.parts:
++        continue
++    digest = hashlib.sha256(path.read_bytes()).hexdigest()
++    entries.append(f'{digest}  {rel}')
++
++out = root / 'SHA256SUMS'
++out.write_text('\n'.join(entries) + '\n', encoding='utf-8', newline='\n')
++print(f'wrote {len(entries)} entries')
