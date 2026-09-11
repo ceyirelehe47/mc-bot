@@ -107,6 +107,23 @@ public final class MinecraftBodyBackend implements BodyBackend {
         return io.github.zoyluo.aibot.external.cognition.CognitiveInspector.materialize(bot,semanticSnapshot,gameTime,ref,detail);
     }
     @Override public long serverTick() { onThread(); return server.getTicks(); }
+    @Override public GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition postcondition) {
+        onThread();
+        if(bot==null || !bot.isAlive()) return GraphPostconditionResult.unknown("body_unavailable");
+        TaskGraphStore.SpatialRef ref=postcondition.subject();
+        if(!SemanticWorldRegistry.worldId().equals(ref.worldId()))
+            return GraphPostconditionResult.unknown("world_scope_mismatch");
+        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
+        if(!dimension.equals(ref.dimensionId()))
+            return GraphPostconditionResult.unknown("dimension_not_current");
+        if("OPPORTUNITY_RESOLVED".equals(postcondition.kind())) {
+            var remaining=SemanticWorldRegistry.opportunity(bot,ref.objectId());
+            return remaining.isEmpty()
+                    ? GraphPostconditionResult.satisfied("opportunity_absent_from_current_registry")
+                    : GraphPostconditionResult.unsatisfied("opportunity_still_"+remaining.get().status().toLowerCase(java.util.Locale.ROOT));
+        }
+        return GraphPostconditionResult.unknown("unsupported_graph_postcondition");
+    }
     private Map<String,Integer> inventory() {
         Map<String,Integer> counts=new TreeMap<>();
         for(int i=0;i<bot.getInventory().size();i++) {

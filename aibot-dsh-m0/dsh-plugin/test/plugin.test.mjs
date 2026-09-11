@@ -12,6 +12,10 @@ function setup(){
     async view(){return {schema:'mc.cognitive_view.v0',meta:{scene_hash:'sha256:x'},scene:{world:{}}};},
     async inspect(ref,detail){return {schema:'mc.evidence.v0',ref,detail:detail??'summary'};},
     async inspectLocal(radius,detail){return {schema:'mc.local_view.v0',radius_effective:Math.min(radius,8),detail:detail??'summary'};},
+    async graphs(){return {schema:'mc.task_graph.v0',graphs:[]};},async graphInspect(id){return {graph_id:id,state:'READY'};},
+    async graphPlanOpportunity(ref,planKey){return {graph_id:'graph-1',ref,plan_key:planKey,state:'READY'};},
+    async graphRun(id,requestId){submissions.push(['graphRun',id,requestId]);return {graph:{graph_id:id,state:'RUNNING'},execution:{state:'accepted',execution_id:'gx'}};},
+    async graphCancel(id,reason){return {graph_id:id,state:'CANCELLED',reason};},
     async renew(){return{};},async execute(...args){submissions.push(args);return{state:'accepted',execution_id:'x'};},async control(...args){submissions.push(args);return{state:'accepted'};},
     events(_cursor,signal){return new Promise((_,reject)=>{if(signal.aborted)reject(signal.reason);else signal.addEventListener('abort',()=>reject(signal.reason),{once:true});});}};
   const store={value:null,async load(){return this.value;},async save(value){this.value={...value};}};
@@ -25,14 +29,26 @@ function setup(){
 }
 test('native tools return canonical output values and expose bounded operations only',async()=>{
   const f=setup();try{
-    assert.equal(f.tools.size,25);for(const t of f.tools.values()){assert.equal(t.output.schema.type,'json');assert.equal(typeof t.execute,'function');}
+    assert.equal(f.tools.size,29);for(const t of f.tools.values()){assert.equal(t.output.schema.type,'json');assert.equal(typeof t.execute,'function');}
     assert.ok(!f.tools.has('mc_shell'));assert.ok(!f.tools.has('mc_achieve_goal'));
     assert.ok(f.tools.has('mc_register_home'));assert.ok(f.tools.has('mc_capture_home'));assert.ok(f.tools.has('mc_repair_home'));assert.ok(f.tools.has('mc_register_farm'));assert.ok(f.tools.has('mc_tend_farm'));assert.ok(f.tools.has('mc_mine_opportunity'));
     assert.ok(f.tools.has('mc_view'));assert.ok(f.tools.has('mc_inspect'));assert.ok(f.tools.has('mc_inspect_local'));
+    assert.ok(f.tools.has('mc_graph_plan_opportunity'));assert.ok(f.tools.has('mc_graph_inspect'));assert.ok(f.tools.has('mc_graph_run_next'));assert.ok(f.tools.has('mc_graph_cancel'));
     await assert.rejects(()=>f.call('mc_observe'),/not attached/);
     await f.call('mc_connect');assert.equal((await f.call('mc_observe')).health,20);
     assert.equal((await f.call('mc_gather',{item:'minecraft:oak_log',count:4})).state,'accepted');
     assert.equal(f.submissions[0][2],requestKey('s1','call1'));assert.equal(f.concludes,1);
+  }finally{await f.impl.dispose();}
+});
+test('graph tools separate durable planning/read from explicit physical dispatch',async()=>{
+  const f=setup();try{
+    await f.call('mc_connect');
+    const planned=await f.call('mc_graph_plan_opportunity',{ref:'mc://w/minecraft%3Aoverworld/opportunity/opp-1',plan_key:'iron-1'});
+    assert.equal(planned.graph_id,'graph-1');assert.equal(f.concludes,0);assert.equal(f.submissions.length,0);
+    const inspected=await f.call('mc_graph_inspect',{graph_id:'graph-1'});assert.equal(inspected.state,'READY');
+    const run=await f.call('mc_graph_run_next',{graph_id:'graph-1'},f.a,'graph-call');
+    assert.equal(run.execution.state,'accepted');assert.equal(f.concludes,1);
+    assert.equal(f.submissions[0][0],'graphRun');assert.equal(f.submissions[0][2],requestKey('s1','graph-call'));
   }finally{await f.impl.dispose();}
 });
 test('cognitive query tools are read-only: no turn conclusion, no execution slot, no lease mutation',async()=>{

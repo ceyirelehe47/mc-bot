@@ -26,8 +26,10 @@ public final class ExternalBodyRuntime {
             String token=System.getenv("AIBOT_BRIDGE_TOKEN");
             int port=Integer.parseInt(System.getenv().getOrDefault("AIBOT_BRIDGE_PORT","8765"));
             if(port<1024 || port>65535)throw new IllegalArgumentException("invalid_bridge_port");
-            journal=new BridgeJournal(server.getSavePath(WorldSavePath.ROOT).resolve("aibot/external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".journal"),System::currentTimeMillis);
-            kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME));
+            var bodyRoot=server.getSavePath(WorldSavePath.ROOT).resolve("aibot");
+            journal=new BridgeJournal(bodyRoot.resolve("external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".journal"),System::currentTimeMillis);
+            var graphs=new TaskGraphStore(bodyRoot.resolve("task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".bin"),System::currentTimeMillis);
+            kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME),graphs);
             kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
             http=new BridgeHttpServer(kernel,port,token);http.start();
             observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();

@@ -41,6 +41,30 @@ public interface BodyBackend {
     default long serverTick() {
         return -1L;
     }
+    // ---- MC-2A Graph Core: postconditions are revalidated on the server thread ----
+    enum GraphPostconditionState { SATISFIED, UNSATISFIED, UNKNOWN }
+    record GraphPostconditionResult(GraphPostconditionState state,String reason) {
+        public GraphPostconditionResult {
+            java.util.Objects.requireNonNull(state);
+            reason=reason==null?"":reason;
+        }
+        public static GraphPostconditionResult satisfied(String reason) {
+            return new GraphPostconditionResult(GraphPostconditionState.SATISFIED,reason);
+        }
+        public static GraphPostconditionResult unsatisfied(String reason) {
+            return new GraphPostconditionResult(GraphPostconditionState.UNSATISFIED,reason);
+        }
+        public static GraphPostconditionResult unknown(String reason) {
+            return new GraphPostconditionResult(GraphPostconditionState.UNKNOWN,reason);
+        }
+    }
+    /**
+     * Read-only proof used after a physical execution terminates. Never starts/replays work.
+     * Backends that cannot prove a postcondition must return UNKNOWN, never false certainty.
+     */
+    default GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition postcondition) {
+        return GraphPostconditionResult.unknown("backend_postcondition_not_supported");
+    }
     interface Handle {
         /** No lookup of global lastStatus: that could refer to a different safety task. */
         Snapshot snapshot();

@@ -71,6 +71,20 @@ public final class BridgeHttpServer implements AutoCloseable {
                 try { radius=Integer.parseInt(local.getOrDefault("radius","4")); }
                 catch(NumberFormatException bad) { throw new BridgeFault(400,"invalid_radius"); }
                 result=awaitLocal(kernel.submitLocalQuery(radius,local.get("detail")));
+            } else if(method.equals("GET") && path.equals("/v1/graphs")) {
+                result=kernel.graphList();
+            } else if(method.equals("POST") && path.equals("/v1/graphs/opportunity")) {
+                Map<String,String> q=query(x.getRequestURI().getRawQuery());
+                result=kernel.graphPlanOpportunity(lease,q.get("plan_key"),q.get("ref")); status=201;
+            } else if(path.startsWith("/v1/graphs/")) {
+                String[] parts=path.split("/",-1);
+                if(parts.length==4 && method.equals("GET")) {
+                    result=kernel.graphInspect(parts[3]);
+                } else if(parts.length==5 && method.equals("POST") && "run-next".equals(parts[4])) {
+                    result=kernel.graphRunNext(lease,request,parts[3]); status=202;
+                } else if(parts.length==5 && method.equals("POST") && "cancel".equals(parts[4])) {
+                    result=kernel.graphCancel(lease,parts[3],query(x.getRequestURI().getRawQuery()).get("reason"));
+                } else throw new BridgeFault(404,"route_not_found");
             } else if(path.startsWith("/v1/executions/")) {
                 String[] parts=path.split("/",-1);
                 if(parts.length==4 && method.equals("POST")) {

@@ -92,6 +92,26 @@ export class BodyClient {
   inspectLocal(radius, detail, signal) {
     return this.request('POST', `/v1/inspect-local?radius=${encodeURIComponent(radius)}&detail=${encodeURIComponent(detail ?? 'summary')}`, { signal });
   }
+  graphs(signal) { return this.request('GET', '/v1/graphs', { signal }); }
+  graphInspect(id, signal) { return this.request('GET', '/v1/graphs/' + encodeURIComponent(id), { signal }); }
+  graphPlanOpportunity(ref, planKey, signal) {
+    this.requireConnected();
+    return this.request('POST', `/v1/graphs/opportunity?plan_key=${encodeURIComponent(planKey)}&ref=${encodeURIComponent(ref)}`, { signal });
+  }
+  async graphRun(id, requestId, signal) {
+    this.requireConnected();
+    try {
+      return await this.request('POST', `/v1/graphs/${encodeURIComponent(id)}/run-next`, { requestId, signal });
+    } catch (e) {
+      if (e instanceof BridgeError && e.status < 500) throw e;
+      return { state: 'outcome_unknown', graph_id: id, lookup_required: true,
+        reason: 'Graph dispatch acknowledgement was lost. Inspect this exact graph; do not create a replacement plan.' };
+    }
+  }
+  graphCancel(id, reason, signal) {
+    this.requireConnected();
+    return this.request('POST', `/v1/graphs/${encodeURIComponent(id)}/cancel?reason=${encodeURIComponent(reason ?? 'external_replan')}`, { signal });
+  }
   execution(id, signal) { return this.request('GET', '/v1/executions/' + encodeURIComponent(id), { signal }); }
   async lookup(requestId, signal) {
     const result = await this.request('GET', '/v1/requests/' + encodeURIComponent(requestId), { signal });

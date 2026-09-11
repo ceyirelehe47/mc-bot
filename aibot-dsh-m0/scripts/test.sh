@@ -10,7 +10,7 @@ J=aibot-overlay/src/main/java/io/github/zoyluo/aibot/external
   node --version
   python3 --version
 } | tee evidence/environment.txt
-javac -d .build "$J"/{JsonOutput,BridgeFault,BridgeJournal,BodyBackend,BridgeKernel,BridgeHttpServer}.java \
+javac -d .build "$J"/{JsonOutput,BridgeFault,BridgeJournal,BodyBackend,TaskGraphStore,BridgeKernel,BridgeHttpServer}.java \
   "$J"/cognition/{CognitiveSnapshot,EvidenceRef}.java \
   bridge-tests/{BridgeCoreTest,FakeBridgeServer}.java
 java -cp .build io.github.zoyluo.aibot.external.BridgeCoreTest | tee evidence/java-core-tests.txt

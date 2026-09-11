@@ -116,6 +116,24 @@ export function install(ctx, api, options = {}) {
   register('mc_request_status', 'Resolve a lost acknowledgement with its exact request_id. Never resubmit an uncertain action using a new id.',
     { request_id: string('Exact request_id from an outcome_unknown result.') },
     async (args, exec) => bound(exec).client.lookup(args.request_id, exec.signal));
+  register('mc_graph_plan_opportunity', 'Persist one finite operational graph for an opportunity the LLM has explicitly chosen from the CURRENT mc_view. This records a plan decision; it does not start Minecraft work.',
+    { ref: string('Exact current opportunity evidence_ref copied from mc_view.'),
+      plan_key: string('Stable idempotency key for this explicit plan decision, e.g. obtain-iron-1.') },
+    async (args, exec) => bound(exec).client.graphPlanOpportunity(args.ref,args.plan_key,exec.signal));
+  register('mc_graph_inspect', 'Read durable Task Graph state. No graph_id lists graph summaries; an id returns nodes, dependencies, SpatialRefs, claims and execution bindings. Read-only.',
+    { graph_id: { type:'string', description:'Optional exact graph id.' } },
+    async (args, exec) => args.graph_id ? bound(exec).client.graphInspect(args.graph_id,exec.signal) : bound(exec).client.graphs(exec.signal));
+  register('mc_graph_run_next', 'Explicitly dispatch the next READY node of one durable graph through the SAME Bridge execution ledger as ordinary mc_* actions. The graph never invents a high-level goal and never blindly replays an unknown mutation.',
+    { graph_id: string('Exact graph id returned by mc_graph_plan_opportunity.') },
+    async (args, exec) => {
+      const b=bound(exec); b.autoWake=true;
+      const result=await b.client.graphRun(args.graph_id,requestKey(String(exec.agent.id),String(exec.callId)),exec.signal);
+      if(['accepted','running','paused'].includes(result?.execution?.state)) exec.concludeTurn();
+      return result;
+    });
+  register('mc_graph_cancel', 'Cancel a non-running graph so its resource claim can be released for explicit replanning. If a physical node is running, cancel that execution first.',
+    { graph_id: string('Exact graph id.'), reason: { type:'string', description:'Optional bounded replanning reason.' } },
+    async (args, exec) => bound(exec).client.graphCancel(args.graph_id,args.reason,exec.signal));
 
   const operations = [
     ['goto', 'Move within 128 blocks. Upstream navigation MAY DIG THROUGH TERRAIN if walking fails. Only use in an approved test world, with explicit allow_terrain_changes=true.',

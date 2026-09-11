@@ -16,6 +16,7 @@ public final class BridgeKernel {
     private static final long LEASE_MS=30000, OBSERVATION_MAX_AGE_MS=5000;
     private final BridgeJournal journal;
     private final BodyBackend backend;
+    private final TaskGraphStore graphs;
     private final LongSupplier mono;
     private final Map<String,Execution> byId=new LinkedHashMap<>();
     private final Map<String,Execution> byRequest=new HashMap<>();
@@ -67,10 +68,16 @@ public final class BridgeKernel {
         }
     }
     public BridgeKernel(BridgeJournal journal, BodyBackend backend) {
-        this(journal,backend,()->System.nanoTime()/1_000_000L);
+        this(journal,backend,()->System.nanoTime()/1_000_000L,TaskGraphStore.memory());
     }
     public BridgeKernel(BridgeJournal journal,BodyBackend backend,LongSupplier monotonicMillis) {
-        this.journal=journal; this.backend=backend; this.mono=monotonicMillis;
+        this(journal,backend,monotonicMillis,TaskGraphStore.memory());
+    }
+    public BridgeKernel(BridgeJournal journal,BodyBackend backend,TaskGraphStore graphs) {
+        this(journal,backend,()->System.nanoTime()/1_000_000L,graphs);
+    }
+    BridgeKernel(BridgeJournal journal,BodyBackend backend,LongSupplier monotonicMillis,TaskGraphStore graphs) {
+        this.journal=journal; this.backend=backend; this.mono=monotonicMillis; this.graphs=Objects.requireNonNull(graphs);
         recover();
         event("runtime_started","",Map.of("runtime_epoch",runtimeEpoch));
     }
@@ -237,6 +244,51 @@ public final class BridgeKernel {
         Control c=controls.get(id); if(c!=null) return c.wire();
         throw new BridgeFault(404,"request_not_found");
     }
+    // ---- MC-2A Graph Core v0: explicit plan -> durable fragment -> explicit dispatch ----
+    public synchronized Map<String,Object> graphList() {
+        requireHealthy(); return graphs.list();
+    }
+    public synchronized Map<String,Object> graphInspect(String graphId) {
+        requireHealthy(); return graphs.inspect(graphId);
+    }
+    public synchronized Map<String,Object> graphPlanOpportunity(String supplied,String planKey,String evidenceRef) {
+        requireLease(supplied); requireReady(); identifier(planKey);
+        if(evidenceRef==null || evidenceRef.isBlank()) throw new BridgeFault(400,"invalid_evidence_ref");
+        EvidenceRef.Parsed parsed=EvidenceRef.parse(evidenceRef);
+        if(!"opportunity".equals(parsed.kind())) throw new BridgeFault(400,"graph_plan_requires_opportunity_ref");
+        if(cognitive==null) throw new BridgeFault(503,"cognitive_view_unavailable:"+cognitiveFault);
+        CognitiveSnapshot.EvidenceDescriptor descriptor=cognitive.inspectIndex().get(evidenceRef);
+        if(descriptor==null) throw new BridgeFault(404,"evidence_ref_not_in_current_view");
+        return graphs.planOpportunity(planKey,new TaskGraphStore.SpatialRef(
+                parsed.worldId(),parsed.dimension(),parsed.objectId()));
+    }
+    public synchronized Map<String,Object> graphRunNext(String supplied,String callerRequest,String graphId) {
+        requireLease(supplied); identifier(callerRequest); requireReady();
+        if(needsReconcile) throw new BridgeFault(409,"observe_required_before_new_work");
+        Optional<String> already=graphs.runningExecution(graphId);
+        if(already.isPresent()) return Map.of("graph",graphs.inspect(graphId),"execution",execution(already.get()));
+        if(active!=null) throw new BridgeFault(409,"execution_in_progress");
+        TaskGraphStore.Dispatch d=graphs.prepareDispatch(graphId);
+        try {
+            Map<String,Object> execution=submit(supplied,d.requestId(),d.operation(),d.arguments());
+            String executionId=String.valueOf(execution.get("execution_id"));
+            graphs.attachExecution(d,executionId);
+            return Map.of("graph",graphs.inspect(graphId),"execution",execution);
+        } catch(RuntimeException failure) {
+            graphs.rejectPreparedDispatch(d,failure instanceof BridgeFault f?f.code:failure.getClass().getSimpleName());
+            throw failure;
+        }
+    }
+    public synchronized Map<String,Object> graphCancel(String supplied,String graphId,String reason) {
+        requireLease(supplied);
+        Optional<String> running=graphs.runningExecution(graphId);
+        if(running.isPresent()) {
+            Execution e=byId.get(running.get());
+            if(e!=null && !TERMINAL.contains(e.state))
+                throw new BridgeFault(409,"graph_has_running_execution_cancel_execution_first");
+        }
+        return graphs.cancel(graphId,reason==null?"external_replan":reason);
+    }
     private static String fingerprint(String type,String payload) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
                 .digest((type+"\n"+payload).getBytes(StandardCharsets.UTF_8))); }
@@ -298,6 +350,8 @@ public final class BridgeKernel {
         try { persistExecution(e,false); }
         catch(RuntimeException ex) { e.state=oldState; e.progress=oldProgress; e.reason=oldReason; throw ex; }
         if(TERMINAL.contains(state) && active==e) active=null;
+        if(TERMINAL.contains(state))
+            graphs.executionTerminal(e.id,state,backend::verifyGraphPostcondition);
     }
     private void event(String kind,String executionId,Map<String,Object> payload) {
         journal.append(Map.of("kind",kind,"execution_id",executionId,"payload",JsonOutput.encode(payload)));
@@ -328,6 +382,9 @@ public final class BridgeKernel {
             }
             ready=true; observation=backend.observeJson(); observedAt=mono.getAsLong();
             lastServerTick=backend.serverTick();
+            // Reconcile-only: a suspended graph may become DONE if the world now proves its
+            // postcondition. This path never re-dispatches an unknown mutation.
+            graphs.reconcileSuspended(backend::verifyGraphPostcondition);
             // 认知快照独立刷新:构建失败只令 view/inspect 503,绝不拖垮 observe/execution 主链。
             if(cognitive==null || lastServerTick-cognitiveTick>=5 || lastServerTick<cognitiveTick) {
                 try { cognitive=backend.cognitiveSnapshot(journal); cognitiveTick=lastServerTick; cognitiveFault=""; }
