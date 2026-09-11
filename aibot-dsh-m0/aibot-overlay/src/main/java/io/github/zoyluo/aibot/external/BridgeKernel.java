@@ -361,7 +361,7 @@ public final class BridgeKernel {
             if(e.handle==null) {
                 if(token==null || !Objects.equals(e.owner,owner) || !Objects.equals(e.admittingLeaseEpoch,leaseEpoch)) { transition(e,"cancelled",0,"lease_lost_before_dispatch"); return; }
                 if(e.state.equals("paused")) return;
-                try { e.handle=backend.start(e.operation,e.arguments); }
+                try { e.handle=backend.start(e.id,e.operation,e.arguments); }
                 catch(BridgeFault validationFailure) { transition(e,"failed",0,validationFailure.code); return; }
                 catch(RuntimeException startFailure) {
                     try { backend.cancel("start_failure"); } catch(RuntimeException cleanup) { startFailure.addSuppressed(cleanup); }

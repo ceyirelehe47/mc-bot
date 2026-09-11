@@ -192,11 +192,383 @@ CHANGES = {
    '''            BlockPos seen = OreProspector.nearest(bot, 16,
                     state -> harvestBlocks.contains(state.getBlock()),
                     pos -> io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos));''', 1),
+  # MC-2A0.2: one exact bridge execution may own one frozen natural-tree transaction.
+  ('''        EXPLORE,
+        DONE''',
+   '''        EXPLORE,
+        TREE_CLEANUP,
+        DONE''', 1),
+  ('''    private final Item targetItem;
+    private final int targetCount;''',
+   '''    private final Item targetItem;
+    private final int targetCount;
+    private final String externalExecutionId;''', 1),
+  ('''    private int gotoStuckTick;
+
+    public GatherQuotaTask(Item targetItem, int targetCount) {
+        this.targetItem = targetItem;
+        this.targetCount = Math.max(1, targetCount);
+        this.acceptItems = acceptItemsFor(targetItem);
+        this.harvestBlocks = harvestBlocksFor(this.acceptItems);
+        this.probabilisticDrop = harvestBlocks.contains(Blocks.SHORT_GRASS)
+                || harvestBlocks.contains(Blocks.SWEET_BERRY_BUSH);
+    }''',
+   '''    private int gotoStuckTick;
+    private io.github.zoyluo.aibot.external.TreeHarvestWorkset treeWorkset;
+    private String treeTerminalReason = "";
+
+    public GatherQuotaTask(Item targetItem, int targetCount) {
+        this(targetItem, targetCount, "");
+    }
+
+    /** Exact external execution identity is optional so every internal/upstream caller stays source-compatible. */
+    public GatherQuotaTask(Item targetItem, int targetCount, String externalExecutionId) {
+        this.targetItem = targetItem;
+        this.targetCount = Math.max(1, targetCount);
+        this.externalExecutionId = externalExecutionId == null ? "" : externalExecutionId;
+        this.acceptItems = acceptItemsFor(targetItem);
+        this.harvestBlocks = harvestBlocksFor(this.acceptItems);
+        this.probabilisticDrop = harvestBlocks.contains(Blocks.SHORT_GRASS)
+                || harvestBlocks.contains(Blocks.SWEET_BERRY_BUSH);
+    }''', 1),
+  ('''    public double progress() {
+        return Math.min(1.0D, (double) countSoFar / targetCount);
+    }''',
+   '''    public double progress() {
+        double quotaProgress = Math.min(1.0D, (double) countSoFar / targetCount);
+        // A satisfied inventory quota is not terminal while this execution still owes the current tree.
+        if (treeWorkset != null && quotaProgress >= 1.0D && !treeWorkset.treeComplete()) return 0.99D;
+        return quotaProgress;
+    }
+
+    /** Read-only diagnostic seam used by GameTests/evidence; no mutation or controller authority. */
+    public io.github.zoyluo.aibot.external.TreeHarvestWorkset.Snapshot treeWorksetSnapshot() {
+        return treeWorkset == null ? null : treeWorkset.snapshot();
+    }''', 1),
+  ('''        countSoFar = countAccepted(bot);
+        if (countSoFar >= targetCount) {
+            clearPickupLedger();
+            phase = Phase.DONE;
+            return;
+        }
+        if (phase != Phase.HARVEST || targetPos == null || !isHarvestBlock(bot, targetPos)) {''',
+   '''        countSoFar = countAccepted(bot);
+        if (treeWorkset != null) treeWorkset.onResume();
+        if (countSoFar >= targetCount && treeWorkset == null) {
+            clearPickupLedger();
+            phase = Phase.DONE;
+            return;
+        }
+        if (phase != Phase.HARVEST || targetPos == null || !isHarvestBlock(bot, targetPos)) {''', 1),
+  ('''        if (countSoFar >= targetCount) {
+            bot.getActionPack().stopAll();
+            clearPickupLedger();
+            phase = Phase.DONE;
+        }
+        if (elapsed > 6000) {
+            fail("gather_timeout");
+            return;
+        }
+        // Do not re-enter SURVEY/EXPLORE every tick while swimming. That used to burn all eight
+        // exploration hops in place before NavSafetyNet's low-air threshold could take control.
+        if (waitForDryGround(bot)) {
+            return;
+        }''',
+   '''        if (countSoFar >= targetCount && treeWorkset == null) {
+            bot.getActionPack().stopAll();
+            clearPickupLedger();
+            phase = Phase.DONE;
+        }
+        if (elapsed > 6000 && phase != Phase.TREE_CLEANUP) {
+            if (treeWorkset != null) {
+                treeTerminalReason = "gather_timeout";
+                bot.getActionPack().stopAll();
+                phase = Phase.TREE_CLEANUP;
+            } else {
+                fail("gather_timeout");
+            }
+            return;
+        }
+        // Do not re-enter SURVEY/EXPLORE every tick while swimming. That used to burn all eight
+        // exploration hops in place before NavSafetyNet's low-air threshold could take control.
+        // Cleanup pauses the same way: the workset/support ledger lives on the task instance, so
+        // waiting for the shared water rescue cannot discard owned supports (TREE-5 semantics).
+        if (waitForDryGround(bot)) {
+            return;
+        }''', 1),
+  ('''        if (phase == Phase.SURVEY || phase == Phase.GOTO) {''',
+   '''        if (treeWorkset == null && (phase == Phase.SURVEY || phase == Phase.GOTO)) {''', 1),
+  ('''            case EXPLORE -> exploreMove(bot);
+            case DONE -> complete();''',
+   '''            case EXPLORE -> exploreMove(bot);
+            case TREE_CLEANUP -> treeCleanup(bot);
+            case DONE -> complete();''', 1),
+  ('''    private void survey(AIPlayerEntity bot) {
+        if (harvestBlocks.isEmpty()) {''',
+   '''    private void survey(AIPlayerEntity bot) {
+        if (treeWorkset != null) {
+            surveyCommittedTree(bot);
+            return;
+        }
+        if (harvestBlocks.isEmpty()) {''', 1),
+  ('''    private void harvest(AIPlayerEntity bot) {
+        if (targetPos == null || !isHarvestBlock(bot, targetPos)) {
+            invalidateConsumedResource(bot);
+            bot.getActionPack().stopAll(); // 砍倒后停稳,别带移动惯性漂离掉落物(实测砍完从树位漂走→捡不到)
+            pickupTicks = probabilisticDrop ? 30 : 120; // 概率掉落资源(种子/浆果)掉脚边、捡得快,少等
+            phase = Phase.PICKUP;
+            return;
+        }
+        if (elapsed - harvestStartedTick > HARVEST_LIMIT) {
+            bot.getActionPack().stopAll();
+            EpisodeMemory.INSTANCE.exclude(bot.getUuid(), targetPos,
+                    bot.getServer().getTicks(), EpisodeMemory.TTL_UNREACHABLE);
+            BotLog.action(bot, "gather_harvest_timeout", "pos", targetPos.toShortString());
+            targetPos = null;
+            clearPickupLedger();
+            resetSurveyWatchdog();
+            phase = Phase.SURVEY;
+            return;
+        }''',
+   '''    private void harvest(AIPlayerEntity bot) {
+        if (targetPos == null || !isHarvestBlock(bot, targetPos)) {
+            BlockPos harvested = targetPos == null ? null : targetPos.toImmutable();
+            if (treeWorkset != null && harvested != null) treeWorkset.noteHarvested(bot, harvested);
+            invalidateConsumedResource(bot);
+            bot.getActionPack().stopAll(); // 砍倒后停稳,别带移动惯性漂离掉落物(实测砍完从树位漂走→捡不到)
+            pickupTicks = probabilisticDrop ? 30 : 120; // 概率掉落资源(种子/浆果)掉脚边、捡得快,少等
+            phase = treeWorkset != null && treeWorkset.hasTemporarySupports()
+                    ? Phase.TREE_CLEANUP : Phase.PICKUP;
+            return;
+        }
+        if (elapsed - harvestStartedTick > HARVEST_LIMIT) {
+            bot.getActionPack().stopAll();
+            EpisodeMemory.INSTANCE.exclude(bot.getUuid(), targetPos,
+                    bot.getServer().getTicks(), EpisodeMemory.TTL_UNREACHABLE);
+            BotLog.action(bot, "gather_harvest_timeout", "pos", targetPos.toShortString());
+            if (treeWorkset != null) {
+                treeWorkset.markBlocked(targetPos, "harvest_timeout");
+                treeTerminalReason = "committed_log_harvest_timeout:" + targetPos.toShortString();
+                targetPos = null;
+                clearPickupLedger();
+                phase = Phase.TREE_CLEANUP;
+            } else {
+                targetPos = null;
+                clearPickupLedger();
+                resetSurveyWatchdog();
+                phase = Phase.SURVEY;
+            }
+            return;
+        }''', 1),
+  ('''            if (confirmPickup(bot, pickupStatNow)) {
+                return;
+            } else if (probabilisticDrop) {''',
+   '''            if (confirmPickup(bot, pickupStatNow)) {
+                return;
+            } else if (treeWorkset != null && pickupOrigin != null) {
+                // Exact tree pickup debt expired after the bounded physical chase. Reconcile as an
+                // explicit loss instead of silently forgetting this tree transaction.
+                BlockPos lost = pickupOrigin.toImmutable();
+                treeWorkset.resolvePickupLoss(lost, "bounded_pickup_not_recovered");
+                clearPickupLedger();
+                pickupMisses = 0;
+                continueAfterTreePickup(bot);
+            } else if (probabilisticDrop) {''', 1),
+  ('''        bot.getActionPack().stopAll();
+        pickupMisses = 0;
+        clearPickupLedger();
+        if (countSoFar >= targetCount) {
+            phase = Phase.DONE;
+        } else {''',
+   '''        bot.getActionPack().stopAll();
+        pickupMisses = 0;
+        if (treeWorkset != null && pickupOrigin != null) {
+            treeWorkset.resolvePickup(pickupOrigin,
+                    inventoryGain ? "inventory_delta" : "vanilla_pickup_stat_delta");
+            clearPickupLedger();
+            continueAfterTreePickup(bot);
+            return true;
+        }
+        clearPickupLedger();
+        if (countSoFar >= targetCount) {
+            phase = Phase.DONE;
+        } else {''', 1),
+  ('''    private void clearPickupLedger() {
+        pickupOrigin = null;
+        pickupOriginApproachLogged = false;
+    }''',
+   '''    /** Drive only the frozen log cells of an already acquired natural tree. */
+    private void surveyCommittedTree(AIPlayerEntity bot) {
+        treeWorkset.reconcile(bot);
+        if (treeWorkset.hasCleanupDebt()) {
+            fail("tree_cleanup_debt:" + treeWorkset.cleanupDebt());
+            return;
+        }
+        if (treeWorkset.hasTemporarySupports()) {
+            phase = Phase.TREE_CLEANUP;
+            return;
+        }
+        if (treeWorkset.hasPendingPickup()) {
+            phase = Phase.PICKUP;
+            return;
+        }
+        if (treeWorkset.hasBlockedLogs()) {
+            treeTerminalReason = "committed_log_blocked:" + treeWorkset.blockedSummary();
+            phase = Phase.TREE_CLEANUP;
+            return;
+        }
+        if (treeWorkset.logsResolved()) {
+            finishOrContinueTree(bot);
+            return;
+        }
+        if (HarvestCore.isInventoryFull(bot)) {
+            phase = Phase.DEPOSIT;
+            return;
+        }
+        BlockPos next = treeWorkset.nextRemaining(bot);
+        if (next == null) {
+            treeTerminalReason = "committed_tree_has_no_runnable_log";
+            phase = Phase.TREE_CLEANUP;
+            return;
+        }
+        var access = treeWorkset.tickAccess(bot, next);
+        switch (access.state()) {
+            case READY -> {
+                targetPos = next;
+                startHarvest(bot);
+            }
+            case IN_PROGRESS -> { }
+            case BLOCKED -> {
+                treeWorkset.markBlocked(next, access.reason());
+                treeTerminalReason = "committed_log_access_blocked:" + access.reason();
+                bot.getActionPack().stopAll();
+                phase = Phase.TREE_CLEANUP;
+            }
+            case DEBT -> fail("tree_cleanup_debt:" + access.reason());
+            case COMPLETE -> { }
+        }
+    }
+
+    /** Reverse-clean exact TREE_ACCESS receipts before pickup or terminal failure. */
+    private void treeCleanup(AIPlayerEntity bot) {
+        var cleanup = treeWorkset == null
+                ? io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepResult.complete()
+                : treeWorkset.tickCleanup(bot);
+        if (cleanup.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepState.IN_PROGRESS) return;
+        if (cleanup.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepState.DEBT) {
+            fail("tree_cleanup_debt:" + cleanup.reason());
+            return;
+        }
+        if (cleanup.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepState.BLOCKED) {
+            fail("tree_cleanup_blocked:" + cleanup.reason());
+            return;
+        }
+        if (!treeTerminalReason.isBlank()) {
+            fail(treeTerminalReason);
+            return;
+        }
+        if (treeWorkset != null && treeWorkset.hasPendingPickup()) {
+            phase = Phase.PICKUP;
+            return;
+        }
+        finishOrContinueTree(bot);
+    }
+
+    private void continueAfterTreePickup(AIPlayerEntity bot) {
+        if (treeWorkset == null) {
+            resetSurveyWatchdog();
+            phase = countSoFar >= targetCount ? Phase.DONE : Phase.SURVEY;
+            return;
+        }
+        if (treeWorkset.hasTemporarySupports()) {
+            phase = Phase.TREE_CLEANUP;
+            return;
+        }
+        finishOrContinueTree(bot);
+    }
+
+    private void finishOrContinueTree(AIPlayerEntity bot) {
+        if (treeWorkset == null) {
+            phase = countSoFar >= targetCount ? Phase.DONE : Phase.SURVEY;
+            return;
+        }
+        treeWorkset.reconcile(bot);
+        if (treeWorkset.hasCleanupDebt()) {
+            fail("tree_cleanup_debt:" + treeWorkset.cleanupDebt());
+            return;
+        }
+        if (treeWorkset.hasBlockedLogs()) {
+            fail("tree_committed_log_blocked:" + treeWorkset.blockedSummary());
+            return;
+        }
+        if (!treeWorkset.logsResolved()) {
+            resetSurveyWatchdog();
+            phase = Phase.SURVEY;
+            return;
+        }
+        if (treeWorkset.hasTemporarySupports()) {
+            phase = Phase.TREE_CLEANUP;
+            return;
+        }
+        if (treeWorkset.hasPendingPickup()) {
+            phase = Phase.PICKUP;
+            return;
+        }
+        if (!treeWorkset.treeComplete()) {
+            fail("tree_transaction_not_complete");
+            return;
+        }
+        BotLog.action(bot, "tree_workset_complete",
+                "tree", treeWorkset.treeId(),
+                "execution", treeWorkset.ownerExecution(),
+                "have", countSoFar + "/" + targetCount);
+        treeWorkset = null;
+        treeTerminalReason = "";
+        targetPos = null;
+        resetSurveyWatchdog();
+        phase = countSoFar >= targetCount ? Phase.DONE : Phase.SURVEY;
+    }
+
+    private void clearPickupLedger() {
+        pickupOrigin = null;
+        pickupOriginApproachLogged = false;
+    }''', 1),
   ('''    private void startHarvest(AIPlayerEntity bot) {
         countBeforeHarvest = countAccepted(bot);''',
    '''    private void startHarvest(AIPlayerEntity bot) {
-        io.github.zoyluo.aibot.external.NaturalTreeClassifier.acquireHarvestCluster(bot, targetPos);
+        if (treeWorkset == null) {
+            if (!externalExecutionId.isBlank()) {
+                treeWorkset = io.github.zoyluo.aibot.external.TreeHarvestWorkset
+                        .acquire(bot, targetPos, externalExecutionId).orElse(null);
+            } else {
+                // Preserve the R2 lease for legacy/internal gathers; only external bounded executions
+                // opt into the stronger MC-2A0.2 transaction semantics.
+                io.github.zoyluo.aibot.external.NaturalTreeClassifier.acquireHarvestCluster(bot, targetPos);
+            }
+        }
         countBeforeHarvest = countAccepted(bot);''', 1),
+  ('''    private int countAccepted(AIPlayerEntity bot) {
+        return acceptedInventoryCount(bot, targetItem);
+    }''',
+   '''    @Override
+    protected void onAbort(AIPlayerEntity bot) {
+        if (treeWorkset != null) {
+            int supports = (int) treeWorkset.snapshot().supports().stream()
+                    .filter(s -> s.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.SupportState.PLACED)
+                    .count();
+            treeWorkset.abandon(failureReason == null || failureReason.isBlank() ? "task_aborted" : failureReason);
+            if (supports > 0) {
+                String base = failureReason == null || failureReason.isBlank() ? "aborted" : failureReason;
+                failureReason = base + ":tree_cleanup_debt_supports=" + supports
+                        + ":" + treeWorkset.unresolvedSupportSummary();
+            }
+        }
+        super.onAbort(bot);
+    }
+
+    private int countAccepted(AIPlayerEntity bot) {
+        return acceptedInventoryCount(bot, targetItem);
+    }''', 1),
  ]),
  'action/BlockMiner.java': ('9daf997724dddecdf363611a50c904315a3c6077', [
   ('''            Direction face = faceToward(bot, target);
@@ -332,7 +704,7 @@ CHANGES = {
 EXTRA_CHANGES={
  'src/gametest/resources/fabric.mod.json': ('25ecb31ca127ed2e9d57ccb9b5c223066092f3e5', [
   ('"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",',
-   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",', 1),
+   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A02TreeHarvestGameTests",', 1),
  ]),
  'src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java': ('07d61c3c7b180d12361b8ab6bbe8983f42ed30f4', [
   ('        assertEquals(2, occurrences(buildTask, "isObservableStandable(bot, candidate)"),\n                "both work-pose scans must cross the observable-world boundary");\n',

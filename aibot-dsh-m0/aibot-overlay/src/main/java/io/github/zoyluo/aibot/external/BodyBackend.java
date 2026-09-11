@@ -8,6 +8,13 @@ public interface BodyBackend {
     String observeJson();
     /** Must perform argument validation before mutation and retain the exact Task instance. */
     Handle start(String operation,String argumentsJson);
+    /**
+     * Exact bounded-execution identity seam. Legacy/fake backends stay source-compatible while the
+     * real external body may bind execution-scoped operational provenance to its task.
+     */
+    default Handle start(String executionId,String operation,String argumentsJson) {
+        return start(operation,argumentsJson);
+    }
     void pause();
     void resume();
     void cancel(String reason);

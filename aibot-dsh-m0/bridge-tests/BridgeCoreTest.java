@@ -11,6 +11,7 @@ public final class BridgeCoreTest {
     static int passed;
     static final class FakeBackend implements BodyBackend {
         boolean alive=true; String id="body-1"; String state="running"; int starts,pauses,resumes,cancels; boolean failStart;
+        String lastExecutionId="";
         long tick; String localJson="{\"schema\":\"mc.local_view.v0\"}";
         int inspectLocals, materializes; // MC-2A0.1 scheduling-budget counters
         static final String SCENE="{\"world\":{\"world_id\":\"core-test-world\"}}";
@@ -35,6 +36,7 @@ public final class BridgeCoreTest {
         }
         public String observeJson(){return "{\"health\":20,\"inventory\":{}}";}
         public Handle start(String op,String args){ starts++; if(failStart)throw new IllegalStateException(); state="running"; return ()->new Snapshot(state,.5,""); }
+        public Handle start(String executionId,String op,String args){ lastExecutionId=executionId; return start(op,args); }
         public void pause(){pauses++;if(state.equals("running"))state="paused";}
         public void resume(){resumes++;state="running";}
         public void cancel(String reason){cancels++;state="cancelled";}
@@ -121,6 +123,7 @@ public final class BridgeCoreTest {
             fault(409,"idempotency_conflict",()->f.kernel.submit(t,"r1","gather","{\"count\":2}"));
             fault(409,"execution_in_progress",()->f.kernel.submit(t,"r2","gather","{}"));
             f.kernel.tick(); check(f.body.starts==1,"one physical dispatch");
+            check(id.equals(f.body.lastExecutionId),"backend receives exact bridge execution id");
             check(f.kernel.execution(id).get("state").equals("running"),"running state");
             f.kernel.control(t,"pause-1",id,"pause"); check(f.body.pauses==0,"controls are queued not run in HTTP thread");
             f.kernel.tick();check(f.kernel.execution(id).get("state").equals("paused"),"pause preserves execution");

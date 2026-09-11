@@ -116,7 +116,11 @@ public final class MinecraftBodyBackend implements BodyBackend {
         return counts;
     }
     @Override public Handle start(String operation,String raw) {
+        return start("",operation,raw);
+    }
+    @Override public Handle start(String executionId,String operation,String raw) {
         onThread();
+        executionId=executionId==null?"":executionId;
         if(bot==null || !bot.isAlive())throw new BridgeFault(409,"body_unavailable");
         if(!"strict_survival".equals(AIBotConfig.get().profile().configValue()))throw new BridgeFault(403,"strict_survival_required");
         JsonObject args=parse(raw);
@@ -144,7 +148,7 @@ public final class MinecraftBodyBackend implements BodyBackend {
                 if(bot.getBlockPos().getSquaredDistance(goal)>128*128)throw new BridgeFault(400,"goto_distance_limit_128");
                 task=new MoveTask(bot,goal);
             }
-            case "gather" -> {target=item(args,"item");count=integer(args,"count",1,256);task=new GatherQuotaTask(target,count);}
+            case "gather" -> {target=item(args,"item");count=integer(args,"count",1,256);task=new GatherQuotaTask(target,count,executionId);}
             case "craft" -> {target=item(args,"item");count=integer(args,"count",1,64);task=new CraftTask(target,count);}
             case "smelt" -> {target=item(args,"output_item");count=integer(args,"count",1,64);task=new SmeltTask(item(args,"input_item"),target,count);}
             case "eat" -> task=new EatTask();
@@ -238,8 +242,9 @@ public final class MinecraftBodyBackend implements BodyBackend {
         if(TaskManager.INSTANCE.isUserPaused(bot))throw new BridgeFault(409,"body_user_paused");
         AIPlayerEntity executionBody=bot;
         Item expected=target; int quota=count; BlockPos destination=goal; String semantic=semanticId;
+        String executionOrigin=executionId.isBlank()?"external_dsh":"external_dsh:"+executionId;
         ExternalBodyAccess.dispatch(()->{
-            TaskManager.INSTANCE.assign(executionBody,task,TaskOrigin.of(TaskOrigin.Kind.LLM_TOOL,"external_dsh"));return null;
+            TaskManager.INSTANCE.assign(executionBody,task,TaskOrigin.of(TaskOrigin.Kind.LLM_TOOL,executionOrigin));return null;
         });
         managed=task;
         return ()->{

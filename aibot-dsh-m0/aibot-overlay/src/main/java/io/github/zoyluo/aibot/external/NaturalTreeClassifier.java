@@ -14,6 +14,7 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,6 +32,14 @@ public final class NaturalTreeClassifier {
     private record Cluster(Set<Long> logs, boolean rooted, int leaves) {}
     private record HarvestLease(Task owner, String dimension, Set<Long> logs) {}
 
+    /** Immutable proof frozen at initial natural-tree admission. It never expands after root removal. */
+    public record HarvestClusterProof(String dimension, Set<Long> logs) {
+        public HarvestClusterProof {
+            dimension = dimension == null ? "" : dimension;
+            logs = logs == null ? Set.of() : Set.copyOf(logs);
+        }
+    }
+
     public static boolean isHarvestCandidate(AIPlayerEntity bot, BlockPos pos) {
         if (!BreakPolicy.mayBreak(bot, pos)) return false;
         BlockState state = bot.getServerWorld().getBlockState(pos);
@@ -44,14 +53,17 @@ public final class NaturalTreeClassifier {
      * trunk, leaving floating trees. The lease never authorizes protected cells and never survives
      * task replacement/restart.
      */
-    public static void acquireHarvestCluster(AIPlayerEntity bot, BlockPos seed) {
-        if (bot == null || seed == null || !ExternalBodyAccess.reserved(bot)) return;
+    public static Optional<HarvestClusterProof> acquireHarvestCluster(AIPlayerEntity bot, BlockPos seed) {
+        if (bot == null || seed == null || !ExternalBodyAccess.reserved(bot)) return Optional.empty();
         Task owner = TaskManager.INSTANCE.getActive(bot).orElse(null);
-        if (owner == null || !"gather".equals(owner.name())) return;
-        if (!bot.getServerWorld().getBlockState(seed).isIn(BlockTags.LOGS) || !BreakPolicy.mayBreak(bot, seed)) return;
+        if (owner == null || !"gather".equals(owner.name())) return Optional.empty();
+        if (!bot.getServerWorld().getBlockState(seed).isIn(BlockTags.LOGS) || !BreakPolicy.mayBreak(bot, seed)) return Optional.empty();
         Cluster cluster = inspect(bot, seed);
-        if (!cluster.rooted || cluster.logs.size() < MIN_LOGS || cluster.leaves < MIN_NEARBY_LEAVES) return;
-        LEASES.put(bot.getUuid(), new HarvestLease(owner, dimension(bot), Set.copyOf(cluster.logs)));
+        if (!cluster.rooted || cluster.logs.size() < MIN_LOGS || cluster.leaves < MIN_NEARBY_LEAVES) return Optional.empty();
+        String dimension = dimension(bot);
+        Set<Long> frozen = Set.copyOf(cluster.logs);
+        LEASES.put(bot.getUuid(), new HarvestLease(owner, dimension, frozen));
+        return Optional.of(new HarvestClusterProof(dimension, frozen));
     }
 
     public static boolean isNaturalTreeLog(AIPlayerEntity bot, BlockPos seed) {
