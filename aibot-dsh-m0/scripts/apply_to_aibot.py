@@ -569,6 +569,31 @@ CHANGES = {
     private int countAccepted(AIPlayerEntity bot) {
         return acceptedInventoryCount(bot, targetItem);
     }''', 1),
+  # MC-2A0.2F closure: a placed TREE_ACCESS support is continuation state, not a
+  # cleanup trigger. The old generated state machine entered TREE_CLEANUP on the
+  # very next tick after placing support #1, removed it, then returned to SURVEY
+  # and placed the same cell again forever. TreeHarvestWorkset.tickAccess already
+  # proves/owns the top pose and can stack support #2+; keep those receipts live
+  # until the current committed log is resolved (harvest() then explicitly enters
+  # TREE_CLEANUP), or until a blocker/debt path explicitly requests cleanup.
+  ('''    private void surveyCommittedTree(AIPlayerEntity bot) {
+        treeWorkset.reconcile(bot);
+        if (treeWorkset.hasCleanupDebt()) {
+            fail("tree_cleanup_debt:" + treeWorkset.cleanupDebt());
+            return;
+        }
+        if (treeWorkset.hasTemporarySupports()) {
+            phase = Phase.TREE_CLEANUP;
+            return;
+        }
+        if (treeWorkset.hasPendingPickup()) {''',
+   '''    private void surveyCommittedTree(AIPlayerEntity bot) {
+        treeWorkset.reconcile(bot);
+        if (treeWorkset.hasCleanupDebt()) {
+            fail("tree_cleanup_debt:" + treeWorkset.cleanupDebt());
+            return;
+        }
+        if (treeWorkset.hasPendingPickup()) {''', 1),
  ]),
  'action/BlockMiner.java': ('9daf997724dddecdf363611a50c904315a3c6077', [
   ('''            Direction face = faceToward(bot, target);

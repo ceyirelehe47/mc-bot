@@ -169,6 +169,107 @@ public final class MC2A02TreeHarvestGameTests implements FabricGameTest {
         });
     }
 
+    /**
+     * MC-2A0.2F regression for LIVE D-1: the GatherQuotaTask state machine itself must retain
+     * support #1 as an active working surface long enough for TreeHarvestWorkset.tickAccess to
+     * stack support #2. Driving TreeHarvestWorkset directly was already green and therefore did
+     * not catch the old SURVEY -> TREE_CLEANUP oscillation.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE,
+            batchId = "mc2a02_access_state", tickLimit = 2800)
+    public void mc2a02GatherKeepsTemporarySupportsUntilHigherWorkFaceIsReached(TestContext context) {
+        Fixture f = fixture(context, 14);
+        // The reserved body's inventory survives despawn/respawn across batches; the quota
+        // counts any log family already held, so stale logs would satisfy quota=1 on tick one.
+        f.bot.getInventory().clear();
+        BlockPos base = naturalTree(f, 1, 8);
+        InventoryAction.giveItem(f.bot, new ItemStack(Items.IRON_AXE));
+        InventoryAction.giveItem(f.bot, new ItemStack(Items.DIRT, 24));
+        GatherQuotaTask task = new GatherQuotaTask(
+                Items.OAK_LOG, 1, "gt-access-continuation-owner");
+
+        // LIVE D-1 trigger geometry: the task's own acquire is eye-bounded, so the frozen
+        // proof is taken from a 3-block stand beside the trunk (full 8-log proof). Once the
+        // workset exists the stand is removed and the body continues from the ground, where
+        // the remaining high logs are reachable only by stacking TREE_ACCESS supports.
+        BlockPos stand = f.start;
+        for (int i = 0; i < 3; i++) set(f.world, stand.up(i), Blocks.DIRT);
+        f.bot.teleport(f.world, stand.getX() + .5D, stand.getY() + 3, stand.getZ() + .5D, Set.of(), 0, 0, true);
+        f.bot.setOnGround(true);
+
+        boolean[] assigned = {false};
+        boolean[] droppedToGround = {false};
+        int[] fenceSettle = {0};
+        int[] maxConcurrentPlaced = {0};
+        boolean[] sawTwoConcurrent = {false};
+        boolean[] sawReverseCleanupAfterStack = {false};
+
+        context.runAtEveryTick(() -> {
+            if (!assigned[0]) {
+                // Match the production external-body fence rule used by the quota regression.
+                if (++fenceSettle[0] <= 5) return;
+                assign(f.bot, task, "gt-access-continuation-owner");
+                assigned[0] = true;
+                return;
+            }
+
+            if (task.state() == TaskState.FAILED || task.state() == TaskState.CANCELLED) {
+                failAndDespawn(context, f,
+                        "gather ended " + task.state() + ":" + task.failureReason()
+                                + " maxConcurrentPlaced=" + maxConcurrentPlaced[0]);
+                return;
+            }
+            if (task.state() == TaskState.COMPLETED) {
+                require(context, droppedToGround[0],
+                        "task completed before the elevated stand was consumed; candidates proof was never full");
+                require(context, sawTwoConcurrent[0],
+                        "task never kept support #1 long enough to place support #2; max="
+                                + maxConcurrentPlaced[0]);
+                require(context, sawReverseCleanupAfterStack[0],
+                        "stacked TREE_ACCESS supports were never reverse-cleaned before completion");
+                for (int i = 0; i < 8; i++) {
+                    require(context, !f.world.getBlockState(base.up(i)).isOf(Blocks.OAK_LOG),
+                            "committed tall-tree log left at " + base.up(i));
+                    require(context, !f.world.getBlockState(base.up(i)).isOf(Blocks.DIRT),
+                            "owned TREE_ACCESS scaffold left at " + base.up(i));
+                }
+                finish(context, f);
+                return;
+            }
+
+            TreeHarvestWorkset.Snapshot snapshot = task.treeWorksetSnapshot();
+            if (snapshot == null) return;
+            if (!droppedToGround[0]) {
+                if (snapshot.candidates().size() < 8) return;
+                for (int i = 0; i < 3; i++) set(f.world, stand.up(i), Blocks.AIR);
+                f.bot.teleport(f.world, stand.getX() + .5D, stand.getY(), stand.getZ() + .5D, Set.of(), 0, 0, true);
+                f.bot.setOnGround(true);
+                droppedToGround[0] = true;
+                return;
+            }
+            List<TreeHarvestWorkset.TemporarySupport> placed = snapshot.supports().stream()
+                    .filter(s -> s.state() == TreeHarvestWorkset.SupportState.PLACED)
+                    .toList();
+            maxConcurrentPlaced[0] = Math.max(maxConcurrentPlaced[0], placed.size());
+            if (placed.size() >= 2) {
+                sawTwoConcurrent[0] = true;
+                require(context,
+                        placed.stream().map(TreeHarvestWorkset.TemporarySupport::pos)
+                                .distinct().count() >= 2,
+                        "two concurrent receipts must represent distinct support cells: " + placed);
+                require(context,
+                        placed.stream().allMatch(s ->
+                                "gt-access-continuation-owner".equals(s.ownerExecution())
+                                        && "TREE_ACCESS".equals(s.purpose())),
+                        "stacked support lost exact execution provenance: " + placed);
+            }
+            if (sawTwoConcurrent[0] && !snapshot.supports().isEmpty()
+                    && placed.isEmpty()) {
+                sawReverseCleanupAfterStack[0] = true;
+            }
+        });
+    }
+
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc2a02_debt", tickLimit = 500)
     public void mc2a02ModifiedOwnedSupportBecomesCleanupDebtAndIsNotRemoved(TestContext context) {
         Fixture f = fixture(context, 14);
