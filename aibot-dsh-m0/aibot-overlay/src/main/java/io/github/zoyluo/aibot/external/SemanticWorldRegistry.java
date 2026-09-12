@@ -366,9 +366,13 @@ public final class SemanticWorldRegistry {
         }
         if (!ore) { if (dirty) persistAsync(); return; }
 
-        String id = opportunityId(dim, pos, blockId);
+        // `id` is an object/incarnation identity, not a forever-coordinate identity.
+        // Re-observing the same still-active physical opportunity keeps the same id; once that
+        // incarnation terminalizes and leaves OPPORTUNITIES, a later same-cell/same-block object
+        // receives a new id so historical terminal receipts cannot poison it.
+        ResourceOpportunity prior = findActiveOpportunityAt(dim, pos, blockId);
+        String id = prior == null ? newOpportunityIncarnationId(dim, pos, blockId) : prior.id;
         String key = scoped(dim, id);
-        ResourceOpportunity prior = OPPORTUNITIES.get(key);
         BlockPos seenFrom = prior == null ? bot.getBlockPos() : prior.seenFrom();
         long now = bot.getServerWorld().getTime();
         ResourceOpportunity next;
@@ -944,9 +948,33 @@ public final class SemanticWorldRegistry {
         }
     }
 
-    private static String opportunityId(String dimension, BlockPos pos, String blockId) {
+    private static ResourceOpportunity findActiveOpportunityAt(String dimension, BlockPos pos, String blockId) {
+        ResourceOpportunity found = null;
+        for (ResourceOpportunity opportunity : OPPORTUNITIES.values()) {
+            if (!opportunity.dimension.equals(dimension)
+                    || opportunity.x != pos.getX()
+                    || opportunity.y != pos.getY()
+                    || opportunity.z != pos.getZ()
+                    || !opportunity.blockId.equals(blockId)) continue;
+            if (found != null && !found.id.equals(opportunity.id)) {
+                // Two live incarnations cannot occupy the same exact block cell. Treat a corrupt
+                // semantic snapshot as an authority failure rather than guessing which id wins.
+                throw new IllegalStateException("duplicate_active_opportunity_incarnation");
+            }
+            found = opportunity;
+        }
+        return found;
+    }
+
+    private static String newOpportunityIncarnationId(String dimension, BlockPos pos, String blockId) {
+        // Keep a short deterministic location prefix for diagnostics, but the random suffix is the
+        // incarnation boundary. The complete id stays inside the existing 48-char semantic-id cap
+        // and is persisted in the v1/v2/v3 semantic snapshot exactly like legacy ids.
         String material = worldId + "\n" + dimension + "\n" + pos.getX() + "," + pos.getY() + "," + pos.getZ() + "\n" + blockId;
-        return "ore_" + UUID.nameUUIDFromBytes(material.getBytes(StandardCharsets.UTF_8)).toString().replace("-", "");
+        String location = UUID.nameUUIDFromBytes(material.getBytes(StandardCharsets.UTF_8))
+                .toString().replace("-", "").substring(0, 12);
+        String incarnation = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        return "ore_" + location + "_" + incarnation;
     }
 
     private static void requireReady(AIPlayerEntity bot) {

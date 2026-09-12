@@ -42,11 +42,27 @@ final class OpportunityResolutionReceiptTest {
         }
     }
 
+    @Test void terminalReceiptNeverCrossesOpportunityIncarnationsAtSameCell() throws Exception {
+        var first=new TaskGraphStore.SpatialRef("world-a","minecraft:overworld","ore_same_cell_inc1");
+        var second=new TaskGraphStore.SpatialRef("world-a","minecraft:overworld","ore_same_cell_inc2");
+        try(BridgeJournal journal=new BridgeJournal(temp.resolve("incarnation.journal"),()->1L)) {
+            journal.append(fields("resource_opportunity_stale",first.objectId()));
+            var oldResult=BridgeKernel.durableOpportunityResolution(journal,first).orElseThrow();
+            assertEquals(BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED,oldResult.state());
+            assertTrue(BridgeKernel.durableOpportunityResolution(journal,second).isEmpty(),
+                    "old terminal receipt must not apply to a later opportunity incarnation");
+        }
+    }
+
     private static Map<String,String> fields(String kind) {
+        return fields(kind,"opp-1");
+    }
+
+    private static Map<String,String> fields(String kind,String opportunityId) {
         Map<String,String> out=new LinkedHashMap<>();
         out.put("kind",kind);
         out.put("execution_id","e");
-        out.put("opportunity_id","opp-1");
+        out.put("opportunity_id",opportunityId);
         out.put("world_id","world-a");
         out.put("dimension","minecraft:overworld");
         out.put("payload","{}");

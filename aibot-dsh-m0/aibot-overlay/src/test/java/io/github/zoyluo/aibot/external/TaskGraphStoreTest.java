@@ -79,6 +79,27 @@ final class TaskGraphStoreTest {
         assertEquals("STALE",store.inspect(id).get("state"));
     }
 
+    @Test void failedExecutionWithDurableTerminalLossBecomesStaleNotFailed() {
+        TaskGraphStore store=TaskGraphStore.memory();
+        String id=(String)store.planOpportunity("plan-failed-stale",ref("opp-failed-stale")).get("graph_id");
+        TaskGraphStore.Dispatch d=store.prepareDispatch(id);
+        store.attachExecution(d,"execution-failed-stale");
+        store.executionTerminal("execution-failed-stale","failed",
+                pc->BodyBackend.GraphPostconditionResult
+                        .terminalUnsatisfied("durable_stale_or_loss_receipt"));
+        Map<String,Object> graph=store.inspect(id);
+        assertEquals("STALE",graph.get("state"));
+        assertTrue(graph.toString().contains("execution_failed_terminal_unsatisfied"));
+
+        String ordinary=(String)store.planOpportunity("plan-ordinary-failure",ref("opp-ordinary-failure")).get("graph_id");
+        TaskGraphStore.Dispatch ordinaryDispatch=store.prepareDispatch(ordinary);
+        store.attachExecution(ordinaryDispatch,"execution-ordinary-failure");
+        store.executionTerminal("execution-ordinary-failure","failed",
+                pc->BodyBackend.GraphPostconditionResult.unknown("no_terminal_negative_proof"));
+        assertEquals("FAILED",store.inspect(ordinary).get("state"),
+                "ordinary mechanical failure must not be reclassified as STALE");
+    }
+
     @Test void legacyDoneWithoutDurableSuccessReceiptIsDowngraded() {
         TaskGraphStore store=TaskGraphStore.memory();
         String id=(String)store.planOpportunity("plan-a",ref("opp-old")).get("graph_id");

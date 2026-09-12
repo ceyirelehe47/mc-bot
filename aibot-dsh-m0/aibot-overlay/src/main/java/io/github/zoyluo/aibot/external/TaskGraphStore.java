@@ -204,7 +204,19 @@ public final class TaskGraphStore {
                         n.state=NodeState.SUSPENDED; n.reason="postcondition_unknown:"+bound(v.reason(),160);
                     }
                 }
-                case "failed" -> { n.state=NodeState.FAILED; n.reason="execution_failed"; }
+                case "failed" -> {
+                    // A physical task can fail precisely because its subject disappeared or was
+                    // lost. If that terminal negative fact already crossed the durable receipt
+                    // boundary, the Graph subject is stale rather than a retryable mechanical
+                    // failure. Other failed executions keep the existing FAILED semantics.
+                    BodyBackend.GraphPostconditionResult v=verifier.apply(n.postcondition);
+                    if(v.state()==BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED) {
+                        n.state=NodeState.STALE;
+                        n.reason="execution_failed_terminal_unsatisfied:"+bound(v.reason(),160);
+                    } else {
+                        n.state=NodeState.FAILED; n.reason="execution_failed";
+                    }
+                }
                 case "cancelled" -> { n.state=NodeState.CANCELLED; n.reason="execution_cancelled"; }
                 case "outcome_unknown" -> { n.state=NodeState.SUSPENDED; n.reason="execution_outcome_unknown_no_replay"; }
                 default -> { return; }
