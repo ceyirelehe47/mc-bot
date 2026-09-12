@@ -1,0 +1,25 @@
+[14:28:50] [Server thread/INFO]: Bob[127.0.0.1] logged in with entity id 1 at (559.5, 68.0, 129.5)
+[14:28:51] [Server thread/INFO]: Bob joined the game
+[14:28:51] [Server thread/INFO]: [AIBot] LIFECYCLE event=bot_spawned bot=Bob {mode=survival, pos=559,68,129}
+[14:28:51] [Server thread/INFO]: [AIBot] LIFECYCLE event=bot_role_set bot=Bob {role=worker}
+[14:28:51] [Server thread/INFO]: [AIBot] COMM event=bot_memory_loaded bot=- {bot_uuid=faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b}
+[14:28:51] [Server thread/INFO]: [AIBot] LIFECYCLE event=bot_restored bot=Bob {fallback=false, mode=survival, pos=559,68,129, dimension=minecraft:overworld}
+[14:28:51] [Server thread/INFO]: [AIBot] LIFECYCLE event=server_runtime_ready bot=- {restored_bots=1, runtime_session=6292c958-aa9d-43f2-aa64-054798385440}
+[14:28:51] [Server thread/ERROR]: Encountered an unexpected exception
+java.lang.IllegalStateException: external_bridge_start_failed_closed
+	at knot/io.github.zoyluo.aibot.external.ExternalBodyRuntime.start(ExternalBodyRuntime.java:45) ~[aibot-0.0.1.jar:?]
+	at knot/io.github.zoyluo.aibot.AIBotMod.lambda$onInitialize$1(AIBotMod.java:63) ~[aibot-0.0.1.jar:?]
+	at knot/net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.lambda$static$2(ServerLifecycleEvents.java:49) ~[fabric-lifecycle-events-v1-2.5.1+6da5ef6940-68022298a1242450.jar:?]
+	at knot/net.minecraft.server.MinecraftServer.handler$zef000$fabric-lifecycle-events-v1$afterSetupServer(MinecraftServer.java:3204) ~[server-intermediary.jar:?]
+	at knot/net.minecraft.server.MinecraftServer.method_29741(MinecraftServer.java:682) ~[server-intermediary.jar:?]
+	at knot/net.minecraft.server.MinecraftServer.method_29739(MinecraftServer.java:292) ~[server-intermediary.jar:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: io.github.zoyluo.aibot.external.BridgeFault: task_graph_store_invalid
+	at knot/io.github.zoyluo.aibot.external.TaskGraphStore.load(TaskGraphStore.java:392) ~[aibot-0.0.1.jar:?]
+	at knot/io.github.zoyluo.aibot.external.TaskGraphStore.<init>(TaskGraphStore.java:80) ~[aibot-0.0.1.jar:?]
+	at knot/io.github.zoyluo.aibot.external.ExternalBodyRuntime.start(ExternalBodyRuntime.java:33) ~[aibot-0.0.1.jar:?]
+	... 6 more
+[14:28:51] [Server thread/ERROR]: This crash report has been saved to: D:\code\mc-experiment\mc-server-mc1ca\crash-reports\crash-2026-09-12_14.28.51-server.txt
+[14:28:51] [Server thread/INFO]: [AIBot] LIFECYCLE event=server_stopping bot=- {}
+[14:28:51] [AIBotPersistenceWriter/INFO]: [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {jobs=0, schema=1, atomic_move=true, path=.\world_play\.\aibot\runtime.json, bots=1}
+[14:28:51] [Server thread/INFO]: [AIBot] COMM event=conversation_reset bot=Bob {}

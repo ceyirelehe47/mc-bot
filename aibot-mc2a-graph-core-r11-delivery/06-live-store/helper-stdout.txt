@@ -1,0 +1,4 @@
+valid_bytes=1011
+truncated_bytes=1010
+final_valid_dependency=aX
+final_truncated_prefix=a

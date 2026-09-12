@@ -1,0 +1,24 @@
+# 普通失败对照:无终态负向收据的机械性失败保持 FAILED(非 STALE)
+
+LIVE-R11-1 装置迭代的 4 次失败派发(r11-incarnation-b/c/d/e)全部落为 **FAILED / execution_failed**,
+未被改判 STALE —— 它们的图后置条件没有任何 durable 终态负向收据(TG-STALE-1 的负分支)。
+
+从运行记录誊录(图 id / 终态 / 节点 reason / 失败距创建时长):
+
+| plan_key | graph_id | 终态 | node reason | 备注 |
+|---|---|---|---|---|
+| r11-incarnation-b | graph-c69f8e550a0a47be4ed1eaf2 | FAILED | execution_failed | 会话 A;机会 BLOCKED(无镐)派发即拒 |
+| r11-incarnation-c | graph-2c47a53ad2d841cee0eed0f0 | FAILED | execution_failed | 会话 B;同上(62ms 内失败) |
+| r11-incarnation-d | graph-766eb74a11bdca9c49864022 | FAILED | execution_failed | 会话 C;悬空矿无同层站面,task 1 tick 失败 |
+| r11-incarnation-e | graph-d83f8f7cf3d8766f6a1d0c79 | FAILED | execution_failed | 会话 D;同上(50 tick 后工位扫描失败) |
+| r11-stale-exec(第 1 次) | graph-e8425005ff27bdb7f7cec4fe | FAILED | execution_failed | 会话 F;矿未移除即工位扫描失败 |
+
+对应服务器 TASK 事件(会话 C/D 日志,server-r11-c/d.log):
+
+```
+task_assigned {name=mine_known_resource, params=Mine known minecraft:iron_ore at 560, 69, 129 phase=APPROACH}
+task_failed {reason=known_resource_unreachable:no_reachable_work_pose, elapsed_ticks=1}
+```
+
+这些图的 subject 化身在失败时仍活动(无 stale/consumed 收据) → verifyGraphPostcondition
+返回 UNKNOWN/UNSATISFIED → 0002 号补丁的 else 分支保持 FAILED。

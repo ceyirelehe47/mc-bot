@@ -1,0 +1,9 @@
+RESTORE VERIFIED: store == backup
+63ce678c75a95b23acf726e66a068937b80e6fd341bd3bf1dfd6862b98c466c0 *D:/code/mc-experiment/mc-server-mc1ca/world_play/aibot/task-graphs-bob.bin.r11-backup
+63ce678c75a95b23acf726e66a068937b80e6fd341bd3bf1dfd6862b98c466c0 *D:/code/mc-experiment/mc-server-mc1ca/world_play/aibot/task-graphs-bob.bin
+
+[时间线] 1) LIVE 前生产存储备份为 .r11-backup(63ce678c,含 R11-1/2 门的真实图历史);
+2) 截断夹具写入 -> 启动 fail-closed(畸形 sha f73f4f3c 未被改写);
+3) 备份逐字节恢复,cmp 通过(RESTORE VERIFIED,见上);
+4) 会话 H 正常启动并运行(桥 8765 绑定,见 normal-start.txt),运行期 save 合法改写为 48a9c988;
+5) 停服后再次恢复备份为本轮最终态,cmp 通过(本文件输出)。

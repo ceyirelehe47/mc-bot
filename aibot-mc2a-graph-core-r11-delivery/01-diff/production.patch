@@ -1,0 +1,350 @@
+diff --git a/aibot-dsh-m0/SHA256SUMS b/aibot-dsh-m0/SHA256SUMS
+index f45f251..bbe1e6e 100644
+--- a/aibot-dsh-m0/SHA256SUMS
++++ b/aibot-dsh-m0/SHA256SUMS
+@@ -6,6 +6,7 @@ d09ec1adb1255fe5fca15844cfec86aab5677b4d8cefe78090f71bd95c1d5aa6  aibot-overlay/
+ 70bb94d965c39a6683114f5851e46cb4f40542505d3f43f3a9333211b6f008ed  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01CognitiveBoundaryGameTests.java
+ 8402333c70be2cfad393de9f700a5a9320adc96cb1222ec13a1a46e5bbec0374  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01FClosureGameTests.java
+ 11ad19b2be93839bb13ef4031de482eb4ee380a6bad235c910881cce5c992208  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
++6f7e8f7ef6e3c5dfaedeba5e0e20a0dce51af82f839e1acab5ff7073f7ec5121  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A03OpportunityIncarnationGameTests.java
+ 761dccf15a2d6b3e43bac3a867b6635155aadcee7347a72a3661a92d9654792b  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A0CognitiveViewGameTests.java
+ f53809013aca5fb1ab39edfc61a43d03a0d12edd51f73722c0d7608ca3e50cf7  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+ 73cea3d91de06f6b6535d2499fe00164fdf5a48b8d5803709bde8a4b5de41588  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BreakPolicy.java
+@@ -26,13 +27,13 @@ aadb1abb0cebe4658c20bce3267566105c11ac2a9aaf05c0fc7b6b75dc01acc9  aibot-overlay/
+ bb2fcee8824070890cf7f7b8bc3ca9f869d607ab3ea3fa988767fa3db6046c99  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java
+ 0c5c6a6d6f1bff7b5dff04010e0210515ce453c923bda681ba73f8b9f076ea92  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+ f127d98a2f18ae61026d21f6aee22b121ae6335426a07c92afc6c594dbe52179  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/NaturalTreeClassifier.java
+-ad8b678bb9d339733417bd64c44d643b86ae474b08e3585cc83020f33ac56d0d  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
+-ad4d66ac5d91687c4fc4f1b0d727dde6f570e33c6fba77dbc534516800988ec6  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
++2409bf111b4a2f39ffa1b1773893ceec32ebab8c5581bfc1058aec78ded7f838  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
++6996ba68825063fc2fd044bb929743f72350a9c6f9ae24b169d2868f62899c83  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
+ 2a9cdec3c219034fc1b05b2ce85b0dd5a0caccf0e4dd4cb611e4a6e6eb00fec6  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
+ f67eafd4066d92c844c39634ec7ce5144a91f0e6c7a1c57695f2bfa50e84ecb6  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/cognition/CognitiveCanonicalizationTest.java
+-06682ae8328263564b20eb0ba0ac2a7f19cd9f0317e2578eb21634d648116ce3  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityResolutionReceiptTest.java
++9e8971c314e03f3f0d06bd4cc27d1635fe18f74b4144922e695e026cf3e4d9d5  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityResolutionReceiptTest.java
+ 8d4f02fbcc991f980ba34ee24afde8b42b6bfe94230662a44f053a06741908e4  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphBridgeSourceContractTest.java
+-0e2318907b60ef926d4779011331726b07f5e11a0848b31cce426d85f29b1a36  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
++39a44f7167fb1f497cdf17d02460c2ee2a143e01292ddf70c8e5e71096d861dd  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
+ 715f92a6d45615f09ba1ba00d869333424fe8767732fb739c24ad151d1d23c83  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TreeHarvestSourceContractTest.java
+ 402298d4cc2129eb5000699cd508fa4f80db16c8966054c58d09b54a389ee7db  aibot-overlay/src/test/java/io/github/zoyluo/aibot/task/TreeAccessContinuationSourceContractTest.java
+ a5d9e7654839fa94e1a5827bf12f3b8ec7850eb45de63c36e1f3ab314a14f7b3  BASELINES.json
+@@ -139,7 +140,7 @@ dc5685a6c9228bff3573e7e5b1c0f01d79917e22267050808d1ef58ccb750796  evidence/patch
+ ea9c5ad0c24849895aaa8aaec1fe306237d2b9bf5a51e8ef49307a3c1fdb04ed  evidence/source-review.json
+ f36de2be18d12399babe177a0516ac9d399859f3ead731cd06db38fd8e559377  integration/UPSTREAM_BLOBS.json
+ bcd67ba3449c762ebe7b05676f2df63b13ee31bbf7a9846b85b86d97052b06a1  README.zh-CN.md
+-245fcd8d297fa14b56b5cb26b471b9ba6bc9793eb8c6b1a7861c851cb12b6e7d  scripts/apply_to_aibot.py
++b8bc65574257329b749c8337b684169a694c93a3faebde26c42b49c6c8870d79  scripts/apply_to_aibot.py
+ ed3c8e4f25aa1ac7040016f63cc3f60366f7b89ff6184fb0349230890ee59c5c  scripts/gen_sums.py
+ 2998c9e64070e49795daf13683f4b985b6121defe8a59d00cc11994efb268de7  scripts/inspect_bridge.mjs
+ 927171b7d97f166b257d622320798a4f59d7ab9ba9398a3ae94b003d0fbdad07  scripts/install_dsh_plugin.py
+diff --git a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A03OpportunityIncarnationGameTests.java b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A03OpportunityIncarnationGameTests.java
+new file mode 100644
+index 0000000..15d87a8
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A03OpportunityIncarnationGameTests.java
+@@ -0,0 +1,146 @@
++package io.github.zoyluo.aibot.gametest;
++
++import com.google.gson.JsonArray;
++import com.google.gson.JsonElement;
++import com.google.gson.JsonObject;
++import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.external.BridgeJournal;
++import io.github.zoyluo.aibot.external.ExternalBodyAccess;
++import io.github.zoyluo.aibot.external.SemanticWorldRegistry;
++import io.github.zoyluo.aibot.manager.AIPlayerManager;
++import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
++import net.minecraft.block.Block;
++import net.minecraft.block.Blocks;
++import net.minecraft.server.world.ServerWorld;
++import net.minecraft.test.GameTest;
++import net.minecraft.test.TestContext;
++import net.minecraft.util.math.BlockPos;
++import net.minecraft.util.math.Vec3d;
++import net.minecraft.world.GameMode;
++
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.LinkedHashMap;
++import java.util.Map;
++import java.util.Set;
++
++/** MC-2A Graph R1.1: terminal opportunity evidence is scoped to one physical incarnation. */
++public final class MC2A03OpportunityIncarnationGameTests implements FabricGameTest {
++    private static final String BOT = "Mc1caBot";
++
++    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE,
++            batchId = "mc2a03_opportunity_incarnation", tickLimit = 200)
++    public void mc2a03SameCellSameOreGetsNewIncarnationAndOldReceiptCannotDeleteIt(TestContext context) {
++        Fixture f = fixture(context);
++        BlockPos ore = f.start.east(2);
++        set(f.world, ore, Blocks.IRON_ORE);
++
++        SemanticWorldRegistry.observeVisibleBlock(f.bot, ore, f.world.getBlockState(ore));
++        String first = opportunityIdAt(f.bot, ore);
++        require(context, !first.isBlank(), "first opportunity incarnation missing");
++        SemanticWorldRegistry.observeVisibleBlock(f.bot, ore, f.world.getBlockState(ore));
++        String firstAgain = opportunityIdAt(f.bot, ore);
++        require(context, first.equals(firstAgain),
++                "ordinary re-observation minted a new id for the same active incarnation");
++
++        // Terminalize incarnation #1, then make the same block type physically exist at the same
++        // coordinates again. This must be a new object, not a revival of the old object id.
++        SemanticWorldRegistry.markOpportunityStale(f.bot, first, "fixture_first_incarnation_terminal");
++        set(f.world, ore, Blocks.AIR);
++        set(f.world, ore, Blocks.IRON_ORE);
++        SemanticWorldRegistry.observeVisibleBlock(f.bot, ore, f.world.getBlockState(ore));
++        String second = opportunityIdAt(f.bot, ore);
++
++        require(context, !first.equals(second),
++                "same-cell same-block reappearance reused terminal opportunity id " + first);
++        require(context, SemanticWorldRegistry.opportunity(f.bot, first).isEmpty(),
++                "terminal incarnation unexpectedly active");
++        require(context, SemanticWorldRegistry.opportunity(f.bot, second).isPresent(),
++                "new incarnation not active");
++
++        // Reproduce startup reconciliation against a journal that only knows incarnation #1.
++        // The new incarnation must survive because the durable receipt's object id is different.
++        Path journalPath = null;
++        try {
++            journalPath = Files.createTempFile("mc2a03-incarnation-", ".journal");
++            try (BridgeJournal journal = new BridgeJournal(journalPath, () -> 1L)) {
++                Map<String,String> fields = new LinkedHashMap<>();
++                fields.put("kind", "resource_opportunity_stale");
++                fields.put("execution_id", "gt-incarnation-1");
++                fields.put("opportunity_id", first);
++                fields.put("world_id", SemanticWorldRegistry.worldId());
++                fields.put("dimension", f.world.getRegistryKey().getValue().toString());
++                fields.put("payload", "{}");
++                journal.append(fields);
++                int removed = SemanticWorldRegistry.reconcileOpportunityTerminalReceipts(journal);
++                require(context, removed == 0,
++                        "old incarnation receipt deleted current incarnation");
++            }
++        } catch (Exception failure) {
++            context.throwGameTestException("incarnation journal fixture failed: " + failure);
++            return;
++        } finally {
++            if (journalPath != null) try { Files.deleteIfExists(journalPath); } catch (Exception ignored) {}
++        }
++
++        require(context, SemanticWorldRegistry.opportunity(f.bot, second).isPresent(),
++                "current incarnation vanished after old-receipt reconcile");
++
++        // R1.1 fixture hygiene: terminalize the live incarnation and remove the ore block, so the
++        // shared per-world registry stays clean for later batches (mc1caR2's omniscient observe
++        // asserts the whole overworld contains only its own fixture ore).
++        SemanticWorldRegistry.markOpportunityStale(f.bot, second, "fixture_incarnation_cleanup");
++        set(f.world, ore, Blocks.AIR);
++        require(context, SemanticWorldRegistry.opportunity(f.bot, second).isEmpty(),
++                "cleanup left the incarnation active");
++        finish(context, f);
++    }
++
++    private record Fixture(ServerWorld world, AIPlayerEntity bot, BlockPos start) {}
++
++    private static Fixture fixture(TestContext context) {
++        ServerWorld world = context.getWorld();
++        BlockPos start = context.getAbsolutePos(new BlockPos(2, 2, 2));
++        for (int dx = -4; dx <= 8; dx++) for (int dz = -4; dz <= 4; dz++) {
++            BlockPos feet = start.add(dx, 0, dz);
++            world.setBlockState(feet.down(), Blocks.STONE.getDefaultState(), Block.NOTIFY_ALL);
++            world.setBlockState(feet, Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL);
++            world.setBlockState(feet.up(), Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL);
++        }
++        AIPlayerManager.INSTANCE.despawn(world.getServer(), BOT);
++        AIPlayerEntity bot = AIPlayerManager.INSTANCE.spawn(world.getServer(), BOT, world,
++                Vec3d.ofBottomCenter(start), 0.0F, 0.0F, GameMode.SURVIVAL).orElseThrow();
++        bot.teleport(world, start.getX() + .5D, start.getY(), start.getZ() + .5D,
++                Set.of(), 0, 0, true);
++        ExternalBodyAccess.activateReservation();
++        return new Fixture(world, bot, start);
++    }
++
++    private static String opportunityIdAt(AIPlayerEntity bot, BlockPos pos) {
++        JsonArray opportunities = SemanticWorldRegistry.observeBounded(bot)
++                .getAsJsonArray("resource_opportunities");
++        for (JsonElement element : opportunities) {
++            JsonObject o = element.getAsJsonObject();
++            JsonObject p = o.getAsJsonObject("position");
++            if (p.get("x").getAsInt() == pos.getX()
++                    && p.get("y").getAsInt() == pos.getY()
++                    && p.get("z").getAsInt() == pos.getZ()) {
++                return o.get("id").getAsString();
++            }
++        }
++        return "";
++    }
++
++    private static void set(ServerWorld world, BlockPos pos, Block block) {
++        world.setBlockState(pos, block.getDefaultState(), Block.NOTIFY_ALL);
++    }
++
++    private static void require(TestContext context, boolean condition, String message) {
++        if (!condition) context.throwGameTestException(message);
++    }
++
++    private static void finish(TestContext context, Fixture f) {
++        AIPlayerManager.INSTANCE.despawn(f.bot.getServer(), BOT);
++        context.complete();
++    }
++}
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
+index 674c4d9..f067709 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
+@@ -366,9 +366,13 @@ public final class SemanticWorldRegistry {
+         }
+         if (!ore) { if (dirty) persistAsync(); return; }
+ 
+-        String id = opportunityId(dim, pos, blockId);
++        // `id` is an object/incarnation identity, not a forever-coordinate identity.
++        // Re-observing the same still-active physical opportunity keeps the same id; once that
++        // incarnation terminalizes and leaves OPPORTUNITIES, a later same-cell/same-block object
++        // receives a new id so historical terminal receipts cannot poison it.
++        ResourceOpportunity prior = findActiveOpportunityAt(dim, pos, blockId);
++        String id = prior == null ? newOpportunityIncarnationId(dim, pos, blockId) : prior.id;
+         String key = scoped(dim, id);
+-        ResourceOpportunity prior = OPPORTUNITIES.get(key);
+         BlockPos seenFrom = prior == null ? bot.getBlockPos() : prior.seenFrom();
+         long now = bot.getServerWorld().getTime();
+         ResourceOpportunity next;
+@@ -944,9 +948,33 @@ public final class SemanticWorldRegistry {
+         }
+     }
+ 
+-    private static String opportunityId(String dimension, BlockPos pos, String blockId) {
++    private static ResourceOpportunity findActiveOpportunityAt(String dimension, BlockPos pos, String blockId) {
++        ResourceOpportunity found = null;
++        for (ResourceOpportunity opportunity : OPPORTUNITIES.values()) {
++            if (!opportunity.dimension.equals(dimension)
++                    || opportunity.x != pos.getX()
++                    || opportunity.y != pos.getY()
++                    || opportunity.z != pos.getZ()
++                    || !opportunity.blockId.equals(blockId)) continue;
++            if (found != null && !found.id.equals(opportunity.id)) {
++                // Two live incarnations cannot occupy the same exact block cell. Treat a corrupt
++                // semantic snapshot as an authority failure rather than guessing which id wins.
++                throw new IllegalStateException("duplicate_active_opportunity_incarnation");
++            }
++            found = opportunity;
++        }
++        return found;
++    }
++
++    private static String newOpportunityIncarnationId(String dimension, BlockPos pos, String blockId) {
++        // Keep a short deterministic location prefix for diagnostics, but the random suffix is the
++        // incarnation boundary. The complete id stays inside the existing 48-char semantic-id cap
++        // and is persisted in the v1/v2/v3 semantic snapshot exactly like legacy ids.
+         String material = worldId + "\n" + dimension + "\n" + pos.getX() + "," + pos.getY() + "," + pos.getZ() + "\n" + blockId;
+-        return "ore_" + UUID.nameUUIDFromBytes(material.getBytes(StandardCharsets.UTF_8)).toString().replace("-", "");
++        String location = UUID.nameUUIDFromBytes(material.getBytes(StandardCharsets.UTF_8))
++                .toString().replace("-", "").substring(0, 12);
++        String incarnation = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
++        return "ore_" + location + "_" + incarnation;
+     }
+ 
+     private static void requireReady(AIPlayerEntity bot) {
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
+index aa42658..8ba62b1 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
+@@ -204,7 +204,19 @@ public final class TaskGraphStore {
+                         n.state=NodeState.SUSPENDED; n.reason="postcondition_unknown:"+bound(v.reason(),160);
+                     }
+                 }
+-                case "failed" -> { n.state=NodeState.FAILED; n.reason="execution_failed"; }
++                case "failed" -> {
++                    // A physical task can fail precisely because its subject disappeared or was
++                    // lost. If that terminal negative fact already crossed the durable receipt
++                    // boundary, the Graph subject is stale rather than a retryable mechanical
++                    // failure. Other failed executions keep the existing FAILED semantics.
++                    BodyBackend.GraphPostconditionResult v=verifier.apply(n.postcondition);
++                    if(v.state()==BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED) {
++                        n.state=NodeState.STALE;
++                        n.reason="execution_failed_terminal_unsatisfied:"+bound(v.reason(),160);
++                    } else {
++                        n.state=NodeState.FAILED; n.reason="execution_failed";
++                    }
++                }
+                 case "cancelled" -> { n.state=NodeState.CANCELLED; n.reason="execution_cancelled"; }
+                 case "outcome_unknown" -> { n.state=NodeState.SUSPENDED; n.reason="execution_outcome_unknown_no_replay"; }
+                 default -> { return; }
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityResolutionReceiptTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityResolutionReceiptTest.java
+index df8ac0e..03de05c 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityResolutionReceiptTest.java
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityResolutionReceiptTest.java
+@@ -42,11 +42,27 @@ final class OpportunityResolutionReceiptTest {
+         }
+     }
+ 
++    @Test void terminalReceiptNeverCrossesOpportunityIncarnationsAtSameCell() throws Exception {
++        var first=new TaskGraphStore.SpatialRef("world-a","minecraft:overworld","ore_same_cell_inc1");
++        var second=new TaskGraphStore.SpatialRef("world-a","minecraft:overworld","ore_same_cell_inc2");
++        try(BridgeJournal journal=new BridgeJournal(temp.resolve("incarnation.journal"),()->1L)) {
++            journal.append(fields("resource_opportunity_stale",first.objectId()));
++            var oldResult=BridgeKernel.durableOpportunityResolution(journal,first).orElseThrow();
++            assertEquals(BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED,oldResult.state());
++            assertTrue(BridgeKernel.durableOpportunityResolution(journal,second).isEmpty(),
++                    "old terminal receipt must not apply to a later opportunity incarnation");
++        }
++    }
++
+     private static Map<String,String> fields(String kind) {
++        return fields(kind,"opp-1");
++    }
++
++    private static Map<String,String> fields(String kind,String opportunityId) {
+         Map<String,String> out=new LinkedHashMap<>();
+         out.put("kind",kind);
+         out.put("execution_id","e");
+-        out.put("opportunity_id","opp-1");
++        out.put("opportunity_id",opportunityId);
+         out.put("world_id","world-a");
+         out.put("dimension","minecraft:overworld");
+         out.put("payload","{}");
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
+index 6f56352..cc50375 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
+@@ -79,6 +79,27 @@ final class TaskGraphStoreTest {
+         assertEquals("STALE",store.inspect(id).get("state"));
+     }
+ 
++    @Test void failedExecutionWithDurableTerminalLossBecomesStaleNotFailed() {
++        TaskGraphStore store=TaskGraphStore.memory();
++        String id=(String)store.planOpportunity("plan-failed-stale",ref("opp-failed-stale")).get("graph_id");
++        TaskGraphStore.Dispatch d=store.prepareDispatch(id);
++        store.attachExecution(d,"execution-failed-stale");
++        store.executionTerminal("execution-failed-stale","failed",
++                pc->BodyBackend.GraphPostconditionResult
++                        .terminalUnsatisfied("durable_stale_or_loss_receipt"));
++        Map<String,Object> graph=store.inspect(id);
++        assertEquals("STALE",graph.get("state"));
++        assertTrue(graph.toString().contains("execution_failed_terminal_unsatisfied"));
++
++        String ordinary=(String)store.planOpportunity("plan-ordinary-failure",ref("opp-ordinary-failure")).get("graph_id");
++        TaskGraphStore.Dispatch ordinaryDispatch=store.prepareDispatch(ordinary);
++        store.attachExecution(ordinaryDispatch,"execution-ordinary-failure");
++        store.executionTerminal("execution-ordinary-failure","failed",
++                pc->BodyBackend.GraphPostconditionResult.unknown("no_terminal_negative_proof"));
++        assertEquals("FAILED",store.inspect(ordinary).get("state"),
++                "ordinary mechanical failure must not be reclassified as STALE");
++    }
++
+     @Test void legacyDoneWithoutDurableSuccessReceiptIsDowngraded() {
+         TaskGraphStore store=TaskGraphStore.memory();
+         String id=(String)store.planOpportunity("plan-a",ref("opp-old")).get("graph_id");
+diff --git a/aibot-dsh-m0/scripts/apply_to_aibot.py b/aibot-dsh-m0/scripts/apply_to_aibot.py
+index c43c28f..1d93d8d 100644
+--- a/aibot-dsh-m0/scripts/apply_to_aibot.py
++++ b/aibot-dsh-m0/scripts/apply_to_aibot.py
+@@ -729,7 +729,7 @@ CHANGES = {
+ EXTRA_CHANGES={
+  'src/gametest/resources/fabric.mod.json': ('25ecb31ca127ed2e9d57ccb9b5c223066092f3e5', [
+   ('"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",',
+-   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A02TreeHarvestGameTests",', 1),
++   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A02TreeHarvestGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A03OpportunityIncarnationGameTests",', 1),
+  ]),
+  'src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java': ('07d61c3c7b180d12361b8ab6bbe8983f42ed30f4', [
+   ('        assertEquals(2, occurrences(buildTask, "isObservableStandable(bot, candidate)"),\n                "both work-pose scans must cross the observable-world boundary");\n',
