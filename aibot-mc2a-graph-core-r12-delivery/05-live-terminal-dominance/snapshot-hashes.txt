@@ -1,0 +1,3 @@
+C=ore_fefc057feb30_07b497c525c74dfd
+with-C-observed(注入的旧快照, 含 C) sha256=20fcfcb88b8caa027c062a2bce81f499d7db63d33a40f14f5554cbb593428b7f
+重启后注册表含 C? False (期望 False)

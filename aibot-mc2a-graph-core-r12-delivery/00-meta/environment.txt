@@ -1,0 +1,6 @@
+OS=Windows 10.0.26200 x64(Git Bash)
+JDK=D:/mc-server/jdk-21.0.12.1+1(系统默认 23 编译可用/运行需 21)
+gradle=9.4.0 wrapper
+node=v22.19.0
+python=Python 3.13.7
+隔离服=D:/code/mc-experiment/mc-server-mc1ca(world_play, MC 1.21.3 fabric, bot=Bob)

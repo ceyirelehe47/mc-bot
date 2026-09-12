@@ -1,0 +1,400 @@
+diff --git a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CASemanticsGameTests.java b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CASemanticsGameTests.java
+index 578031e..35dce1e 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CASemanticsGameTests.java
++++ b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CASemanticsGameTests.java
+@@ -218,7 +218,7 @@ public final class MC1CASemanticsGameTests implements FabricGameTest {
+             require(context, SemanticWorldRegistry.farm(bot, "gt7_farm").isPresent(),
+                     "restored registry must serve farm lookups again");
+         } catch (IOException failure) {
+-            context.throwGameTestException("gt7 io failure: " + failure);
++            context.throwGameTestException("gt7 io failure: " + failure + " / cause=" + failure.getCause());
+         }
+         finish(context, fixture);
+     }
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+index 7e9bddf..793e4f5 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+@@ -28,8 +28,9 @@ public final class ExternalBodyRuntime {
+             if(port<1024 || port>65535)throw new IllegalArgumentException("invalid_bridge_port");
+             var bodyRoot=server.getSavePath(WorldSavePath.ROOT).resolve("aibot");
+             journal=new BridgeJournal(bodyRoot.resolve("external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".journal"),System::currentTimeMillis);
+-            // A prior crash may have fsynced the terminal receipt before the async semantic snapshot.
+-            SemanticWorldRegistry.reconcileOpportunityTerminalReceipts(journal);
++            // Birth/terminal lifecycle receipts are the durability fence for opportunity identity.
++            // Reconcile them before Graph construction and before the HTTP endpoint is reachable.
++            SemanticWorldRegistry.reconcileOpportunityLifecycleReceipts(journal);
+             var graphs=new TaskGraphStore(bodyRoot.resolve("task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".bin"),System::currentTimeMillis);
+             kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME),graphs);
+             kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
+@@ -123,9 +124,9 @@ public final class ExternalBodyRuntime {
+      * being proven into inventory (externally consumed, or a pending pickup whose drop vanished).
+      * Distinct from actionable/completion events so DSH never mistakes it for success.
+      */
+-    public static void resourceOpportunityStale(AIPlayerEntity bot,String opportunityId,String blockId,
+-                                                net.minecraft.util.math.BlockPos pos,String reason) {
+-        if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
++    public static boolean resourceOpportunityStale(AIPlayerEntity bot,String opportunityId,String blockId,
++                                                   net.minecraft.util.math.BlockPos pos,String reason) {
++        if(kernel==null || !ExternalBodyAccess.reserved(bot))return false;
+         String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
+         String world=SemanticWorldRegistry.worldId();
+         Map<String,Object> payload=Map.of(
+@@ -133,7 +134,7 @@ public final class ExternalBodyRuntime {
+                 "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
+                 "reason",bounded(reason,120),
+                 "dimension",dimension,"world_id",world);
+-        kernel.recordOpportunityResolution("resource_opportunity_stale",
++        return kernel.recordOpportunityResolution("resource_opportunity_stale",
+                 opportunityId,world,dimension,payload);
+     }
+     private static String bounded(String s,int length){return s==null?"":s.length()<=length?s:s.substring(0,length);}
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
+index f067709..915a07c 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
+@@ -81,12 +81,22 @@ public final class SemanticWorldRegistry {
+     private static ExecutorService writer;
+     private static CompletableFuture<Void> lastWrite = CompletableFuture.completedFuture(null);
+     private static volatile String persistenceFault = "";
++    private static BridgeJournal opportunityLifecycleJournal;
++    // The lifecycle journal binding is scoped to the MinecraftServer instance that reconciled it,
++    // not to the registry instance: a same-server registry reload (fail-closed reload, test reload)
++    // keeps the binding because the journal file is unchanged; a different server rebinds.
++    private static MinecraftServer opportunityLifecycleJournalServer;
+ 
+     private SemanticWorldRegistry() {}
+ 
+     public static void start(MinecraftServer minecraftServer, String botName) throws IOException {
+         if (!minecraftServer.isOnThread()) throw new IllegalStateException("semantic_registry_start_off_server_thread");
+         stopQuietly();
++        // Unbind the lifecycle journal only when a DIFFERENT server instance is starting; a
++        // same-server registry reload keeps the binding because the journal file is unchanged.
++        if (minecraftServer != opportunityLifecycleJournalServer) {
++            opportunityLifecycleJournal = null; opportunityLifecycleJournalServer = null;
++        }
+         server = minecraftServer;
+         Path dir = minecraftServer.getSavePath(WorldSavePath.ROOT).resolve("aibot");
+         Files.createDirectories(dir);
+@@ -356,13 +366,15 @@ public final class SemanticWorldRegistry {
+             }
+         }
+         boolean dirty = false;
+-        for (String key : remove) { OPPORTUNITIES.remove(key); dirty = true; }
+         // R2.1 6.3: an opportunity whose cell now holds something else was consumed by the world,
+         // not by this bot. Terminalize with a typed tombstone event instead of silently dropping
+-        // the entry, so the loss is visible and can never read as a successful collection.
++        // the entry. R1.2 makes the terminal receipt durable BEFORE removal; on journal failure
++        // leave the incarnation active and let the bridge fail closed.
+         for (ResourceOpportunity stale : staled) {
+-            ExternalBodyRuntime.resourceOpportunityStale(bot, stale.id, stale.blockId, stale.pos(),
+-                    "externally_consumed_cell_replaced_with:" + blockId);
++            if(!ExternalBodyRuntime.resourceOpportunityStale(bot,stale.id,stale.blockId,stale.pos(),
++                    "externally_consumed_cell_replaced_with:"+blockId)) return;
++            OPPORTUNITIES.remove(scoped(stale.dimension,stale.id));
++            dirty=true;
+         }
+         if (!ore) { if (dirty) persistAsync(); return; }
+ 
+@@ -371,6 +383,10 @@ public final class SemanticWorldRegistry {
+         // incarnation terminalizes and leaves OPPORTUNITIES, a later same-cell/same-block object
+         // receives a new id so historical terminal receipts cannot poison it.
+         ResourceOpportunity prior = findActiveOpportunityAt(dim, pos, blockId);
++        // Active entries are lifecycle state, not an expendable cache. At the bound, ignore a new
++        // untracked opportunity until a consumed/stale terminal releases capacity; never evict a
++        // still-live incarnation and accidentally mint it a new id on re-observation.
++        if(prior==null && OPPORTUNITIES.size()>=MAX_OPPORTUNITIES) return;
+         String id = prior == null ? newOpportunityIncarnationId(dim, pos, blockId) : prior.id;
+         String key = scoped(dim, id);
+         BlockPos seenFrom = prior == null ? bot.getBlockPos() : prior.seenFrom();
+@@ -405,7 +421,10 @@ public final class SemanticWorldRegistry {
+                     bot.getBlockPos().getX(), bot.getBlockPos().getY(), bot.getBlockPos().getZ(), -1);
+         }
+         if (prior == null) {
+-            evictOpportunityIfNeeded(); OPPORTUNITIES.put(key, next); dirty = true;
++            // The random incarnation identity becomes visible only after its birth receipt crossed
++            // BridgeJournal's synchronous fsync boundary.
++            appendOpportunityBirth(opportunityLifecycleJournal,next);
++            OPPORTUNITIES.put(key, next); dirty = true;
+             if ("ACTIONABLE".equals(next.status)) {
+                 ExternalBodyRuntime.resourceOpportunityActionable(bot, next.id, next.blockId, next.pos(), next.seenFrom());
+             }
+@@ -536,6 +555,153 @@ public final class SemanticWorldRegistry {
+         return removed;
+     }
+ 
++    /**
++     * R1.2 opportunity identity recovery. Birth receipts are durable-before-exposure; terminal
++     * receipts close the exact id. Existing pre-R1.2 semantic entries are adopted in place by
++     * writing one birth receipt with their existing id. A birth that is durable while the async
++     * semantic snapshot is stale is restored here before Graph/HTTP exposure.
++     */
++    public static int reconcileOpportunityLifecycleReceipts(BridgeJournal journal) {
++        if(server==null || journal==null) return 0;
++        if(!server.isOnThread()) throw new IllegalStateException("semantic_registry_reconcile_off_server_thread");
++        opportunityLifecycleJournal=journal;
++        opportunityLifecycleJournalServer=server;
++
++        LinkedHashMap<String,ResourceOpportunity> activeBirths=new LinkedHashMap<>();
++        HashSet<String> terminal=new HashSet<>();
++        for(BridgeJournal.Frame frame:journal.replay()) {
++            Map<String,String> fields=frame.fields();
++            if(!worldId.equals(fields.get("world_id"))) continue;
++            String kind=fields.get("kind");
++            if("resource_opportunity_birth".equals(kind)) {
++                ResourceOpportunity birth=parseOpportunityBirth(fields);
++                String key=scoped(birth.dimension,birth.id);
++                if(terminal.contains(key))
++                    throw new IllegalStateException("opportunity_birth_after_terminal:"+birth.id);
++                ResourceOpportunity prior=activeBirths.putIfAbsent(key,birth);
++                if(prior!=null && !prior.equals(birth))
++                    throw new IllegalStateException("conflicting_opportunity_birth_receipt:"+birth.id);
++            } else if("resource_opportunity_consumed".equals(kind)
++                    || "resource_opportunity_stale".equals(kind)) {
++                String dim=fields.get("dimension"), opportunityId=fields.get("opportunity_id");
++                if(dim==null || opportunityId==null) continue;
++                String key=scoped(dim,id(opportunityId,"opportunity"));
++                terminal.add(key);
++                activeBirths.remove(key);
++            }
++        }
++
++        int changed=0;
++        // A terminal receipt always wins over a stale semantic snapshot.
++        for(String key:new ArrayList<>(OPPORTUNITIES.keySet())) {
++            if(terminal.contains(key)) {
++                OPPORTUNITIES.remove(key);
++                changed++;
++            }
++        }
++
++        // One-time upgrade/adoption: pre-R1.2 active ids are already valid incarnations. Make
++        // their birth durable without changing the id.
++        for(var entry:new ArrayList<>(OPPORTUNITIES.entrySet())) {
++            String key=entry.getKey();
++            if(activeBirths.containsKey(key) || terminal.contains(key)) continue;
++            appendOpportunityBirth(journal,entry.getValue());
++            activeBirths.put(key,entry.getValue());
++        }
++
++        if(activeBirths.size()>MAX_OPPORTUNITIES)
++            throw new IllegalStateException("opportunity_lifecycle_capacity_exceeded");
++
++        // Crash window repair: birth fsynced, semantic snapshot did not. Restore the exact birth
++        // record. Capacity is stable because R1.2 no longer evicts live incarnations.
++        for(var entry:activeBirths.entrySet()) {
++            if(OPPORTUNITIES.containsKey(entry.getKey())) continue;
++            ResourceOpportunity birth=entry.getValue();
++            for(ResourceOpportunity current:OPPORTUNITIES.values()) {
++                if(current.dimension.equals(birth.dimension)
++                        && current.x==birth.x && current.y==birth.y && current.z==birth.z
++                        && !current.id.equals(birth.id)) {
++                    throw new IllegalStateException("opportunity_birth_cell_conflict:"+birth.id);
++                }
++            }
++            OPPORTUNITIES.put(entry.getKey(),birth);
++            changed++;
++        }
++
++        if(changed>0) {
++            try { persistAsync().join(); }
++            catch(RuntimeException failure) {
++                persistenceFault="opportunity_lifecycle_reconcile_failed:"+failure.getClass().getSimpleName();
++                throw new IllegalStateException("semantic_registry_failed_closed:"+persistenceFault,failure);
++            }
++        }
++        return changed;
++    }
++
++    private static void appendOpportunityBirth(BridgeJournal journal,ResourceOpportunity opportunity) {
++        if(journal==null) throw new IllegalStateException("opportunity_lifecycle_journal_not_bound");
++        Map<String,String> fields=new LinkedHashMap<>();
++        fields.put("kind","resource_opportunity_birth");
++        fields.put("execution_id","");
++        fields.put("world_id",worldId);
++        fields.put("dimension",opportunity.dimension);
++        fields.put("opportunity_id",opportunity.id);
++        fields.put("block_id",opportunity.blockId);
++        fields.put("x",Integer.toString(opportunity.x));
++        fields.put("y",Integer.toString(opportunity.y));
++        fields.put("z",Integer.toString(opportunity.z));
++        fields.put("seen_x",Integer.toString(opportunity.seenX));
++        fields.put("seen_y",Integer.toString(opportunity.seenY));
++        fields.put("seen_z",Integer.toString(opportunity.seenZ));
++        fields.put("status",opportunity.status);
++        fields.put("blocked_reason",opportunity.blockedReason);
++        fields.put("required_tool",opportunity.requiredTool);
++        fields.put("last_seen_game_time",Long.toString(opportunity.lastSeenGameTime));
++        fields.put("state_since_game_time",Long.toString(opportunity.stateSinceGameTime));
++        fields.put("state_x",Integer.toString(opportunity.stateX));
++        fields.put("state_y",Integer.toString(opportunity.stateY));
++        fields.put("state_z",Integer.toString(opportunity.stateZ));
++        fields.put("pickup_baseline",Integer.toString(opportunity.pickupBaseline));
++        try { journal.append(fields); }
++        catch(RuntimeException failure) {
++            persistenceFault="opportunity_birth_receipt_failed:"+failure.getClass().getSimpleName();
++            throw new IllegalStateException("semantic_registry_failed_closed:"+persistenceFault,failure);
++        }
++    }
++
++    private static ResourceOpportunity parseOpportunityBirth(Map<String,String> fields) {
++        try {
++            String opportunityId=id(required(fields,"opportunity_id"),"opportunity");
++            String dimension=required(fields,"dimension");
++            String blockId=required(fields,"block_id");
++            Identifier blockIdentifier=Identifier.tryParse(blockId);
++            Block block=blockIdentifier==null?null:Registries.BLOCK.getOptionalValue(blockIdentifier).orElse(null);
++            if(block==null || !OreScan.isOreBlock(block)) throw new IllegalArgumentException("birth_block");
++            String status=required(fields,"status");
++            if(!Set.of("ACTIONABLE","BLOCKED","UNREACHABLE","MINED_PENDING_PICKUP").contains(status))
++                throw new IllegalArgumentException("birth_status");
++            return new ResourceOpportunity(opportunityId,dimension,
++                    Integer.parseInt(required(fields,"x")),Integer.parseInt(required(fields,"y")),
++                    Integer.parseInt(required(fields,"z")),blockId,
++                    Integer.parseInt(required(fields,"seen_x")),Integer.parseInt(required(fields,"seen_y")),
++                    Integer.parseInt(required(fields,"seen_z")),status,
++                    fields.getOrDefault("blocked_reason",""),fields.getOrDefault("required_tool",""),
++                    Long.parseLong(required(fields,"last_seen_game_time")),
++                    Long.parseLong(required(fields,"state_since_game_time")),
++                    Integer.parseInt(required(fields,"state_x")),Integer.parseInt(required(fields,"state_y")),
++                    Integer.parseInt(required(fields,"state_z")),
++                    Integer.parseInt(fields.getOrDefault("pickup_baseline","-1")));
++        } catch(RuntimeException invalid) {
++            throw new IllegalStateException("opportunity_birth_receipt_invalid",invalid);
++        }
++    }
++
++    private static String required(Map<String,String> fields,String key) {
++        String value=fields.get(key);
++        if(value==null || value.isBlank()) throw new IllegalArgumentException("missing_"+key);
++        return value;
++    }
++
+     /**
+      * R2.1: proven absence of a legal work pose demotes the opportunity to UNREACHABLE (typed
+      * reason, e.g. no_reachable_work_pose) instead of leaving a zombie ACTIONABLE entry that
+@@ -586,14 +752,17 @@ public final class SemanticWorldRegistry {
+      * inventory (externally consumed, or a pending pickup whose drop despawned). Emits a typed
+      * tombstone event so the loss is visible and never reads as success.
+      */
+-    public static void markOpportunityStale(AIPlayerEntity bot, String rawId, String reason) {
+-        if (server == null || bot == null) return;
++    public static boolean markOpportunityStale(AIPlayerEntity bot, String rawId, String reason) {
++        if (server == null || bot == null) return false;
+         String key = scoped(dimension(bot), id(rawId, "opportunity"));
+-        ResourceOpportunity prior = OPPORTUNITIES.remove(key);
+-        if (prior == null) return;
++        ResourceOpportunity prior = OPPORTUNITIES.get(key);
++        if (prior == null) return false;
++        if(!ExternalBodyRuntime.resourceOpportunityStale(bot,prior.id,prior.blockId,prior.pos(),
++                reason == null || reason.isBlank() ? "externally_consumed_or_stale" : reason))
++            return false;
++        OPPORTUNITIES.remove(key);
+         persistAsync();
+-        ExternalBodyRuntime.resourceOpportunityStale(bot, prior.id, prior.blockId, prior.pos(),
+-                reason == null || reason.isBlank() ? "externally_consumed_or_stale" : reason);
++        return true;
+     }
+ 
+     /**
+@@ -935,19 +1104,6 @@ public final class SemanticWorldRegistry {
+         }
+     }
+ 
+-    private static void evictOpportunityIfNeeded() {
+-        while (OPPORTUNITIES.size() >= MAX_OPPORTUNITIES) {
+-            String oldest = OPPORTUNITIES.entrySet().stream()
+-                    // A MINED_PENDING_PICKUP entry is a recovery obligation, never eviction bait:
+-                    // only ordinary (re-derivable from re-observation) entries age out.
+-                    .filter(entry -> !"MINED_PENDING_PICKUP".equals(entry.getValue().status))
+-                    .min(Comparator.comparingLong(entry -> entry.getValue().lastSeenGameTime))
+-                    .map(Map.Entry::getKey).orElse(null);
+-            if (oldest == null) break;
+-            OPPORTUNITIES.remove(oldest);
+-        }
+-    }
+-
+     private static ResourceOpportunity findActiveOpportunityAt(String dimension, BlockPos pos, String blockId) {
+         ResourceOpportunity found = null;
+         for (ResourceOpportunity opportunity : OPPORTUNITIES.values()) {
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityBirthDurabilitySourceTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityBirthDurabilitySourceTest.java
+new file mode 100644
+index 0000000..0bf9497
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityBirthDurabilitySourceTest.java
+@@ -0,0 +1,75 @@
++package io.github.zoyluo.aibot.external;
++
++import org.junit.jupiter.api.Test;
++
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++final class OpportunityBirthDurabilitySourceTest {
++    private static final Path REGISTRY=Path.of(
++            "src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java");
++    private static final Path RUNTIME=Path.of(
++            "src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java");
++
++    @Test void newIncarnationBirthMustBeDurableBeforeRegistryExposure() throws IOException {
++        String source=Files.readString(REGISTRY);
++        int observe=source.indexOf("ResourceOpportunity prior = findActiveOpportunityAt");
++        int branch=source.indexOf("if (prior == null) {",observe);
++        assertTrue(observe>=0 && branch>observe);
++        int birth=source.indexOf("appendOpportunityBirth(opportunityLifecycleJournal,next)",branch);
++        int put=source.indexOf("OPPORTUNITIES.put(key, next)",branch);
++        int actionable=source.indexOf("resourceOpportunityActionable",branch);
++        assertTrue(birth>branch && put>birth && actionable>put,
++                "birth fsync must precede active-registry/actionable exposure");
++    }
++
++    @Test void capacityMustNotEvictALiveIncarnation() throws IOException {
++        String source=Files.readString(REGISTRY);
++        assertTrue(source.contains("prior==null && OPPORTUNITIES.size()>=MAX_OPPORTUNITIES"));
++        assertFalse(source.contains("OPPORTUNITIES.remove(oldest)"),
++                "active incarnation membership must not be a disposable LRU cache");
++    }
++
++    @Test void startupLifecycleReconcilePrecedesGraphAndHttpExposure() throws IOException {
++        String source=Files.readString(RUNTIME);
++        int lifecycle=source.indexOf("reconcileOpportunityLifecycleReceipts(journal)");
++        int graphs=source.indexOf("new TaskGraphStore(",lifecycle);
++        int kernel=source.indexOf("new BridgeKernel(",graphs);
++        int http=source.indexOf("new BridgeHttpServer(",kernel);
++        assertTrue(lifecycle>=0 && graphs>lifecycle && kernel>graphs && http>kernel);
++    }
++
++    @Test void staleReceiptMustBeDurableBeforeSemanticRemoval() throws IOException {
++        String registry=Files.readString(REGISTRY);
++        int method=registry.indexOf("boolean markOpportunityStale(");
++        int end=registry.indexOf("reactivateOpportunity(",method);
++        assertTrue(method>=0 && end>method);
++        String stale=registry.substring(method,end);
++        int receipt=stale.indexOf("resourceOpportunityStale(");
++        int remove=stale.indexOf("OPPORTUNITIES.remove(key)");
++        assertTrue(receipt>=0 && remove>receipt,
++                "stale receipt must cross the journal boundary before registry removal");
++
++        String runtime=Files.readString(RUNTIME);
++        assertTrue(runtime.contains("boolean resourceOpportunityStale("));
++        assertTrue(runtime.contains("return kernel.recordOpportunityResolution(\"resource_opportunity_stale\""));
++    }
++
++    @Test void lifecycleReplayMustSupportBirthRestoreAndLegacyAdoption() throws IOException {
++        String source=Files.readString(REGISTRY);
++        int method=source.indexOf("reconcileOpportunityLifecycleReceipts(");
++        int end=source.indexOf("private static void appendOpportunityBirth",method);
++        assertTrue(method>=0 && end>method);
++        String reconcile=source.substring(method,end);
++        assertTrue(reconcile.contains("resource_opportunity_birth"));
++        assertTrue(reconcile.contains("appendOpportunityBirth(journal,entry.getValue())"),
++                "legacy active ids must be adopted without id rewrite");
++        assertTrue(reconcile.contains("OPPORTUNITIES.put(entry.getKey(),birth)"),
++                "durable birth missing from stale semantic snapshot must be restored");
++        assertTrue(reconcile.contains("terminal.contains(key)"),
++                "terminal receipts must dominate stale semantic state");
++    }
++}

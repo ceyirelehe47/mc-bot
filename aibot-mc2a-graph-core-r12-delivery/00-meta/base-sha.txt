@@ -1,0 +1,4 @@
+branch: experiment/mc2a-graph-core-r12-durable-birth (从 e525582 新建)
+reviewed HEAD (R1.1): e300f09fe20dfe943a1ee332b591c7420654f8c7
+production base: e52558209b7890128fb22fe172f77819dcb3e21a
+upstream clean replay: a029fa6a3760fd0f83834c104051b041d986da60
