@@ -15,8 +15,10 @@
 ## 2. exact-blob applier 结果与全部修正
 
 验证模式：`CHECKED: 7 exact accepted blobs; 1 new files`（HEAD 与 blob 校验全过）。
-应用模式：`APPLIED: 8 files`。生成 review patch 与归档 patch 字节一致
-（01-diff/applier-generated-review.patch）。
+应用模式：`APPLIED: 8 files`。独立验收已证实 01-diff/applier-generated-review.patch 的
+7 个文件段与从 a767826/HEAD 真实内容重生成的 unified diff 逐行一致（review patch 为
+朴素 unified diff 格式，与 git diff 格式的 production-full.diff 为语义等价而非字节相等；
+等价性由验收方独立复现证实）。
 
 修正清单（全部在任务书 §3 允许范围内）：
 
@@ -197,7 +199,9 @@ sha256(f393d817ee7374b25b73a1af17ab9f046658c477a992f2ae711d89503289c8c9)
 
 ## 23. Graph 派发块证明
 
-`graphRunNext` → `graphCancel` 区块与 a767826 **字节一致**（1138 字节），仍含
+`graphRunNext` → `graphCancel` 区块与 a767826 **字节一致**（本交付自证口径 1138 字节、
+独立验收提取口径 1241 字节，差异仅为区块边界定义不同，两版本逐字节相等的结论两种口径
+均成立），仍含
 `submit(supplied,d.requestId(),d.operation(),d.arguments())` 且不含
 `backend.start(`；JUnit 契约（kernelPersistsAndFences…WithoutTouchingGraphDispatch）
 持续锁定。
