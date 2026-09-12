@@ -21,7 +21,7 @@
    （owner_execution + TREE_ACCESS + 精确位置 + 精确 blockId）
 7. 邻柱重放爬升：`(531,67)`,`(531,68)` 两根新自有收据；`tree_access_support_reentry` 有界步/跳
 8. 末根高位原木 `(530,74)` resolved —— 8/8 全收
-9. 反向清理在两柱间交替完成：**11 placed / 11 removed，零脚手架**
+9. 反向清理在两柱间交替完成：**5 placed / 5 removed，零脚手架**
    （残留扫描仅树基泥土 `(530,66,121)`，属地面本身）
 
 ## 最终 jar 复验（server-r1c-o.log）

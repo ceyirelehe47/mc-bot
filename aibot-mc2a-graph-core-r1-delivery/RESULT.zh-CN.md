@@ -41,10 +41,10 @@
    → 反清。最终 jar 亦有"位移+完成+零残留"复验轮。
 5. **同 workset/树/owner 证据**：位移前后 treeId=`…:145685291176007` 与
    execution=`82707092…` 全程一致（LIVE-R1-1-events.log）。
-6. **最大并发支撑数**：教科书轮 4（原 2 + 重入辅助 2）；历史轮最高 12（=MAX_TEMP_SUPPORTS
-   硬上限，无越限）。
+6. **最大并发支撑数**：教科书轮 4（原 2 + 重入辅助 2）；全部会话日志中观测到的最大并发为
+   10（上限 MAX_TEMP_SUPPORTS=12，无越限）。
 7. **零脚手架证据**：RCON 逐格扫描树列±1 与证台列 67..78：placed==removed
-   （教科书轮 11/11），残留仅树基泥土（地面本身）。
+   （教科书轮 5/5），残留仅树基泥土（地面本身）。
 8. **consumed 收据精确结构化字段**：journal seq 456：
    kind=resource_opportunity_consumed, execution_id, opportunity_id=ore_fed47d71…,
    world_id=80980dea-…, dimension=minecraft:overworld,
@@ -86,3 +86,10 @@
   `tree_access_reentry_support_conflict` 类型化债务（TREE-R1-4 保守 fail-closed，正确）。
 - `mc2a02gatherkeepstemporarysupports…` 曾出现一次地形性偶发（96 格内零树、未放支撑），
   重跑及后续 4 轮全绿，与本轮改动路径无关（该测试未触及重入/清理改动）。
+- 教科书日志（server-textbook-r1-1.log）窗口内还含两个未采纳的失败轮：
+  11:32:35 `tree_access_reentry_no_adjacent_base`（修正 e 之前的悬崖地形轮）与
+  11:35:56 `tree_access_no_support_material`（双僵尸 entomb 轮耗尽泥土）——均为修正
+  迭代过程或测试装置层面问题，最终源与最终 jar 下不再复现。
+- LIVE-R1-3/4/5 md 中的图状态引文来自驱动会话的控制台输出（一手为会话现场），
+  由 graph-api-responses.json（含 r1c-iron-2 DONE / r1c-iron-3d STALE 的当前状态）、
+  服务器日志与 JUnit 确定性装置交叉印证；R1-5 的 fixture bin 与前后备份随证据归档。
