@@ -19,6 +19,7 @@ test('only important or terminal events wake models, not action progress',()=>{
   assert.equal(shouldDeliver(event(1)),true);assert.equal(shouldDeliver(event(1,'death','')),true);
   assert.equal(shouldDeliver(event(1,'survival_alert','')),true);
   assert.equal(shouldDeliver(event(1,'resource_opportunity_actionable','')),true);
+  assert.equal(shouldDeliver(event(1,'body_session_changed','')),true);
 });
 test('ingress matrix: idle terminal steer, running urgent steer, running routine inject, autoWake false inject',()=>{
   const a=agent();
@@ -37,12 +38,13 @@ test('running routine event injects and never followups',()=>{
   assert.deepEqual(a.calls.map(c=>c[0]),['inject','inject','inject']);
 });
 test('running urgent event steers',()=>{
-  for (const kind of ['death','damage','player_message','survival_alert','control_lost','body_changed']) {
+  for (const kind of ['death','damage','player_message','survival_alert','control_lost','body_changed','body_session_changed']) {
     const a=agent('running');enqueueEvents(a,api,'epoch',[event(1,kind,'')]);
     assert.equal(a.calls[0][0],'steer',kind+' must steer a running agent');
   }
   const idle=agent('idle');enqueueEvents(idle,api,'epoch',[event(1,'player_message','')]); // urgent also wakes an idle agent
-  assert.equal(idle.calls[0][0],'steer');
+  enqueueEvents(idle,api,'epoch',[event(2,'body_session_changed','')]);
+  assert.deepEqual(idle.calls.map(c=>c[0]),['steer','steer']);
 });
 test('idle wake-worthy event steers instead of followup',()=>{
   const a=agent('idle');

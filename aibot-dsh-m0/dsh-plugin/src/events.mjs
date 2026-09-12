@@ -1,7 +1,7 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const TERMINAL = new Set(['completed','failed','cancelled','outcome_unknown']);
-const IMPORTANT = new Set(['death','respawn','player_message','survival_alert','resource_opportunity_actionable','resource_opportunity_stale','control_lost','body_changed','runtime_started','runtime_stopped']);
+const IMPORTANT = new Set(['death','respawn','player_message','survival_alert','resource_opportunity_actionable','resource_opportunity_stale','control_lost','body_changed','body_session_changed','runtime_started','runtime_stopped']);
 export function shouldDeliver(event) {
   if (IMPORTANT.has(event.kind)) return true;
   if (event.kind === 'execution') {
@@ -40,7 +40,7 @@ export function createEventMessage(api, epoch, events) {
  * - steer(): running redirects the current step; idle wakes a continuation turn
  *   (urgent events always, and wake-worthy terminal/routine deliverables when idle).
  */
-const URGENT_KINDS = ['death','damage','player_message','survival_alert','control_lost','body_changed'];
+const URGENT_KINDS = ['death','damage','player_message','survival_alert','control_lost','body_changed','body_session_changed'];
 export function enqueueEvents(agent, api, epoch, events, { autoWake = true } = {}) {
   if (!events.length) return;
   const message = createEventMessage(api, epoch, events);

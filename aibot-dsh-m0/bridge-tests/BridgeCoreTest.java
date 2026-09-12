@@ -15,8 +15,9 @@ public final class BridgeCoreTest {
         String lastExecutionId="";
         long tick; String localJson="{\"schema\":\"mc.local_view.v0\"}";
         int inspectLocals, materializes; // MC-2A0.1 scheduling-budget counters
-        static final String SCENE="{\"world\":{\"world_id\":\"core-test-world\"}}";
         static final String HOME_REF="mc://core-test-world/minecraft%3Aoverworld/structure/home1";
+        String scene(){return "{\"world\":{\"world_id\":\"core-test-world\"},\"session\":\""+session+"\"}";}
+        String sceneHash(){return ("session-1".equals(session)?"cafe":"beef").repeat(16);}
         public boolean ready(){return alive;} public String bodyId(){return id;}
         public Binding binding(){return new Binding(id,kind,instance,session);}
         public long serverTick(){return ++tick;}
@@ -24,7 +25,7 @@ public final class BridgeCoreTest {
             java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index=new java.util.LinkedHashMap<>();
             index.put(HOME_REF,new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor(
                     HOME_REF,"structure","home1","HOME"));
-            return new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot(SCENE,"cafe".repeat(16),42L,index);
+            return new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot(scene(),sceneHash(),42L,index);
         }
         public String inspectLocalJson(int radius,String detail){inspectLocals++;return localJson;}
         public String materializeEvidence(String ref,String detail,long gameTime){
@@ -189,8 +190,13 @@ public final class BridgeCoreTest {
             check(status.get("backend_kind").equals("fake_backend"),"backend kind exposed");
             check(status.get("body_instance_id").equals("instance-1"),"physical instance exposed");
             check(status.get("body_session_epoch").equals("session-1"),"physical session exposed");
+            check(JsonOutput.encode(f.kernel.view()).contains("\"session\":\"session-1\""),
+                    "view is bound to the admitting physical session");
             String t=claim(f);String id=(String)f.kernel.submit(t,"changed-session","gather","{}").get("execution_id");f.kernel.tick();
             check(f.kernel.execution(id).get("body_session_epoch").equals("session-1"),"execution captures admitting body session");
+            var staleInspect=f.kernel.submitInspectQuery(FakeBackend.HOME_REF,"baseline");
+            var staleLocal=f.kernel.submitLocalQuery(4,"summary");
+            int materializesBefore=f.body.materializes, localsBefore=f.body.inspectLocals;
             f.body.instance="instance-2";f.body.session="session-2";f.kernel.tick();
             check(f.kernel.execution(id).get("state").equals("outcome_unknown"),"body session change interrupts execution as unknown");
             check(f.kernel.status().get("control_active").equals(false),"body session change revokes controller");
@@ -198,6 +204,14 @@ public final class BridgeCoreTest {
             check(f.kernel.status().get("body_id").equals("body-1"),"session change preserves logical body id");
             check(f.kernel.status().get("body_session_epoch").equals("session-2"),"new body session is published");
             check(f.body.starts==1,"body session change never replays mutation");
+            check(staleInspect.isCompletedExceptionally(),"old-session inspect query is cancelled");
+            check(staleLocal.isCompletedExceptionally(),"old-session local query is cancelled");
+            check(f.body.materializes==materializesBefore && f.body.inspectLocals==localsBefore,
+                    "cancelled old-session queries never execute on the replacement body");
+            String rebuiltView=JsonOutput.encode(f.kernel.view());
+            check(rebuiltView.contains("\"session\":\"session-2\"")
+                            && !rebuiltView.contains("\"session\":\"session-1\""),
+                    "view is rebuilt for the replacement physical session");
         }
         try(Fixture f=fixture()) {
             String t=claim(f);String id=(String)f.kernel.submit(t,"changed-body","gather","{}").get("execution_id");f.kernel.tick();

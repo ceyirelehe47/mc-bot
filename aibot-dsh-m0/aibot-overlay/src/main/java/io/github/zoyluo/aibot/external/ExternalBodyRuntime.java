@@ -19,9 +19,12 @@ public final class ExternalBodyRuntime {
     private ExternalBodyRuntime() {}
     public static void start(MinecraftServer server) {
         if(!ExternalBodyAccess.enabled())return;
-        ExternalBodyAccess.activateReservation(); // after persistence restore; before any tick/network control
-        if(!ExternalBodyAccess.BOT_NAME.matches("[A-Za-z0-9_]{1,16}"))throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BOT");
+        // Preserve the reservation even when configuration is invalid: never fall back to the old brain.
+        ExternalBodyAccess.activateReservation();
         try {
+            if(!ExternalBodyAccess.BOT_NAME.matches("[A-Za-z0-9_]{1,16}"))
+                throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BOT");
+            String logicalBodyId=ExternalBodyAccess.configureBodyId();
             SemanticWorldRegistry.start(server, ExternalBodyAccess.BOT_NAME);
             String token=System.getenv("AIBOT_BRIDGE_TOKEN");
             int port=Integer.parseInt(System.getenv().getOrDefault("AIBOT_BRIDGE_PORT","8765"));
@@ -33,13 +36,13 @@ public final class ExternalBodyRuntime {
             SemanticWorldRegistry.reconcileOpportunityLifecycleReceipts(journal);
             var graphs=new TaskGraphStore(bodyRoot.resolve("task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".bin"),System::currentTimeMillis);
             kernel=new BridgeKernel(journal,new MinecraftBodyBackend(
-                    server,ExternalBodyAccess.BOT_NAME,ExternalBodyAccess.BODY_ID),graphs);
+                    server,ExternalBodyAccess.BOT_NAME,logicalBodyId),graphs);
             kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
             http=new BridgeHttpServer(kernel,port,token);http.start();
             observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();
             AIBotMod.LOGGER.info(
                     "AIBot external-body bridge bound to loopback port {} for {} body_id={}",
-                    port,ExternalBodyAccess.BOT_NAME,ExternalBodyAccess.BODY_ID);
+                    port,ExternalBodyAccess.BOT_NAME,logicalBodyId);
         }catch(Exception failure){
             if(http!=null)http.close();
             try{if(journal!=null)journal.close();}catch(Exception ignored){}
@@ -58,7 +61,7 @@ public final class ExternalBodyRuntime {
         if(previousAlive && bot.isAlive() && bot.getHealth()<previousHealth)
             kernel.publish("damage",Map.of("previous_health",previousHealth,"health",bot.getHealth(),"source","health_delta_not_causal_attribution"));
         if(!previousAlive && bot.isAlive())kernel.publish("respawn",Map.of(
-                "body_id",ExternalBodyAccess.BODY_ID,
+                "body_id",ExternalBodyAccess.bodyId(),
                 "body_instance_id",bot.getUuid().toString(),
                 "health",bot.getHealth()));
         previousAlive=bot.isAlive();previousHealth=bot.getHealth();
@@ -67,7 +70,7 @@ public final class ExternalBodyRuntime {
         if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
         String source=bot.getRecentDamageSource()==null?"unknown":bot.getRecentDamageSource().getName();
         kernel.publish("death",Map.of(
-                "body_id",ExternalBodyAccess.BODY_ID,
+                "body_id",ExternalBodyAccess.bodyId(),
                 "body_instance_id",bot.getUuid().toString(),
                 "recent_damage_source",source,
                 "causal_chain_complete",false,
@@ -100,7 +103,7 @@ public final class ExternalBodyRuntime {
         nextSurvivalAlertTick.put(key,now+200);
         kernel.publish("survival_alert",Map.of(
                 "reason",bounded(reason,80),
-                "body_id",ExternalBodyAccess.BODY_ID,
+                "body_id",ExternalBodyAccess.bodyId(),
                 "body_instance_id",bot.getUuid().toString(),
                 "health",bot.getHealth(),
                 "food",bot.getHungerManager().getFoodLevel(),

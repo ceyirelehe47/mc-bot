@@ -154,6 +154,17 @@ public final class BridgeKernel {
         out.put("body_session_epoch",bodySessionEpoch);
         return out;
     }
+    private void invalidateReadPlane(String reason) {
+        cognitive=null;
+        cognitiveTick=-1;
+        cognitiveFault=reason+"_rebuild_required";
+        while(!localQueries.isEmpty()) {
+            LocalQuery query=localQueries.poll();
+            if(!query.future().isDone())
+                query.future().completeExceptionally(
+                        new BridgeFault(409,reason+"_query_cancelled"));
+        }
+    }
     private void applyBinding(BodyBackend.Binding next) {
         boolean logicalChanged=!bodyId.isEmpty() && !bodyId.equals(next.bodyId());
         boolean legacyBinding=!bodyId.isEmpty() && bodySessionEpoch.isEmpty();
@@ -163,6 +174,9 @@ public final class BridgeKernel {
                 || !bodySessionEpoch.equals(next.sessionEpoch()));
         if(logicalChanged || sessionChanged) {
             String reason=logicalChanged?"body_identity_changed":"body_session_changed";
+            // Never allow a view or queued EvidenceRef admitted under the old physical session
+            // to execute against the replacement body.
+            invalidateReadPlane(reason);
             if(active!=null) transition(active,"outcome_unknown",active.progress,reason);
             token=null; owner=null; pauseRequested=true; needsReconcile=true;
             event(logicalChanged?"body_changed":"body_session_changed","",Map.of(
