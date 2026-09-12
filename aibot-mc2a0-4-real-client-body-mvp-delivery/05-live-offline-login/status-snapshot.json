@@ -1,0 +1,2 @@
+服务已停,status 快照如下(运行期捕获)
+{"data":{"body_id":"bob","backend_kind":"real_client","body_instance_id":"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b","body_session_epoch":"acfbc460...(每次重连翻新)","body_ready":true,"operations":["goto","mine_opportunity","say"]},"ok":true}

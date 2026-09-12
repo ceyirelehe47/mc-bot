@@ -1,0 +1,4 @@
+5eda329 mc2a04-d: 自动化测试与集成(源码契约+tracker GameTest lookAt headYaw 修复+BridgeCore 105+installer client/gametest 注册+manifest 终稿 169)
+ca2b0b9 mc2a04-c: 真实客户端执行器与离线 supervisor(正常客户端 tick 驱动 say/goto/mine+crosshair 心跳+DLI 环境自动直连 opt-in+进程树监督 9 单测)
+93dab20 mc2a04-b: real_client 服务端权威(AIBOT_EXTERNAL_BACKEND 启动单选+loopback 控制传输+crosshair 机会追踪+BodyBackend 动态能力集+body loss 围栏)
+ee4d90f mc2a04-a: canonical manifest preflight(SHA256SUMS 去自引用 156→155,全部 hash 校验通过)

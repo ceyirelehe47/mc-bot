@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.persist.RuntimeSnapshotCodecTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-12T22:11:54.508Z" hostname="FORST" time="0.028">
+  <properties/>
+  <testcase name="rejectsMalformedOrUnversionedDocuments()" classname="io.github.zoyluo.aibot.persist.RuntimeSnapshotCodecTest" time="0.002"/>
+  <testcase name="rejectsFutureSchemaWithoutReturningPartialState()" classname="io.github.zoyluo.aibot.persist.RuntimeSnapshotCodecTest" time="0.001"/>
+  <testcase name="roundTripsCurrentSchema()" classname="io.github.zoyluo.aibot.persist.RuntimeSnapshotCodecTest" time="0.025"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

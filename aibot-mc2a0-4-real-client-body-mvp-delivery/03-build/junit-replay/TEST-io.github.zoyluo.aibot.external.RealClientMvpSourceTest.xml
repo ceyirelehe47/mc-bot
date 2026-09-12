@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-12T22:11:37.700Z" hostname="FORST" time="0.014">
+  <properties/>
+  <testcase name="backendSelectionIsSingleAndFailClosed()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="transportIsLoopbackAuthenticatedAndMinecraftThreadAgnostic()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="graphDispatchStillUsesBridgeSubmitAndNoBackendBranch()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="clientRuntimeIsExplicitlyOptInAndClearsInputs()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.002"/>
+  <testcase name="realClientUsesNormalPlayerAndNeverAnAiPlayerEntity()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.0"/>
+  <testcase name="transportAuthorityAndQueuesAreAtomicallyBounded()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="realClientBackendSupportsOnlyTheMvpVerticalSlice()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="mineCompletionRequiresExactBlockGoneAndInventoryGain()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="realClientOpportunityBirthIsDurableBeforeExposure()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.002"/>
+  <testcase name="realClientBackendFailsClosedOnSameNamedFakePlayer()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

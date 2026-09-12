@@ -1,0 +1,3295 @@
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+@@ -1,23 +1,30 @@
+ package io.github.zoyluo.aibot.external;
++
++import java.util.Set;
+ 
+ /** Every method is called exclusively by BridgeKernel.tick on the owning body thread. */
+ public interface BodyBackend {
++    /** Operations admitted by this physical backend. The public DSH tool surface remains fixed. */
++    Set<String> ALL_OPERATIONS=Set.of(
++            "goto","gather","craft","smelt","eat","set_base","deposit","say",
++            "register_home","capture_home","repair_home","register_farm","tend_farm",
++            "mine_opportunity");
++
+     /** Returns false until the configured, living physical body exists. */
+     boolean ready();
+ 
+-    /**
+-     * Stable Iris/DSH body identity. This is not a Minecraft entity UUID and must survive backend
+-     * replacement (server fake player -> real client) when both represent the same logical body.
+-     */
++    /** Stable Iris/DSH body identity; never a transient Minecraft entity/session id. */
+     String bodyId();
+ 
+-    /**
+-     * Current physical binding. Legacy/fake test backends remain source-compatible through this
+-     * default; production backends should override it with a real backend kind/instance/session.
+-     */
++    /** Current physical binding. */
+     default Binding binding() {
+         String id=bodyId();
+         return new Binding(id,"legacy_body_backend",id,"legacy");
++    }
++
++    /** Backends may implement a strict subset. Unsupported work must never fall back elsewhere. */
++    default Set<String> supportedOperations() {
++        return ALL_OPERATIONS;
+     }
+ 
+     String observeJson();
+@@ -34,13 +41,7 @@
+     void resume();
+     void cancel(String reason);
+ 
+-    /**
+-     * Stable logical body plus replaceable physical carrier/session identity.
+-     *
+-     * <p>bodyId is durable product identity. instanceId identifies the current Minecraft profile
+-     * or physical entity. sessionEpoch changes whenever the physical execution carrier is replaced
+-     * or reconnected, even if instanceId remains the same.</p>
+-     */
++    /** Stable logical body plus replaceable physical carrier/session identity. */
+     record Binding(String bodyId,String backendKind,String instanceId,String sessionEpoch) {
+         public Binding {
+             bodyId=bounded(bodyId,"body_id",160);
+@@ -66,27 +67,24 @@
+ 
+     // ---- MC-2A0 read-only cognitive query surface ----
+ 
+-    /** Build a cognitive view snapshot; journal is non-consuming read-only event-tail evidence. */
+-    default io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal) {
++    default io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(
++            BridgeJournal journal) {
+         return null;
+     }
+ 
+-    /** Bounded local view centered on the current body. */
+     default String inspectLocalJson(int radius,String detail) {
+         return null;
+     }
+ 
+-    /** Materialize one bounded EvidenceRef detail from the current view generation. */
+     default String materializeEvidence(String ref,String detail,long gameTime) {
+         return null;
+     }
+ 
+-    /** Current server/body tick for cache freshness. */
+     default long serverTick() {
+         return -1L;
+     }
+ 
+-    // ---- MC-2A Graph Core: postconditions are revalidated on the body thread ----
++    // ---- MC-2A Graph Core postconditions ----
+ 
+     enum GraphPostconditionState { SATISFIED, UNSATISFIED, TERMINAL_UNSATISFIED, UNKNOWN }
+ 
+@@ -109,21 +107,21 @@
+         }
+     }
+ 
+-    /** Read-only proof after physical execution termination; never starts or replays work. */
+-    default GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition postcondition) {
++    default GraphPostconditionResult verifyGraphPostcondition(
++            TaskGraphStore.Postcondition postcondition) {
+         return GraphPostconditionResult.unknown("backend_postcondition_not_supported");
+     }
+ 
+     interface Handle {
+-        /** Never consult a global lastStatus: it may belong to a different Safety task. */
+         Snapshot snapshot();
+     }
+ 
+     record Snapshot(String state,double progress,String reason) {
+         public Snapshot {
+-            if(!java.util.Set.of("running","paused","completed","failed","cancelled","outcome_unknown").contains(state))
++            if(!Set.of("running","paused","completed","failed","cancelled","outcome_unknown")
++                    .contains(state))
+                 throw new IllegalArgumentException("invalid_backend_state");
+-            if(!Double.isFinite(progress)) progress=0;
++            if(!Double.isFinite(progress))progress=0;
+             progress=Math.max(0,Math.min(1,progress));
+             reason=reason==null?"":reason;
+         }
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
+@@ -4,15 +4,17 @@
+ import io.github.zoyluo.aibot.runtime.TaskOrigin;
+ 
+ import java.util.Locale;
++import java.util.Set;
+ import java.util.UUID;
+ import java.util.function.Supplier;
+ 
+-/** Narrow authorization boundary for the configured external body. Disabled by default. */
++/** Narrow authorization and single-physical-authority boundary for the configured external body. */
+ public final class ExternalBodyAccess {
+     public static final String BOT_NAME=System.getenv()
+             .getOrDefault("AIBOT_EXTERNAL_BOT","").trim();
+ 
+     private static volatile String configuredBodyId="";
++    private static volatile String configuredBackendKind="";
+     private static final ThreadLocal<Integer> DEPTH=ThreadLocal.withInitial(()->0);
+     private static volatile boolean RESERVATION_ACTIVE;
+ 
+@@ -22,30 +24,39 @@
+         return !BOT_NAME.isEmpty();
+     }
+ 
+-    /**
+-     * Pure normalizer used by the controlled runtime start boundary and direct regression tests.
+-     * Class loading never validates AIBOT_EXTERNAL_BODY_ID.
+-     */
+     static String normalizeBodyId(String botName,String configured) {
+         if(botName==null || botName.isBlank())return "";
+-        String candidate=configured==null || configured.isBlank()
+-                ? botName : configured;
++        String candidate=configured==null || configured.isBlank()?botName:configured;
+         candidate=candidate.trim().toLowerCase(Locale.ROOT);
+         if(!candidate.matches("[a-z0-9][a-z0-9._:-]{0,79}"))
+             throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BODY_ID");
+         return candidate;
+     }
+ 
++    static String normalizeBackendKind(String configured) {
++        String candidate=configured==null || configured.isBlank()
++                ?"server_fake_player":configured.trim().toLowerCase(Locale.ROOT);
++        if(!Set.of("server_fake_player","real_client").contains(candidate))
++            throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BACKEND");
++        return candidate;
++    }
++
+     /** Called only from ExternalBodyRuntime.start inside its fail-closed try/catch boundary. */
+     static String configureBodyId() {
+-        String configured=System.getenv().getOrDefault(
+-                "AIBOT_EXTERNAL_BODY_ID","");
+-        String resolved=normalizeBodyId(BOT_NAME,configured);
++        String resolved=normalizeBodyId(BOT_NAME,System.getenv()
++                .getOrDefault("AIBOT_EXTERNAL_BODY_ID",""));
+         configuredBodyId=resolved;
+         return resolved;
+     }
+ 
+-    /** Stable Iris/DSH body identity after successful runtime configuration. */
++    /** Select exactly one physical authority for this process lifetime. */
++    static String configureBackendKind() {
++        String resolved=normalizeBackendKind(System.getenv()
++                .getOrDefault("AIBOT_EXTERNAL_BACKEND","server_fake_player"));
++        configuredBackendKind=resolved;
++        return resolved;
++    }
++
+     public static String bodyId() {
+         String current=configuredBodyId;
+         if(current.isBlank() && enabled())
+@@ -53,6 +64,17 @@
+         return current;
+     }
+ 
++    public static String backendKind() {
++        String current=configuredBackendKind;
++        if(current.isBlank() && enabled())
++            throw new IllegalStateException("external_backend_not_configured");
++        return current;
++    }
++
++    /**
++     * A same-named fake player remains reserved even while real_client is selected. This prevents
++     * accidental fallback to the old brain or a second physical authority.
++     */
+     public static boolean reserved(AIPlayerEntity bot) {
+         return enabled() && RESERVATION_ACTIVE && bot!=null
+                 && BOT_NAME.equalsIgnoreCase(bot.getGameProfile().getName());
+@@ -87,7 +109,6 @@
+             throw new IllegalStateException("external_body_reserved_use_dsh_bridge");
+     }
+ 
+-    /** Public legacy controllers may observe and send authorized chat, never mutate this body. */
+     public static boolean permitsLegacyOperation(
+             AIPlayerEntity bot,String operation,String channel) {
+         if(!reserved(bot))return true;
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+@@ -2,73 +2,137 @@
+ 
+ import io.github.zoyluo.aibot.AIBotMod;
+ import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.external.realclient.RealClientBodyBackend;
++import io.github.zoyluo.aibot.external.realclient.RealClientOpportunityTracker;
++import io.github.zoyluo.aibot.external.realclient.RealClientServerTransport;
+ import io.github.zoyluo.aibot.manager.AIPlayerManager;
+ import net.minecraft.server.MinecraftServer;
++import net.minecraft.server.network.ServerPlayerEntity;
+ import net.minecraft.util.WorldSavePath;
+-import java.util.*;
+-
+-/** Lifecycle wiring. No second LLM loop, no MCP server, and no asynchronous Minecraft access. */
++
++import java.util.HashMap;
++import java.util.LinkedHashMap;
++import java.util.Locale;
++import java.util.Map;
++import java.util.UUID;
++
++/** Lifecycle wiring. One selected physical authority; no second LLM loop or async Minecraft access. */
+ public final class ExternalBodyRuntime {
+     private static BridgeKernel kernel;
+     private static BridgeJournal journal;
+     private static BridgeHttpServer http;
++    private static RealClientServerTransport realClientTransport;
+     private static UUID observedBody;
+     private static float previousHealth=Float.NaN;
+     private static boolean previousAlive;
+     private static final Map<String,Integer> nextSurvivalAlertTick=new HashMap<>();
++
+     private ExternalBodyRuntime() {}
++
+     public static void start(MinecraftServer server) {
+         if(!ExternalBodyAccess.enabled())return;
+-        // Preserve the reservation even when configuration is invalid: never fall back to the old brain.
+         ExternalBodyAccess.activateReservation();
+         try {
+             if(!ExternalBodyAccess.BOT_NAME.matches("[A-Za-z0-9_]{1,16}"))
+                 throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BOT");
+             String logicalBodyId=ExternalBodyAccess.configureBodyId();
+-            SemanticWorldRegistry.start(server, ExternalBodyAccess.BOT_NAME);
++            String backendKind=ExternalBodyAccess.configureBackendKind();
++            SemanticWorldRegistry.start(server,ExternalBodyAccess.BOT_NAME);
+             String token=System.getenv("AIBOT_BRIDGE_TOKEN");
+-            int port=Integer.parseInt(System.getenv().getOrDefault("AIBOT_BRIDGE_PORT","8765"));
++            int port=Integer.parseInt(System.getenv().getOrDefault(
++                    "AIBOT_BRIDGE_PORT","8765"));
+             if(port<1024 || port>65535)throw new IllegalArgumentException("invalid_bridge_port");
+             var bodyRoot=server.getSavePath(WorldSavePath.ROOT).resolve("aibot");
+-            journal=new BridgeJournal(bodyRoot.resolve("external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".journal"),System::currentTimeMillis);
+-            // Birth/terminal lifecycle receipts are the durability fence for opportunity identity.
+-            // Reconcile them before Graph construction and before the HTTP endpoint is reachable.
++            journal=new BridgeJournal(bodyRoot.resolve(
++                    "external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)
++                            +".journal"),System::currentTimeMillis);
+             SemanticWorldRegistry.reconcileOpportunityLifecycleReceipts(journal);
+-            var graphs=new TaskGraphStore(bodyRoot.resolve("task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".bin"),System::currentTimeMillis);
+-            kernel=new BridgeKernel(journal,new MinecraftBodyBackend(
+-                    server,ExternalBodyAccess.BOT_NAME,logicalBodyId),graphs);
+-            kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
+-            http=new BridgeHttpServer(kernel,port,token);http.start();
+-            observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();
++            var graphs=new TaskGraphStore(bodyRoot.resolve(
++                    "task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)
++                            +".bin"),System::currentTimeMillis);
++
++            BodyBackend backend;
++            if("real_client".equals(backendKind)) {
++                if(AIPlayerManager.INSTANCE.all().stream().anyMatch(candidate->
++                        ExternalBodyAccess.BOT_NAME.equalsIgnoreCase(
++                                candidate.getGameProfile().getName())))
++                    throw new IllegalStateException(
++                            "real_client_fake_player_authority_conflict");
++                String realToken=System.getenv().getOrDefault(
++                        "AIBOT_REAL_CLIENT_TOKEN",token==null?"":token);
++                int realPort=Integer.parseInt(System.getenv().getOrDefault(
++                        "AIBOT_REAL_CLIENT_PORT","8766"));
++                boolean requireOffline=!"0".equals(System.getenv().getOrDefault(
++                        "AIBOT_REAL_CLIENT_REQUIRE_OFFLINE_UUID","1"));
++                realClientTransport=new RealClientServerTransport(
++                        logicalBodyId,ExternalBodyAccess.BOT_NAME,realToken,realPort);
++                RealClientOpportunityTracker tracker=new RealClientOpportunityTracker(journal);
++                backend=new RealClientBodyBackend(
++                        server,ExternalBodyAccess.BOT_NAME,logicalBodyId,
++                        realClientTransport,tracker,journal,requireOffline);
++                realClientTransport.start();
++            } else {
++                backend=new MinecraftBodyBackend(
++                        server,ExternalBodyAccess.BOT_NAME,logicalBodyId);
++            }
++
++            kernel=new BridgeKernel(journal,backend,graphs);
++            kernel.tick();
++            http=new BridgeHttpServer(kernel,port,token);
++            http.start();
++            observedBody=null;
++            previousHealth=Float.NaN;
++            previousAlive=false;
++            nextSurvivalAlertTick.clear();
+             AIBotMod.LOGGER.info(
+-                    "AIBot external-body bridge bound to loopback port {} for {} body_id={}",
+-                    port,ExternalBodyAccess.BOT_NAME,logicalBodyId);
+-        }catch(Exception failure){
++                    "AIBot external-body bridge bound to loopback port {} for {} body_id={} backend={}",
++                    port,ExternalBodyAccess.BOT_NAME,logicalBodyId,backendKind);
++        } catch(Exception failure) {
+             if(http!=null)http.close();
+-            try{if(journal!=null)journal.close();}catch(Exception ignored){}
++            if(realClientTransport!=null)realClientTransport.close();
++            try { if(journal!=null)journal.close(); } catch(Exception ignored) {}
+             SemanticWorldRegistry.stop();
+-            http=null;journal=null;kernel=null;
+-            // Reservation remains in force. Invalid config must never silently reactivate the old brain.
++            http=null;journal=null;kernel=null;realClientTransport=null;
+             throw new IllegalStateException("external_bridge_start_failed_closed",failure);
+         }
+     }
++
+     public static void tick(MinecraftServer server) {
+         if(kernel==null)return;
+         kernel.tick();
+-        AIPlayerEntity bot=AIPlayerManager.INSTANCE.all().stream().filter(ExternalBodyAccess::reserved).findFirst().orElse(null);
+-        if(bot==null){observedBody=null;previousHealth=Float.NaN;previousAlive=false;return;}
+-        if(!bot.getUuid().equals(observedBody)){observedBody=bot.getUuid();previousHealth=bot.getHealth();previousAlive=bot.isAlive();return;}
+-        if(previousAlive && bot.isAlive() && bot.getHealth()<previousHealth)
+-            kernel.publish("damage",Map.of("previous_health",previousHealth,"health",bot.getHealth(),"source","health_delta_not_causal_attribution"));
+-        if(!previousAlive && bot.isAlive())kernel.publish("respawn",Map.of(
++        ServerPlayerEntity physical;
++        if("server_fake_player".equals(ExternalBodyAccess.backendKind())) {
++            physical=AIPlayerManager.INSTANCE.all().stream()
++                    .filter(ExternalBodyAccess::reserved).findFirst().orElse(null);
++        } else {
++            physical=server.getPlayerManager().getPlayerList().stream()
++                    .filter(player->ExternalBodyAccess.BOT_NAME.equalsIgnoreCase(
++                            player.getGameProfile().getName()))
++                    .filter(player->!(player instanceof AIPlayerEntity))
++                    .findFirst().orElse(null);
++        }
++        if(physical==null) {
++            observedBody=null;previousHealth=Float.NaN;previousAlive=false;return;
++        }
++        if(!physical.getUuid().equals(observedBody)) {
++            observedBody=physical.getUuid();previousHealth=physical.getHealth();
++            previousAlive=physical.isAlive();return;
++        }
++        if(previousAlive && physical.isAlive() && physical.getHealth()<previousHealth)
++            kernel.publish("damage",Map.of(
++                    "previous_health",previousHealth,"health",physical.getHealth(),
++                    "source","health_delta_not_causal_attribution"));
++        if(!previousAlive && physical.isAlive())kernel.publish("respawn",Map.of(
+                 "body_id",ExternalBodyAccess.bodyId(),
+-                "body_instance_id",bot.getUuid().toString(),
+-                "health",bot.getHealth()));
+-        previousAlive=bot.isAlive();previousHealth=bot.getHealth();
+-    }
++                "body_instance_id",physical.getUuid().toString(),
++                "health",physical.getHealth()));
++        previousAlive=physical.isAlive();previousHealth=physical.getHealth();
++    }
++
+     public static void death(AIPlayerEntity bot) {
+         if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+-        String source=bot.getRecentDamageSource()==null?"unknown":bot.getRecentDamageSource().getName();
++        String source=bot.getRecentDamageSource()==null
++                ?"unknown":bot.getRecentDamageSource().getName();
+         kernel.publish("death",Map.of(
+                 "body_id",ExternalBodyAccess.bodyId(),
+                 "body_instance_id",bot.getUuid().toString(),
+@@ -78,23 +142,27 @@
+                 "dimension",bot.getServerWorld().getRegistryKey().getValue().toString()));
+         previousAlive=false;previousHealth=0;
+     }
++
+     public static void message(AIPlayerEntity bot,String sender,String text) {
+         playerMessage(bot,null,sender,"legacy_brain_handle",false,text);
+     }
+-    public static void playerMessage(AIPlayerEntity bot,UUID senderUuid,String senderName,
+-                                     String channel,boolean authorizedControl,String text) {
++
++    public static void playerMessage(
++            AIPlayerEntity bot,UUID senderUuid,String senderName,
++            String channel,boolean authorizedControl,String text) {
+         if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+         Map<String,Object> payload=new LinkedHashMap<>();
+         payload.put("actor_kind","player");
+         payload.put("sender_uuid",senderUuid==null?"":senderUuid.toString());
+         payload.put("sender_name",bounded(senderName,80));
+-        payload.put("sender",bounded(senderName,80)); // M0 compatibility alias; never a synthetic authority label
++        payload.put("sender",bounded(senderName,80));
+         payload.put("channel",bounded(channel,80));
+         payload.put("authorized_control",authorizedControl);
+         payload.put("text",bounded(text,2000));
+         payload.put("trust","untrusted_game_text");
+         kernel.publish("player_message",payload);
+     }
++
+     public static void survivalAlert(AIPlayerEntity bot,String reason) {
+         if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+         int now=bot.getServer().getTicks();
+@@ -109,19 +177,24 @@
+                 "food",bot.getHungerManager().getFoodLevel(),
+                 "action","observe_and_replan"));
+     }
+-    public static void resourceOpportunityActionable(AIPlayerEntity bot,String opportunityId,String blockId,
+-                                                     net.minecraft.util.math.BlockPos pos,
+-                                                     net.minecraft.util.math.BlockPos seenFrom) {
++
++    public static void resourceOpportunityActionable(
++            AIPlayerEntity bot,String opportunityId,String blockId,
++            net.minecraft.util.math.BlockPos pos,
++            net.minecraft.util.math.BlockPos seenFrom) {
+         if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+         kernel.publish("resource_opportunity_actionable",Map.of(
+                 "opportunity_id",opportunityId,"block",blockId,
+                 "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
+-                "seen_from_x",seenFrom.getX(),"seen_from_y",seenFrom.getY(),"seen_from_z",seenFrom.getZ(),
++                "seen_from_x",seenFrom.getX(),"seen_from_y",seenFrom.getY(),
++                "seen_from_z",seenFrom.getZ(),
+                 "dimension",bot.getServerWorld().getRegistryKey().getValue().toString(),
+                 "world_id",SemanticWorldRegistry.worldId()));
+     }
+-    public static boolean resourceOpportunityConsumed(AIPlayerEntity bot,String opportunityId,String blockId,
+-                                                      net.minecraft.util.math.BlockPos pos) {
++
++    public static boolean resourceOpportunityConsumed(
++            AIPlayerEntity bot,String opportunityId,String blockId,
++            net.minecraft.util.math.BlockPos pos) {
+         if(kernel==null || !ExternalBodyAccess.reserved(bot))return false;
+         String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
+         String world=SemanticWorldRegistry.worldId();
+@@ -130,16 +203,13 @@
+                 "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
+                 "resolution","inventory_gain_proven",
+                 "dimension",dimension,"world_id",world);
+-        return kernel.recordOpportunityResolution("resource_opportunity_consumed",
+-                opportunityId,world,dimension,payload);
+-    }
+-    /**
+-     * R2.1 terminal tombstone: an opportunity left the active registry without the resource ever
+-     * being proven into inventory (externally consumed, or a pending pickup whose drop vanished).
+-     * Distinct from actionable/completion events so DSH never mistakes it for success.
+-     */
+-    public static boolean resourceOpportunityStale(AIPlayerEntity bot,String opportunityId,String blockId,
+-                                                   net.minecraft.util.math.BlockPos pos,String reason) {
++        return kernel.recordOpportunityResolution(
++                "resource_opportunity_consumed",opportunityId,world,dimension,payload);
++    }
++
++    public static boolean resourceOpportunityStale(
++            AIPlayerEntity bot,String opportunityId,String blockId,
++            net.minecraft.util.math.BlockPos pos,String reason) {
+         if(kernel==null || !ExternalBodyAccess.reserved(bot))return false;
+         String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
+         String world=SemanticWorldRegistry.worldId();
+@@ -148,18 +218,29 @@
+                 "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
+                 "reason",bounded(reason,120),
+                 "dimension",dimension,"world_id",world);
+-        return kernel.recordOpportunityResolution("resource_opportunity_stale",
+-                opportunityId,world,dimension,payload);
+-    }
+-    private static String bounded(String s,int length){return s==null?"":s.length()<=length?s:s.substring(0,length);}
++        return kernel.recordOpportunityResolution(
++                "resource_opportunity_stale",opportunityId,world,dimension,payload);
++    }
++
++    private static String bounded(String value,int length) {
++        return value==null?"":value.length()<=length?value:value.substring(0,length);
++    }
++
+     public static void stop() {
+-        try{if(kernel!=null)kernel.shutdown();}
+-        catch(RuntimeException e){AIBotMod.LOGGER.error("external body shutdown requires reconciliation",e);}
+-        finally {
++        try { if(kernel!=null)kernel.shutdown(); }
++        catch(RuntimeException failure) {
++            AIBotMod.LOGGER.error("external body shutdown requires reconciliation",failure);
++        } finally {
+             SemanticWorldRegistry.stop();
+             if(http!=null)http.close();
+-            try{if(journal!=null)journal.close();}catch(Exception e){AIBotMod.LOGGER.error("external journal close failed",e);}
+-            http=null;journal=null;kernel=null;observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();
++            if(realClientTransport!=null)realClientTransport.close();
++            try { if(journal!=null)journal.close(); }
++            catch(Exception failure) {
++                AIBotMod.LOGGER.error("external journal close failed",failure);
++            }
++            http=null;journal=null;kernel=null;realClientTransport=null;
++            observedBody=null;previousHealth=Float.NaN;previousAlive=false;
++            nextSurvivalAlertTick.clear();
+         }
+     }
+ }
+--- a/aibot-dsh-m0/scripts/gen_sums.py
++++ b/aibot-dsh-m0/scripts/gen_sums.py
+@@ -1,23 +1,24 @@
+-#!/usr/bin/env python
+-# -*- coding: utf-8 -*-
+-"""Regenerate aibot-dsh-m0/SHA256SUMS: every file under the handoff dir except
+-SHA256SUMS itself and __pycache__ trees. LF newlines, sorted by path."""
++#!/usr/bin/env python3
++"""Regenerate SHA256SUMS for this handoff tree, excluding the manifest and build caches."""
++from __future__ import annotations
++
+ import hashlib
++import os
+ import pathlib
+ 
+-root = pathlib.Path(r'D:\code\mc-bot\aibot-dsh-m0')
+-entries = []
+-for path in sorted(root.rglob('*')):
++root = pathlib.Path(__file__).resolve().parents[1]
++entries: list[str] = []
++for path in sorted(root.rglob("*")):
+     if not path.is_file():
+         continue
+-    rel = path.relative_to(root).as_posix()
+-    if rel == 'SHA256SUMS':
++    relative = path.relative_to(root).as_posix()
++    if relative == "SHA256SUMS":
+         continue
+-    if '__pycache__' in path.parts or '.build' in path.parts:
++    if "__pycache__" in path.parts or ".build" in path.parts:
+         continue
+-    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+-    entries.append(f'{digest}  {rel}')
++    entries.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {relative}")
+ 
+-out = root / 'SHA256SUMS'
+-out.write_text('\n'.join(entries) + '\n', encoding='utf-8', newline='\n')
+-print(f'wrote {len(entries)} entries')
++temporary = root / "SHA256SUMS.tmp"
++temporary.write_text("\n".join(entries) + "\n", encoding="utf-8", newline="\n")
++os.replace(temporary, root / "SHA256SUMS")
++print(f"wrote {len(entries)} entries; SHA256SUMS self-entry excluded")
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+@@ -234,7 +234,7 @@
+         out.put("control_active",token!=null && mono.getAsLong()<expiresAt);
+         out.put("fault",fault); out.put("stopped",stopped);
+         out.put("active_execution",active==null?null:active.wire());
+-        out.put("operations",OPERATIONS.stream().sorted().toList());
++        out.put("operations",backend.supportedOperations().stream().sorted().toList());
+         return out;
+     }
+     public synchronized Map<String,Object> observe() {
+@@ -427,6 +427,8 @@
+             return previous.wire();
+         }
+         if(controls.containsKey(request)) throw new BridgeFault(409,"idempotency_conflict");
++        if(!backend.supportedOperations().contains(operation))
++            throw new BridgeFault(409,"operation_not_supported_by_backend:"+operation);
+         requireReady();
+         if(needsReconcile) throw new BridgeFault(409,"observe_required_before_new_work");
+         if(active!=null) throw new BridgeFault(409,"execution_in_progress");
+@@ -494,8 +496,19 @@
+             boolean nowReady=backend.ready();
+             if(nowReady)applyBinding(backend.binding());
+             if(!nowReady) {
++                boolean wasReady=ready;
+                 ready=false;
+-                if(active!=null) { transition(active,"outcome_unknown",active.progress,"body_unavailable"); needsReconcile=true; }
++                if(wasReady) {
++                    // Physical carrier loss is the same authority boundary as an in-process
++                    // replacement. Never retain old visual evidence, leases, or mutation intent.
++                    invalidateReadPlane("body_session_changed");
++                    if(active!=null)
++                        transition(active,"outcome_unknown",active.progress,"body_session_changed");
++                    token=null; owner=null; pauseRequested=true; needsReconcile=true;
++                    event("body_session_changed","",Map.of(
++                            "reason","physical_body_unavailable",
++                            "previous",currentBindingWire()));
++                }
+                 return;
+             }
+             ready=true; observation=backend.observeJson(); observedAt=mono.getAsLong();
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveViewBuilder.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveViewBuilder.java
+@@ -398,7 +398,8 @@
+             String kind = frame.fields().getOrDefault("kind", "");
+             boolean keep = switch (kind) {
+                 case "death", "damage", "respawn", "survival_alert", "resource_opportunity_actionable",
+-                        "resource_opportunity_stale", "control_acquired", "control_lost", "body_changed" -> true;
++                        "resource_opportunity_stale", "control_acquired", "control_lost",
++                        "body_changed", "body_session_changed" -> true;
+                 case "execution" -> List.of("completed", "failed", "cancelled", "outcome_unknown")
+                         .contains(frame.fields().getOrDefault("state", ""));
+                 default -> false;
+--- a/aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
++++ b/aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
+@@ -11,6 +11,7 @@
+     static int passed;
+     static final class FakeBackend implements BodyBackend {
+         boolean alive=true; String id="body-1", kind="fake_backend", instance="instance-1", session="session-1";
++        Set<String> operations=BodyBackend.ALL_OPERATIONS;
+         String state="running"; int starts,pauses,resumes,cancels; boolean failStart;
+         String lastExecutionId="";
+         long tick; String localJson="{\"schema\":\"mc.local_view.v0\"}";
+@@ -20,6 +21,7 @@
+         String sceneHash(){return ("session-1".equals(session)?"cafe":"beef").repeat(16);}
+         public boolean ready(){return alive;} public String bodyId(){return id;}
+         public Binding binding(){return new Binding(id,kind,instance,session);}
++        public Set<String> supportedOperations(){return operations;}
+         public long serverTick(){return ++tick;}
+         public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal){
+             java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index=new java.util.LinkedHashMap<>();
+@@ -214,6 +216,37 @@
+                     "view is rebuilt for the replacement physical session");
+         }
+         try(Fixture f=fixture()) {
++            check(((List<?>)f.kernel.status().get("operations")).contains("gather"),
++                    "status exposes the selected backend capability set");
++            f.body.operations=Set.of("say");
++            check(f.kernel.status().get("operations").equals(List.of("say")),
++                    "status updates when the physical backend capability set changes");
++            String token=claim(f);
++            fault(409,"operation_not_supported_by_backend",
++                    ()->f.kernel.submit(token,"unsupported-on-real","gather","{}"));
++            String execution=(String)f.kernel.submit(token,"availability-loss","say","{}").get("execution_id");
++            f.kernel.tick();
++            var pending=f.kernel.submitLocalQuery(4,"summary");
++            int starts=f.body.starts;
++            f.body.alive=false;
++            f.kernel.tick();
++            check(f.kernel.execution(execution).get("state").equals("outcome_unknown"),
++                    "physical body loss interrupts execution as unknown");
++            check(f.kernel.execution(execution).get("reason").equals("body_session_changed"),
++                    "physical body loss uses session-boundary reason");
++            check(f.kernel.status().get("control_active").equals(false),
++                    "physical body loss revokes lease");
++            check(f.kernel.status().get("needs_reconcile").equals(true),
++                    "physical body loss requires observe");
++            check(pending.isCompletedExceptionally(),
++                    "physical body loss cancels queued read queries");
++            check(f.body.starts==starts,"physical body loss never replays mutation");
++            f.body.session="session-2";f.body.alive=true;f.kernel.tick();
++            check(f.kernel.status().get("body_session_epoch").equals("session-2"),
++                    "reconnected physical body publishes a new session");
++            check(f.body.starts==starts,"reconnect still never replays mutation");
++        }
++        try(Fixture f=fixture()) {
+             String t=claim(f);String id=(String)f.kernel.submit(t,"changed-body","gather","{}").get("execution_id");f.kernel.tick();
+             f.body.id="replacement-body";f.kernel.tick();
+             check(f.kernel.execution(id).get("state").equals("outcome_unknown"),"body identity change interrupts execution as unknown");
+--- a/aibot-dsh-m0/scripts/apply_to_aibot.py
++++ b/aibot-dsh-m0/scripts/apply_to_aibot.py
+@@ -727,9 +727,13 @@
+ # 不在 PREFIX 下的补充锚点补丁(带同样的 blob 校验)。MC-1C-A:把专项 GameTest 注册进 gametest 入口,
+ # 否则 fabric-gametest 不会发现它,干净重建后测试静默消失。
+ EXTRA_CHANGES={
++ 'src/client/java/io/github/zoyluo/aibot/client/AIBotClient.java': ('d9476d8f310699a3c3ff1d8eddf5200d90339214', [
++  ('        AIBotClientNetworking.register();\n',
++   '        AIBotClientNetworking.register();\n        io.github.zoyluo.aibot.client.realclient.RealClientBodyClientRuntime.register();\n', 1),
++ ]),
+  'src/gametest/resources/fabric.mod.json': ('25ecb31ca127ed2e9d57ccb9b5c223066092f3e5', [
+   ('"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",',
+-   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A02TreeHarvestGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A03OpportunityIncarnationGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A03ASessionBoundaryGameTests",', 1),
++   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A02TreeHarvestGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A03OpportunityIncarnationGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A03ASessionBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A04RealClientTrackerGameTests",', 1),
+  ]),
+  'src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java': ('07d61c3c7b180d12361b8ab6bbe8983f42ed30f4', [
+   ('        assertEquals(2, occurrences(buildTask, "isObservableStandable(bot, candidate)"),\n                "both work-pose scans must cross the observable-world boundary");\n',
+--- a/aibot-dsh-m0/scripts/test.sh
++++ b/aibot-dsh-m0/scripts/test.sh
+@@ -16,4 +16,5 @@
+ java -cp .build io.github.zoyluo.aibot.external.BridgeCoreTest | tee evidence/java-core-tests.txt
+ node --test dsh-plugin/test/*.test.mjs | tee evidence/node-tests.txt
+ python3 scripts/test_installers.py 2>&1 | tee evidence/installer-tests.txt
++python3 scripts/test_real_client_supervisor.py 2>&1 | tee evidence/real-client-supervisor-tests.txt
+ printf '\nOffline suites passed. NOT a real Minecraft GameTest or actual DSH loading result.\n'
+--- a/aibot-dsh-m0/README.zh-CN.md
++++ b/aibot-dsh-m0/README.zh-CN.md
+@@ -137,3 +137,38 @@
+ ```
+ 
+ 重新运行测试会更新证据文件，届时这些文件与发布时摘要不一致是正常现象。不要通过覆盖旧证据伪装原始发布结果。
++
++## MC-2A0.4：真实客户端身体 MVP
++
++服务器端显式选择唯一 physical authority：
++
++```bash
++export AIBOT_EXTERNAL_BOT=Bob
++export AIBOT_EXTERNAL_BODY_ID=bob
++export AIBOT_EXTERNAL_BACKEND=real_client
++export AIBOT_REAL_CLIENT_PORT=8766
++export AIBOT_REAL_CLIENT_TOKEN="$AIBOT_BRIDGE_TOKEN"
++```
++
++Bob 客户端是独立的 offline profile，不使用拥有者的 Microsoft/Minecraft 账户。客户端进程还需：
++
++```bash
++export AIBOT_REAL_CLIENT=1
++export AIBOT_REAL_CLIENT_BOT_NAME=Bob
++export AIBOT_REAL_CLIENT_BODY_ID=bob
++export AIBOT_REAL_CLIENT_HOST=127.0.0.1
++export AIBOT_REAL_CLIENT_PORT=8766
++export AIBOT_REAL_CLIENT_TOKEN="$AIBOT_BRIDGE_TOKEN"
++```
++
++`scripts/real_client_supervisor.py` 根据配置数组启动/重启客户端，计算标准 offline UUID，且
++不经 shell 拼接命令。MVP 只支持 `say`、短距离 `goto` 与 explicit opportunity
++`mine_opportunity`；其余现有 DSH 工具会得到 `operation_not_supported_by_backend`，绝不偷偷
++回落 FakePlayer。GUI、模组 Screen、BOT_POV、音频与直播不在本轮。
++
++真实客户端崩溃或断线会将在途执行置为 `outcome_unknown:body_session_changed`，吊销旧租约、
++清空旧认知读平面并要求显式 `mc_observe`；重连后不自动重放任何 mutation。
++
++发布前必须用 `python scripts/gen_sums.py` 重新生成 `SHA256SUMS`。canonical manifest
++必须排除 `SHA256SUMS` 自身，再执行 `sha256sum -c SHA256SUMS` 验证全部条目。
++
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientActionController.java
+@@ -0,0 +1,254 @@
++package io.github.zoyluo.aibot.client.realclient;
++
++import com.google.gson.JsonObject;
++import com.google.gson.JsonParser;
++import net.minecraft.client.MinecraftClient;
++import net.minecraft.item.ItemStack;
++import net.minecraft.registry.Registries;
++import net.minecraft.util.Hand;
++import net.minecraft.util.math.BlockPos;
++import net.minecraft.util.math.Direction;
++import net.minecraft.util.math.MathHelper;
++import net.minecraft.util.math.Vec3d;
++
++import java.util.Locale;
++
++/** Tick-driven normal-client actuator. It uses the same movement and interaction manager as a player. */
++final class RealClientActionController {
++    private final RealClientClientTransport transport;
++    private Action active;
++
++    RealClientActionController(RealClientClientTransport transport) {
++        this.transport=transport;
++    }
++
++    void command(JsonObject message) {
++        String executionId=message.get("execution_id").getAsString();
++        String operation=message.get("operation").getAsString();
++        JsonObject args=JsonParser.parseString(
++                message.get("arguments_json").getAsString()).getAsJsonObject();
++        if(active!=null && !active.terminal()) {
++            send(executionId,"failed",0D,"real_client_action_busy");
++            return;
++        }
++        active=switch(operation) {
++            case "say" -> new SayAction(executionId,args.get("message").getAsString());
++            case "goto" -> new GotoAction(
++                    executionId,args.get("x").getAsDouble(),
++                    args.get("y").getAsDouble(),args.get("z").getAsDouble(),
++                    args.has("arrival_radius")?args.get("arrival_radius").getAsDouble():2.5D);
++            case "mine_opportunity" -> new MineAction(
++                    executionId,
++                    new BlockPos(args.get("x").getAsInt(),args.get("y").getAsInt(),args.get("z").getAsInt()),
++                    Direction.valueOf(args.get("face").getAsString().toUpperCase(Locale.ROOT)),
++                    args.get("slot").getAsInt(),args.get("block").getAsString(),
++                    args.get("expected_item").getAsString(),args.get("baseline_count").getAsInt());
++            default -> null;
++        };
++        if(active==null)send(executionId,"failed",0D,"real_client_operation_unsupported");
++        else send(executionId,"running",0D,"real_client_action_admitted");
++    }
++
++    void control(JsonObject message,MinecraftClient client) {
++        if(active==null || !active.executionId.equals(
++                message.get("execution_id").getAsString()))return;
++        String action=message.get("action").getAsString();
++        switch(action) {
++            case "pause" -> {
++                active.paused=true;clearInputs(client);
++                send(active.executionId,"paused",active.progress,"external_pause");
++            }
++            case "resume" -> {
++                active.paused=false;
++                send(active.executionId,"running",active.progress,"external_resume");
++            }
++            case "cancel" -> {
++                active.cancelled=true;clearInputs(client);
++                if(client.interactionManager!=null)client.interactionManager.cancelBlockBreaking();
++                send(active.executionId,"cancelled",active.progress,
++                        message.has("reason")?message.get("reason").getAsString():"external_cancel");
++            }
++        }
++    }
++
++    void tick(MinecraftClient client) {
++        if(active==null)return;
++        if(client.player==null || client.world==null || client.interactionManager==null) {
++            clearInputs(client);
++            return;
++        }
++        if(active.terminal()) {
++            clearInputs(client);
++            return;
++        }
++        if(active.paused) {
++            clearInputs(client);
++            return;
++        }
++        try {
++            active.tick(client);
++        } catch(RuntimeException failure) {
++            clearInputs(client);
++            active.failed=true;
++            send(active.executionId,"failed",active.progress,
++                    "real_client_action_exception:"+failure.getClass().getSimpleName());
++        }
++    }
++
++    void controlSessionLost(MinecraftClient client) {
++        clearInputs(client);
++        if(client.interactionManager!=null)client.interactionManager.cancelBlockBreaking();
++        // The server has fenced this physical session. Never retain an old intent across reconnect.
++        if(active!=null && !active.terminal())active.failed=true;
++        active=null;
++    }
++
++    void disconnected(MinecraftClient client) {
++        clearInputs(client);
++        if(active!=null && !active.terminal()) {
++            active.failed=true;
++            send(active.executionId,"outcome_unknown",active.progress,
++                    "minecraft_connection_lost");
++        }
++        active=null;
++    }
++
++    private void send(String executionId,String state,double progress,String reason) {
++        JsonObject status=new JsonObject();
++        status.addProperty("type","execution");
++        status.addProperty("execution_id",executionId);
++        status.addProperty("state",state);
++        status.addProperty("progress",progress);
++        status.addProperty("reason",reason);
++        transport.send(status);
++    }
++
++    private static void clearInputs(MinecraftClient client) {
++        if(client.options==null)return;
++        client.options.forwardKey.setPressed(false);
++        client.options.backKey.setPressed(false);
++        client.options.leftKey.setPressed(false);
++        client.options.rightKey.setPressed(false);
++        client.options.jumpKey.setPressed(false);
++        client.options.sprintKey.setPressed(false);
++        client.options.attackKey.setPressed(false);
++    }
++
++    private abstract class Action {
++        final String executionId;
++        boolean paused,cancelled,failed,completed;
++        double progress;
++        Action(String executionId){this.executionId=executionId;}
++        abstract void tick(MinecraftClient client);
++        boolean terminal(){return cancelled||failed||completed;}
++        void complete(String reason){completed=true;progress=1D;send(executionId,"completed",1D,reason);}
++        void fail(String reason){failed=true;send(executionId,"failed",progress,reason);}
++    }
++
++    private final class SayAction extends Action {
++        final String message;
++        boolean sent;
++        SayAction(String executionId,String message){super(executionId);this.message=message;}
++        @Override void tick(MinecraftClient client) {
++            if(sent)return;
++            client.player.networkHandler.sendChatMessage(message);
++            sent=true;
++            complete("client_chat_packet_sent");
++        }
++    }
++
++    private final class GotoAction extends Action {
++        final Vec3d target;
++        final double radius;
++        GotoAction(String executionId,double x,double y,double z,double radius) {
++            super(executionId);this.target=new Vec3d(x+.5D,y,z+.5D);this.radius=radius;
++        }
++        @Override void tick(MinecraftClient client) {
++            double distance=client.player.getPos().distanceTo(target);
++            if(distance<=radius) {
++                clearInputs(client);complete("client_arrival_reported");return;
++            }
++            clearInputs(client);
++            lookAt(client,target);
++            client.options.forwardKey.setPressed(true);
++            client.options.sprintKey.setPressed(distance>6D);
++            progress=Math.max(progress,Math.min(.95D,1D-distance/32D));
++            send(executionId,"running",progress,"walking_to_target");
++        }
++    }
++
++    private final class MineAction extends Action {
++        final BlockPos target;
++        final Direction face;
++        final int slot,baseline;
++        final String blockId,expectedItem;
++        boolean started;
++        MineAction(String executionId,BlockPos target,Direction face,int slot,
++                String blockId,String expectedItem,int baseline) {
++            super(executionId);this.target=target;this.face=face;this.slot=slot;
++            this.blockId=blockId;this.expectedItem=expectedItem;this.baseline=baseline;
++        }
++        @Override void tick(MinecraftClient client) {
++            int current=count(client,expectedItem);
++            var state=client.world.getBlockState(target);
++            String actual=Registries.BLOCK.getId(state.getBlock()).toString();
++            if(state.isAir()) {
++                if(current>baseline) {
++                    clearInputs(client);client.interactionManager.cancelBlockBreaking();
++                    complete("client_block_gone_and_inventory_gain_observed");return;
++                }
++                walkTo(client,target.toCenterPos());
++                progress=.9D;
++                send(executionId,"running",progress,"waiting_for_physical_pickup");
++                return;
++            }
++            if(!actual.equals(blockId)) {
++                clearInputs(client);fail("client_target_cell_changed");return;
++            }
++            if(client.player.getPos().squaredDistanceTo(target.toCenterPos())>16D) {
++                walkTo(client,target.toCenterPos());
++                progress=Math.max(progress,.1D);
++                return;
++            }
++            clearInputs(client);
++            client.player.getInventory().selectedSlot=slot;
++            lookAt(client,target.toCenterPos());
++            if(!started) {
++                started=client.interactionManager.attackBlock(target,face);
++                if(!started) { fail("client_attack_block_rejected");return; }
++            }
++            client.interactionManager.updateBlockBreakingProgress(target,face);
++            client.player.swingHand(Hand.MAIN_HAND);
++            progress=Math.max(progress,.5D);
++            send(executionId,"running",progress,"client_breaking_block");
++        }
++    }
++
++    private static int count(MinecraftClient client,String itemId) {
++        int total=0;
++        for(int slot=0;slot<client.player.getInventory().size();slot++) {
++            ItemStack stack=client.player.getInventory().getStack(slot);
++            if(!stack.isEmpty()
++                    && Registries.ITEM.getId(stack.getItem()).toString().equals(itemId))
++                total+=stack.getCount();
++        }
++        return total;
++    }
++
++    private static void walkTo(MinecraftClient client,Vec3d target) {
++        clearInputs(client);
++        lookAt(client,target);
++        client.options.forwardKey.setPressed(true);
++        client.options.sprintKey.setPressed(false);
++    }
++
++    private static void lookAt(MinecraftClient client,Vec3d target) {
++        Vec3d eye=client.player.getEyePos();
++        double dx=target.x-eye.x,dy=target.y-eye.y,dz=target.z-eye.z;
++        double horizontal=Math.sqrt(dx*dx+dz*dz);
++        float yaw=(float)(MathHelper.atan2(dz,dx)*180D/Math.PI)-90F;
++        float pitch=(float)(-(MathHelper.atan2(dy,horizontal)*180D/Math.PI));
++        client.player.setYaw(yaw);
++        client.player.setPitch(MathHelper.clamp(pitch,-90F,90F));
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientBodyClientRuntime.java
+@@ -0,0 +1,97 @@
++package io.github.zoyluo.aibot.client.realclient;
++
++import com.google.gson.JsonObject;
++import io.github.zoyluo.aibot.AIBotMod;
++import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
++import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
++import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
++import net.minecraft.client.MinecraftClient;
++import net.minecraft.registry.Registries;
++import net.minecraft.util.hit.BlockHitResult;
++import net.minecraft.util.hit.HitResult;
++
++/** Opt-in real-player body runtime. Disabled for ordinary PCL2/human clients. */
++public final class RealClientBodyClientRuntime {
++    private static boolean registered;
++    private static RealClientClientTransport transport;
++    private static RealClientActionController actions;
++    private static int heartbeatTick;
++    private static boolean controlWasConnected;
++    private static String controlSessionEpoch="";
++
++    private RealClientBodyClientRuntime() {}
++
++    public static synchronized void register() {
++        if(registered)return;
++        registered=true;
++        if(!"1".equals(System.getenv().getOrDefault("AIBOT_REAL_CLIENT","0")))return;
++        String host=System.getenv().getOrDefault("AIBOT_REAL_CLIENT_HOST","127.0.0.1");
++        int port=Integer.parseInt(System.getenv().getOrDefault(
++                "AIBOT_REAL_CLIENT_PORT","8766"));
++        String token=System.getenv("AIBOT_REAL_CLIENT_TOKEN");
++        String bodyId=System.getenv().getOrDefault("AIBOT_REAL_CLIENT_BODY_ID","bob").trim();
++        String playerName=System.getenv().getOrDefault("AIBOT_REAL_CLIENT_BOT_NAME","Bob").trim();
++        if(token==null || token.length()<32)
++            throw new IllegalArgumentException("AIBOT_REAL_CLIENT_TOKEN_missing_or_short");
++        transport=new RealClientClientTransport(host,port,token,bodyId,playerName);
++        actions=new RealClientActionController(transport);
++        transport.start();
++        ClientTickEvents.END_CLIENT_TICK.register(
++                RealClientBodyClientRuntime::tick);
++        ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->{
++            if(actions!=null)actions.disconnected(client);
++        });
++        ClientLifecycleEvents.CLIENT_STOPPING.register(client->{
++            if(actions!=null)actions.disconnected(client);
++            if(transport!=null)transport.close();
++        });
++        AIBotMod.LOGGER.info(
++                "AIBot real-client runtime enabled body_id={} player={} control={}:{}",
++                bodyId,playerName,host,port);
++    }
++
++    private static void tick(MinecraftClient client) {
++        if(transport==null || actions==null)return;
++        boolean connected=transport.connected();
++        String epoch=transport.sessionEpoch();
++        if(controlWasConnected && (!connected || !controlSessionEpoch.equals(epoch)))
++            actions.controlSessionLost(client);
++        controlWasConnected=connected;
++        controlSessionEpoch=epoch;
++        JsonObject message;
++        while((message=transport.poll())!=null) {
++            String type=message.has("type")?message.get("type").getAsString():"";
++            if("command".equals(type))actions.command(message);
++            else if("control".equals(type))actions.control(message,client);
++        }
++        actions.tick(client);
++        if(++heartbeatTick%10==0)heartbeat(client);
++    }
++
++    private static void heartbeat(MinecraftClient client) {
++        if(!transport.connected() || client.player==null || client.world==null)return;
++        JsonObject heartbeat=new JsonObject();
++        heartbeat.addProperty("type","heartbeat");
++        heartbeat.addProperty("player_uuid",client.player.getUuidAsString());
++        heartbeat.addProperty("x",client.player.getX());
++        heartbeat.addProperty("y",client.player.getY());
++        heartbeat.addProperty("z",client.player.getZ());
++        heartbeat.addProperty("yaw",client.player.getYaw());
++        heartbeat.addProperty("pitch",client.player.getPitch());
++        heartbeat.addProperty("selected_slot",client.player.getInventory().selectedSlot);
++        if(client.crosshairTarget instanceof BlockHitResult hit
++                && hit.getType()==HitResult.Type.BLOCK) {
++            var state=client.world.getBlockState(hit.getBlockPos());
++            heartbeat.addProperty("crosshair_present",true);
++            heartbeat.addProperty("crosshair_x",hit.getBlockPos().getX());
++            heartbeat.addProperty("crosshair_y",hit.getBlockPos().getY());
++            heartbeat.addProperty("crosshair_z",hit.getBlockPos().getZ());
++            heartbeat.addProperty(
++                    "crosshair_block",Registries.BLOCK.getId(state.getBlock()).toString());
++            heartbeat.addProperty("crosshair_side",hit.getSide().name());
++        } else {
++            heartbeat.addProperty("crosshair_present",false);
++        }
++        transport.send(heartbeat);
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientClientTransport.java
+@@ -0,0 +1,203 @@
++package io.github.zoyluo.aibot.client.realclient;
++
++import com.google.gson.JsonObject;
++import io.github.zoyluo.aibot.AIBotMod;
++import io.github.zoyluo.aibot.external.realclient.RealClientWire;
++
++import java.io.BufferedInputStream;
++import java.io.BufferedOutputStream;
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.EOFException;
++import java.io.IOException;
++import java.net.InetAddress;
++import java.net.InetSocketAddress;
++import java.net.Socket;
++import java.net.UnknownHostException;
++import java.util.UUID;
++import java.util.concurrent.ArrayBlockingQueue;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicBoolean;
++import java.util.concurrent.atomic.AtomicReference;
++
++/** Reconnecting loopback client. Minecraft state is never touched from this networking thread. */
++final class RealClientClientTransport implements AutoCloseable {
++    private final InetAddress host;
++    private final int port;
++    private final String token,bodyId,playerName;
++    private final AtomicBoolean closed=new AtomicBoolean();
++    private final AtomicReference<Connection> connection=new AtomicReference<>();
++    private final ArrayBlockingQueue<JsonObject> inbound=new ArrayBlockingQueue<>(64);
++    private final Thread connector;
++
++    RealClientClientTransport(
++            String host,int port,String token,String bodyId,String playerName) {
++        try {
++            this.host=InetAddress.getByName(host);
++        } catch(UnknownHostException failure) {
++            throw new IllegalArgumentException("real_client_control_host_invalid",failure);
++        }
++        if(!this.host.isLoopbackAddress())
++            throw new IllegalArgumentException("real_client_control_host_must_be_loopback");
++        if(port<1024 || port>65535)
++            throw new IllegalArgumentException("real_client_control_port_invalid");
++        if(token==null || token.length()<32 || token.length()>256
++                || !token.matches("[A-Za-z0-9_-]+"))
++            throw new IllegalArgumentException("real_client_control_token_invalid");
++        this.port=port;this.token=token;
++        this.bodyId=bodyId;this.playerName=playerName;
++        connector=new Thread(this::connectLoop,"aibot-real-client-connector");
++        connector.setDaemon(true);
++    }
++
++    void start() {
++        connector.start();
++    }
++
++    JsonObject poll() {
++        return inbound.poll();
++    }
++
++    String sessionEpoch() {
++        Connection current=connection.get();
++        return current==null?"":current.sessionEpoch;
++    }
++
++    boolean connected() {
++        Connection current=connection.get();
++        return current!=null && current.connected.get();
++    }
++
++    boolean send(JsonObject message) {
++        Connection current=connection.get();
++        if(current==null || !current.connected.get())return false;
++        message.addProperty("session_epoch",current.sessionEpoch);
++        return current.outbound.offer(message);
++    }
++
++    private void connectLoop() {
++        int failures=0;
++        while(!closed.get()) {
++            try {
++                Socket socket=new Socket();
++                socket.connect(new InetSocketAddress(host,port),3000);
++                socket.setTcpNoDelay(true);
++                DataInputStream input=new DataInputStream(
++                        new BufferedInputStream(socket.getInputStream()));
++                DataOutputStream output=new DataOutputStream(
++                        new BufferedOutputStream(socket.getOutputStream()));
++                String epoch=UUID.randomUUID().toString();
++                JsonObject hello=new JsonObject();
++                hello.addProperty("type","hello");
++                hello.addProperty("protocol",RealClientWire.PROTOCOL_VERSION);
++                hello.addProperty("token",token);
++                hello.addProperty("body_id",bodyId);
++                hello.addProperty("player_name",playerName);
++                hello.addProperty("session_epoch",epoch);
++                RealClientWire.write(output,hello);
++                JsonObject welcome=RealClientWire.read(input);
++                if(!"welcome".equals(RealClientWire.requiredString(welcome,"type",32)))
++                    throw new IOException("real_client_welcome_missing");
++                if(!welcome.has("protocol")
++                        || welcome.get("protocol").getAsInt()!=RealClientWire.PROTOCOL_VERSION)
++                    throw new IOException("real_client_welcome_protocol_mismatch");
++                if(!bodyId.equals(RealClientWire.requiredString(welcome,"body_id",160))
++                        || !epoch.equals(RealClientWire.requiredString(
++                                welcome,"session_epoch",160)))
++                    throw new IOException("real_client_welcome_binding_mismatch");
++                Connection connected=new Connection(socket,input,output,epoch);
++                Connection old=connection.getAndSet(connected);
++                if(old!=null)old.close();
++                failures=0;
++                AIBotMod.LOGGER.info(
++                        "AIBot real-client control connected body_id={} session={}",
++                        bodyId,epoch);
++                connected.startWriter();
++                connected.readLoop();
++            } catch(Exception failure) {
++                if(!closed.get())
++                    AIBotMod.LOGGER.warn(
++                            "real-client control connect/read failed: {}",failure.toString());
++            } finally {
++                Connection old=connection.getAndSet(null);
++                if(old!=null)old.close();
++            }
++            if(closed.get())break;
++            failures++;
++            try {
++                Thread.sleep(Math.min(10000L,500L*(1L<<Math.min(failures,4))));
++            } catch(InterruptedException interrupted) {
++                Thread.currentThread().interrupt();
++                break;
++            }
++        }
++    }
++
++    @Override public void close() {
++        if(!closed.compareAndSet(false,true))return;
++        Connection current=connection.getAndSet(null);
++        if(current!=null)current.close();
++        connector.interrupt();
++        inbound.clear();
++    }
++
++    private final class Connection implements AutoCloseable {
++        final Socket socket;
++        final DataInputStream input;
++        final DataOutputStream output;
++        final String sessionEpoch;
++        final AtomicBoolean connected=new AtomicBoolean(true);
++        final ArrayBlockingQueue<JsonObject> outbound=new ArrayBlockingQueue<>(64);
++        Thread writer;
++
++        Connection(Socket socket,DataInputStream input,DataOutputStream output,String sessionEpoch) {
++            this.socket=socket;this.input=input;this.output=output;this.sessionEpoch=sessionEpoch;
++        }
++
++        void startWriter() {
++            writer=new Thread(this::writeLoop,"aibot-real-client-control-writer");
++            writer.setDaemon(true);
++            writer.start();
++        }
++
++        void readLoop()throws IOException {
++            try {
++                while(connected.get() && !closed.get()) {
++                    JsonObject message=RealClientWire.read(input);
++                    String epoch=RealClientWire.requiredString(
++                            message,"session_epoch",160);
++                    if(!sessionEpoch.equals(epoch))
++                        throw new IOException("real_client_server_epoch_mismatch");
++                    if(!inbound.offer(message))
++                        throw new IOException("real_client_inbound_queue_overflow");
++                }
++            } catch(EOFException ignored) {
++                // reconnect loop handles it
++            }
++        }
++
++        void writeLoop() {
++            try {
++                while(connected.get() && !closed.get()) {
++                    JsonObject message=outbound.poll(1,TimeUnit.SECONDS);
++                    if(message!=null)RealClientWire.write(output,message);
++                }
++            } catch(InterruptedException interrupted) {
++                Thread.currentThread().interrupt();
++            } catch(IOException failure) {
++                if(!closed.get())
++                    AIBotMod.LOGGER.warn(
++                            "real-client control write failed: {}",failure.toString());
++            } finally {
++                close();
++            }
++        }
++
++        @Override public void close() {
++            if(!connected.compareAndSet(true,false))return;
++            try { socket.close(); } catch(IOException ignored) {}
++            if(writer!=null && writer!=Thread.currentThread())writer.interrupt();
++            outbound.clear();
++        }
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A04RealClientTrackerGameTests.java
+@@ -0,0 +1,115 @@
++package io.github.zoyluo.aibot.gametest;
++
++import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.external.BridgeJournal;
++import io.github.zoyluo.aibot.external.SemanticWorldRegistry;
++import io.github.zoyluo.aibot.external.realclient.RealClientOpportunityTracker;
++import io.github.zoyluo.aibot.external.realclient.RealClientServerTransport;
++import io.github.zoyluo.aibot.manager.AIPlayerManager;
++import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
++import net.minecraft.block.Block;
++import net.minecraft.block.Blocks;
++import net.minecraft.server.world.ServerWorld;
++import net.minecraft.test.GameTest;
++import net.minecraft.test.TestContext;
++import net.minecraft.util.math.BlockPos;
++import net.minecraft.util.math.MathHelper;
++import net.minecraft.util.math.Vec3d;
++import net.minecraft.world.GameMode;
++
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.Set;
++
++/** Durable real-client crosshair opportunity identity without visual/world omniscience. */
++public final class MC2A04RealClientTrackerGameTests implements FabricGameTest {
++    private static final String BOT="Mc2a04Tracker";
++
++    @GameTest(templateName=FabricGameTest.EMPTY_STRUCTURE,
++            batchId="mc2a04_real_client_tracker",tickLimit=200)
++    public void mc2a04BirthReplayAndTerminalReappearanceUseCorrectIncarnations(
++            TestContext context) {
++        ServerWorld world=context.getWorld();
++        BlockPos start=context.getAbsolutePos(new BlockPos(2,2,2));
++        prepare(world,start);
++        BlockPos ore=start.east(2);
++        world.setBlockState(ore,Blocks.IRON_ORE.getDefaultState(),Block.NOTIFY_ALL);
++        Path path=null;
++        BridgeJournal journal=null;
++        try {
++            AIPlayerManager.INSTANCE.despawn(world.getServer(),BOT);
++            AIPlayerEntity player=AIPlayerManager.INSTANCE.spawn(
++                    world.getServer(),BOT,world,Vec3d.ofBottomCenter(start),
++                    0F,0F,GameMode.SURVIVAL).orElseThrow();
++            path=Files.createTempFile("mc2a04-real-client-tracker-",".journal");
++            journal=new BridgeJournal(path,()->1L);
++            lookAt(player,ore.toCenterPos());
++            RealClientOpportunityTracker firstTracker=
++                    new RealClientOpportunityTracker(journal);
++            var sensor=sensor(player,ore,"minecraft:iron_ore");
++            var first=firstTracker.observe(player,sensor).orElseThrow();
++            require(context,first.expectedItem().equals("minecraft:raw_iron"),
++                    "iron expected drop not normalized");
++            require(context,journal.replay().stream().anyMatch(frame->
++                            "real_client_opportunity_birth".equals(frame.fields().get("kind"))
++                                    && first.id().equals(frame.fields().get("opportunity_id"))),
++                    "durable real-client birth receipt missing");
++
++            RealClientOpportunityTracker replayed=
++                    new RealClientOpportunityTracker(journal);
++            require(context,replayed.opportunity(player,first.id()).isPresent(),
++                    "birth replay did not restore exact incarnation");
++            replayed.markStale("gt-real-client-stale",first,"fixture_terminal");
++            RealClientOpportunityTracker afterTerminal=
++                    new RealClientOpportunityTracker(journal);
++            require(context,afterTerminal.opportunity(player,first.id()).isEmpty(),
++                    "terminal receipt failed to close incarnation");
++
++            world.setBlockState(ore,Blocks.AIR.getDefaultState(),Block.NOTIFY_ALL);
++            world.setBlockState(ore,Blocks.IRON_ORE.getDefaultState(),Block.NOTIFY_ALL);
++            var second=afterTerminal.observe(player,sensor).orElseThrow();
++            require(context,!first.id().equals(second.id()),
++                    "terminal same-cell reappearance reused old incarnation id");
++            afterTerminal.markStale("gt-real-client-cleanup",second,"fixture_cleanup");
++            world.setBlockState(ore,Blocks.AIR.getDefaultState(),Block.NOTIFY_ALL);
++            context.complete();
++        } catch(Throwable failure) {
++            context.throwGameTestException("real-client tracker fixture failed: "+failure);
++        } finally {
++            try { AIPlayerManager.INSTANCE.despawn(world.getServer(),BOT); }
++            catch(Throwable ignored) {}
++            if(journal!=null)try { journal.close(); } catch(Throwable ignored) {}
++            if(path!=null)try { Files.deleteIfExists(path); } catch(Throwable ignored) {}
++        }
++    }
++
++
++    private static void lookAt(AIPlayerEntity player,Vec3d target) {
++        Vec3d eye=player.getEyePos();
++        double dx=target.x-eye.x,dy=target.y-eye.y,dz=target.z-eye.z;
++        double horizontal=Math.sqrt(dx*dx+dz*dz);
++        player.setYaw((float)(MathHelper.atan2(dz,dx)*180D/Math.PI)-90F);
++        player.setPitch((float)(-(MathHelper.atan2(dy,horizontal)*180D/Math.PI)));
++    }
++
++    private static RealClientServerTransport.SensorSnapshot sensor(
++            AIPlayerEntity player,BlockPos ore,String block) {
++        return new RealClientServerTransport.SensorSnapshot(
++                player.getUuidAsString(),player.getX(),player.getY(),player.getZ(),
++                player.getYaw(),player.getPitch(),0,true,
++                ore.getX(),ore.getY(),ore.getZ(),block,"WEST",System.currentTimeMillis());
++    }
++
++    private static void prepare(ServerWorld world,BlockPos start) {
++        for(int dx=-4;dx<=8;dx++)for(int dz=-4;dz<=4;dz++) {
++            BlockPos feet=start.add(dx,0,dz);
++            world.setBlockState(feet.down(),Blocks.STONE.getDefaultState(),Block.NOTIFY_ALL);
++            world.setBlockState(feet,Blocks.AIR.getDefaultState(),Block.NOTIFY_ALL);
++            world.setBlockState(feet.up(),Blocks.AIR.getDefaultState(),Block.NOTIFY_ALL);
++        }
++    }
++
++    private static void require(TestContext context,boolean condition,String message) {
++        if(!condition)context.throwGameTestException(message);
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientBodyBackend.java
+@@ -0,0 +1,259 @@
++package io.github.zoyluo.aibot.external.realclient;
++
++import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.external.BodyBackend;
++import io.github.zoyluo.aibot.external.BridgeFault;
++import io.github.zoyluo.aibot.external.BridgeJournal;
++import io.github.zoyluo.aibot.external.JsonOutput;
++import io.github.zoyluo.aibot.external.PhysicalExecutionDriver;
++import io.github.zoyluo.aibot.external.SemanticWorldRegistry;
++import io.github.zoyluo.aibot.external.TaskGraphStore;
++import io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot;
++import io.github.zoyluo.aibot.external.cognition.EvidenceRef;
++import io.github.zoyluo.aibot.manager.AIPlayerManager;
++import net.minecraft.item.ItemStack;
++import net.minecraft.registry.Registries;
++import net.minecraft.server.MinecraftServer;
++import net.minecraft.server.network.ServerPlayerEntity;
++
++import java.nio.charset.StandardCharsets;
++import java.util.LinkedHashMap;
++import java.util.Locale;
++import java.util.Map;
++import java.util.Set;
++import java.util.TreeMap;
++import java.util.UUID;
++
++/** Server-authoritative view of Bob's normal remote Minecraft client. */
++public final class RealClientBodyBackend implements BodyBackend {
++    private final MinecraftServer server;
++    private final String playerName;
++    private final String logicalBodyId;
++    private final RealClientServerTransport transport;
++    private final RealClientOpportunityTracker tracker;
++    private final BridgeJournal journal;
++    private final boolean requireOfflineUuid;
++
++    private ServerPlayerEntity player;
++    private String preparedSession="";
++    private Binding binding;
++    private PhysicalExecutionDriver driver;
++
++    public RealClientBodyBackend(
++            MinecraftServer server,String playerName,String logicalBodyId,
++            RealClientServerTransport transport,RealClientOpportunityTracker tracker,
++            BridgeJournal journal,boolean requireOfflineUuid) {
++        this.server=server;
++        this.playerName=playerName;
++        this.logicalBodyId=logicalBodyId;
++        this.transport=transport;
++        this.tracker=tracker;
++        this.journal=journal;
++        this.requireOfflineUuid=requireOfflineUuid;
++    }
++
++    @Override public boolean ready() {
++        onThread();
++        if(AIPlayerManager.INSTANCE.all().stream().anyMatch(candidate->
++                playerName.equalsIgnoreCase(candidate.getGameProfile().getName()))) {
++            unavailable("real_client_fake_player_authority_conflict");
++            throw new IllegalStateException("real_client_fake_player_authority_conflict");
++        }
++        var session=transport.session().orElse(null);
++        if(session==null || !session.fresh(System.currentTimeMillis()))
++            return unavailable("body_session_changed");
++        ServerPlayerEntity candidate=server.getPlayerManager().getPlayerList().stream()
++                .filter(p->playerName.equalsIgnoreCase(p.getGameProfile().getName()))
++                .findFirst().orElse(null);
++        if(candidate==null || !candidate.isAlive() || candidate instanceof AIPlayerEntity)
++            return unavailable("body_session_changed");
++        var sensor=session.sensor();
++        if(sensor==null || !candidate.getUuidAsString().equalsIgnoreCase(sensor.playerUuid()))
++            return unavailable("body_session_changed");
++        if(requireOfflineUuid && !candidate.getUuid().equals(offlineUuid(playerName)))
++            return unavailable("body_session_changed");
++        player=candidate;
++        tracker.observe(player,sensor);
++        if(!preparedSession.equals(session.sessionEpoch())) {
++            preparedSession=session.sessionEpoch();
++            binding=new Binding(
++                    logicalBodyId,"real_client",player.getUuidAsString(),preparedSession);
++            driver=new RealClientExecutionDriver(
++                    server,transport,tracker,()->this.player);
++        }
++        return true;
++    }
++
++    @Override public String bodyId() {
++        return logicalBodyId;
++    }
++
++    @Override public Binding binding() {
++        onThread();
++        if(binding==null)throw new IllegalStateException("body_binding_unavailable");
++        return binding;
++    }
++
++    @Override public Set<String> supportedOperations() {
++        return RealClientExecutionDriver.OPERATIONS;
++    }
++
++    @Override public String observeJson() {
++        onThread();
++        ServerPlayerEntity current=requirePlayer();
++        Binding currentBinding=binding();
++        Map<String,Object> position=Map.of(
++                "x",current.getX(),"y",current.getY(),"z",current.getZ());
++        Map<String,Object> out=new LinkedHashMap<>();
++        out.putAll(currentBinding.wire());
++        out.put("name",current.getGameProfile().getName());
++        out.put("minecraft_profile_uuid",current.getUuidAsString());
++        out.put("profile","strict_survival_real_client");
++        out.put("health",current.getHealth());
++        out.put("food",current.getHungerManager().getFoodLevel());
++        out.put("dimension",current.getServerWorld().getRegistryKey().getValue().toString());
++        out.put("position",position);
++        out.put("inventory",inventory(current));
++        out.put("sensor","client_crosshair_server_validated");
++        out.put("supported_operations",supportedOperations().stream().sorted().toList());
++        out.put("safety_active",false);
++        out.put("user_paused",false);
++        out.put("current_task","real_client_remote_actuator");
++        out.put("paused_depth",0);
++        return JsonOutput.encode(out);
++    }
++
++    @Override public CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal ignored) {
++        onThread();
++        return RealClientCognitiveViewBuilder.build(
++                logicalBodyId,requirePlayer(),tracker,journal);
++    }
++
++    @Override public String inspectLocalJson(int radius,String detail) {
++        onThread();
++        ServerPlayerEntity current=requirePlayer();
++        if(radius<1 || radius>16)throw new BridgeFault(400,"radius_out_of_range_1_16");
++        Map<String,Object> out=new LinkedHashMap<>();
++        out.put("schema","mc.local_view.v0");
++        out.put("detail",detail==null?"summary":detail);
++        out.put("radius",radius);
++        out.put("body_position",Map.of(
++                "x",current.getBlockX(),"y",current.getBlockY(),"z",current.getBlockZ()));
++        out.put("opportunities",tracker.opportunities(current).stream().map(o->Map.of(
++                "object_id",o.id(),"block",o.blockId(),
++                "x",o.pos().getX(),"y",o.pos().getY(),"z",o.pos().getZ(),
++                "sensor","client_crosshair_server_validated")).toList());
++        out.put("blocks",ListSupport.emptyIfUnsupported(detail,"blocks"));
++        out.put("entities",ListSupport.emptyIfUnsupported(detail,"entities"));
++        out.put("note","real_client_mvp_exports_self_and_server_validated_crosshair_only");
++        return JsonOutput.encode(out);
++    }
++
++    @Override public String materializeEvidence(String ref,String detail,long gameTime) {
++        onThread();
++        ServerPlayerEntity current=requirePlayer();
++        EvidenceRef.Parsed parsed=EvidenceRef.parse(ref);
++        if(!SemanticWorldRegistry.worldId().equals(parsed.worldId())
++                || !current.getServerWorld().getRegistryKey().getValue().toString()
++                .equals(parsed.dimension())
++                || !"opportunity".equals(parsed.kind()))
++            return null;
++        return tracker.opportunity(current,parsed.objectId())
++                .map(opportunity->tracker.materialize(opportunity,gameTime).toString())
++                .orElse(null);
++    }
++
++    @Override public long serverTick() {
++        onThread();
++        return server.getTicks();
++    }
++
++    @Override public GraphPostconditionResult verifyGraphPostcondition(
++            TaskGraphStore.Postcondition postcondition) {
++        onThread();
++        ServerPlayerEntity current=player;
++        if(current==null)return GraphPostconditionResult.unknown("body_unavailable");
++        TaskGraphStore.SpatialRef ref=postcondition.subject();
++        if(!SemanticWorldRegistry.worldId().equals(ref.worldId()))
++            return GraphPostconditionResult.unknown("world_scope_mismatch");
++        String dimension=current.getServerWorld().getRegistryKey().getValue().toString();
++        if(!dimension.equals(ref.dimensionId()))
++            return GraphPostconditionResult.unknown("dimension_not_current");
++        if("OPPORTUNITY_RESOLVED".equals(postcondition.kind())) {
++            if(tracker.opportunity(current,ref.objectId()).isPresent())
++                return GraphPostconditionResult.unsatisfied("opportunity_still_actionable");
++            return GraphPostconditionResult.unknown(
++                    "opportunity_absent_without_durable_resolution_receipt");
++        }
++        return GraphPostconditionResult.unknown("unsupported_graph_postcondition");
++    }
++
++    @Override public Handle start(String operation,String argumentsJson) {
++        return start("",operation,argumentsJson);
++    }
++
++    @Override public Handle start(String executionId,String operation,String argumentsJson) {
++        onThread();
++        if(driver==null)throw new BridgeFault(409,"body_unavailable");
++        return driver.start(new PhysicalExecutionDriver.Request(
++                executionId,operation,argumentsJson));
++    }
++
++    @Override public void pause() {
++        onThread();
++        if(driver!=null)driver.pause();
++    }
++
++    @Override public void resume() {
++        onThread();
++        if(driver!=null)driver.resume();
++    }
++
++    @Override public void cancel(String reason) {
++        onThread();
++        if(driver!=null)driver.cancel(reason);
++    }
++
++    private boolean unavailable(String reason) {
++        PhysicalExecutionDriver previous=driver;
++        driver=null;
++        preparedSession="";
++        player=null;
++        if(previous!=null) {
++            try { previous.cancel(reason); } catch(RuntimeException ignored) {}
++        }
++        return false;
++    }
++
++    private ServerPlayerEntity requirePlayer() {
++        if(player==null || !player.isAlive())throw new BridgeFault(409,"body_unavailable");
++        return player;
++    }
++
++    private void onThread() {
++        if(!server.isOnThread())throw new IllegalStateException("minecraft_access_off_server_thread");
++    }
++
++    private static UUID offlineUuid(String name) {
++        return UUID.nameUUIDFromBytes(
++                ("OfflinePlayer:"+name).getBytes(StandardCharsets.UTF_8));
++    }
++
++    private static Map<String,Integer> inventory(ServerPlayerEntity player) {
++        Map<String,Integer> counts=new TreeMap<>();
++        for(int slot=0;slot<player.getInventory().size();slot++) {
++            ItemStack stack=player.getInventory().getStack(slot);
++            if(!stack.isEmpty())counts.merge(
++                    Registries.ITEM.getId(stack.getItem()).toString(),
++                    stack.getCount(),Integer::sum);
++        }
++        return counts;
++    }
++
++    /** Avoids claiming hidden scans in the MVP response while keeping the wrapper shape stable. */
++    private static final class ListSupport {
++        static java.util.List<Object> emptyIfUnsupported(String detail,String field) {
++            return java.util.List.of();
++        }
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientCognitiveViewBuilder.java
+@@ -0,0 +1,168 @@
++package io.github.zoyluo.aibot.external.realclient;
++
++import io.github.zoyluo.aibot.external.BridgeFault;
++import io.github.zoyluo.aibot.external.BridgeJournal;
++import io.github.zoyluo.aibot.external.cognition.CanonicalJson;
++import io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot;
++import io.github.zoyluo.aibot.external.cognition.EvidenceRef;
++import net.minecraft.item.ItemStack;
++import net.minecraft.registry.Registries;
++import net.minecraft.server.network.ServerPlayerEntity;
++
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.security.NoSuchAlgorithmException;
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.Comparator;
++import java.util.HexFormat;
++import java.util.LinkedHashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.TreeMap;
++
++/** Compact read model for a normal ServerPlayerEntity controlled by the real-client backend. */
++public final class RealClientCognitiveViewBuilder {
++    private RealClientCognitiveViewBuilder() {}
++
++    public static CognitiveSnapshot.Snapshot build(
++            String bodyId,ServerPlayerEntity player,RealClientOpportunityTracker tracker,
++            BridgeJournal journal) {
++        String worldId=io.github.zoyluo.aibot.external.SemanticWorldRegistry.worldId();
++        String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
++        long gameTime=player.getServerWorld().getTime();
++        Map<String,Object> scene=CanonicalJson.object();
++        scene.put("world",Map.of("world_id",worldId,"dimension",dimension));
++        scene.put("self",self(bodyId,player));
++        scene.put("environment",environment(player));
++
++        List<Map<String,Object>> cards=new ArrayList<>();
++        Map<String,CognitiveSnapshot.EvidenceDescriptor> index=new LinkedHashMap<>();
++        for(RealClientOpportunityTracker.Opportunity opportunity:tracker.opportunities(player)) {
++            String ref=EvidenceRef.format(
++                    worldId,dimension,"opportunity",opportunity.id());
++            long age=Math.max(0L,gameTime-opportunity.lastSeenGameTime());
++            Map<String,Object> summary=CanonicalJson.object();
++            summary.put("block",opportunity.blockId());
++            summary.put("status","ACTIONABLE");
++            summary.put("required_tool",opportunity.requiredTool());
++            summary.put("distance_blocks",Math.round(
++                    player.getPos().distanceTo(opportunity.pos().toCenterPos())));
++            Map<String,Object> card=CanonicalJson.object();
++            card.put("evidence_ref",ref);
++            card.put("kind","opportunity");
++            card.put("object_id",opportunity.id());
++            card.put("knowledge","LAST_KNOWN");
++            card.put("freshness",age<=40?"LIVE":age<=2400?"RECENT":"STALE");
++            card.put("summary",summary);
++            cards.add(card);
++            index.put(ref,new CognitiveSnapshot.EvidenceDescriptor(
++                    ref,"opportunity",opportunity.id(),"resource_opportunity"));
++        }
++        cards.sort(Comparator.comparing(card->String.valueOf(card.get("object_id"))));
++        Map<String,Object> opportunities=CanonicalJson.object();
++        opportunities.put("items",cards);
++        opportunities.put("total",(long)cards.size());
++        opportunities.put("truncated",false);
++        opportunities.put("omitted_count",0L);
++        Map<String,Object> empty=Map.of(
++                "items",List.of(),"total",0L,"truncated",false,"omitted_count",0L);
++        Map<String,Object> semantic=CanonicalJson.object();
++        semantic.put("structures",empty);
++        semantic.put("farms",empty);
++        semantic.put("resource_opportunities",opportunities);
++        scene.put("semantic_objects",semantic);
++        Map<String,Object> execution=CanonicalJson.object();
++        execution.put("state","BACKEND_MANAGED");
++        execution.put("current_task",null);
++        execution.put("progress_bucket",0L);
++        execution.put("safety_active",false);
++        execution.put("user_paused",false);
++        execution.put("paused_depth",0L);
++        scene.put("execution",execution);
++        scene.put("recent_significant_events",recentEvents(journal));
++        scene.put("uncertainty",List.of(Map.of(
++                "scope_ref","mc://"+worldId+"/"+dimension,
++                "field","nearby_entities",
++                "reason","real_client_mvp_does_not_export_visual_entity_list")));
++        String sceneJson=CanonicalJson.write(scene);
++        if(sceneJson.getBytes(StandardCharsets.UTF_8).length>CognitiveSnapshot.VIEW_MAX_BYTES)
++            throw new BridgeFault(500,"cognitive_view_exceeds_hard_limit");
++        return new CognitiveSnapshot.Snapshot(sceneJson,sha256(sceneJson),gameTime,index);
++    }
++
++    private static Map<String,Object> self(String bodyId,ServerPlayerEntity player) {
++        Map<String,Long> inventory=new TreeMap<>();
++        for(int slot=0;slot<player.getInventory().size();slot++) {
++            ItemStack stack=player.getInventory().getStack(slot);
++            if(!stack.isEmpty())inventory.merge(
++                    Registries.ITEM.getId(stack.getItem()).toString(),
++                    (long)stack.getCount(),Long::sum);
++        }
++        Map<String,Object> position=Map.of(
++                "x",(long)player.getBlockX(),
++                "y",(long)player.getBlockY(),
++                "z",(long)player.getBlockZ());
++        Map<String,Object> self=CanonicalJson.object();
++        self.put("body_id",bodyId);
++        self.put("name",player.getGameProfile().getName());
++        self.put("minecraft_profile_uuid",player.getUuidAsString());
++        self.put("block_position",position);
++        self.put("health",(double)player.getHealth());
++        self.put("food",(long)player.getHungerManager().getFoodLevel());
++        self.put("inventory",inventory);
++        return self;
++    }
++
++    private static Map<String,Object> environment(ServerPlayerEntity player) {
++        long day=player.getServerWorld().getTimeOfDay()%24000L;
++        Map<String,Object> environment=CanonicalJson.object();
++        environment.put("day_phase",day<1000?"MORNING":day<11000?"DAY":day<13000?"DUSK":day<23000?"NIGHT":"DAWN");
++        environment.put("weather",player.getServerWorld().isThundering()
++                ?"THUNDER":player.getServerWorld().isRaining()?"RAIN":"CLEAR");
++        environment.put("local_light",(long)player.getServerWorld().getLightLevel(player.getBlockPos()));
++        environment.put("nearby",Map.of(
++                "availability","UNAVAILABLE_REAL_CLIENT_MVP",
++                "sensor","client_crosshair_only"));
++        return environment;
++    }
++
++    private static Map<String,Object> recentEvents(BridgeJournal journal) {
++        List<Map<String,Object>> significant=new ArrayList<>();
++        for(BridgeJournal.Frame frame:journal.replay()) {
++            String kind=frame.fields().getOrDefault("kind","");
++            boolean keep=switch(kind) {
++                case "death","damage","respawn","survival_alert",
++                        "resource_opportunity_actionable","resource_opportunity_stale",
++                        "control_acquired","control_lost","body_changed","body_session_changed" -> true;
++                case "execution" -> List.of(
++                        "completed","failed","cancelled","outcome_unknown")
++                        .contains(frame.fields().getOrDefault("state",""));
++                default -> false;
++            };
++            if(!keep)continue;
++            Map<String,Object> item=CanonicalJson.object();
++            item.put("kind",kind);
++            item.put("sequence",frame.sequence());
++            String executionId=frame.fields().get("execution_id");
++            if(executionId!=null && !executionId.isBlank())
++                item.put("execution_id",executionId);
++            significant.add(item);
++        }
++        int from=Math.max(0,significant.size()-12);
++        List<Map<String,Object>> items=new ArrayList<>(significant.subList(from,significant.size()));
++        return Map.of(
++                "availability","AVAILABLE",
++                "items",items,
++                "truncated",from>0);
++    }
++
++    private static String sha256(String text) {
++        try {
++            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
++                    .digest(text.getBytes(StandardCharsets.UTF_8)));
++        } catch(NoSuchAlgorithmException impossible) {
++            throw new AssertionError(impossible);
++        }
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientExecutionDriver.java
+@@ -0,0 +1,313 @@
++package io.github.zoyluo.aibot.external.realclient;
++
++import com.google.gson.JsonElement;
++import com.google.gson.JsonObject;
++import com.google.gson.JsonParser;
++import io.github.zoyluo.aibot.external.BodyBackend;
++import io.github.zoyluo.aibot.external.BridgeFault;
++import io.github.zoyluo.aibot.external.JsonOutput;
++import io.github.zoyluo.aibot.external.PhysicalExecutionDriver;
++import net.minecraft.item.ItemStack;
++import net.minecraft.registry.Registries;
++import net.minecraft.server.MinecraftServer;
++import net.minecraft.server.network.ServerPlayerEntity;
++import net.minecraft.util.Identifier;
++import net.minecraft.util.math.BlockPos;
++
++import java.util.LinkedHashMap;
++import java.util.Map;
++import java.util.Objects;
++import java.util.Set;
++import java.util.function.Supplier;
++
++/** Minimal real-player actuator: chat, short goto and one server-validated opportunity mine. */
++public final class RealClientExecutionDriver implements PhysicalExecutionDriver {
++    public static final Set<String> OPERATIONS=Set.of("say","goto","mine_opportunity");
++    private static final int MAX_GOTO_DISTANCE=32;
++    private static final int EXECUTION_TIMEOUT_TICKS=20*120;
++
++    private final MinecraftServer server;
++    private final RealClientServerTransport transport;
++    private final RealClientOpportunityTracker tracker;
++    private final Supplier<ServerPlayerEntity> body;
++    private String activeExecution="";
++
++    public RealClientExecutionDriver(
++            MinecraftServer server,RealClientServerTransport transport,
++            RealClientOpportunityTracker tracker,Supplier<ServerPlayerEntity> body) {
++        this.server=Objects.requireNonNull(server);
++        this.transport=Objects.requireNonNull(transport);
++        this.tracker=Objects.requireNonNull(tracker);
++        this.body=Objects.requireNonNull(body);
++    }
++
++    @Override public BodyBackend.Handle start(Request request) {
++        onThread();
++        if(!OPERATIONS.contains(request.operation()))
++            throw new BridgeFault(409,"operation_not_supported_by_real_client_backend");
++        ServerPlayerEntity player=requireBody();
++        JsonObject args=parse(request.argumentsJson());
++        long startedAt=server.getTicks();
++        activeExecution=request.executionId();
++        return switch(request.operation()) {
++            case "say" -> startSay(request,args,startedAt);
++            case "goto" -> startGoto(request,args,player,startedAt);
++            case "mine_opportunity" -> startMine(request,args,player,startedAt);
++            default -> throw new BridgeFault(409,"operation_not_supported_by_real_client_backend");
++        };
++    }
++
++    private BodyBackend.Handle startSay(Request request,JsonObject args,long startedAt) {
++        only(args,Set.of("message"));
++        String message=string(args,"message",1000);
++        if(!transport.sendCommand(
++                request.executionId(),"say",JsonOutput.encode(Map.of("message",message))))
++            throw new BridgeFault(503,"real_client_command_queue_unavailable");
++        return ()->remoteSnapshot(request.executionId(),startedAt,null,true);
++    }
++
++    private BodyBackend.Handle startGoto(
++            Request request,JsonObject args,ServerPlayerEntity player,long startedAt) {
++        only(args,Set.of("x","y","z","allow_terrain_changes"));
++        if(args.has("allow_terrain_changes")
++                && args.get("allow_terrain_changes").getAsBoolean())
++            throw new BridgeFault(400,"real_client_goto_mvp_disallows_terrain_changes");
++        BlockPos target=new BlockPos(
++                integer(args,"x",-29999984,29999984),
++                integer(args,"y",player.getServerWorld().getBottomY(),
++                        player.getServerWorld().getBottomY()+player.getServerWorld().getHeight()-1),
++                integer(args,"z",-29999984,29999984));
++        if(player.getBlockPos().getSquaredDistance(target)>
++                MAX_GOTO_DISTANCE*MAX_GOTO_DISTANCE)
++            throw new BridgeFault(400,"real_client_goto_distance_limit_32");
++        Map<String,Object> command=Map.of(
++                "x",target.getX(),"y",target.getY(),"z",target.getZ(),
++                "arrival_radius",2.5D);
++        if(!transport.sendCommand(
++                request.executionId(),"goto",JsonOutput.encode(command)))
++            throw new BridgeFault(503,"real_client_command_queue_unavailable");
++        return ()->remoteSnapshot(request.executionId(),startedAt,()->{
++            ServerPlayerEntity current=body.get();
++            if(current==null)return null;
++            if(current.getPos().squaredDistanceTo(target.toCenterPos())<=6.25D)
++                return new BodyBackend.Snapshot(
++                        "completed",1D,"server_authoritative_arrival_within_2_5_blocks");
++            return null;
++        },false);
++    }
++
++    private BodyBackend.Handle startMine(
++            Request request,JsonObject args,ServerPlayerEntity player,long startedAt) {
++        only(args,Set.of("id"));
++        String opportunityId=string(args,"id",64);
++        RealClientOpportunityTracker.Opportunity opportunity=tracker
++                .opportunity(player,opportunityId)
++                .orElseThrow(()->new BridgeFault(
++                        404,"real_client_resource_opportunity_not_found"));
++        var state=player.getServerWorld().getBlockState(opportunity.pos());
++        String actualBlock=Registries.BLOCK.getId(state.getBlock()).toString();
++        if(!actualBlock.equals(opportunity.blockId())) {
++            tracker.markStale(
++                    request.executionId(),opportunity,"target_cell_changed_before_dispatch");
++            throw new BridgeFault(409,"real_client_resource_opportunity_stale");
++        }
++        Identifier expectedId=Identifier.tryParse(opportunity.expectedItem());
++        if(expectedId==null || !Registries.ITEM.containsId(expectedId)
++                || "minecraft:air".equals(opportunity.expectedItem()))
++            throw new BridgeFault(409,"real_client_expected_drop_not_supported");
++        int slot=selectSuitableHotbar(player,state);
++        if(slot<0)throw new BridgeFault(409,"real_client_required_hotbar_tool_missing");
++        int baseline=countItem(player,opportunity.expectedItem());
++        String face=transport.session().map(RealClientServerTransport.SessionSnapshot::sensor)
++                .filter(sensor->sensor!=null && sensor.crosshairPresent()
++                        && sensor.crosshairX()==opportunity.pos().getX()
++                        && sensor.crosshairY()==opportunity.pos().getY()
++                        && sensor.crosshairZ()==opportunity.pos().getZ())
++                .map(RealClientServerTransport.SensorSnapshot::crosshairSide)
++                .orElse("UP");
++        Map<String,Object> command=new LinkedHashMap<>();
++        command.put("x",opportunity.pos().getX());
++        command.put("y",opportunity.pos().getY());
++        command.put("z",opportunity.pos().getZ());
++        command.put("face",face);
++        command.put("slot",slot);
++        command.put("block",opportunity.blockId());
++        command.put("expected_item",opportunity.expectedItem());
++        command.put("baseline_count",baseline);
++        if(!transport.sendCommand(
++                request.executionId(),"mine_opportunity",JsonOutput.encode(command)))
++            throw new BridgeFault(503,"real_client_command_queue_unavailable");
++        return ()->mineSnapshot(
++                request.executionId(),startedAt,opportunity,baseline);
++    }
++
++    private BodyBackend.Snapshot mineSnapshot(
++            String executionId,long startedAt,
++            RealClientOpportunityTracker.Opportunity opportunity,int baseline) {
++        onThread();
++        ServerPlayerEntity player=body.get();
++        if(player==null)return new BodyBackend.Snapshot(
++                "outcome_unknown",0D,"real_client_body_unavailable");
++        var currentState=player.getServerWorld().getBlockState(opportunity.pos());
++        String currentBlock=Registries.BLOCK.getId(currentState.getBlock()).toString();
++        int current=countItem(player,opportunity.expectedItem());
++        if(!currentState.isAir() && !currentBlock.equals(opportunity.blockId())) {
++            tracker.markStale(executionId,opportunity,"target_cell_replaced_during_execution");
++            return new BodyBackend.Snapshot(
++                    "failed",0D,"real_client_resource_opportunity_stale");
++        }
++        // Inventory gain alone is not causally sufficient: another actor could have handed Bob the
++        // same item while the target ore still exists. Success requires BOTH the exact target cell
++        // to be gone and the expected inventory family to have increased since dispatch.
++        if(currentState.isAir() && current>baseline) {
++            tracker.markConsumed(executionId,opportunity,player,baseline,current);
++            return new BodyBackend.Snapshot(
++                    "completed",1D,
++                    "server_authoritative_block_and_inventory_gain_verified:"
++                            +baseline+"->"+current);
++        }
++        if(server.getTicks()-startedAt>EXECUTION_TIMEOUT_TICKS) {
++            transport.sendControl(executionId,"cancel","real_client_execution_timeout");
++            if(currentState.isAir()) {
++                tracker.markStale(executionId,opportunity,
++                        "block_gone_without_inventory_gain_before_timeout");
++                return new BodyBackend.Snapshot(
++                        "failed",0D,"real_client_resource_opportunity_stale");
++            }
++            return new BodyBackend.Snapshot("failed",0D,"real_client_execution_timeout");
++        }
++        var session=transport.session().orElse(null);
++        if(session==null || !session.fresh(System.currentTimeMillis()))
++            return new BodyBackend.Snapshot(
++                    "outcome_unknown",0D,"real_client_session_unavailable");
++        var remote=transport.execution(executionId).orElse(null);
++        if(remote!=null && java.util.Set.of(
++                "failed","cancelled","outcome_unknown").contains(remote.state())) {
++            if(currentState.isAir() && !"outcome_unknown".equals(remote.state())) {
++                tracker.markStale(executionId,opportunity,
++                        "block_gone_without_inventory_gain:"+remote.state());
++                return new BodyBackend.Snapshot(
++                        "failed",remote.progress(),"real_client_resource_opportunity_stale");
++            }
++            return new BodyBackend.Snapshot(
++                    remote.state(),remote.progress(),remote.reason());
++        }
++        String reason=remote!=null && "completed".equals(remote.state())
++                ?"client_completed_awaiting_server_block_inventory_proof"
++                :remote==null?"awaiting_real_client_ack":remote.reason();
++        return new BodyBackend.Snapshot(
++                "running",remote==null?0D:Math.min(.99D,remote.progress()),reason);
++    }
++
++    private BodyBackend.Snapshot remoteSnapshot(
++            String executionId,long startedAt,Supplier<BodyBackend.Snapshot> proof,
++            boolean allowRemoteCompleted) {
++        onThread();
++        BodyBackend.Snapshot proven=proof==null?null:proof.get();
++        if(proven!=null)return proven;
++        if(server.getTicks()-startedAt>EXECUTION_TIMEOUT_TICKS) {
++            transport.sendControl(executionId,"cancel","real_client_execution_timeout");
++            return new BodyBackend.Snapshot(
++                    "failed",0D,"real_client_execution_timeout");
++        }
++        var session=transport.session().orElse(null);
++        if(session==null || !session.fresh(System.currentTimeMillis()))
++            return new BodyBackend.Snapshot(
++                    "outcome_unknown",0D,"real_client_session_unavailable");
++        var remote=transport.execution(executionId).orElse(null);
++        if(remote==null)return new BodyBackend.Snapshot(
++                "running",0D,"awaiting_real_client_ack");
++        if("completed".equals(remote.state()) && !allowRemoteCompleted)
++            return new BodyBackend.Snapshot(
++                    "running",Math.min(.99D,remote.progress()),
++                    "client_completed_awaiting_server_postcondition");
++        return new BodyBackend.Snapshot(
++                remote.state(),remote.progress(),remote.reason());
++    }
++
++    @Override public void pause() {
++        onThread();
++        if(!activeExecution.isBlank())
++            transport.sendControl(activeExecution,"pause","external_pause");
++    }
++
++    @Override public void resume() {
++        onThread();
++        if(!activeExecution.isBlank())
++            transport.sendControl(activeExecution,"resume","external_resume");
++    }
++
++    @Override public void cancel(String reason) {
++        onThread();
++        if(!activeExecution.isBlank())
++            transport.sendControl(activeExecution,"cancel",reason==null?"external_cancel":reason);
++    }
++
++    private ServerPlayerEntity requireBody() {
++        ServerPlayerEntity player=body.get();
++        if(player==null || !player.isAlive())throw new BridgeFault(409,"body_unavailable");
++        return player;
++    }
++
++    private void onThread() {
++        if(!server.isOnThread())throw new IllegalStateException("minecraft_access_off_server_thread");
++    }
++
++    private static int selectSuitableHotbar(ServerPlayerEntity player,net.minecraft.block.BlockState state) {
++        for(int slot=0;slot<9;slot++) {
++            ItemStack stack=player.getInventory().getStack(slot);
++            if(!stack.isEmpty() && stack.isSuitableFor(state))return slot;
++        }
++        return -1;
++    }
++
++    private static int countItem(ServerPlayerEntity player,String itemId) {
++        int count=0;
++        for(int slot=0;slot<player.getInventory().size();slot++) {
++            ItemStack stack=player.getInventory().getStack(slot);
++            if(!stack.isEmpty()
++                    && Registries.ITEM.getId(stack.getItem()).toString().equals(itemId))
++                count+=stack.getCount();
++        }
++        return count;
++    }
++
++    private static JsonObject parse(String raw) {
++        try {
++            JsonElement value=JsonParser.parseString(raw);
++            if(!value.isJsonObject())throw new IllegalArgumentException();
++            return value.getAsJsonObject();
++        } catch(RuntimeException invalid) {
++            throw new BridgeFault(400,"invalid_arguments_json_object");
++        }
++    }
++
++    private static void only(JsonObject object,Set<String> allowed) {
++        if(!allowed.containsAll(object.keySet()))throw new BridgeFault(400,"unknown_argument");
++    }
++
++    private static String string(JsonObject object,String key,int max) {
++        JsonElement value=object.get(key);
++        if(value==null || !value.isJsonPrimitive()
++                || !value.getAsJsonPrimitive().isString())
++            throw new BridgeFault(400,"string_required:"+key);
++        String result=value.getAsString();
++        if(result.isBlank() || result.length()>max)
++            throw new BridgeFault(400,"invalid_string_length:"+key);
++        return result;
++    }
++
++    private static int integer(JsonObject object,String key,int min,int max) {
++        try {
++            JsonElement value=object.get(key);
++            if(value==null || !value.isJsonPrimitive()
++                    || !value.getAsJsonPrimitive().isNumber())
++                throw new IllegalArgumentException();
++            int result=value.getAsBigDecimal().intValueExact();
++            if(result<min || result>max)throw new IllegalArgumentException();
++            return result;
++        } catch(RuntimeException invalid) {
++            throw new BridgeFault(400,"integer_out_of_range:"+key);
++        }
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientOpportunityTracker.java
+@@ -0,0 +1,279 @@
++package io.github.zoyluo.aibot.external.realclient;
++
++import com.google.gson.JsonObject;
++import io.github.zoyluo.aibot.external.BridgeJournal;
++import io.github.zoyluo.aibot.external.JsonOutput;
++import io.github.zoyluo.aibot.external.SemanticWorldRegistry;
++import io.github.zoyluo.aibot.mining.OreScan;
++import net.minecraft.block.Block;
++import net.minecraft.block.BlockState;
++import net.minecraft.item.Item;
++import net.minecraft.item.Items;
++import net.minecraft.registry.Registries;
++import net.minecraft.server.network.ServerPlayerEntity;
++import net.minecraft.util.Identifier;
++import net.minecraft.util.hit.BlockHitResult;
++import net.minecraft.util.hit.HitResult;
++import net.minecraft.util.math.BlockPos;
++import net.minecraft.util.math.Vec3d;
++
++import java.nio.charset.StandardCharsets;
++import java.util.ArrayList;
++import java.util.Comparator;
++import java.util.LinkedHashMap;
++import java.util.List;
++import java.util.Locale;
++import java.util.Map;
++import java.util.Optional;
++import java.util.UUID;
++
++/** Durable incarnation tracker for opportunities actually pointed at by Bob's real client. */
++public final class RealClientOpportunityTracker {
++    private static final int MAX_ACTIVE=64;
++
++    public record Opportunity(
++            String id,String worldId,String dimension,BlockPos pos,String blockId,
++            BlockPos seenFrom,String expectedItem,String requiredTool,long lastSeenGameTime) {}
++
++    private final BridgeJournal journal;
++    private final LinkedHashMap<String,Opportunity> active=new LinkedHashMap<>();
++
++    public RealClientOpportunityTracker(BridgeJournal journal) {
++        this.journal=journal;
++        replay();
++    }
++
++    public synchronized Optional<Opportunity> observe(
++            ServerPlayerEntity player,RealClientServerTransport.SensorSnapshot sensor) {
++        if(sensor==null || !sensor.crosshairPresent())return Optional.empty();
++        BlockPos pos=new BlockPos(sensor.crosshairX(),sensor.crosshairY(),sensor.crosshairZ());
++        if(player.squaredDistanceTo(Vec3d.ofCenter(pos))>49D)return Optional.empty();
++        HitResult serverRay=player.raycast(7D,1F,false);
++        if(!(serverRay instanceof BlockHitResult blockHit)
++                || !blockHit.getBlockPos().equals(pos))return Optional.empty();
++        BlockState state=player.getServerWorld().getBlockState(pos);
++        String actualId=Registries.BLOCK.getId(state.getBlock()).toString();
++        if(!actualId.equals(sensor.crosshairBlock()) || !OreScan.isOreBlock(state.getBlock()))
++            return Optional.empty();
++        String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
++        Opportunity existing=findAt(dimension,pos,actualId).orElse(null);
++        if(existing!=null) {
++            Opportunity refreshed=new Opportunity(
++                    existing.id(),existing.worldId(),existing.dimension(),existing.pos(),
++                    existing.blockId(),player.getBlockPos(),existing.expectedItem(),
++                    existing.requiredTool(),player.getServerWorld().getTime());
++            active.put(key(dimension,existing.id()),refreshed);
++            return Optional.of(refreshed);
++        }
++        if(active.size()>=MAX_ACTIVE)return Optional.empty();
++        String id=newId(dimension,pos,actualId);
++        Opportunity opportunity=new Opportunity(
++                id,SemanticWorldRegistry.worldId(),dimension,pos,actualId,player.getBlockPos(),
++                expectedItem(state.getBlock()),requiredTool(state.getBlock()),
++                player.getServerWorld().getTime());
++        appendBirth(opportunity);
++        active.put(key(dimension,id),opportunity);
++        return Optional.of(opportunity);
++    }
++
++    public synchronized Optional<Opportunity> opportunity(
++            ServerPlayerEntity player,String id) {
++        String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
++        return Optional.ofNullable(active.get(key(dimension,id)));
++    }
++
++    public synchronized List<Opportunity> opportunities(ServerPlayerEntity player) {
++        String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
++        return active.values().stream()
++                .filter(o->dimension.equals(o.dimension()))
++                .sorted(Comparator.comparing(Opportunity::id))
++                .toList();
++    }
++
++    public synchronized boolean markConsumed(
++            String executionId,Opportunity opportunity,ServerPlayerEntity player,int baseline,int current) {
++        Map<String,String> fields=resolutionFields(
++                "resource_opportunity_consumed",executionId,opportunity);
++        fields.put("payload",JsonOutput.encode(Map.of(
++                "resolution","inventory_gain_proven",
++                "expected_item",opportunity.expectedItem(),
++                "baseline",baseline,"current",current,
++                "x",opportunity.pos().getX(),"y",opportunity.pos().getY(),
++                "z",opportunity.pos().getZ())));
++        journal.append(fields);
++        active.remove(key(opportunity.dimension(),opportunity.id()));
++        return true;
++    }
++
++    public synchronized boolean markStale(
++            String executionId,Opportunity opportunity,String reason) {
++        Map<String,String> fields=resolutionFields(
++                "resource_opportunity_stale",executionId,opportunity);
++        fields.put("payload",JsonOutput.encode(Map.of(
++                "reason",reason,
++                "x",opportunity.pos().getX(),"y",opportunity.pos().getY(),
++                "z",opportunity.pos().getZ())));
++        journal.append(fields);
++        active.remove(key(opportunity.dimension(),opportunity.id()));
++        return true;
++    }
++
++    public synchronized JsonObject materialize(Opportunity opportunity,long gameTime) {
++        JsonObject result=new JsonObject();
++        result.addProperty("object_id",opportunity.id());
++        result.addProperty("block",opportunity.blockId());
++        result.addProperty("expected_item",opportunity.expectedItem());
++        result.addProperty("required_tool",opportunity.requiredTool());
++        result.addProperty("x",opportunity.pos().getX());
++        result.addProperty("y",opportunity.pos().getY());
++        result.addProperty("z",opportunity.pos().getZ());
++        long age=Math.max(0L,gameTime-opportunity.lastSeenGameTime());
++        result.addProperty("age_ticks",age);
++        result.addProperty("freshness",age<=40?"LIVE":age<=2400?"RECENT":"STALE");
++        result.addProperty("sensor","client_crosshair_server_validated");
++        return result;
++    }
++
++    private void replay() {
++        for(BridgeJournal.Frame frame:journal.replay()) {
++            Map<String,String> fields=frame.fields();
++            String kind=fields.get("kind");
++            if("real_client_opportunity_birth".equals(kind)) {
++                Opportunity birth=parseBirth(fields);
++                if(!SemanticWorldRegistry.worldId().equals(birth.worldId()))
++                    throw new IllegalStateException("real_client_birth_world_scope_mismatch");
++                String key=key(birth.dimension(),birth.id());
++                Opportunity prior=active.get(key);
++                if(prior!=null && !prior.equals(birth))
++                    throw new IllegalStateException("conflicting_real_client_opportunity_birth");
++                if(prior==null && active.size()>=MAX_ACTIVE)
++                    throw new IllegalStateException("real_client_opportunity_capacity_exceeded");
++                active.put(key,birth);
++            } else if("resource_opportunity_consumed".equals(kind)
++                    || "resource_opportunity_stale".equals(kind)) {
++                String dimension=fields.get("dimension");
++                String id=fields.get("opportunity_id");
++                if(dimension!=null && id!=null)active.remove(key(dimension,id));
++            }
++        }
++    }
++
++    private void appendBirth(Opportunity opportunity) {
++        Map<String,String> fields=new LinkedHashMap<>();
++        fields.put("kind","real_client_opportunity_birth");
++        fields.put("execution_id","");
++        fields.put("world_id",opportunity.worldId());
++        fields.put("dimension",opportunity.dimension());
++        fields.put("opportunity_id",opportunity.id());
++        fields.put("block_id",opportunity.blockId());
++        fields.put("x",Integer.toString(opportunity.pos().getX()));
++        fields.put("y",Integer.toString(opportunity.pos().getY()));
++        fields.put("z",Integer.toString(opportunity.pos().getZ()));
++        fields.put("seen_x",Integer.toString(opportunity.seenFrom().getX()));
++        fields.put("seen_y",Integer.toString(opportunity.seenFrom().getY()));
++        fields.put("seen_z",Integer.toString(opportunity.seenFrom().getZ()));
++        fields.put("expected_item",opportunity.expectedItem());
++        fields.put("required_tool",opportunity.requiredTool());
++        fields.put("last_seen_game_time",Long.toString(opportunity.lastSeenGameTime()));
++        fields.put("payload",JsonOutput.encode(Map.of(
++                "sensor","client_crosshair_server_validated")));
++        journal.append(fields);
++        Map<String,String> actionable=new LinkedHashMap<>();
++        actionable.put("kind","resource_opportunity_actionable");
++        actionable.put("execution_id","");
++        actionable.put("opportunity_id",opportunity.id());
++        actionable.put("world_id",opportunity.worldId());
++        actionable.put("dimension",opportunity.dimension());
++        actionable.put("payload",JsonOutput.encode(Map.of(
++                "opportunity_id",opportunity.id(),
++                "block",opportunity.blockId(),
++                "x",opportunity.pos().getX(),
++                "y",opportunity.pos().getY(),
++                "z",opportunity.pos().getZ(),
++                "sensor","client_crosshair_server_validated")));
++        journal.append(actionable);
++    }
++
++    private static Map<String,String> resolutionFields(
++            String kind,String executionId,Opportunity opportunity) {
++        Map<String,String> fields=new LinkedHashMap<>();
++        fields.put("kind",kind);
++        fields.put("execution_id",executionId==null?"":executionId);
++        fields.put("opportunity_id",opportunity.id());
++        fields.put("world_id",opportunity.worldId());
++        fields.put("dimension",opportunity.dimension());
++        return fields;
++    }
++
++    private Optional<Opportunity> findAt(String dimension,BlockPos pos,String blockId) {
++        return active.values().stream().filter(o->o.dimension().equals(dimension)
++                && o.pos().equals(pos) && o.blockId().equals(blockId)).findFirst();
++    }
++
++    private static Opportunity parseBirth(Map<String,String> fields) {
++        return new Opportunity(
++                required(fields,"opportunity_id"),required(fields,"world_id"),
++                required(fields,"dimension"),
++                new BlockPos(integer(fields,"x"),integer(fields,"y"),integer(fields,"z")),
++                required(fields,"block_id"),
++                new BlockPos(integer(fields,"seen_x"),integer(fields,"seen_y"),integer(fields,"seen_z")),
++                required(fields,"expected_item"),required(fields,"required_tool"),
++                Long.parseLong(required(fields,"last_seen_game_time")));
++    }
++
++    private static String newId(String dimension,BlockPos pos,String blockId) {
++        String material=SemanticWorldRegistry.worldId()+"\n"+dimension+"\n"+pos.toShortString()+"\n"+blockId;
++        String location=UUID.nameUUIDFromBytes(material.getBytes(StandardCharsets.UTF_8))
++                .toString().replace("-","").substring(0,12);
++        String incarnation=UUID.randomUUID().toString().replace("-","").substring(0,16);
++        return "rcore_"+location+"_"+incarnation;
++    }
++
++    private static String expectedItem(Block block) {
++        if(block==net.minecraft.block.Blocks.IRON_ORE || block==net.minecraft.block.Blocks.DEEPSLATE_IRON_ORE)
++            return Registries.ITEM.getId(Items.RAW_IRON).toString();
++        if(block==net.minecraft.block.Blocks.GOLD_ORE || block==net.minecraft.block.Blocks.DEEPSLATE_GOLD_ORE)
++            return Registries.ITEM.getId(Items.RAW_GOLD).toString();
++        if(block==net.minecraft.block.Blocks.COPPER_ORE || block==net.minecraft.block.Blocks.DEEPSLATE_COPPER_ORE)
++            return Registries.ITEM.getId(Items.RAW_COPPER).toString();
++        if(block==net.minecraft.block.Blocks.DIAMOND_ORE || block==net.minecraft.block.Blocks.DEEPSLATE_DIAMOND_ORE)
++            return Registries.ITEM.getId(Items.DIAMOND).toString();
++        if(block==net.minecraft.block.Blocks.EMERALD_ORE || block==net.minecraft.block.Blocks.DEEPSLATE_EMERALD_ORE)
++            return Registries.ITEM.getId(Items.EMERALD).toString();
++        if(block==net.minecraft.block.Blocks.COAL_ORE || block==net.minecraft.block.Blocks.DEEPSLATE_COAL_ORE)
++            return Registries.ITEM.getId(Items.COAL).toString();
++        if(block==net.minecraft.block.Blocks.LAPIS_ORE || block==net.minecraft.block.Blocks.DEEPSLATE_LAPIS_ORE)
++            return Registries.ITEM.getId(Items.LAPIS_LAZULI).toString();
++        if(block==net.minecraft.block.Blocks.REDSTONE_ORE || block==net.minecraft.block.Blocks.DEEPSLATE_REDSTONE_ORE)
++            return Registries.ITEM.getId(Items.REDSTONE).toString();
++        if(block==net.minecraft.block.Blocks.NETHER_QUARTZ_ORE)
++            return Registries.ITEM.getId(Items.QUARTZ).toString();
++        if(block==net.minecraft.block.Blocks.NETHER_GOLD_ORE)
++            return Registries.ITEM.getId(Items.GOLD_NUGGET).toString();
++        Item item=block.asItem();
++        if(item==Items.AIR)return "minecraft:air";
++        return Registries.ITEM.getId(item).toString();
++    }
++
++    private static String requiredTool(Block block) {
++        String id=Registries.BLOCK.getId(block).toString();
++        if(id.contains("diamond") || id.contains("emerald") || id.contains("gold")
++                || id.contains("redstone"))return "minecraft:iron_pickaxe";
++        return "minecraft:stone_pickaxe";
++    }
++
++    private static String key(String dimension,String id) {
++        return dimension+"\u0000"+id;
++    }
++
++    private static String required(Map<String,String> fields,String key) {
++        String value=fields.get(key);
++        if(value==null || value.isBlank())
++            throw new IllegalStateException("real_client_birth_missing_"+key);
++        return value;
++    }
++
++    private static int integer(Map<String,String> fields,String key) {
++        return Integer.parseInt(required(fields,key));
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientServerTransport.java
+@@ -0,0 +1,329 @@
++package io.github.zoyluo.aibot.external.realclient;
++
++import com.google.gson.JsonObject;
++import io.github.zoyluo.aibot.AIBotMod;
++
++import java.io.BufferedInputStream;
++import java.io.BufferedOutputStream;
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.EOFException;
++import java.io.IOException;
++import java.net.InetAddress;
++import java.net.ServerSocket;
++import java.net.Socket;
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.util.Map;
++import java.util.Objects;
++import java.util.Optional;
++import java.util.concurrent.ArrayBlockingQueue;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicBoolean;
++import java.util.concurrent.atomic.AtomicReference;
++
++/**
++ * Authenticated loopback control transport for one real Minecraft client body.
++ *
++ * <p>Networking threads only update immutable snapshots and bounded queues. They never access the
++ * Minecraft server/world. Minecraft access remains inside RealClientBodyBackend on the server
++ * thread.</p>
++ */
++public final class RealClientServerTransport implements AutoCloseable {
++    public static final long HEARTBEAT_STALE_MS=3500L;
++    private static final int OUTBOUND_CAPACITY=32;
++    private static final int EXECUTION_CAPACITY=1024;
++
++    public record SensorSnapshot(
++            String playerUuid,double x,double y,double z,float yaw,float pitch,int selectedSlot,
++            boolean crosshairPresent,int crosshairX,int crosshairY,int crosshairZ,
++            String crosshairBlock,String crosshairSide,long receivedAtMs) {}
++
++    public record RemoteExecution(
++            String executionId,String state,double progress,String reason,long receivedAtMs) {}
++
++    public record SessionSnapshot(
++            String bodyId,String playerName,String sessionEpoch,boolean connected,
++            long lastHeartbeatMs,SensorSnapshot sensor) {
++        public boolean fresh(long nowMs) {
++            return connected && nowMs-lastHeartbeatMs<=HEARTBEAT_STALE_MS;
++        }
++    }
++
++    private final String expectedBodyId;
++    private final String expectedPlayerName;
++    private final byte[] token;
++    private final int port;
++    private final AtomicBoolean closed=new AtomicBoolean();
++    private final AtomicReference<Session> active=new AtomicReference<>();
++    private ServerSocket listener;
++    private Thread acceptThread;
++
++    public RealClientServerTransport(
++            String expectedBodyId,String expectedPlayerName,String token,int port) {
++        this.expectedBodyId=Objects.requireNonNull(expectedBodyId);
++        this.expectedPlayerName=Objects.requireNonNull(expectedPlayerName);
++        if(token==null || token.length()<32 || token.length()>256
++                || !token.matches("[A-Za-z0-9_-]+"))
++            throw new IllegalArgumentException(
++                    "AIBOT_REAL_CLIENT_TOKEN_must_be_32_to_256_URL_safe_characters");
++        if(port<1024 || port>65535)throw new IllegalArgumentException("invalid_real_client_port");
++        this.token=token.getBytes(StandardCharsets.UTF_8);
++        this.port=port;
++    }
++
++    public synchronized void start()throws IOException {
++        if(listener!=null)throw new IllegalStateException("real_client_transport_already_started");
++        listener=new ServerSocket(port,4,InetAddress.getLoopbackAddress());
++        acceptThread=new Thread(this::acceptLoop,"aibot-real-client-accept");
++        acceptThread.setDaemon(true);
++        acceptThread.start();
++        AIBotMod.LOGGER.info(
++                "AIBot real-client transport bound to loopback port {} body_id={} player={}",
++                port,expectedBodyId,expectedPlayerName);
++    }
++
++    public Optional<SessionSnapshot> session() {
++        Session session=active.get();
++        return session==null?Optional.empty():Optional.of(session.snapshot());
++    }
++
++    public Optional<RemoteExecution> execution(String executionId) {
++        Session session=active.get();
++        if(session==null)return Optional.empty();
++        return Optional.ofNullable(session.executions.get(executionId));
++    }
++
++    public boolean sendCommand(String executionId,String operation,String argumentsJson) {
++        Session session=active.get();
++        if(session==null || !session.connected.get())return false;
++        JsonObject command=new JsonObject();
++        command.addProperty("type","command");
++        command.addProperty("protocol",RealClientWire.PROTOCOL_VERSION);
++        command.addProperty("session_epoch",session.sessionEpoch);
++        command.addProperty("execution_id",executionId);
++        command.addProperty("operation",operation);
++        command.addProperty("arguments_json",argumentsJson);
++        return session.outbound.offer(command);
++    }
++
++    public boolean sendControl(String executionId,String action,String reason) {
++        Session session=active.get();
++        if(session==null || !session.connected.get())return false;
++        JsonObject control=new JsonObject();
++        control.addProperty("type","control");
++        control.addProperty("protocol",RealClientWire.PROTOCOL_VERSION);
++        control.addProperty("session_epoch",session.sessionEpoch);
++        control.addProperty("execution_id",executionId==null?"":executionId);
++        control.addProperty("action",action);
++        control.addProperty("reason",reason==null?"":reason);
++        return session.outbound.offer(control);
++    }
++
++    private void acceptLoop() {
++        while(!closed.get()) {
++            try {
++                Socket socket=listener.accept();
++                socket.setTcpNoDelay(true);
++                socket.setSoTimeout(5000);
++                Thread handler=new Thread(
++                        ()->handshake(socket),"aibot-real-client-handshake");
++                handler.setDaemon(true);
++                handler.start();
++            } catch(IOException failure) {
++                if(!closed.get())
++                    AIBotMod.LOGGER.error("real-client accept failed",failure);
++            }
++        }
++    }
++
++    private void handshake(Socket socket) {
++        Session replacement=null;
++        try {
++            DataInputStream input=new DataInputStream(
++                    new BufferedInputStream(socket.getInputStream()));
++            DataOutputStream output=new DataOutputStream(
++                    new BufferedOutputStream(socket.getOutputStream()));
++            JsonObject hello=RealClientWire.read(input);
++            if(!"hello".equals(RealClientWire.requiredString(hello,"type",32)))
++                throw new IOException("real_client_hello_required");
++            if(!hello.has("protocol")
++                    || hello.get("protocol").getAsInt()!=RealClientWire.PROTOCOL_VERSION)
++                throw new IOException("real_client_protocol_mismatch");
++            String suppliedToken=RealClientWire.requiredString(hello,"token",256);
++            if(!MessageDigest.isEqual(token,suppliedToken.getBytes(StandardCharsets.UTF_8)))
++                throw new IOException("real_client_unauthorized");
++            String bodyId=RealClientWire.requiredString(hello,"body_id",160);
++            String playerName=RealClientWire.requiredString(hello,"player_name",64);
++            String sessionEpoch=RealClientWire.requiredString(hello,"session_epoch",160);
++            if(!expectedBodyId.equals(bodyId))throw new IOException("real_client_body_id_mismatch");
++            if(!expectedPlayerName.equalsIgnoreCase(playerName))
++                throw new IOException("real_client_player_name_mismatch");
++
++            replacement=new Session(
++                    socket,input,output,bodyId,playerName,sessionEpoch);
++            Session prior=active.get();
++            if(prior!=null && prior.connected.get())
++                throw new IOException("real_client_authority_already_connected");
++            if(!active.compareAndSet(prior,replacement))
++                throw new IOException("real_client_authority_race_rejected");
++            if(prior!=null)prior.close();
++            socket.setSoTimeout(0);
++
++            JsonObject welcome=new JsonObject();
++            welcome.addProperty("type","welcome");
++            welcome.addProperty("protocol",RealClientWire.PROTOCOL_VERSION);
++            welcome.addProperty("body_id",expectedBodyId);
++            welcome.addProperty("session_epoch",sessionEpoch);
++            RealClientWire.write(output,welcome);
++            replacement.start();
++            AIBotMod.LOGGER.info(
++                    "AIBot real client connected body_id={} player={} session={}",
++                    bodyId,playerName,sessionEpoch);
++        } catch(Exception failure) {
++            if(replacement!=null)replacement.close();
++            else try { socket.close(); } catch(IOException ignored) {}
++            if(!closed.get())
++                AIBotMod.LOGGER.warn("real-client handshake rejected: {}",failure.toString());
++        }
++    }
++
++    @Override public synchronized void close() {
++        if(!closed.compareAndSet(false,true))return;
++        Session session=active.getAndSet(null);
++        if(session!=null)session.close();
++        try { if(listener!=null)listener.close(); } catch(IOException ignored) {}
++        if(acceptThread!=null)acceptThread.interrupt();
++        listener=null;
++    }
++
++    private final class Session implements AutoCloseable {
++        final Socket socket;
++        final DataInputStream input;
++        final DataOutputStream output;
++        final String bodyId,playerName,sessionEpoch;
++        final AtomicBoolean connected=new AtomicBoolean(true);
++        final AtomicReference<SensorSnapshot> sensor=new AtomicReference<>();
++        final ConcurrentHashMap<String,RemoteExecution> executions=new ConcurrentHashMap<>();
++        final ArrayBlockingQueue<JsonObject> outbound=new ArrayBlockingQueue<>(OUTBOUND_CAPACITY);
++        volatile long lastHeartbeatMs=System.currentTimeMillis();
++        Thread reader,writer;
++
++        Session(Socket socket,DataInputStream input,DataOutputStream output,
++                String bodyId,String playerName,String sessionEpoch) {
++            this.socket=socket;this.input=input;this.output=output;
++            this.bodyId=bodyId;this.playerName=playerName;this.sessionEpoch=sessionEpoch;
++        }
++
++        void start() {
++            reader=new Thread(this::readLoop,"aibot-real-client-reader");
++            writer=new Thread(this::writeLoop,"aibot-real-client-writer");
++            reader.setDaemon(true);writer.setDaemon(true);
++            reader.start();writer.start();
++        }
++
++        SessionSnapshot snapshot() {
++            return new SessionSnapshot(
++                    bodyId,playerName,sessionEpoch,connected.get(),lastHeartbeatMs,sensor.get());
++        }
++
++        void readLoop() {
++            try {
++                while(connected.get() && !closed.get()) {
++                    JsonObject message=RealClientWire.read(input);
++                    String type=RealClientWire.requiredString(message,"type",32);
++                    String epoch=RealClientWire.requiredString(message,"session_epoch",160);
++                    if(!sessionEpoch.equals(epoch))
++                        throw new IOException("real_client_session_epoch_mismatch");
++                    switch(type) {
++                        case "heartbeat" -> receiveHeartbeat(message);
++                        case "execution" -> receiveExecution(message);
++                        default -> throw new IOException("real_client_message_type_unsupported:"+type);
++                    }
++                }
++            } catch(EOFException ignored) {
++                // Normal disconnect path.
++            } catch(Exception failure) {
++                if(!closed.get())
++                    AIBotMod.LOGGER.warn("real-client session read ended: {}",failure.toString());
++            } finally {
++                close();
++            }
++        }
++
++        void receiveHeartbeat(JsonObject message)throws IOException {
++            long now=System.currentTimeMillis();
++            lastHeartbeatMs=now;
++            String playerUuid=RealClientWire.requiredString(message,"player_uuid",64);
++            double x=message.get("x").getAsDouble();
++            double y=message.get("y").getAsDouble();
++            double z=message.get("z").getAsDouble();
++            float yaw=message.get("yaw").getAsFloat();
++            float pitch=message.get("pitch").getAsFloat();
++            int selected=message.get("selected_slot").getAsInt();
++            if(!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)
++                    || !Float.isFinite(yaw) || !Float.isFinite(pitch)
++                    || selected<0 || selected>8)
++                throw new IOException("real_client_heartbeat_numeric_invalid");
++            boolean present=message.has("crosshair_present")
++                    && message.get("crosshair_present").getAsBoolean();
++            int cx=0,cy=0,cz=0;String block="",side="";
++            if(present) {
++                cx=message.get("crosshair_x").getAsInt();
++                cy=message.get("crosshair_y").getAsInt();
++                cz=message.get("crosshair_z").getAsInt();
++                block=RealClientWire.requiredString(message,"crosshair_block",128);
++                side=RealClientWire.requiredString(message,"crosshair_side",32);
++            }
++            sensor.set(new SensorSnapshot(
++                    playerUuid,x,y,z,yaw,pitch,selected,present,cx,cy,cz,block,side,now));
++        }
++
++        void receiveExecution(JsonObject message)throws IOException {
++            String executionId=RealClientWire.requiredString(message,"execution_id",160);
++            String state=RealClientWire.requiredString(message,"state",32);
++            if(!java.util.Set.of(
++                    "running","paused","completed","failed","cancelled","outcome_unknown")
++                    .contains(state))
++                throw new IOException("real_client_execution_state_invalid");
++            double progress=message.has("progress")?message.get("progress").getAsDouble():0D;
++            if(!Double.isFinite(progress))
++                throw new IOException("real_client_execution_progress_invalid");
++            String reason=RealClientWire.optionalString(message,"reason","",2048);
++            if(!executions.containsKey(executionId)
++                    && executions.size()>=EXECUTION_CAPACITY)
++                throw new IOException("real_client_execution_map_capacity_exhausted");
++            executions.put(executionId,new RemoteExecution(
++                    executionId,state,Math.max(0D,Math.min(1D,progress)),reason,
++                    System.currentTimeMillis()));
++        }
++
++        void writeLoop() {
++            try {
++                while(connected.get() && !closed.get()) {
++                    JsonObject message=outbound.poll(1,TimeUnit.SECONDS);
++                    if(message!=null)RealClientWire.write(output,message);
++                }
++            } catch(InterruptedException interrupted) {
++                Thread.currentThread().interrupt();
++            } catch(Exception failure) {
++                if(!closed.get())
++                    AIBotMod.LOGGER.warn("real-client session write ended: {}",failure.toString());
++            } finally {
++                close();
++            }
++        }
++
++        @Override public void close() {
++            if(!connected.compareAndSet(true,false))return;
++            try { socket.close(); } catch(IOException ignored) {}
++            if(reader!=null && reader!=Thread.currentThread())reader.interrupt();
++            if(writer!=null && writer!=Thread.currentThread())writer.interrupt();
++            active.compareAndSet(this,null);
++            AIBotMod.LOGGER.info(
++                    "AIBot real client disconnected body_id={} player={} session={}",
++                    bodyId,playerName,sessionEpoch);
++        }
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientWire.java
+@@ -0,0 +1,62 @@
++package io.github.zoyluo.aibot.external.realclient;
++
++import com.google.gson.JsonObject;
++import com.google.gson.JsonParser;
++
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.EOFException;
++import java.io.IOException;
++import java.nio.charset.StandardCharsets;
++
++/** Length-prefixed loopback protocol shared by the dedicated server and Bob's Fabric client. */
++public final class RealClientWire {
++    public static final int PROTOCOL_VERSION=1;
++    public static final int MAX_FRAME_BYTES=64*1024;
++
++    private RealClientWire() {}
++
++    public static JsonObject read(DataInputStream input)throws IOException {
++        int length;
++        try {
++            length=input.readInt();
++        } catch(EOFException end) {
++            throw end;
++        }
++        if(length<2 || length>MAX_FRAME_BYTES)
++            throw new IOException("real_client_frame_length_invalid:"+length);
++        byte[] bytes=input.readNBytes(length);
++        if(bytes.length!=length)throw new EOFException("real_client_frame_truncated");
++        try {
++            return JsonParser.parseString(new String(bytes,StandardCharsets.UTF_8))
++                    .getAsJsonObject();
++        } catch(RuntimeException invalid) {
++            throw new IOException("real_client_frame_json_invalid",invalid);
++        }
++    }
++
++    public static void write(DataOutputStream output,JsonObject message)throws IOException {
++        byte[] bytes=message.toString().getBytes(StandardCharsets.UTF_8);
++        if(bytes.length>MAX_FRAME_BYTES)
++            throw new IOException("real_client_frame_too_large");
++        output.writeInt(bytes.length);
++        output.write(bytes);
++        output.flush();
++    }
++
++    public static String requiredString(JsonObject object,String key,int max)throws IOException {
++        if(!object.has(key) || !object.get(key).isJsonPrimitive()
++                || !object.getAsJsonPrimitive(key).isString())
++            throw new IOException("real_client_missing_string:"+key);
++        String value=object.get(key).getAsString();
++        if(value.isBlank() || value.length()>max || value.chars().anyMatch(c->c<0x20))
++            throw new IOException("real_client_invalid_string:"+key);
++        return value;
++    }
++
++    public static String optionalString(JsonObject object,String key,String fallback,int max)
++            throws IOException {
++        if(!object.has(key))return fallback;
++        return requiredString(object,key,max);
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientMvpSourceTest.java
+@@ -0,0 +1,117 @@
++package io.github.zoyluo.aibot.external;
++
++import org.junit.jupiter.api.Test;
++
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++final class RealClientMvpSourceTest {
++    private static final Path MAIN=Path.of("src/main/java/io/github/zoyluo/aibot/external");
++    private static final Path CLIENT=Path.of("src/client/java/io/github/zoyluo/aibot/client/realclient");
++
++    private static String main(String relative)throws IOException {
++        return Files.readString(MAIN.resolve(relative));
++    }
++
++    @Test void realClientBackendSupportsOnlyTheMvpVerticalSlice()throws Exception {
++        String driver=main("realclient/RealClientExecutionDriver.java");
++        assertTrue(driver.contains("Set.of(\"say\",\"goto\",\"mine_opportunity\")"));
++        assertFalse(driver.contains("ServerFakePlayerExecutionDriver"));
++        assertFalse(driver.contains("TaskManager.INSTANCE.assign"));
++    }
++
++    @Test void realClientUsesNormalPlayerAndNeverAnAiPlayerEntity()throws Exception {
++        String backend=main("realclient/RealClientBodyBackend.java");
++        assertTrue(backend.contains("candidate instanceof AIPlayerEntity"));
++        assertTrue(backend.contains("offlineUuid(playerName)"));
++        assertTrue(backend.contains("\"real_client\""));
++    }
++
++    @Test void transportIsLoopbackAuthenticatedAndMinecraftThreadAgnostic()throws Exception {
++        String transport=main("realclient/RealClientServerTransport.java");
++        assertTrue(transport.contains("InetAddress.getLoopbackAddress()"));
++        assertTrue(transport.contains("MessageDigest.isEqual"));
++        assertFalse(transport.contains("ServerPlayerEntity"));
++        assertFalse(transport.contains("ServerWorld"));
++    }
++
++    @Test void clientRuntimeIsExplicitlyOptInAndClearsInputs()throws Exception {
++        String runtime=Files.readString(CLIENT.resolve("RealClientBodyClientRuntime.java"));
++        String actions=Files.readString(CLIENT.resolve("RealClientActionController.java"));
++        assertTrue(runtime.contains("AIBOT_REAL_CLIENT"));
++        assertTrue(runtime.contains("ClientTickEvents.END_CLIENT_TICK"));
++        assertTrue(actions.contains("forwardKey.setPressed(false)"));
++        assertTrue(actions.contains("cancelBlockBreaking()"));
++        assertTrue(actions.contains("updateBlockBreakingProgress"));
++        assertTrue(actions.contains("void controlSessionLost"));
++        assertTrue(runtime.contains("actions.controlSessionLost(client)"));
++    }
++
++    @Test void graphDispatchStillUsesBridgeSubmitAndNoBackendBranch()throws Exception {
++        String kernel=main("BridgeKernel.java");
++        int run=kernel.indexOf("Map<String,Object> graphRunNext");
++        int cancel=kernel.indexOf("Map<String,Object> graphCancel",run);
++        assertTrue(run>=0 && cancel>run);
++        String block=kernel.substring(run,cancel);
++        assertTrue(block.contains("submit(supplied,d.requestId(),d.operation(),d.arguments())"));
++        assertFalse(block.contains("real_client"));
++        assertFalse(block.contains("server_fake_player"));
++    }
++
++    @Test void backendSelectionIsSingleAndFailClosed()throws Exception {
++        String access=main("ExternalBodyAccess.java");
++        String runtime=main("ExternalBodyRuntime.java");
++        assertTrue(access.contains("Set.of(\"server_fake_player\",\"real_client\")"));
++        assertTrue(runtime.contains("if(\"real_client\".equals(backendKind))"));
++        assertFalse(runtime.contains("new MinecraftBodyBackend")
++                && runtime.contains("new RealClientBodyBackend")
++                && runtime.contains("backend = new MinecraftBodyBackend")
++                && runtime.contains("backend = new RealClientBodyBackend")
++                && runtime.contains("backend.start("));
++    }
++
++
++
++    @Test void mineCompletionRequiresExactBlockGoneAndInventoryGain()throws Exception {
++        String driver=main("realclient/RealClientExecutionDriver.java");
++        assertTrue(driver.contains("if(currentState.isAir() && current>baseline)"));
++        int stale=driver.indexOf("target_cell_replaced_during_execution");
++        int success=driver.indexOf("if(currentState.isAir() && current>baseline)");
++        assertTrue(stale>=0 && success>stale,
++                "a replaced target must terminalize stale before any inventory delta can count");
++    }
++
++    @Test void transportAuthorityAndQueuesAreAtomicallyBounded()throws Exception {
++        String server=main("realclient/RealClientServerTransport.java");
++        String client=Files.readString(CLIENT.resolve("RealClientClientTransport.java"));
++        assertTrue(server.contains("active.compareAndSet(prior,replacement)"));
++        assertTrue(server.contains("EXECUTION_CAPACITY=1024"));
++        assertTrue(server.contains("ArrayBlockingQueue<>(OUTBOUND_CAPACITY)"));
++        assertTrue(client.contains("ArrayBlockingQueue<JsonObject> inbound"));
++        assertTrue(client.contains("ArrayBlockingQueue<JsonObject> outbound"));
++        assertTrue(client.contains("aibot-real-client-control-writer"));
++        assertFalse(client.contains("RealClientWire.write(current.output"));
++        assertTrue(client.contains("real_client_control_host_must_be_loopback"));
++    }
++
++    @Test void realClientBackendFailsClosedOnSameNamedFakePlayer()throws Exception {
++        String backend=main("realclient/RealClientBodyBackend.java");
++        String runtime=main("ExternalBodyRuntime.java");
++        assertTrue(backend.contains("real_client_fake_player_authority_conflict"));
++        assertTrue(runtime.contains("real_client_fake_player_authority_conflict"));
++        assertTrue(backend.contains("AIPlayerManager.INSTANCE.all()"));
++    }
++
++    @Test void realClientOpportunityBirthIsDurableBeforeExposure()throws Exception {
++        String tracker=main("realclient/RealClientOpportunityTracker.java");
++        int birth=tracker.indexOf("appendBirth(opportunity)");
++        int put=tracker.indexOf("active.put(key(dimension,id),opportunity)",birth);
++        assertTrue(birth>=0 && put>birth);
++        assertTrue(tracker.contains("real_client_opportunity_birth"));
++        assertTrue(tracker.contains("resource_opportunity_consumed"));
++        assertTrue(tracker.contains("resource_opportunity_stale"));
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/scripts/real_client_supervisor.example.json
+@@ -0,0 +1,22 @@
++{
++  "username": "Bob",
++  "body_id": "bob",
++  "minecraft_server": "127.0.0.1:25565",
++  "control_host": "127.0.0.1",
++  "control_port": 8766,
++  "cwd": "D:/code/mc-experiment/aibot-real-client",
++  "command": [
++    "gradlew.bat",
++    "--no-daemon",
++    "runClient",
++    "--args",
++    "--username {username} --uuid {offline_uuid} --accessToken 0 --userType legacy --quickPlayMultiplayer {minecraft_server}"
++  ],
++  "environment": {
++    "AIBOT_REAL_CLIENT_TOKEN": "replace-with-the-same-private-token-used-by-the-server"
++  },
++  "state_file": "D:/code/mc-experiment/real-client-state.json",
++  "log_file": "D:/code/mc-experiment/real-client.log",
++  "stable_runtime_seconds": 30,
++  "maximum_backoff_seconds": 30
++}
+--- /dev/null
++++ b/aibot-dsh-m0/scripts/real_client_supervisor.py
+@@ -0,0 +1,225 @@
++#!/usr/bin/env python3
++"""Launch and supervise Bob's independent offline Fabric client without using a Microsoft account."""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import os
++import re
++import signal
++import subprocess
++import sys
++import time
++import uuid
++from pathlib import Path
++from typing import Any
++
++
++def offline_uuid(username: str) -> uuid.UUID:
++    """Java UUID.nameUUIDFromBytes("OfflinePlayer:" + name), including v3/variant bits."""
++    digest = bytearray(hashlib.md5(("OfflinePlayer:" + username).encode("utf-8")).digest())
++    digest[6] = (digest[6] & 0x0F) | 0x30
++    digest[8] = (digest[8] & 0x3F) | 0x80
++    return uuid.UUID(bytes=bytes(digest))
++
++
++def atomic_json(path: Path, value: dict[str, Any]) -> None:
++    path.parent.mkdir(parents=True, exist_ok=True)
++    temporary = path.with_suffix(path.suffix + ".tmp")
++    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
++    os.replace(temporary, path)
++
++
++def load_config(path: Path) -> dict[str, Any]:
++    value = json.loads(path.read_text(encoding="utf-8"))
++    if not isinstance(value, dict):
++        raise ValueError("config_root_must_be_object")
++    username = value.get("username", "Bob")
++    if not isinstance(username, str) or not username or len(username) > 16:
++        raise ValueError("invalid_username")
++    command = value.get("command")
++    if not isinstance(command, list) or not command or not all(isinstance(x, str) and x for x in command):
++        raise ValueError("command_must_be_nonempty_string_array")
++    joined = " ".join(command)
++    if "{username}" not in joined or "{offline_uuid}" not in joined:
++        raise ValueError("offline_identity_placeholders_required")
++    lowered = joined.lower()
++    if any(marker in lowered for marker in (
++            "{microsoft", "--usertype msa", "--xuid", "--clientid", "--userproperties")):
++        raise ValueError("microsoft_credentials_not_supported")
++    access = re.search(r"--accesstoken(?:=|\s+)([^\s]+)", joined, re.IGNORECASE)
++    if access and access.group(1) not in {"0", "offline", "-"}:
++        raise ValueError("non_offline_access_token_not_supported")
++    environment = value.get("environment", {})
++    if not isinstance(environment, dict):
++        raise ValueError("environment_must_be_string_map")
++    sensitive = ("MICROSOFT", "MSA", "OAUTH", "REFRESH_TOKEN", "XBOX", "PASSWORD")
++    for key, entry in environment.items():
++        if not isinstance(key, str) or not isinstance(entry, str):
++            raise ValueError("environment_must_be_string_map")
++        if any(marker in key.upper() for marker in sensitive):
++            raise ValueError("microsoft_credentials_not_supported")
++    host = str(value.get("control_host", "127.0.0.1")).lower()
++    if host not in {"127.0.0.1", "::1", "localhost"}:
++        raise ValueError("control_host_must_be_loopback")
++    return value
++
++
++def expand(value: str, variables: dict[str, str]) -> str:
++    for key, replacement in variables.items():
++        value = value.replace("{" + key + "}", replacement)
++    return value
++
++
++def terminate_tree(child: subprocess.Popen[bytes], timeout: float = 10.0) -> None:
++    """Terminate the wrapper and its spawned Minecraft client process tree."""
++    if child.poll() is not None:
++        return
++    if os.name == "nt":
++        subprocess.run(
++            ["taskkill", "/PID", str(child.pid), "/T", "/F"],
++            stdout=subprocess.DEVNULL,
++            stderr=subprocess.DEVNULL,
++            check=False,
++        )
++    else:
++        try:
++            os.killpg(child.pid, signal.SIGTERM)
++        except ProcessLookupError:
++            return
++    try:
++        child.wait(timeout=timeout)
++    except subprocess.TimeoutExpired:
++        if os.name == "nt":
++            subprocess.run(
++                ["taskkill", "/PID", str(child.pid), "/T", "/F"],
++                stdout=subprocess.DEVNULL,
++                stderr=subprocess.DEVNULL,
++                check=False,
++            )
++        else:
++            try:
++                os.killpg(child.pid, signal.SIGKILL)
++            except ProcessLookupError:
++                pass
++        child.wait(timeout=timeout)
++
++
++def main() -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--config", required=True, type=Path)
++    parser.add_argument("--once", action="store_true", help="Do not restart after the first exit")
++    parser.add_argument("--print-launch", action="store_true", help="Validate and print the expanded launch only")
++    args = parser.parse_args()
++
++    config = load_config(args.config.resolve())
++    username = config.get("username", "Bob")
++    player_uuid = str(offline_uuid(username))
++    body_id = str(config.get("body_id", username.lower()))
++    control_host = str(config.get("control_host", "127.0.0.1"))
++    control_port = str(int(config.get("control_port", 8766)))
++    minecraft_server = str(config.get("minecraft_server", "127.0.0.1:25565"))
++    variables = {
++        "username": username,
++        "offline_uuid": player_uuid,
++        "body_id": body_id,
++        "control_host": control_host,
++        "control_port": control_port,
++        "minecraft_server": minecraft_server,
++    }
++    command = [expand(part, variables) for part in config["command"]]
++    cwd = Path(config.get("cwd", args.config.parent)).resolve()
++    state_path = Path(config.get("state_file", args.config.parent / "real-client-supervisor-state.json")).resolve()
++    log_path = Path(config.get("log_file", args.config.parent / "real-client.log")).resolve()
++    environment = dict(os.environ)
++    for key, value in config.get("environment", {}).items():
++        if not isinstance(key, str) or not isinstance(value, str):
++            raise ValueError("environment_must_be_string_map")
++        environment[key] = expand(value, variables)
++    environment.update({
++        "AIBOT_REAL_CLIENT": "1",
++        "AIBOT_REAL_CLIENT_BODY_ID": body_id,
++        "AIBOT_REAL_CLIENT_BOT_NAME": username,
++        "AIBOT_REAL_CLIENT_HOST": control_host,
++        "AIBOT_REAL_CLIENT_PORT": control_port,
++    })
++    if not environment.get("AIBOT_REAL_CLIENT_TOKEN"):
++        raise ValueError("AIBOT_REAL_CLIENT_TOKEN_must_be_supplied_in_environment")
++
++    launch = {
++        "command": command,
++        "cwd": str(cwd),
++        "username": username,
++        "offline_uuid": player_uuid,
++        "body_id": body_id,
++        "minecraft_server": minecraft_server,
++    }
++    if args.print_launch:
++        print(json.dumps(launch, ensure_ascii=False, indent=2))
++        return 0
++
++    stop = False
++    child: subprocess.Popen[bytes] | None = None
++
++    def request_stop(_signum: int, _frame: object) -> None:
++        nonlocal stop
++        stop = True
++        if child is not None and child.poll() is None:
++            terminate_tree(child)
++
++    signal.signal(signal.SIGINT, request_stop)
++    signal.signal(signal.SIGTERM, request_stop)
++
++    restart_count = 0
++    minimum_runtime = float(config.get("stable_runtime_seconds", 30))
++    maximum_backoff = float(config.get("maximum_backoff_seconds", 30))
++    log_path.parent.mkdir(parents=True, exist_ok=True)
++    while not stop:
++        started = time.time()
++        with log_path.open("ab", buffering=0) as log:
++            log.write(("\n=== real-client launch " + time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()) + " ===\n").encode())
++            launch_options: dict[str, Any] = {
++                "cwd": cwd,
++                "env": environment,
++                "stdin": subprocess.DEVNULL,
++                "stdout": log,
++                "stderr": subprocess.STDOUT,
++                "shell": False,
++            }
++            if os.name == "nt":
++                launch_options["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
++            else:
++                launch_options["start_new_session"] = True
++            child = subprocess.Popen(command, **launch_options)
++            atomic_json(state_path, {
++                **launch,
++                "pid": child.pid,
++                "state": "running",
++                "restart_count": restart_count,
++                "started_at_unix": started,
++            })
++            return_code = child.wait()
++        runtime = time.time() - started
++        atomic_json(state_path, {
++            **launch,
++            "pid": None,
++            "state": "stopped" if stop else "exited",
++            "return_code": return_code,
++            "runtime_seconds": runtime,
++            "restart_count": restart_count,
++        })
++        child = None
++        if stop or args.once:
++            break
++        if runtime >= minimum_runtime:
++            restart_count = 0
++        else:
++            restart_count += 1
++        delay = min(maximum_backoff, 0.5 * (2 ** min(restart_count, 6)))
++        time.sleep(delay)
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+--- /dev/null
++++ b/aibot-dsh-m0/scripts/test_real_client_supervisor.py
+@@ -0,0 +1,85 @@
++from __future__ import annotations
++
++import importlib.util
++import json
++import pathlib
++import tempfile
++import unittest
++
++P = pathlib.Path(__file__).parent
++SPEC = importlib.util.spec_from_file_location("real_client_supervisor", P / "real_client_supervisor.py")
++MODULE = importlib.util.module_from_spec(SPEC)
++assert SPEC.loader is not None
++SPEC.loader.exec_module(MODULE)
++
++
++class SupervisorTest(unittest.TestCase):
++    def test_offline_uuid_matches_known_bob_value(self):
++        self.assertEqual(str(MODULE.offline_uuid("Bob")), "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b")
++
++    def test_offline_uuid_is_case_sensitive_like_minecraft(self):
++        self.assertNotEqual(MODULE.offline_uuid("Bob"), MODULE.offline_uuid("bob"))
++
++    def test_expand_is_deterministic(self):
++        self.assertEqual(MODULE.expand("x-{username}-{body_id}", {"username": "Bob", "body_id": "bob"}), "x-Bob-bob")
++
++    def test_config_rejects_shell_string(self):
++        with tempfile.TemporaryDirectory() as directory:
++            path = pathlib.Path(directory) / "config.json"
++            path.write_text(json.dumps({"username": "Bob", "command": "gradlew runClient"}))
++            with self.assertRaisesRegex(ValueError, "command_must"):
++                MODULE.load_config(path)
++
++    def test_config_requires_offline_identity_placeholders(self):
++        with tempfile.TemporaryDirectory() as directory:
++            path = pathlib.Path(directory) / "config.json"
++            path.write_text(json.dumps({"username": "Bob", "command": ["gradlew", "runClient"]}))
++            with self.assertRaisesRegex(ValueError, "offline_identity"):
++                MODULE.load_config(path)
++
++    def test_config_accepts_offline_argument_array(self):
++        with tempfile.TemporaryDirectory() as directory:
++            path = pathlib.Path(directory) / "config.json"
++            path.write_text(json.dumps({
++                "username": "Bob",
++                "command": ["java", "--username", "{username}", "--uuid", "{offline_uuid}",
++                            "--accessToken", "0", "--userType", "legacy"]
++            }))
++            self.assertEqual(MODULE.load_config(path)["command"][2], "{username}")
++
++    def test_config_rejects_non_offline_access_token(self):
++        with tempfile.TemporaryDirectory() as directory:
++            path = pathlib.Path(directory) / "config.json"
++            path.write_text(json.dumps({
++                "username": "Bob",
++                "command": ["java", "--username", "{username}", "--uuid", "{offline_uuid}",
++                            "--accessToken", "secret-token"]
++            }))
++            with self.assertRaisesRegex(ValueError, "non_offline"):
++                MODULE.load_config(path)
++
++    def test_config_rejects_sensitive_account_environment(self):
++        with tempfile.TemporaryDirectory() as directory:
++            path = pathlib.Path(directory) / "config.json"
++            path.write_text(json.dumps({
++                "username": "Bob",
++                "command": ["java", "--username", "{username}", "--uuid", "{offline_uuid}"],
++                "environment": {"MICROSOFT_REFRESH_TOKEN": "secret"}
++            }))
++            with self.assertRaisesRegex(ValueError, "microsoft_credentials"):
++                MODULE.load_config(path)
++
++    def test_config_rejects_non_loopback_control_host(self):
++        with tempfile.TemporaryDirectory() as directory:
++            path = pathlib.Path(directory) / "config.json"
++            path.write_text(json.dumps({
++                "username": "Bob",
++                "command": ["java", "--username", "{username}", "--uuid", "{offline_uuid}"],
++                "control_host": "192.0.2.1"
++            }))
++            with self.assertRaisesRegex(ValueError, "loopback"):
++                MODULE.load_config(path)
++
++
++if __name__ == "__main__":
++    unittest.main(verbosity=2)

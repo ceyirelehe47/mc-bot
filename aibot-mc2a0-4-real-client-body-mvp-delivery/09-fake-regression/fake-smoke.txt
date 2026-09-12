@@ -1,0 +1,6 @@
+D:/code/mc-experiment/mc2a04-fake-server/server-fake3.log:[06:06:38] [Server thread/INFO]: AIBot external-body bridge bound to loopback port 8775 for Bob body_id=bob backend=server_fake_player
+D:/code/mc-experiment/mc2a04-fake-server/server-fake3.log:[06:07:05] [Server thread/INFO]: [Rcon: [AIBot] Spawned Bob role=worker]
+D:/code/mc-experiment/mc2a04-fake-server/server-fake3.log:[06:07:25] [Server thread/INFO]: <Bob> mc2a04 fake regression say
+D:/code/mc-experiment/mc2a04-fake-server/server-fake2.log:[06:04:38] [Server thread/INFO]: AIBot external-body bridge bound to loopback port 8775 for Bob body_id=bob backend=server_fake_player
+D:/code/mc-experiment/mc2a04-fake-server/server-fake.log:[06:02:46] [Server thread/INFO]: AIBot external-body bridge bound to loopback port 8775 for Bob body_id=bob backend=server_fake_player
+real 8766 端口在 fake 模式下不监听(netstat 验证 0 LISTENING)

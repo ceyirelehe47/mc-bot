@@ -1,0 +1,40 @@
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:26:20] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=71c99b9c-11ef-4d92-8f83-b202ac6c0ef8
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:27:37] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=17b1ab0e-73fe-4c21-a1f1-4c0fd3d771f5
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:27:37] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:27:38] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=eeeb4a05-f551-496a-b684-e44960128d15
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:27:38] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:27:40] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=2e78e9ea-0f2b-4556-89bc-07d36b84db90
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:27:40] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:27:44] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=ffc73185-c7a5-45f8-9311-39916e165a64
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:27:44] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:27:52] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=692590a8-d4ef-44d9-9307-683df37a0936
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:27:52] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:00] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=4be9ac75-b627-492d-a7cd-2dbd981af921
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:00] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:08] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=02fab860-7640-4636-9107-a107ef587b99
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:08] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:16] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=301dff95-f0e0-4b31-9908-32183c0618e3
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:16] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:24] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=d806623a-2d93-41f0-aa90-973c1b83d6bc
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:24] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:32] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=956b8a42-5980-48ec-a5ec-785586e644f1
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:32] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:40] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=5b645f62-a4c9-4066-8877-6e094a8552ac
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:40] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:48] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=2f0034bb-755d-4a5c-ad25-e584261b5b1f
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:48] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:56] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=c18ab5ef-3653-43d8-98b5-ba43d5c7d8c1
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:28:56] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:04] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=ad891be8-b4a4-430a-bb87-b6de38672413
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:04] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:12] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=254c0431-f13b-43ff-9aaa-86105065cb63
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:12] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:20] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=cf9e7660-8d96-4bb0-b4e0-6fb9a51730a3
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:20] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:28] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=b6a264c5-6b25-4c9e-9fd4-744eaca142f3
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:28] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:36] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=ecd63b7b-9003-41de-8bc5-37b82989906d
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:36] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:44] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=014b02e4-f04c-4dba-b45d-8223913fdce0
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:44] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[03:29:52] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=3effb40a-63d1-4761-a1d6-c1c707a5303f

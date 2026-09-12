@@ -1,0 +1,7 @@
+PASS long polling awakened without model loop
+PASS incomplete crash tail truncated to last verified frame
+PASS corrupt complete frame fails closed
+PASS second writer rejected
+PASS body_not_ready
+TOTAL 105 checks passed
+TOTAL 105 checks passed

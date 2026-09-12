@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.OpportunityBirthDurabilitySourceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-12T22:11:37.594Z" hostname="FORST" time="0.01">
+  <properties/>
+  <testcase name="staleReceiptMustBeDurableBeforeSemanticRemoval()" classname="io.github.zoyluo.aibot.external.OpportunityBirthDurabilitySourceTest" time="0.002"/>
+  <testcase name="lifecycleReplayMustSupportBirthRestoreAndLegacyAdoption()" classname="io.github.zoyluo.aibot.external.OpportunityBirthDurabilitySourceTest" time="0.002"/>
+  <testcase name="capacityMustNotEvictALiveIncarnation()" classname="io.github.zoyluo.aibot.external.OpportunityBirthDurabilitySourceTest" time="0.001"/>
+  <testcase name="startupLifecycleReconcilePrecedesGraphAndHttpExposure()" classname="io.github.zoyluo.aibot.external.OpportunityBirthDurabilitySourceTest" time="0.0"/>
+  <testcase name="newIncarnationBirthMustBeDurableBeforeRegistryExposure()" classname="io.github.zoyluo.aibot.external.OpportunityBirthDurabilitySourceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

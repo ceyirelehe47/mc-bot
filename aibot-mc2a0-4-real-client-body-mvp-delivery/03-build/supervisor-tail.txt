@@ -1,0 +1,6 @@
+test_offline_uuid_matches_known_bob_value (__main__.SupervisorTest.test_offline_uuid_matches_known_bob_value) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.072s
+
+OK

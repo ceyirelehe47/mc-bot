@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-12T22:11:53.550Z" hostname="FORST" time="0.017">
+  <properties/>
+  <testcase name="physicalSessionChangeInvalidatesCognitionAndQueuedQueries()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.001"/>
+  <testcase name="kernelPersistsAndFencesPhysicalSessionChangesWithoutTouchingGraphDispatch()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.002"/>
+  <testcase name="bodyIdNormalizationIsExplicitAndClassLoadingIsSafe()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.005"/>
+  <testcase name="minecraftBackendDelegatesMutationAndDoesNotConstructTasks()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.001"/>
+  <testcase name="serverFakePlayerDriverOwnsCurrentOperationMapping()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.001"/>
+  <testcase name="logicalBodyIdentityIsSeparatedFromPhysicalSession()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.002"/>
+  <testcase name="bodyIdValidationRunsInsideTheControlledRuntimeStartBoundary()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.001"/>
+  <testcase name="physicalExecutionPortHasNoMinecraftDependency()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

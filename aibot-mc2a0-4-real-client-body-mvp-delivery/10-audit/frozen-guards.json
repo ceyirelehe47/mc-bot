@@ -1,0 +1,28 @@
+{
+ "aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java": {
+  "byte_identical": true,
+  "sha256_current": "f393d817ee7374b2"
+ },
+ "aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ServerFakePlayerExecutionDriver.java": {
+  "byte_identical": true,
+  "sha256_current": "d615bd26aa8d4c8d"
+ },
+ "aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/PhysicalExecutionDriver.java": {
+  "byte_identical": true,
+  "sha256_current": "d7676cb147bb3ff8"
+ },
+ "aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java": {
+  "byte_identical": true,
+  "sha256_current": "250cd533b13be53e"
+ },
+ "aibot-dsh-m0/dsh-plugin/src/plugin.mjs": {
+  "byte_identical": true,
+  "sha256_current": "63bd212a01fc4c89"
+ },
+ "graph_dispatch_region": {
+  "exists": true,
+  "contains_real_client": false,
+  "contains_server_fake_player": false,
+  "contains_submit_call": true
+ }
+}

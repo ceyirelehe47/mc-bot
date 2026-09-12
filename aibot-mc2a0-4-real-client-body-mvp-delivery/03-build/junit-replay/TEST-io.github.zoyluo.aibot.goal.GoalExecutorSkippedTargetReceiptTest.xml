@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.goal.GoalExecutorSkippedTargetReceiptTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-12T22:11:38.144Z" hostname="FORST" time="0.014">
+  <properties/>
+  <testcase name="canonicalCodecRoundTripsStructuredTargetIdentity()" classname="io.github.zoyluo.aibot.goal.GoalExecutorSkippedTargetReceiptTest" time="0.003"/>
+  <testcase name="missingIsLegacyButPartialUnknownCapAndNonCanonicalFailClosed()" classname="io.github.zoyluo.aibot.goal.GoalExecutorSkippedTargetReceiptTest" time="0.001"/>
+  <testcase name="foodHuntReceiptRemovesHuntButKeepsUnrelatedFreshSteps()" classname="io.github.zoyluo.aibot.goal.GoalExecutorSkippedTargetReceiptTest" time="0.001"/>
+  <testcase name="restoredReceiptsMustRemainAuthorizedByTheGoalSkipPolicy()" classname="io.github.zoyluo.aibot.goal.GoalExecutorSkippedTargetReceiptTest" time="0.002"/>
+  <testcase name="duplicateReceiptsConsumeDuplicateTargetsOneForOne()" classname="io.github.zoyluo.aibot.goal.GoalExecutorSkippedTargetReceiptTest" time="0.001"/>
+  <testcase name="collectionCapIsNonEvictingAndRestoreFailureIsTyped()" classname="io.github.zoyluo.aibot.goal.GoalExecutorSkippedTargetReceiptTest" time="0.005"/>
+  <testcase name="unmatchedReceiptNeverRemovesAWeakerOrDifferentIdentity()" classname="io.github.zoyluo.aibot.goal.GoalExecutorSkippedTargetReceiptTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

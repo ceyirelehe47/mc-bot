@@ -1,0 +1,8 @@
+D:/code/mc-experiment/mc2a04-live-server/server-live.log:[04:25:28] [Server thread/INFO]: [Not Secure] <Bob> mc2a04 LIVE real-client say slice at 04:25:28
+
+--- HTTP 侧捕获(运行期) ---
+gather 拒绝: HTTP 409 {"error":"operation_not_supported_by_backend:gather"},status.active_execution=null
+say: execution 47c46f8a state=completed reason=client_chat_packet_sent terminal=true
+  服务器: [04:25:28] [Not Secure] <Bob> mc2a04 LIVE real-client say slice at 04:25:28
+goto: execution 3b43a2a2 RUNNING(2s)→pause→PAUSED→resume→COMPLETED reason=server_authoritative_arrival_within_2_5_blocks
+  终点 (8.39,-60,10.5) vs 目标 (10,-60,10): dx=1.6 格(≤3)

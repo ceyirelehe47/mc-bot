@@ -1,0 +1,52 @@
+[03:26:20] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=71c99b9c-11ef-4d92-8f83-b202ac6c0ef8
+[03:27:37] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:27:38] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:27:40] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:27:44] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:27:52] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:28:00] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:28:08] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:28:16] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:28:24] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:28:32] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:28:40] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:28:48] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:28:56] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:29:04] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:29:12] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:29:20] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:29:28] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:29:36] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:29:44] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:29:52] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:30:00] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=5cbb2b1a-4542-48ed-a79c-a170d3d4816c
+[03:30:25] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:30:26] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:30:28] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:30:32] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:30:40] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:30:48] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:30:56] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:31:04] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_authority_already_connected
+[03:31:35] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=f96d78cd-9675-4af8-98a5-324881da989b
+[03:32:09] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=252bae37-0109-40a4-a705-4feb9b7cfd35
+[03:42:17] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=09b3b3ca-c60f-497c-a024-803811bd58cd
+[03:42:35] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=920b57d6-e91f-4455-ada3-8f058885f3c8
+[03:42:54] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=1dc889b2-3660-4123-8d4d-af0d5ecf8dd3
+[03:43:15] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=a5a8dee3-0e14-46f4-b277-5d11201699e8
+[03:43:40] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=108016a8-3ea7-4a4f-b047-59d6140625d8
+[03:44:13] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=78cd78ee-2d55-4ccf-9a87-0120d25b0ba7
+[03:45:01] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=bbe9d986-4792-4985-bc1a-7f54fc9f83b8
+[03:45:48] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=92346831-fd87-4ff7-893a-f3b3818d1888
+[03:46:35] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=cfccdec4-295e-4024-8a30-8991f496388b
+[03:47:22] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=57754b0d-264d-48cf-8a83-2d3ce22a31ed
+[03:48:09] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=96001d73-cbf8-44a6-9025-5e23bd9fedd9
+[03:48:57] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=d1c3135e-160b-4df9-8abb-dcdd544cad31
+[03:49:17] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=265707a4-1be1-4680-b9ac-32b1bc72590e
+[03:54:27] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=8d3ad4e2-76a9-46fa-af5d-6614b68574b1
+[04:07:04] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=5e765f1f-9e12-4d49-a793-d9fad9588552
+[04:11:46] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=d55063da-c251-4ed7-9ac5-95eb009aeafb
+[04:16:16] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=1d0314dc-db12-4c22-aaf9-ec307753a4c9
+[04:18:35] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=acfbc460-d9a3-4a54-8ed6-8598d228a6d8
+[04:18:44] [Server thread/INFO]: Bob[/127.0.0.1:56954] logged in with entity id 1 at (-6.5, -60.0, 10.5)
+[04:18:44] [Server thread/INFO]: Bob joined the game
