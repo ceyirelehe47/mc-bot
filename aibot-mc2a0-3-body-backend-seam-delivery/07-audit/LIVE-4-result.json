@@ -1,0 +1,56 @@
+{
+ "asserts": [
+  {
+   "detail": "HEAD=a767826d2d6325a884dff2478b1774c960177d71",
+   "name": "A0 审计对象为生产提交 a767826(分支自冻结 3df7fb9)",
+   "ok": true
+  },
+  {
+   "detail": "hits=[]",
+   "name": "A1 MinecraftBodyBackend 无任何 mutation Task 构造",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "A2 MinecraftBodyBackend 委托全部四个控制调用",
+   "ok": true
+  },
+  {
+   "detail": "missing=[]",
+   "name": "A3 ServerFakePlayerExecutionDriver 含全部 14 个操作映射",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "A4 driver 持有 TaskManager assign 与实例替换哨兵",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "A5 PhysicalExecutionDriver 无 net.minecraft/AIBot 类引用",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "A6 TaskGraphStore.java 与冻结基线 3df7fb9 字节一致",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "A7 graphRunNext->graphCancel dispatch 块与冻结基线逐字节一致",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "A8 dispatch 仍经 kernel.submit(supplied,d.requestId(),d.operation(),d.arguments())",
+   "ok": true
+  },
+  {
+   "detail": "changed_files=15",
+   "name": "A9 diff 范围无 RealClient/BotView/GUI/Scheduler 越界",
+   "ok": true
+  }
+ ],
+ "gate": "LIVE-4",
+ "ok": true
+}

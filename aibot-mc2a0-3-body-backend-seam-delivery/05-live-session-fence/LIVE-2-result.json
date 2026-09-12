@@ -1,0 +1,99 @@
+{
+ "asserts": [
+  {
+   "detail": "",
+   "name": "P1 初始 control_active=true",
+   "ok": true
+  },
+  {
+   "detail": "state=running",
+   "name": "P2 goto 进入 RUNNING",
+   "ok": true
+  },
+  {
+   "detail": "[AIBot] 找不到该 Bot 或无权限。",
+   "name": "P0 legacy despawn 被治理边界拒绝(保留身体不走 legacy ADMIN)",
+   "ok": true
+  },
+  {
+   "detail": "state=running",
+   "name": "P3 despawn 拒绝后执行不受影响(仍 running)",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "P4 逻辑 body_id 仍为 bob",
+   "ok": true
+  },
+  {
+   "detail": "epoch_1=9d66fd81-5f49-4aa6-a37f-2b7e4e20ddfc epoch_2=5e16f334-c9bc-4fd1-b4a9-8b543b6e66b1",
+   "name": "P5 body_session_epoch 轮换(新物理载具)",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "P6 租约被吊销(control_active=false)",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "P7 needs_reconcile=true",
+   "ok": true
+  },
+  {
+   "detail": "state=outcome_unknown",
+   "name": "P8 被打断执行 outcome_unknown",
+   "ok": true
+  },
+  {
+   "detail": "reason=server_stopping_no_automatic_replay",
+   "name": "P9 打断 reason 为围栏语义(重启通道=server_stopping;进程内通道=body_session_changed,后者由 BridgeCoreTest 覆盖)",
+   "ok": true
+  },
+  {
+   "detail": "epoch=9d66fd81-5f49-4aa6-a37f-2b7e4e20ddfc",
+   "name": "P10 执行收据保留 admit 时绑定(epoch_1)",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "P11 静置后仍 outcome_unknown(无自动重启)",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "P12 observe 后 needs_reconcile 清除",
+   "ok": true
+  },
+  {
+   "detail": "state=completed",
+   "name": "P13 围栏后新 request 的 say 完成",
+   "ok": true
+  },
+  {
+   "detail": "epoch=5e16f334-c9bc-4fd1-b4a9-8b543b6e66b1",
+   "name": "P14 新收据绑定到新 epoch_2",
+   "ok": true
+  },
+  {
+   "detail": "frames=2",
+   "name": "P15 body_session_changed 事件帧存在",
+   "ok": true
+  },
+  {
+   "detail": "new_bindings=2",
+   "name": "P16 新 body_binding 帧存在",
+   "ok": true
+  },
+  {
+   "detail": "accepted=['goto', 'say']",
+   "name": "P17 journal 无围栏期间的重放(accepted 仅 goto+say)",
+   "ok": true
+  }
+ ],
+ "epoch_1": "9d66fd81-5f49-4aa6-a37f-2b7e4e20ddfc",
+ "epoch_2": "5e16f334-c9bc-4fd1-b4a9-8b543b6e66b1",
+ "gate": "LIVE-2",
+ "ok": true,
+ "run": "1789220058"
+}

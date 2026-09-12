@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.coordination.JobScopeTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-12T12:46:19.445Z" hostname="FORST" time="0.02">
+  <properties/>
+  <testcase name="globalAdminJobCanBeClaimedButOnlyGloballyListedByAdmin()" classname="io.github.zoyluo.aibot.coordination.JobScopeTest" time="0.002"/>
+  <testcase name="ownerScopedJobIsOnlyVisibleAndClaimableWithinOwnerBoundary()" classname="io.github.zoyluo.aibot.coordination.JobScopeTest" time="0.001"/>
+  <testcase name="claimedJobFromPreviousRuntimeSessionReopens()" classname="io.github.zoyluo.aibot.coordination.JobScopeTest" time="0.006"/>
+  <testcase name="legacyJobWithoutScopeIsRejectedOnLoad()" classname="io.github.zoyluo.aibot.coordination.JobScopeTest" time="0.01"/>
+  <system-out><![CDATA[[20:46:19] [Test worker/WARN]: [AIBot] SECURITY event=legacy_job_scope_rejected bot=- {reason=missing_or_invalid_scope, job_uuid=292d5acb-3e2c-4fb8-9110-fc6668b6e3dc}
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

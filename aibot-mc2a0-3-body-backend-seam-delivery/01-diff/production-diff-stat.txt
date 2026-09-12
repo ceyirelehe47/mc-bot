@@ -1,0 +1,16 @@
+ aibot-dsh-m0/README.zh-CN.md                       |   2 +
+ aibot-dsh-m0/SHA256SUMS                            | 245 +++++------
+ .../github/zoyluo/aibot/external/BodyBackend.java  |  91 +++-
+ .../github/zoyluo/aibot/external/BridgeKernel.java |  89 +++-
+ .../zoyluo/aibot/external/ExternalBodyAccess.java  |  10 +
+ .../zoyluo/aibot/external/ExternalBodyRuntime.java |  23 +-
+ .../aibot/external/MinecraftBodyBackend.java       | 469 ++++++++-------------
+ .../aibot/external/PhysicalExecutionDriver.java    |  30 ++
+ .../external/ServerFakePlayerExecutionDriver.java  | 404 ++++++++++++++++++
+ .../aibot/external/BodyBackendSeamSourceTest.java  |  76 ++++
+ .../external/TreeHarvestSourceContractTest.java    |   5 +-
+ aibot-dsh-m0/bridge-tests/BridgeCoreTest.java      |  20 +-
+ aibot-dsh-m0/bridge-tests/FakeBridgeServer.java    |   7 +-
+ aibot-dsh-m0/dsh-plugin/test/FakeBridgeServer.java |   7 +-
+ aibot-dsh-m0/scripts/apply_to_aibot.py             |   6 +-
+ 15 files changed, 1027 insertions(+), 457 deletions(-)

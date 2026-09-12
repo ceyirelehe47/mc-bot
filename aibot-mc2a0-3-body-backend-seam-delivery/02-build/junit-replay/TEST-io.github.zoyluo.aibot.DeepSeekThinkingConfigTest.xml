@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.DeepSeekThinkingConfigTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-12T12:49:34.534Z" hostname="FORST" time="0.117">
+  <properties/>
+  <testcase name="apiKeyRebindKeepsTheThinkingContract()" classname="io.github.zoyluo.aibot.DeepSeekThinkingConfigTest" time="0.089"/>
+  <testcase name="explicitOverridesWin()" classname="io.github.zoyluo.aibot.DeepSeekThinkingConfigTest" time="0.005"/>
+  <testcase name="unsupportedEffortFallsBackRatherThanReachingTheApi()" classname="io.github.zoyluo.aibot.DeepSeekThinkingConfigTest" time="0.001"/>
+  <testcase name="unsetOverridesFallBackToDefaultsInsteadOfSilentlyDisablingThinking()" classname="io.github.zoyluo.aibot.DeepSeekThinkingConfigTest" time="0.001"/>
+  <testcase name="defaultsTargetTheCurrentFlashModelWithABudgetReasoningCanNotStarve()" classname="io.github.zoyluo.aibot.DeepSeekThinkingConfigTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,80 @@
+{
+ "asserts": [
+  {
+   "detail": "state=completed",
+   "name": "S1 say 完成且含绑定元数据",
+   "ok": true
+  },
+  {
+   "detail": "state=running",
+   "name": "S2a goto RUNNING",
+   "ok": true
+  },
+  {
+   "detail": "state=paused reason=user_or_lease_pause",
+   "name": "S2b pause 后 execution paused",
+   "ok": true
+  },
+  {
+   "detail": "state=running",
+   "name": "S2c resume 后同一 execution 回 running",
+   "ok": true
+  },
+  {
+   "detail": "state=completed reason=arrival_within_3_blocks_verified",
+   "name": "S2d goto 完成且到达后置条件满足",
+   "ok": true
+  },
+  {
+   "detail": "matches=[('ore_27a43aee7126_be10b3e546fa4fa3', 'ACTIONABLE')]",
+   "name": "S3a 新铸铁矿化身 ACTIONABLE",
+   "ok": true
+  },
+  {
+   "detail": "graph=graph-3ec6c0fc0008d3acfcf04e71 state=READY",
+   "name": "S3b 图 READY 且节点全 READY",
+   "ok": true
+  },
+  {
+   "detail": "state=DONE",
+   "name": "S3c 图经 run-next->submit->driver 到达 DONE",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "S3d durable consumed 收据销账(机会从注册表消失)",
+   "ok": true
+  },
+  {
+   "detail": "raw_iron 0->1",
+   "name": "S3e 本轮实际拾取原矿(raw_iron 增量>=1)",
+   "ok": true
+  },
+  {
+   "detail": "state=completed logs 0->4",
+   "name": "S4 树 gather 完成且配额核验(真实砍伐: 原木增量>=1)",
+   "ok": true
+  },
+  {
+   "detail": "ops=['gather', 'goto', 'mine_opportunity', 'say']",
+   "name": "S5 journal 记录 4 个操作执行帧(say/goto/gather/mine_opportunity)且四绑定字段齐",
+   "ok": true
+  },
+  {
+   "detail": "consumed=1",
+   "name": "S6 durable consumed 收据帧存在(绑定执行)",
+   "ok": true
+  }
+ ],
+ "epoch": "851693bb-04d2-4db2-9861-18d6e2b41dc9",
+ "gate": "LIVE-3",
+ "graph_id": "graph-3ec6c0fc0008d3acfcf04e71",
+ "ok": true,
+ "opportunity_id": "ore_27a43aee7126_be10b3e546fa4fa3",
+ "run": "1789221597",
+ "tree": [
+  566,
+  68,
+  131
+ ]
+}

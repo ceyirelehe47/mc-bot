@@ -1,0 +1,30 @@
+{
+ "asserts": [
+  {
+   "detail": "binding_frames=2",
+   "name": "A11 新 body_binding 帧存在且四字段齐",
+   "ok": true
+  },
+  {
+   "detail": "body_changed_frames=1 previous=faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b current=bob",
+   "name": "A12 body_changed 事件帧记录旧 UUID 与新逻辑绑定",
+   "ok": true
+  },
+  {
+   "detail": "say_accepted=3 say_completed=3",
+   "name": "A13 say execution 帧含四绑定字段且到 completed",
+   "ok": true
+  },
+  {
+   "detail": "last=runtime_stopped",
+   "name": "A14 journal 终帧为 runtime_stopped(优雅停止)",
+   "ok": true
+  }
+ ],
+ "epoch_a": "62cdf01b-e174-4691-9204-7a9ede8470d2",
+ "gate": "LIVE-1-journal-offline",
+ "journal_frames": 996,
+ "journal_sha256": "f475529b6b2fbeb38cd80b655905e888fba0e49c64407e358aba78a93b59d671",
+ "ok": true,
+ "old_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b"
+}

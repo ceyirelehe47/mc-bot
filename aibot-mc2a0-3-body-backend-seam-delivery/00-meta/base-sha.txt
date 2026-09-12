@@ -1,0 +1,8 @@
+冻结基线分支: experiment/mc2a-graph-core-frozen
+冻结基线 commit: 3df7fb9a0086f4eb0bd7249e0925f799c47ccb8e
+本轮分支: experiment/mc2a0-3-body-backend-seam
+生产提交: a767826d2d6325a884dff2478b1774c960177d71 (15 files, +1027/-457)
+upstream AIBot: a029fa6a3760fd0f83834c104051b041d986da60 (mc1ca BASELINES.json 冻结)
+dev 树: D:/code/mc-experiment/aibot (upstream+overlay 重放)
+replay 树: D:/code/mc-experiment/aibot-replay-2a03 (本地克隆 a029fa6a+安装器重放)
+隔离服: mc-server-mc1ca-b (RCON 25576, 桥 8766, world_r2)

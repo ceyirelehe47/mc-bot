@@ -1,0 +1,14 @@
+{
+ "backend_kind": "server_fake_player",
+ "body_id": "bob",
+ "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+ "body_session_epoch": "9d66fd81-5f49-4aa6-a37f-2b7e4e20ddfc",
+ "execution_id": "169052ae-2280-48de-9669-2d99fd007b89",
+ "operation": "goto",
+ "progress": 0.0,
+ "reason": "",
+ "request_id": "live2-goto-fence-1789220058",
+ "state": "running",
+ "success_scope": "bounded_body_operation_not_user_goal",
+ "terminal": false
+}

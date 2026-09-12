@@ -1,0 +1,65 @@
+{
+ "asserts": [
+  {
+   "detail": "body_id=bob",
+   "name": "A1 body_id=bob(逻辑身份,不再是 UUID)",
+   "ok": true
+  },
+  {
+   "detail": "backend_kind=server_fake_player",
+   "name": "A2 backend_kind=server_fake_player",
+   "ok": true
+  },
+  {
+   "detail": "body_instance_id=faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+   "name": "A3 body_instance_id=旧 profile UUID",
+   "ok": true
+  },
+  {
+   "detail": "epoch=62cdf01b-e174-4691-9204-7a9ede8470d2",
+   "name": "A4 body_session_epoch 非空",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "A5 needs_reconcile=true(observe 之前)",
+   "ok": true
+  },
+  {
+   "detail": "event_sequence=992",
+   "name": "A6 observe 前 event_sequence 已推进(迁移帧已写)",
+   "ok": true
+  },
+  {
+   "detail": "graphs=33",
+   "name": "A7 历史图仍加载",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "A8 observe 清除 needs_reconcile",
+   "ok": true
+  },
+  {
+   "detail": "state=completed reason=sent_to_aibot_panel_and_global_chat",
+   "name": "A9 say 到达终态 completed",
+   "ok": true
+  },
+  {
+   "detail": "{\"body_id\": \"bob\", \"backend_kind\": \"server_fake_player\", \"body_instance_id\": \"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\", \"body_session_epoch\": \"62cdf01b-e174-4691-9204-7a9ede8470d2\"}",
+   "name": "A10 收据四绑定字段与 status 完全一致",
+   "ok": true
+  },
+  {
+   "detail": "binding_frames=2",
+   "name": "A11 新 body_binding 帧存在且四字段齐",
+   "ok": true
+  },
+  {
+   "detail": "body_changed_frames=1",
+   "name": "A12 body_changed 事件帧记录旧 UUID 与新逻辑绑定",
+   "ok": false
+  }
+ ],
+ "gate": "LIVE-1"
+}

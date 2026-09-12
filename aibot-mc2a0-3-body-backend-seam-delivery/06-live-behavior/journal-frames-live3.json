@@ -1,0 +1,553 @@
+[
+ {
+  "_seq": 1296,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_d9b0920ed1f1_ecac03c338f1444b\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":129,\"seen_from_y\":68,\"seen_from_x\":559,\"z\":129,\"y\":68,\"x\":564}"
+ },
+ {
+  "_seq": 1297,
+  "arguments": "{\"x\": 566, \"y\": 68, \"z\": 127, \"allow_terrain_changes\": true}",
+  "backend_kind": "server_fake_player",
+  "body_id": "bob",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "69baaa23-c5b1-4ae2-a369-c8ba799ea97b",
+  "execution_id": "fa5ef8f7-f738-4b83-a59a-e0382ad074e8",
+  "fingerprint": "24757730026cd7b43288fbe37d00d92017078be3091dcee9af74251761184ae5",
+  "kind": "execution",
+  "operation": "goto",
+  "owner": "mc2a0-live-1789221470141",
+  "payload": "{\"execution_id\":\"fa5ef8f7-f738-4b83-a59a-e0382ad074e8\",\"request_id\":\"live3-goto-1789221451\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"goto\",\"state\":\"accepted\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "request_id": "live3-goto-1789221451",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1298,
+  "execution_id": "fa5ef8f7-f738-4b83-a59a-e0382ad074e8",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"fa5ef8f7-f738-4b83-a59a-e0382ad074e8\",\"request_id\":\"live3-goto-1789221451\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"goto\",\"state\":\"running\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "state": "running"
+ },
+ {
+  "_seq": 1299,
+  "action": "pause",
+  "execution_id": "fa5ef8f7-f738-4b83-a59a-e0382ad074e8",
+  "fingerprint": "2ada2ec8e83bcb40c283a9a24586ef69d0e19296f9ff25941f648d09afb2d0e0",
+  "kind": "control",
+  "reason": "",
+  "request_id": "live3-goto-pause-1789221451",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1300,
+  "action": "pause",
+  "execution_id": "fa5ef8f7-f738-4b83-a59a-e0382ad074e8",
+  "fingerprint": "2ada2ec8e83bcb40c283a9a24586ef69d0e19296f9ff25941f648d09afb2d0e0",
+  "kind": "control",
+  "reason": "",
+  "request_id": "live3-goto-pause-1789221451",
+  "state": "applied"
+ },
+ {
+  "_seq": 1301,
+  "execution_id": "fa5ef8f7-f738-4b83-a59a-e0382ad074e8",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"fa5ef8f7-f738-4b83-a59a-e0382ad074e8\",\"request_id\":\"live3-goto-1789221451\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"goto\",\"state\":\"paused\",\"progress\":0.030555555555555555,\"reason\":\"user_or_lease_pause\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.030555555555555555",
+  "reason": "user_or_lease_pause",
+  "state": "paused"
+ },
+ {
+  "_seq": 1302,
+  "action": "resume",
+  "execution_id": "fa5ef8f7-f738-4b83-a59a-e0382ad074e8",
+  "fingerprint": "c13bb2a1025779e726b571c5a47c1ec6ea65517a0c11e29f5db38958eab4fd47",
+  "kind": "control",
+  "reason": "",
+  "request_id": "live3-goto-resume-1789221451",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1303,
+  "action": "resume",
+  "execution_id": "fa5ef8f7-f738-4b83-a59a-e0382ad074e8",
+  "fingerprint": "c13bb2a1025779e726b571c5a47c1ec6ea65517a0c11e29f5db38958eab4fd47",
+  "kind": "control",
+  "reason": "",
+  "request_id": "live3-goto-resume-1789221451",
+  "state": "applied"
+ },
+ {
+  "_seq": 1304,
+  "execution_id": "fa5ef8f7-f738-4b83-a59a-e0382ad074e8",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"fa5ef8f7-f738-4b83-a59a-e0382ad074e8\",\"request_id\":\"live3-goto-1789221451\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"goto\",\"state\":\"running\",\"progress\":0.030555555555555555,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.030555555555555555",
+  "reason": "",
+  "state": "running"
+ },
+ {
+  "_seq": 1305,
+  "execution_id": "fa5ef8f7-f738-4b83-a59a-e0382ad074e8",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"fa5ef8f7-f738-4b83-a59a-e0382ad074e8\",\"request_id\":\"live3-goto-1789221451\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"goto\",\"state\":\"completed\",\"progress\":1.0,\"reason\":\"arrival_within_3_blocks_verified\",\"terminal\":true,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "1.0",
+  "reason": "arrival_within_3_blocks_verified",
+  "state": "completed"
+ },
+ {
+  "_seq": 1306,
+  "arguments": "{\"id\":\"ore_637b3d8d874b_d4485d7ae90048c0\"}",
+  "backend_kind": "server_fake_player",
+  "body_id": "bob",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "69baaa23-c5b1-4ae2-a369-c8ba799ea97b",
+  "execution_id": "99408756-1a26-4b39-93e9-37f4322e18ed",
+  "fingerprint": "2387edb6f625ffecfff84a50ea66b35813ef808ecdccdd0944bf1d03259a7837",
+  "kind": "execution",
+  "operation": "mine_opportunity",
+  "owner": "mc2a0-live-1789221470141",
+  "payload": "{\"execution_id\":\"99408756-1a26-4b39-93e9-37f4322e18ed\",\"request_id\":\"graphd-55d830f2f21ac679a19582e14dc6d14b4b9cc86b\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"mine_opportunity\",\"state\":\"accepted\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "request_id": "graphd-55d830f2f21ac679a19582e14dc6d14b4b9cc86b",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1307,
+  "execution_id": "99408756-1a26-4b39-93e9-37f4322e18ed",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"99408756-1a26-4b39-93e9-37f4322e18ed\",\"request_id\":\"graphd-55d830f2f21ac679a19582e14dc6d14b4b9cc86b\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"mine_opportunity\",\"state\":\"running\",\"progress\":0.95,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.95",
+  "reason": "",
+  "state": "running"
+ },
+ {
+  "_seq": 1308,
+  "execution_id": "99408756-1a26-4b39-93e9-37f4322e18ed",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"99408756-1a26-4b39-93e9-37f4322e18ed\",\"request_id\":\"graphd-55d830f2f21ac679a19582e14dc6d14b4b9cc86b\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"mine_opportunity\",\"state\":\"failed\",\"progress\":0.95,\"reason\":\"known_resource_pickup_recovery_drop_not_found\",\"terminal\":true,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.95",
+  "reason": "known_resource_pickup_recovery_drop_not_found",
+  "state": "failed"
+ },
+ {
+  "_seq": 1309,
+  "arguments": "{\"item\": \"minecraft:oak_log\", \"count\": 1}",
+  "backend_kind": "server_fake_player",
+  "body_id": "bob",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "69baaa23-c5b1-4ae2-a369-c8ba799ea97b",
+  "execution_id": "e0e20961-a187-4092-9252-509c4af74939",
+  "fingerprint": "e3461c72995436b3b9a610f83ceca4410d1b371c60cd45b10417152751c70e71",
+  "kind": "execution",
+  "operation": "gather",
+  "owner": "mc2a0-live-1789221470141",
+  "payload": "{\"execution_id\":\"e0e20961-a187-4092-9252-509c4af74939\",\"request_id\":\"live3-tree-1789221451\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"gather\",\"state\":\"accepted\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "request_id": "live3-tree-1789221451",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1310,
+  "execution_id": "e0e20961-a187-4092-9252-509c4af74939",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"e0e20961-a187-4092-9252-509c4af74939\",\"request_id\":\"live3-tree-1789221451\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"gather\",\"state\":\"running\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "state": "running"
+ },
+ {
+  "_seq": 1311,
+  "execution_id": "e0e20961-a187-4092-9252-509c4af74939",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"e0e20961-a187-4092-9252-509c4af74939\",\"request_id\":\"live3-tree-1789221451\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\",\"operation\":\"gather\",\"state\":\"completed\",\"progress\":1.0,\"reason\":\"inventory_family_or_exact_quota_verified:accepted=6\",\"terminal\":true,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "1.0",
+  "reason": "inventory_family_or_exact_quota_verified:accepted=6",
+  "state": "completed"
+ },
+ {
+  "_seq": 1312,
+  "execution_id": "",
+  "kind": "runtime_stopped",
+  "payload": "{\"runtime_epoch\":\"0d416df7-3fda-44e5-952a-b290eeb653bc\"}"
+ },
+ {
+  "_seq": 1313,
+  "execution_id": "",
+  "kind": "runtime_started",
+  "payload": "{\"runtime_epoch\":\"d6141d3f-d30b-4e13-a91b-ae080752c74d\"}"
+ },
+ {
+  "_seq": 1314,
+  "execution_id": "",
+  "kind": "body_session_changed",
+  "payload": "{\"previous\":{\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"69baaa23-c5b1-4ae2-a369-c8ba799ea97b\"},\"current\":{\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\"}}"
+ },
+ {
+  "_seq": 1315,
+  "backend_kind": "server_fake_player",
+  "body_id": "bob",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "851693bb-04d2-4db2-9861-18d6e2b41dc9",
+  "kind": "body_binding",
+  "payload": "{\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\"}"
+ },
+ {
+  "_seq": 1316,
+  "execution_id": "",
+  "kind": "control_acquired",
+  "payload": "{\"owner\":\"mc2a0-live-1789221624645\",\"lease_epoch\":\"d6141d3f-d30b-4e13-a91b-ae080752c74d:1\"}"
+ },
+ {
+  "_seq": 1317,
+  "arguments": "{\"message\": \"2a03-live3-behavior-slice\"}",
+  "backend_kind": "server_fake_player",
+  "body_id": "bob",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "851693bb-04d2-4db2-9861-18d6e2b41dc9",
+  "execution_id": "3ec198a7-c869-4c6a-9ba4-cb8b0e7dcf8a",
+  "fingerprint": "8544163a5e365be45ec6f1463799af5248986d68d4e4b68b927706a24d044529",
+  "kind": "execution",
+  "operation": "say",
+  "owner": "mc2a0-live-1789221624645",
+  "payload": "{\"execution_id\":\"3ec198a7-c869-4c6a-9ba4-cb8b0e7dcf8a\",\"request_id\":\"live3-say-1789221597\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"say\",\"state\":\"accepted\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "request_id": "live3-say-1789221597",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1318,
+  "execution_id": "3ec198a7-c869-4c6a-9ba4-cb8b0e7dcf8a",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"3ec198a7-c869-4c6a-9ba4-cb8b0e7dcf8a\",\"request_id\":\"live3-say-1789221597\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"say\",\"state\":\"completed\",\"progress\":1.0,\"reason\":\"sent_to_aibot_panel_and_global_chat\",\"terminal\":true,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "1.0",
+  "reason": "sent_to_aibot_panel_and_global_chat",
+  "state": "completed"
+ },
+ {
+  "_seq": 1319,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":232,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:coal_ore\",\"opportunity_id\":\"ore_28a5381fa9593ae99f8f399047550507\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":46,\"seen_from_y\":117,\"seen_from_x\":236,\"z\":43,\"y\":111}"
+ },
+ {
+  "_seq": 1320,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":315,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:coal_ore\",\"opportunity_id\":\"ore_f23db7ff890d32e0b79bc72332d5b153\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":94,\"seen_from_y\":70,\"seen_from_x\":309,\"z\":87,\"y\":74}"
+ },
+ {
+  "_seq": 1321,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":315,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:coal_ore\",\"opportunity_id\":\"ore_2409a7f67ddf3c60871c1098e01cdc47\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":94,\"seen_from_y\":70,\"seen_from_x\":309,\"z\":88,\"y\":74}"
+ },
+ {
+  "_seq": 1322,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":316,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:coal_ore\",\"opportunity_id\":\"ore_fa6099fb14393727981ad6828bb1f76b\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":94,\"seen_from_y\":70,\"seen_from_x\":309,\"z\":87,\"y\":74}"
+ },
+ {
+  "_seq": 1323,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":316,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:coal_ore\",\"opportunity_id\":\"ore_13e8883449d738fb90a6bba2af25c0f3\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":94,\"seen_from_y\":70,\"seen_from_x\":309,\"z\":88,\"y\":74}"
+ },
+ {
+  "_seq": 1324,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":333,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:copper_ore\",\"opportunity_id\":\"ore_bd7436f87128375dbe44e8e9cecfcd1c\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":88,\"seen_from_y\":70,\"seen_from_x\":331,\"z\":86,\"y\":69}"
+ },
+ {
+  "_seq": 1325,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":334,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:copper_ore\",\"opportunity_id\":\"ore_49a6cff84000316f9425d27449766626\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":88,\"seen_from_y\":70,\"seen_from_x\":331,\"z\":86,\"y\":69}"
+ },
+ {
+  "_seq": 1326,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":490,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_9a88ceb8e7993ae1a5cba009d925447d\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":118,\"seen_from_y\":69,\"seen_from_x\":491,\"z\":120,\"y\":64}"
+ },
+ {
+  "_seq": 1327,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":489,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_2abfaa05f88e34cb80b6c71a34f0b2e6\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":121,\"seen_from_y\":64,\"seen_from_x\":491,\"z\":120,\"y\":64}"
+ },
+ {
+  "_seq": 1328,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":574,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_7d9072bb521c3b53b985c0af1ae24001\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":157,\"seen_from_y\":63,\"seen_from_x\":572,\"z\":162,\"y\":63}"
+ },
+ {
+  "_seq": 1329,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":488,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_f235b51a241b30ce90bdb791180b1529\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":121,\"seen_from_y\":69,\"seen_from_x\":487,\"z\":123,\"y\":70}"
+ },
+ {
+  "_seq": 1330,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":489,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_c7be6124b5003394bd12ec7e7b6f3f22\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":121,\"seen_from_y\":69,\"seen_from_x\":487,\"z\":122,\"y\":69}"
+ },
+ {
+  "_seq": 1331,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":558,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_ec01382592993ea0a02a395df0cb0de3\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":133,\"seen_from_y\":68,\"seen_from_x\":550,\"z\":132,\"y\":68}"
+ },
+ {
+  "_seq": 1332,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":558,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_4c1fc7783fbc3834959406ffe1a692e6\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":129,\"seen_from_y\":68,\"seen_from_x\":551,\"z\":129,\"y\":68}"
+ },
+ {
+  "_seq": 1333,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":566,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_fc5799c7eeb93d7f9f8e92a4871be484\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":129,\"seen_from_y\":68,\"seen_from_x\":562,\"z\":129,\"y\":68}"
+ },
+ {
+  "_seq": 1334,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":550,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_769151ef5a8d3c12bc11eca310341d56\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":106,\"seen_from_y\":64,\"seen_from_x\":550,\"z\":104,\"y\":68}"
+ },
+ {
+  "_seq": 1335,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":550,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_3cceb394963f3d40bb920e4ab3ab08cd\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":98,\"seen_from_y\":67,\"seen_from_x\":550,\"z\":96,\"y\":68}"
+ },
+ {
+  "_seq": 1336,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":564,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_d9b0920ed1f1_ecac03c338f1444b\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":129,\"seen_from_y\":68,\"seen_from_x\":559,\"z\":129,\"y\":68}"
+ },
+ {
+  "_seq": 1337,
+  "arguments": "{\"x\": 568, \"y\": 68, \"z\": 127, \"allow_terrain_changes\": true}",
+  "backend_kind": "server_fake_player",
+  "body_id": "bob",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "851693bb-04d2-4db2-9861-18d6e2b41dc9",
+  "execution_id": "513dedd0-c57c-412d-822b-fe2ef803c743",
+  "fingerprint": "ac0e3e6a5db5297a3887f106fe979115004abb0d71916021874779c616523043",
+  "kind": "execution",
+  "operation": "goto",
+  "owner": "mc2a0-live-1789221624645",
+  "payload": "{\"execution_id\":\"513dedd0-c57c-412d-822b-fe2ef803c743\",\"request_id\":\"live3-goto-1789221597\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"goto\",\"state\":\"accepted\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "request_id": "live3-goto-1789221597",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1338,
+  "execution_id": "513dedd0-c57c-412d-822b-fe2ef803c743",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"513dedd0-c57c-412d-822b-fe2ef803c743\",\"request_id\":\"live3-goto-1789221597\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"goto\",\"state\":\"running\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "state": "running"
+ },
+ {
+  "_seq": 1339,
+  "action": "pause",
+  "execution_id": "513dedd0-c57c-412d-822b-fe2ef803c743",
+  "fingerprint": "2910a06fc3cbc4ea447a35d19f24318e27f4c383e39e786bfc37c02ef85306c8",
+  "kind": "control",
+  "reason": "",
+  "request_id": "live3-goto-pause-1789221597",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1340,
+  "action": "pause",
+  "execution_id": "513dedd0-c57c-412d-822b-fe2ef803c743",
+  "fingerprint": "2910a06fc3cbc4ea447a35d19f24318e27f4c383e39e786bfc37c02ef85306c8",
+  "kind": "control",
+  "reason": "",
+  "request_id": "live3-goto-pause-1789221597",
+  "state": "applied"
+ },
+ {
+  "_seq": 1341,
+  "execution_id": "513dedd0-c57c-412d-822b-fe2ef803c743",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"513dedd0-c57c-412d-822b-fe2ef803c743\",\"request_id\":\"live3-goto-1789221597\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"goto\",\"state\":\"paused\",\"progress\":0.028645833333333332,\"reason\":\"user_or_lease_pause\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.028645833333333332",
+  "reason": "user_or_lease_pause",
+  "state": "paused"
+ },
+ {
+  "_seq": 1342,
+  "action": "resume",
+  "execution_id": "513dedd0-c57c-412d-822b-fe2ef803c743",
+  "fingerprint": "1e73dac745d1334f17f4ac876c9fd42bca1482797edc07f942d9ef122a188e6a",
+  "kind": "control",
+  "reason": "",
+  "request_id": "live3-goto-resume-1789221597",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1343,
+  "action": "resume",
+  "execution_id": "513dedd0-c57c-412d-822b-fe2ef803c743",
+  "fingerprint": "1e73dac745d1334f17f4ac876c9fd42bca1482797edc07f942d9ef122a188e6a",
+  "kind": "control",
+  "reason": "",
+  "request_id": "live3-goto-resume-1789221597",
+  "state": "applied"
+ },
+ {
+  "_seq": 1344,
+  "execution_id": "513dedd0-c57c-412d-822b-fe2ef803c743",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"513dedd0-c57c-412d-822b-fe2ef803c743\",\"request_id\":\"live3-goto-1789221597\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"goto\",\"state\":\"running\",\"progress\":0.028645833333333332,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.028645833333333332",
+  "reason": "",
+  "state": "running"
+ },
+ {
+  "_seq": 1345,
+  "block_id": "minecraft:iron_ore",
+  "blocked_reason": "",
+  "dimension": "minecraft:overworld",
+  "execution_id": "",
+  "kind": "resource_opportunity_birth",
+  "last_seen_game_time": "305015",
+  "opportunity_id": "ore_27a43aee7126_be10b3e546fa4fa3",
+  "pickup_baseline": "-1",
+  "required_tool": "minecraft:stone_pickaxe",
+  "seen_x": "561",
+  "seen_y": "68",
+  "seen_z": "127",
+  "state_since_game_time": "305015",
+  "state_x": "561",
+  "state_y": "68",
+  "state_z": "127",
+  "status": "ACTIONABLE",
+  "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39",
+  "x": "569",
+  "y": "68",
+  "z": "127"
+ },
+ {
+  "_seq": 1346,
+  "execution_id": "513dedd0-c57c-412d-822b-fe2ef803c743",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"x\":569,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"opportunity_id\":\"ore_27a43aee7126_be10b3e546fa4fa3\",\"dimension\":\"minecraft:overworld\",\"seen_from_z\":127,\"seen_from_y\":68,\"seen_from_x\":561,\"z\":127,\"y\":68}"
+ },
+ {
+  "_seq": 1347,
+  "execution_id": "513dedd0-c57c-412d-822b-fe2ef803c743",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"513dedd0-c57c-412d-822b-fe2ef803c743\",\"request_id\":\"live3-goto-1789221597\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"goto\",\"state\":\"completed\",\"progress\":1.0,\"reason\":\"arrival_within_3_blocks_verified\",\"terminal\":true,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "1.0",
+  "reason": "arrival_within_3_blocks_verified",
+  "state": "completed"
+ },
+ {
+  "_seq": 1348,
+  "arguments": "{\"id\":\"ore_27a43aee7126_be10b3e546fa4fa3\"}",
+  "backend_kind": "server_fake_player",
+  "body_id": "bob",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "851693bb-04d2-4db2-9861-18d6e2b41dc9",
+  "execution_id": "7b7b6d96-4628-42d8-b3e3-5fa93c574033",
+  "fingerprint": "7a9d37848452ba89600df610d29c48a762f0d89cd48feb3b35c31821edc85f5a",
+  "kind": "execution",
+  "operation": "mine_opportunity",
+  "owner": "mc2a0-live-1789221624645",
+  "payload": "{\"execution_id\":\"7b7b6d96-4628-42d8-b3e3-5fa93c574033\",\"request_id\":\"graphd-890915140ac5e3edccbefe15840f6e7e37831cb5\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"mine_opportunity\",\"state\":\"accepted\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "request_id": "graphd-890915140ac5e3edccbefe15840f6e7e37831cb5",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1349,
+  "execution_id": "7b7b6d96-4628-42d8-b3e3-5fa93c574033",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"7b7b6d96-4628-42d8-b3e3-5fa93c574033\",\"request_id\":\"graphd-890915140ac5e3edccbefe15840f6e7e37831cb5\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"mine_opportunity\",\"state\":\"running\",\"progress\":0.2,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.2",
+  "reason": "",
+  "state": "running"
+ },
+ {
+  "_seq": 1350,
+  "dimension": "minecraft:overworld",
+  "execution_id": "7b7b6d96-4628-42d8-b3e3-5fa93c574033",
+  "kind": "resource_opportunity_consumed",
+  "opportunity_id": "ore_27a43aee7126_be10b3e546fa4fa3",
+  "payload": "{\"block\":\"minecraft:iron_ore\",\"resolution\":\"inventory_gain_proven\",\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"z\":127,\"y\":68,\"x\":569,\"opportunity_id\":\"ore_27a43aee7126_be10b3e546fa4fa3\",\"dimension\":\"minecraft:overworld\"}",
+  "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39"
+ },
+ {
+  "_seq": 1351,
+  "execution_id": "7b7b6d96-4628-42d8-b3e3-5fa93c574033",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"7b7b6d96-4628-42d8-b3e3-5fa93c574033\",\"request_id\":\"graphd-890915140ac5e3edccbefe15840f6e7e37831cb5\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"mine_opportunity\",\"state\":\"completed\",\"progress\":0.9,\"reason\":\"upstream_task_completed_reobserve_for_user_goal_verification\",\"terminal\":true,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.9",
+  "reason": "upstream_task_completed_reobserve_for_user_goal_verification",
+  "state": "completed"
+ },
+ {
+  "_seq": 1352,
+  "arguments": "{\"item\": \"minecraft:oak_log\", \"count\": 1}",
+  "backend_kind": "server_fake_player",
+  "body_id": "bob",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "851693bb-04d2-4db2-9861-18d6e2b41dc9",
+  "execution_id": "e3de66a1-34b5-4cd4-a3f9-54d6948e372c",
+  "fingerprint": "e3461c72995436b3b9a610f83ceca4410d1b371c60cd45b10417152751c70e71",
+  "kind": "execution",
+  "operation": "gather",
+  "owner": "mc2a0-live-1789221624645",
+  "payload": "{\"execution_id\":\"e3de66a1-34b5-4cd4-a3f9-54d6948e372c\",\"request_id\":\"live3-tree-1789221597\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"gather\",\"state\":\"accepted\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "request_id": "live3-tree-1789221597",
+  "state": "accepted"
+ },
+ {
+  "_seq": 1353,
+  "execution_id": "e3de66a1-34b5-4cd4-a3f9-54d6948e372c",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"e3de66a1-34b5-4cd4-a3f9-54d6948e372c\",\"request_id\":\"live3-tree-1789221597\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"gather\",\"state\":\"running\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "state": "running"
+ },
+ {
+  "_seq": 1354,
+  "execution_id": "e3de66a1-34b5-4cd4-a3f9-54d6948e372c",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"e3de66a1-34b5-4cd4-a3f9-54d6948e372c\",\"request_id\":\"live3-tree-1789221597\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"851693bb-04d2-4db2-9861-18d6e2b41dc9\",\"operation\":\"gather\",\"state\":\"completed\",\"progress\":1.0,\"reason\":\"inventory_family_or_exact_quota_verified:accepted=4\",\"terminal\":true,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "1.0",
+  "reason": "inventory_family_or_exact_quota_verified:accepted=4",
+  "state": "completed"
+ },
+ {
+  "_seq": 1355,
+  "execution_id": "",
+  "kind": "runtime_stopped",
+  "payload": "{\"runtime_epoch\":\"d6141d3f-d30b-4e13-a91b-ae080752c74d\"}"
+ }
+]

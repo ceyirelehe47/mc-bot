@@ -1,0 +1,257 @@
+[
+ {
+  "_seq": 967,
+  "execution_id": "",
+  "kind": "control_acquired",
+  "payload": "{\"owner\":\"graph-core-live-driver\",\"lease_epoch\":\"6941709a-5e0e-411d-8d13-b7869013dad4:1\"}"
+ },
+ {
+  "_seq": 968,
+  "execution_id": "",
+  "kind": "runtime_stopped",
+  "payload": "{\"runtime_epoch\":\"6941709a-5e0e-411d-8d13-b7869013dad4\"}"
+ },
+ {
+  "_seq": 969,
+  "block_id": "minecraft:iron_ore",
+  "blocked_reason": "",
+  "dimension": "minecraft:overworld",
+  "execution_id": "",
+  "kind": "resource_opportunity_birth",
+  "last_seen_game_time": "0",
+  "opportunity_id": "ore_0123456789abcdef0123456789abcdef",
+  "pickup_baseline": "-1",
+  "required_tool": "minecraft:iron_pickaxe",
+  "seen_x": "561",
+  "seen_y": "68",
+  "seen_z": "127",
+  "state_since_game_time": "0",
+  "state_x": "561",
+  "state_y": "68",
+  "state_z": "127",
+  "status": "ACTIONABLE",
+  "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39",
+  "x": "562",
+  "y": "68",
+  "z": "127"
+ },
+ {
+  "_seq": 970,
+  "execution_id": "",
+  "kind": "runtime_started",
+  "payload": "{\"runtime_epoch\":\"b9a8a387-274f-4818-9378-15a1c93d960e\"}"
+ },
+ {
+  "_seq": 971,
+  "execution_id": "",
+  "kind": "runtime_stopped",
+  "payload": "{\"runtime_epoch\":\"b9a8a387-274f-4818-9378-15a1c93d960e\"}"
+ },
+ {
+  "_seq": 972,
+  "execution_id": "",
+  "kind": "runtime_started",
+  "payload": "{\"runtime_epoch\":\"86dbbb74-4f20-45af-9069-8e1b8fdd30a7\"}"
+ },
+ {
+  "_seq": 973,
+  "execution_id": "",
+  "kind": "runtime_stopped",
+  "payload": "{\"runtime_epoch\":\"86dbbb74-4f20-45af-9069-8e1b8fdd30a7\"}"
+ },
+ {
+  "_seq": 974,
+  "execution_id": "",
+  "kind": "runtime_started",
+  "payload": "{\"runtime_epoch\":\"f297ca48-2181-48d0-8343-2a539d6be012\"}"
+ },
+ {
+  "_seq": 975,
+  "execution_id": "",
+  "kind": "control_acquired",
+  "payload": "{\"owner\":\"graph-core-live-driver\",\"lease_epoch\":\"f297ca48-2181-48d0-8343-2a539d6be012:1\"}"
+ },
+ {
+  "_seq": 976,
+  "dimension": "minecraft:overworld",
+  "execution_id": "",
+  "kind": "resource_opportunity_stale",
+  "opportunity_id": "ore_0123456789abcdef0123456789abcdef",
+  "payload": "{\"dimension\":\"minecraft:overworld\",\"opportunity_id\":\"ore_0123456789abcdef0123456789abcdef\",\"x\":562,\"y\":68,\"z\":127,\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"block\":\"minecraft:iron_ore\",\"reason\":\"externally_consumed_cell_replaced_with:minecraft:stone\"}",
+  "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39"
+ },
+ {
+  "_seq": 977,
+  "execution_id": "",
+  "kind": "runtime_stopped",
+  "payload": "{\"runtime_epoch\":\"f297ca48-2181-48d0-8343-2a539d6be012\"}"
+ },
+ {
+  "_seq": 978,
+  "execution_id": "",
+  "kind": "runtime_started",
+  "payload": "{\"runtime_epoch\":\"d0976bbc-b446-492b-bba3-2c31190b46cd\"}"
+ },
+ {
+  "_seq": 979,
+  "execution_id": "",
+  "kind": "control_acquired",
+  "payload": "{\"owner\":\"graph-core-live-driver\",\"lease_epoch\":\"d0976bbc-b446-492b-bba3-2c31190b46cd:1\"}"
+ },
+ {
+  "_seq": 980,
+  "block_id": "minecraft:iron_ore",
+  "blocked_reason": "",
+  "dimension": "minecraft:overworld",
+  "execution_id": "",
+  "kind": "resource_opportunity_birth",
+  "last_seen_game_time": "289513",
+  "opportunity_id": "ore_c3d87bacf760_a2a8da5dccb4495c",
+  "pickup_baseline": "-1",
+  "required_tool": "minecraft:stone_pickaxe",
+  "seen_x": "569",
+  "seen_y": "68",
+  "seen_z": "127",
+  "state_since_game_time": "289513",
+  "state_x": "569",
+  "state_y": "68",
+  "state_z": "127",
+  "status": "ACTIONABLE",
+  "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39",
+  "x": "570",
+  "y": "68",
+  "z": "127"
+ },
+ {
+  "_seq": 981,
+  "execution_id": "",
+  "kind": "resource_opportunity_actionable",
+  "payload": "{\"opportunity_id\":\"ore_c3d87bacf760_a2a8da5dccb4495c\",\"block\":\"minecraft:iron_ore\",\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"x\":570,\"y\":68,\"z\":127,\"seen_from_x\":569,\"seen_from_y\":68,\"seen_from_z\":127,\"dimension\":\"minecraft:overworld\"}"
+ },
+ {
+  "_seq": 982,
+  "execution_id": "",
+  "kind": "runtime_stopped",
+  "payload": "{\"runtime_epoch\":\"d0976bbc-b446-492b-bba3-2c31190b46cd\"}"
+ },
+ {
+  "_seq": 983,
+  "execution_id": "",
+  "kind": "runtime_started",
+  "payload": "{\"runtime_epoch\":\"dd904107-271e-4208-a486-e99eed7ad4cd\"}"
+ },
+ {
+  "_seq": 984,
+  "execution_id": "",
+  "kind": "control_acquired",
+  "payload": "{\"lease_epoch\":\"dd904107-271e-4208-a486-e99eed7ad4cd:1\",\"owner\":\"graph-core-live-driver\"}"
+ },
+ {
+  "_seq": 985,
+  "arguments": "{\"id\":\"ore_c3d87bacf760_a2a8da5dccb4495c\"}",
+  "body_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "execution_id": "18e48128-dcf3-4310-b493-803354d51908",
+  "fingerprint": "fca1a755586cadc5f9b92b3c99903e8300455b2fd934823239dab781be61cdf0",
+  "kind": "execution",
+  "operation": "mine_opportunity",
+  "owner": "graph-core-live-driver",
+  "payload": "{\"execution_id\":\"18e48128-dcf3-4310-b493-803354d51908\",\"request_id\":\"graphd-18902c85c89d68107386d234f60791fb5a057535\",\"body_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"operation\":\"mine_opportunity\",\"state\":\"accepted\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "request_id": "graphd-18902c85c89d68107386d234f60791fb5a057535",
+  "state": "accepted"
+ },
+ {
+  "_seq": 986,
+  "execution_id": "18e48128-dcf3-4310-b493-803354d51908",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"18e48128-dcf3-4310-b493-803354d51908\",\"request_id\":\"graphd-18902c85c89d68107386d234f60791fb5a057535\",\"body_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"operation\":\"mine_opportunity\",\"state\":\"running\",\"progress\":0.2,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.2",
+  "reason": "",
+  "state": "running"
+ },
+ {
+  "_seq": 987,
+  "dimension": "minecraft:overworld",
+  "execution_id": "18e48128-dcf3-4310-b493-803354d51908",
+  "kind": "resource_opportunity_consumed",
+  "opportunity_id": "ore_c3d87bacf760_a2a8da5dccb4495c",
+  "payload": "{\"block\":\"minecraft:iron_ore\",\"resolution\":\"inventory_gain_proven\",\"world_id\":\"80980dea-4a25-46fa-ab97-eeefcc8b4b39\",\"z\":127,\"y\":68,\"x\":570,\"opportunity_id\":\"ore_c3d87bacf760_a2a8da5dccb4495c\",\"dimension\":\"minecraft:overworld\"}",
+  "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39"
+ },
+ {
+  "_seq": 988,
+  "execution_id": "18e48128-dcf3-4310-b493-803354d51908",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"18e48128-dcf3-4310-b493-803354d51908\",\"request_id\":\"graphd-18902c85c89d68107386d234f60791fb5a057535\",\"body_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"operation\":\"mine_opportunity\",\"state\":\"completed\",\"progress\":0.9,\"reason\":\"upstream_task_completed_reobserve_for_user_goal_verification\",\"terminal\":true,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.9",
+  "reason": "upstream_task_completed_reobserve_for_user_goal_verification",
+  "state": "completed"
+ },
+ {
+  "_seq": 989,
+  "execution_id": "",
+  "kind": "runtime_stopped",
+  "payload": "{\"runtime_epoch\":\"dd904107-271e-4208-a486-e99eed7ad4cd\"}"
+ },
+ {
+  "_seq": 990,
+  "execution_id": "",
+  "kind": "runtime_started",
+  "payload": "{\"runtime_epoch\":\"a27cd5d8-2207-4cfb-90ba-e1eb3788b336\"}"
+ },
+ {
+  "_seq": 991,
+  "execution_id": "",
+  "kind": "body_changed",
+  "payload": "{\"current\":{\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"62cdf01b-e174-4691-9204-7a9ede8470d2\"},\"previous\":{\"body_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"backend_kind\":\"\",\"body_instance_id\":\"\",\"body_session_epoch\":\"\"}}"
+ },
+ {
+  "_seq": 992,
+  "backend_kind": "server_fake_player",
+  "body_id": "bob",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "62cdf01b-e174-4691-9204-7a9ede8470d2",
+  "kind": "body_binding",
+  "payload": "{\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"62cdf01b-e174-4691-9204-7a9ede8470d2\"}"
+ },
+ {
+  "_seq": 993,
+  "execution_id": "",
+  "kind": "control_acquired",
+  "payload": "{\"lease_epoch\":\"a27cd5d8-2207-4cfb-90ba-e1eb3788b336:1\",\"owner\":\"mc2a0-live-1789219004305\"}"
+ },
+ {
+  "_seq": 994,
+  "arguments": "{\"message\": \"2a03-live1-binding-check\"}",
+  "backend_kind": "server_fake_player",
+  "body_id": "bob",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "62cdf01b-e174-4691-9204-7a9ede8470d2",
+  "execution_id": "9bcec73c-8ef1-4a32-8498-612f6062ece7",
+  "fingerprint": "834781d4593224d476bd95fde2a7529a624a1035e62321e2f473ad2b9ca2a3b9",
+  "kind": "execution",
+  "operation": "say",
+  "owner": "mc2a0-live-1789219004305",
+  "payload": "{\"execution_id\":\"9bcec73c-8ef1-4a32-8498-612f6062ece7\",\"request_id\":\"live1-say-binding-check\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"62cdf01b-e174-4691-9204-7a9ede8470d2\",\"operation\":\"say\",\"state\":\"accepted\",\"progress\":0.0,\"reason\":\"\",\"terminal\":false,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "0.0",
+  "reason": "",
+  "request_id": "live1-say-binding-check",
+  "state": "accepted"
+ },
+ {
+  "_seq": 995,
+  "execution_id": "9bcec73c-8ef1-4a32-8498-612f6062ece7",
+  "kind": "execution",
+  "payload": "{\"execution_id\":\"9bcec73c-8ef1-4a32-8498-612f6062ece7\",\"request_id\":\"live1-say-binding-check\",\"body_id\":\"bob\",\"backend_kind\":\"server_fake_player\",\"body_instance_id\":\"faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b\",\"body_session_epoch\":\"62cdf01b-e174-4691-9204-7a9ede8470d2\",\"operation\":\"say\",\"state\":\"completed\",\"progress\":1.0,\"reason\":\"sent_to_aibot_panel_and_global_chat\",\"terminal\":true,\"success_scope\":\"bounded_body_operation_not_user_goal\"}",
+  "progress": "1.0",
+  "reason": "sent_to_aibot_panel_and_global_chat",
+  "state": "completed"
+ },
+ {
+  "_seq": 996,
+  "execution_id": "",
+  "kind": "runtime_stopped",
+  "payload": "{\"runtime_epoch\":\"a27cd5d8-2207-4cfb-90ba-e1eb3788b336\"}"
+ }
+]

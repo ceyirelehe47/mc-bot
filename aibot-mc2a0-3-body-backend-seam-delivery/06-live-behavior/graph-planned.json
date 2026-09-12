@@ -1,0 +1,28 @@
+{
+ "created_at_ms": 1789221651671,
+ "graph_id": "graph-3ec6c0fc0008d3acfcf04e71",
+ "nodes": [
+  {
+   "attempt": 0,
+   "dependencies": [],
+   "dispatch_request_id": "",
+   "execution_id": "",
+   "node_id": "n-mine-02b856d3cd78",
+   "operation": "mine_opportunity",
+   "postcondition": "OPPORTUNITY_RESOLVED",
+   "reason": "dependencies_satisfied",
+   "resource_claim": "opportunity|80980dea-4a25-46fa-ab97-eeefcc8b4b39|minecraft:overworld|ore_27a43aee7126_be10b3e546fa4fa3",
+   "state": "READY",
+   "subject_ref": {
+    "dimension_id": "minecraft:overworld",
+    "object_id": "ore_27a43aee7126_be10b3e546fa4fa3",
+    "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39"
+   }
+  }
+ ],
+ "plan_key": "2a03-live3-mine-569-127-1789221597",
+ "producer_key": "opportunity|2a03-live3-mine-569-127-1789221597|80980dea-4a25-46fa-ab97-eeefcc8b4b39|minecraft:overworld|ore_27a43aee7126_be10b3e546fa4fa3",
+ "producer_kind": "OPPORTUNITY_EXPLICIT",
+ "state": "READY",
+ "updated_at_ms": 1789221651671
+}

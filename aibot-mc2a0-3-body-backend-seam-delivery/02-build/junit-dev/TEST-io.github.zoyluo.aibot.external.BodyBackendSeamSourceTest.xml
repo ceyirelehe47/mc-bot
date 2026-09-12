@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-12T12:46:19.465Z" hostname="FORST" time="0.007">
+  <properties/>
+  <testcase name="kernelPersistsAndFencesPhysicalSessionChangesWithoutTouchingGraphDispatch()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.001"/>
+  <testcase name="minecraftBackendDelegatesMutationAndDoesNotConstructTasks()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.001"/>
+  <testcase name="serverFakePlayerDriverOwnsCurrentOperationMapping()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.001"/>
+  <testcase name="logicalBodyIdentityIsSeparatedFromPhysicalSession()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.001"/>
+  <testcase name="physicalExecutionPortHasNoMinecraftDependency()" classname="io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

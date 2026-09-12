@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-09-12T12:46:19.652Z" hostname="FORST" time="0.072">
+  <properties/>
+  <testcase name="partialHuntReplanWatermarkFailsClosedWithoutErasingValidCursor()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.028"/>
+  <testcase name="restoredCursorKeepsOrdinalAndVisitedFactsMonotonicAcrossRepeatedCapture()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.006"/>
+  <testcase name="captureShapeRoundTripsSnapshotAndCursorAsIndependentNamespaces()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.003"/>
+  <testcase name="transitionCaptureRunsBeforeDispatchAndAgainAfterSuccess()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.001"/>
+  <testcase name="completedAndSkippedStepTransitionsCaptureBeforeDispatch()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.003"/>
+  <testcase name="missingNamespaceIsTheOnlyLegacyFreshRepresentation()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.0"/>
+  <testcase name="realRestoreValidationRejectsEveryPresentMalformedSnapshot()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.001"/>
+  <testcase name="partialOrMalformedNamespaceFailsClosed()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.001"/>
+  <testcase name="namespaceRoundTripsMissionSearchFacts()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.001"/>
+  <testcase name="persistedMissionCountersAllowOnlyMissingOrNonNegativeIntegers()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.0"/>
+  <testcase name="malformedHuntWatermarksFailClosedWhileLegacySnapshotRemainsCompatible()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.001"/>
+  <testcase name="modernHuntWatermarkCannotLoseItsCursorNamespace()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.0"/>
+  <testcase name="repairReplanAndServiceSchedulesUseWriteAheadCapture()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.022"/>
+  <testcase name="validSnapshotCannotAuthorizeMalformedHuntNamespace()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.001"/>
+  <testcase name="snapshotShapeIsExactAndCanonical()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.001"/>
+  <testcase name="failedDispatchStillRetainsItsWriteAheadCapture()" classname="io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

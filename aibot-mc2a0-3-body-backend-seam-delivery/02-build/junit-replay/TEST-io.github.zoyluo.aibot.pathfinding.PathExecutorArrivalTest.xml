@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.pathfinding.PathExecutorArrivalTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-12T12:49:36.040Z" hostname="FORST" time="0.003">
+  <properties/>
+  <testcase name="horizontalToleranceNeverSkipsARequiredElevationChange()" classname="io.github.zoyluo.aibot.pathfinding.PathExecutorArrivalTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

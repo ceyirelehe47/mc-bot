@@ -1,0 +1,90 @@
+PASS view schema
+PASS view hash format
+PASS body change requires reconciliation
+PASS view must not clear needs_reconcile
+PASS observe_required
+PASS invalid_evidence_ref
+PASS evidence_ref_not_in_current_view
+PASS inspect summary materializes on demand
+PASS unsupported_detail_level
+PASS radius_out_of_range
+PASS local query waits for the server thread
+PASS local query completes on tick thread
+PASS only observe unlocks new work
+PASS one expensive local query per tick (got 1)
+PASS queued queries drain across ticks
+PASS expired query fails the waiter
+PASS expired query never executes on the server thread (inspectLocals=4)
+PASS view refresh materializes zero inspect details
+PASS a single inspect materializes exactly one detail
+PASS baseline detail content
+PASS JSON escaping
+PASS lease active
+PASS body_controlled
+PASS only existing token holder may repeat claim for same owner
+PASS body_controlled
+PASS control_lease_invalid
+PASS HTTP admission cannot run world action
+PASS accepted distinct from completed
+PASS idempotent duplicate returns original receipt
+PASS idempotency_conflict
+PASS execution_in_progress
+PASS one physical dispatch
+PASS backend receives exact bridge execution id
+PASS running state
+PASS controls are queued not run in HTTP thread
+PASS pause preserves execution
+PASS resume existing task
+PASS terminal completion
+PASS terminal state monotonic
+PASS retry after completion does not repeat world action
+PASS completed retry no re-execution
+PASS old cancel cannot cancel replacement execution
+PASS release pauses body without enabling internal brain
+PASS control_lease_invalid
+PASS expired queued command never runs
+PASS expired accepted receipt settles cancelled
+PASS lease expiry pauses normal work
+PASS control_lease_invalid
+PASS new controller does not automatically restart work
+PASS death attributed to current execution
+PASS observe_required
+PASS fresh observe enables deliberate replan after death
+PASS start exception not silently retried
+PASS partial start cleanup attempted
+PASS observe_required
+PASS pause before dispatch never starts or cancels work
+PASS resume after early pause dispatches once
+PASS same owner reacquire does not revive old-lease accepted command
+PASS shutdown records unknown before unloading external work
+PASS shutdown pauses and cancels external work before upstream snapshot
+PASS stable logical body id exposed
+PASS backend kind exposed
+PASS physical instance exposed
+PASS physical session exposed
+PASS execution captures admitting body session
+PASS body session change interrupts execution as unknown
+PASS body session change revokes controller
+PASS body session change requires reconciliation
+PASS session change preserves logical body id
+PASS new body session is published
+PASS body session change never replays mutation
+PASS body identity change interrupts execution as unknown
+PASS body identity change revokes controller
+PASS queued old-token control rejected after same owner reacquires
+PASS rejected stale resume leaves physical task paused
+PASS concurrent admission converges to one durable receipt
+PASS concurrent duplicate admission dispatches exactly one action
+PASS restart invalidates in-flight execution
+PASS idempotency survives process restart
+PASS restart never replays physical actions
+PASS observe_required
+PASS cursor event read
+PASS epoch mismatch signals gap
+PASS future cursor signals gap
+PASS long polling awakened without model loop
+PASS incomplete crash tail truncated to last verified frame
+PASS corrupt complete frame fails closed
+PASS second writer rejected
+PASS body_not_ready
+TOTAL 89 checks passed

@@ -1,0 +1,14 @@
+{
+ "backend_kind": "server_fake_player",
+ "body_id": "bob",
+ "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+ "body_session_epoch": "5e16f334-c9bc-4fd1-b4a9-8b543b6e66b1",
+ "execution_id": "d905f265-92c5-405b-b915-c7dd973aa40e",
+ "operation": "say",
+ "progress": 1.0,
+ "reason": "sent_to_aibot_panel_and_global_chat",
+ "request_id": "live2-say-new-work-1789220058",
+ "state": "completed",
+ "success_scope": "bounded_body_operation_not_user_goal",
+ "terminal": true
+}

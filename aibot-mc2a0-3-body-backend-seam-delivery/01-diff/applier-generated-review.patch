@@ -1,0 +1,1561 @@
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+@@ -1,48 +1,95 @@
+ package io.github.zoyluo.aibot.external;
+ 
+-/** Every method is called exclusively by BridgeKernel.tick on the Minecraft server thread. */
++/** Every method is called exclusively by BridgeKernel.tick on the owning body thread. */
+ public interface BodyBackend {
+-    /** Returns false until the configured, living body exists. */
++    /** Returns false until the configured, living physical body exists. */
+     boolean ready();
++
++    /**
++     * Stable Iris/DSH body identity. This is not a Minecraft entity UUID and must survive backend
++     * replacement (server fake player -> real client) when both represent the same logical body.
++     */
+     String bodyId();
++
++    /**
++     * Current physical binding. Legacy/fake test backends remain source-compatible through this
++     * default; production backends should override it with a real backend kind/instance/session.
++     */
++    default Binding binding() {
++        String id=bodyId();
++        return new Binding(id,"legacy_body_backend",id,"legacy");
++    }
++
+     String observeJson();
+-    /** Must perform argument validation before mutation and retain the exact Task instance. */
++
++    /** Must perform argument validation before mutation and retain the exact physical execution. */
+     Handle start(String operation,String argumentsJson);
+-    /**
+-     * Exact bounded-execution identity seam. Legacy/fake backends stay source-compatible while the
+-     * real external body may bind execution-scoped operational provenance to its task.
+-     */
++
++    /** Exact bounded-execution identity seam. */
+     default Handle start(String executionId,String operation,String argumentsJson) {
+         return start(operation,argumentsJson);
+     }
++
+     void pause();
+     void resume();
+     void cancel(String reason);
++
++    /**
++     * Stable logical body plus replaceable physical carrier/session identity.
++     *
++     * <p>bodyId is durable product identity. instanceId identifies the current Minecraft profile
++     * or physical entity. sessionEpoch changes whenever the physical execution carrier is replaced
++     * or reconnected, even if instanceId remains the same.</p>
++     */
++    record Binding(String bodyId,String backendKind,String instanceId,String sessionEpoch) {
++        public Binding {
++            bodyId=bounded(bodyId,"body_id",160);
++            backendKind=bounded(backendKind,"backend_kind",80);
++            instanceId=bounded(instanceId,"body_instance_id",160);
++            sessionEpoch=bounded(sessionEpoch,"body_session_epoch",160);
++        }
++        public java.util.Map<String,Object> wire() {
++            java.util.LinkedHashMap<String,Object> out=new java.util.LinkedHashMap<>();
++            out.put("body_id",bodyId);
++            out.put("backend_kind",backendKind);
++            out.put("body_instance_id",instanceId);
++            out.put("body_session_epoch",sessionEpoch);
++            return out;
++        }
++        private static String bounded(String value,String field,int max) {
++            if(value==null || value.isBlank() || value.length()>max
++                    || value.chars().anyMatch(c->c<0x20))
++                throw new IllegalArgumentException("invalid_"+field);
++            return value;
++        }
++    }
++
+     // ---- MC-2A0 read-only cognitive query surface ----
+-    // 与 observeJson 相同的线程契约:只由 BridgeKernel.tick 在 server 线程调用,
+-    // HTTP 线程只读 kernel 缓存。default null 表示该 backend 不支持认知查询(桥按 503 fail-closed)。
+ 
+-    /** 构建 cognitive view 快照;journal 仅作 non-consuming 只读事件尾部来源,可为 null。 */
++    /** Build a cognitive view snapshot; journal is non-consuming read-only event-tail evidence. */
+     default io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal) {
+         return null;
+     }
+-    /** 以当前身体为中心的 bounded 局部视图(server 线程执行,由 kernel 查询队列驱动)。 */
++
++    /** Bounded local view centered on the current body. */
+     default String inspectLocalJson(int radius,String detail) {
+         return null;
+     }
+-    /**
+-     * MC-2A0.1 on-demand evidence materialization:把单个 EvidenceRef+detail 展开成
+-     * bounded JSON。gameTime 是 kernel 当前快照的构建时刻——freshness 与 view 卡同源。
+-     */
++
++    /** Materialize one bounded EvidenceRef detail from the current view generation. */
+     default String materializeEvidence(String ref,String detail,long gameTime) {
+         return null;
+     }
+-    /** 当前服务器 tick,供 kernel 缓存刷新节奏与 view meta 使用。 */
++
++    /** Current server/body tick for cache freshness. */
+     default long serverTick() {
+         return -1L;
+     }
+-    // ---- MC-2A Graph Core: postconditions are revalidated on the server thread ----
++
++    // ---- MC-2A Graph Core: postconditions are revalidated on the body thread ----
++
+     enum GraphPostconditionState { SATISFIED, UNSATISFIED, TERMINAL_UNSATISFIED, UNKNOWN }
++
+     record GraphPostconditionResult(GraphPostconditionState state,String reason) {
+         public GraphPostconditionResult {
+             java.util.Objects.requireNonNull(state);
+@@ -61,17 +108,17 @@
+             return new GraphPostconditionResult(GraphPostconditionState.UNKNOWN,reason);
+         }
+     }
+-    /**
+-     * Read-only proof used after a physical execution terminates. Never starts/replays work.
+-     * Backends that cannot prove a postcondition must return UNKNOWN, never false certainty.
+-     */
++
++    /** Read-only proof after physical execution termination; never starts or replays work. */
+     default GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition postcondition) {
+         return GraphPostconditionResult.unknown("backend_postcondition_not_supported");
+     }
++
+     interface Handle {
+-        /** No lookup of global lastStatus: that could refer to a different safety task. */
++        /** Never consult a global lastStatus: it may belong to a different Safety task. */
+         Snapshot snapshot();
+     }
++
+     record Snapshot(String state,double progress,String reason) {
+         public Snapshot {
+             if(!java.util.Set.of("running","paused","completed","failed","cancelled","outcome_unknown").contains(state))
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+@@ -1,364 +1,267 @@
+ package io.github.zoyluo.aibot.external;
+ 
+-import com.google.gson.*;
++import com.google.gson.Gson;
++import com.google.gson.JsonElement;
++import com.google.gson.JsonObject;
++import com.google.gson.JsonParser;
+ import io.github.zoyluo.aibot.AIBotConfig;
+-import io.github.zoyluo.aibot.action.FarmAction;
+-import io.github.zoyluo.aibot.brain.BrainCoordinator;
+ import io.github.zoyluo.aibot.entity.AIPlayerEntity;
+ import io.github.zoyluo.aibot.manager.AIPlayerManager;
+-import io.github.zoyluo.aibot.memory.BotMemoryStore;
+ import io.github.zoyluo.aibot.perception.PerceptionCollector;
+-import io.github.zoyluo.aibot.persist.BotPersistence;
+-import io.github.zoyluo.aibot.runtime.IntentController;
+ import io.github.zoyluo.aibot.runtime.TaskOrigin;
+-import io.github.zoyluo.aibot.task.*;
+-import net.minecraft.item.Item;
++import io.github.zoyluo.aibot.task.TaskManager;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.registry.Registries;
+ import net.minecraft.server.MinecraftServer;
+-import net.minecraft.util.Identifier;
+-import net.minecraft.util.math.BlockPos;
+-import java.util.*;
+-
+-/** Integration adapter only: this is the part requiring the real Fabric/Minecraft classpath. */
++
++import java.util.Locale;
++import java.util.Map;
++import java.util.TreeMap;
++import java.util.UUID;
++
++/**
++ * Current server-side body backend.
++ *
++ * <p>It owns body discovery, physical binding and server observations. All bounded mutation/task
++ * mechanics are delegated to ServerFakePlayerExecutionDriver.</p>
++ */
+ public final class MinecraftBodyBackend implements BodyBackend {
+     private static final Gson GSON=new Gson();
++
+     private final MinecraftServer server;
+-    private AIPlayerEntity bot, prepared;
+-    private Task managed;
++    private final String name;
++    private final String logicalBodyId;
++
++    private AIPlayerEntity bot;
++    private AIPlayerEntity prepared;
++    private PhysicalExecutionDriver executionDriver;
++    private Binding binding;
++
+     private JsonElement perception;
+     private int perceptionTick;
+     private String perceptionDimension="";
+     private JsonElement semantic;
+     private int semanticTick;
+     private String semanticDimension="";
+-    private final String name;
+-    public MinecraftBodyBackend(MinecraftServer server,String name) { this.server=server; this.name=name; }
+-    private void onThread() { if(!server.isOnThread())throw new IllegalStateException("minecraft_access_off_server_thread"); }
++
++    public MinecraftBodyBackend(MinecraftServer server,String name) {
++        this(server,name,name.toLowerCase(Locale.ROOT));
++    }
++
++    public MinecraftBodyBackend(MinecraftServer server,String name,String logicalBodyId) {
++        this.server=server;
++        this.name=name;
++        if(logicalBodyId==null
++                || !logicalBodyId.matches("[a-z0-9][a-z0-9._:-]{0,79}"))
++            throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BODY_ID");
++        this.logicalBodyId=logicalBodyId;
++    }
++
++    private void onThread() {
++        if(!server.isOnThread())
++            throw new IllegalStateException("minecraft_access_off_server_thread");
++    }
++
+     @Override public boolean ready() {
+         onThread();
+-        bot=AIPlayerManager.INSTANCE.all().stream().filter(b->name.equalsIgnoreCase(b.getGameProfile().getName())).findFirst().orElse(null);
+-        if(bot==null || !bot.isAlive()) return false;
++        bot=AIPlayerManager.INSTANCE.all().stream()
++                .filter(candidate->name.equalsIgnoreCase(
++                        candidate.getGameProfile().getName()))
++                .findFirst().orElse(null);
++        if(bot==null || !bot.isAlive())return false;
++
+         if(prepared!=bot) {
+-            // Explicit external-mode startup fences saved legacy work before admitting commands.
+-            ExternalBodyAccess.dispatch(()->{
+-                IntentController.INSTANCE.cancelAll(bot,IntentController.ControlOrigin.SYSTEM,"external_mode_enter");
+-                BrainCoordinator.INSTANCE.reset(bot);
+-                return null;
+-            });
+-            prepared=bot; managed=null; perception=null; semantic=null;
++            PhysicalExecutionDriver next=
++                    new ServerFakePlayerExecutionDriver(server,bot,()->this.bot);
++            prepared=bot;
++            executionDriver=next;
++            binding=new Binding(
++                    logicalBodyId,
++                    "server_fake_player",
++                    bot.getUuid().toString(),
++                    UUID.randomUUID().toString());
++            perception=null;
++            semantic=null;
++            perceptionDimension="";
++            semanticDimension="";
+         }
+         return true;
+     }
+-    @Override public String bodyId() { onThread();return bot==null?"":bot.getUuid().toString(); }
++
++    @Override public String bodyId() {
++        return logicalBodyId;
++    }
++
++    @Override public Binding binding() {
++        onThread();
++        if(binding==null)throw new IllegalStateException("body_binding_unavailable");
++        return binding;
++    }
++
+     @Override public String observeJson() {
+         onThread();
++        Binding current=binding();
+         JsonObject out=new JsonObject();
+-        out.addProperty("body_id",bot.getUuid().toString()); out.addProperty("name",bot.getGameProfile().getName());
++        out.addProperty("body_id",current.bodyId());
++        out.addProperty("backend_kind",current.backendKind());
++        out.addProperty("body_instance_id",current.instanceId());
++        out.addProperty("body_session_epoch",current.sessionEpoch());
++        out.addProperty("name",bot.getGameProfile().getName());
++        out.addProperty("minecraft_profile_uuid",bot.getUuid().toString());
+         out.addProperty("profile",AIBotConfig.get().profile().configValue());
+-        out.addProperty("health",bot.getHealth()); out.addProperty("food",bot.getHungerManager().getFoodLevel());
+-        out.addProperty("dimension",bot.getServerWorld().getRegistryKey().getValue().toString());
+-        JsonObject position=new JsonObject(); position.addProperty("x",bot.getX());position.addProperty("y",bot.getY());position.addProperty("z",bot.getZ());out.add("position",position);
++        out.addProperty("health",bot.getHealth());
++        out.addProperty("food",bot.getHungerManager().getFoodLevel());
++        out.addProperty(
++                "dimension",
++                bot.getServerWorld().getRegistryKey().getValue().toString());
++        JsonObject position=new JsonObject();
++        position.addProperty("x",bot.getX());
++        position.addProperty("y",bot.getY());
++        position.addProperty("z",bot.getZ());
++        out.add("position",position);
+         out.add("inventory",GSON.toJsonTree(inventory()));
++
+         refreshCaches();
+         int tick=server.getTicks();
+         out.add("semantic_world",semantic);
+         out.addProperty("semantic_age_ticks",Math.max(0,tick-semanticTick));
+         out.add("perception",perception);
+         out.addProperty("perception_age_ticks",Math.max(0,tick-perceptionTick));
+-        out.addProperty("safety_active",TaskManager.INSTANCE.activeOrigin(bot).map(TaskOrigin::safety).orElse(false));
++        out.addProperty(
++                "safety_active",
++                TaskManager.INSTANCE.activeOrigin(bot)
++                        .map(TaskOrigin::safety).orElse(false));
+         out.addProperty("user_paused",TaskManager.INSTANCE.isUserPaused(bot));
+         out.addProperty("current_task",TaskManager.INSTANCE.status(bot).name());
+         out.addProperty("paused_depth",TaskManager.INSTANCE.pausedDepth(bot));
+         return GSON.toJson(out);
+     }
+-    /** perception/semantic 各 10-tick 缓存;认知视图与 observeJson 共用同一份,绝不做第二次全扫。
+-     *  MC-2A0.1F:自动刷新只走 bounded 语义快照——绝不触发远程 Structure current-integrity 扫描(AUTO-OBS-1)。 */
++
+     private void refreshCaches() {
+-        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
++        String dimension=
++                bot.getServerWorld().getRegistryKey().getValue().toString();
+         int tick=server.getTicks();
+-        if(perception==null || tick-perceptionTick>=10 || tick<perceptionTick || !dimension.equals(perceptionDimension)) {
+-            perception=JsonParser.parseString(PerceptionCollector.collect(bot).toJson());
+-            perceptionTick=tick;perceptionDimension=dimension;
+-        }
+-        if(semantic==null || tick-semanticTick>=10 || tick<semanticTick || !dimension.equals(semanticDimension)) {
+-            semantic=SemanticWorldRegistry.observeBounded(bot); semanticTick=tick; semanticDimension=dimension;
+-        }
+-    }
+-    // MC-2A0 认知查询:server 线程被 kernel.tick 调用,只读复用上述缓存。
+-    @Override public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal) {
+-        onThread();
+-        if(bot==null || !bot.isAlive()) return null;
++        if(perception==null || tick-perceptionTick>=10 || tick<perceptionTick
++                || !dimension.equals(perceptionDimension)) {
++            perception=JsonParser.parseString(
++                    PerceptionCollector.collect(bot).toJson());
++            perceptionTick=tick;
++            perceptionDimension=dimension;
++        }
++        if(semantic==null || tick-semanticTick>=10 || tick<semanticTick
++                || !dimension.equals(semanticDimension)) {
++            semantic=SemanticWorldRegistry.observeBounded(bot);
++            semanticTick=tick;
++            semanticDimension=dimension;
++        }
++    }
++
++    @Override public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(
++            BridgeJournal journal) {
++        onThread();
++        if(bot==null || !bot.isAlive())return null;
+         refreshCaches();
+-        JsonObject semanticSnapshot=semantic!=null && semantic.isJsonObject() ? semantic.getAsJsonObject() : null;
+-        return io.github.zoyluo.aibot.external.cognition.CognitiveViewBuilder.build(bot,journal,semanticSnapshot);
+-    }
++        JsonObject semanticSnapshot=
++                semantic!=null && semantic.isJsonObject()
++                        ?semantic.getAsJsonObject():null;
++        return io.github.zoyluo.aibot.external.cognition.CognitiveViewBuilder
++                .build(bot,journal,semanticSnapshot);
++    }
++
+     @Override public String inspectLocalJson(int radius,String detail) {
+         onThread();
+-        if(bot==null || !bot.isAlive())throw new BridgeFault(409,"body_unavailable");
+-        return io.github.zoyluo.aibot.external.cognition.CognitiveInspector.inspectLocalJson(bot,radius,detail);
+-    }
+-    /** MC-2A0.1:on-demand materialize,复用 observeJson 同一份 semantic 缓存,绝不做第二次全扫。 */
+-    @Override public String materializeEvidence(String ref,String detail,long gameTime) {
+-        onThread();
+-        if(bot==null || !bot.isAlive())throw new BridgeFault(409,"body_unavailable");
++        if(bot==null || !bot.isAlive())
++            throw new BridgeFault(409,"body_unavailable");
++        return io.github.zoyluo.aibot.external.cognition.CognitiveInspector
++                .inspectLocalJson(bot,radius,detail);
++    }
++
++    @Override public String materializeEvidence(
++            String ref,String detail,long gameTime) {
++        onThread();
++        if(bot==null || !bot.isAlive())
++            throw new BridgeFault(409,"body_unavailable");
+         refreshCaches();
+-        JsonObject semanticSnapshot=semantic!=null && semantic.isJsonObject() ? semantic.getAsJsonObject() : null;
+-        return io.github.zoyluo.aibot.external.cognition.CognitiveInspector.materialize(bot,semanticSnapshot,gameTime,ref,detail);
+-    }
+-    @Override public long serverTick() { onThread(); return server.getTicks(); }
+-    @Override public GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition postcondition) {
+-        onThread();
+-        if(bot==null || !bot.isAlive()) return GraphPostconditionResult.unknown("body_unavailable");
++        JsonObject semanticSnapshot=
++                semantic!=null && semantic.isJsonObject()
++                        ?semantic.getAsJsonObject():null;
++        return io.github.zoyluo.aibot.external.cognition.CognitiveInspector
++                .materialize(bot,semanticSnapshot,gameTime,ref,detail);
++    }
++
++    @Override public long serverTick() {
++        onThread();
++        return server.getTicks();
++    }
++
++    @Override public GraphPostconditionResult verifyGraphPostcondition(
++            TaskGraphStore.Postcondition postcondition) {
++        onThread();
++        if(bot==null || !bot.isAlive())
++            return GraphPostconditionResult.unknown("body_unavailable");
+         TaskGraphStore.SpatialRef ref=postcondition.subject();
+         if(!SemanticWorldRegistry.worldId().equals(ref.worldId()))
+             return GraphPostconditionResult.unknown("world_scope_mismatch");
+-        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
++        String dimension=
++                bot.getServerWorld().getRegistryKey().getValue().toString();
+         if(!dimension.equals(ref.dimensionId()))
+             return GraphPostconditionResult.unknown("dimension_not_current");
+         if("OPPORTUNITY_RESOLVED".equals(postcondition.kind())) {
+             var remaining=SemanticWorldRegistry.opportunity(bot,ref.objectId());
+             if(remaining.isPresent())
+-                return GraphPostconditionResult.unsatisfied("opportunity_still_"
+-                        +remaining.get().status().toLowerCase(java.util.Locale.ROOT));
+-            // Absence is ambiguous: consumed-by-this-bot and stale/lost both remove the active
+-            // entry. BridgeKernel's durable resolution receipt is the only success authority.
+-            return GraphPostconditionResult.unknown("opportunity_absent_without_durable_resolution_receipt");
+-        }
+-        return GraphPostconditionResult.unknown("unsupported_graph_postcondition");
+-    }
++                return GraphPostconditionResult.unsatisfied(
++                        "opportunity_still_"
++                                +remaining.get().status().toLowerCase(Locale.ROOT));
++            return GraphPostconditionResult.unknown(
++                    "opportunity_absent_without_durable_resolution_receipt");
++        }
++        return GraphPostconditionResult.unknown(
++                "unsupported_graph_postcondition");
++    }
++
++    @Override public Handle start(String operation,String argumentsJson) {
++        return start("",operation,argumentsJson);
++    }
++
++    @Override public Handle start(
++            String executionId,String operation,String argumentsJson) {
++        onThread();
++        return requireExecutionDriver().start(
++                new PhysicalExecutionDriver.Request(
++                        executionId,operation,argumentsJson));
++    }
++
++    @Override public void pause() {
++        onThread();
++        if(executionDriver!=null)executionDriver.pause();
++    }
++
++    @Override public void resume() {
++        onThread();
++        if(executionDriver!=null)executionDriver.resume();
++    }
++
++    @Override public void cancel(String reason) {
++        onThread();
++        if(executionDriver!=null)executionDriver.cancel(reason);
++    }
++
++    private PhysicalExecutionDriver requireExecutionDriver() {
++        if(bot==null || !bot.isAlive() || executionDriver==null)
++            throw new BridgeFault(409,"body_unavailable");
++        return executionDriver;
++    }
++
+     private Map<String,Integer> inventory() {
+         Map<String,Integer> counts=new TreeMap<>();
+         for(int i=0;i<bot.getInventory().size();i++) {
+             ItemStack stack=bot.getInventory().getStack(i);
+-            if(!stack.isEmpty())counts.merge(Registries.ITEM.getId(stack.getItem()).toString(),stack.getCount(),Integer::sum);
++            if(!stack.isEmpty())
++                counts.merge(
++                        Registries.ITEM.getId(stack.getItem()).toString(),
++                        stack.getCount(),
++                        Integer::sum);
+         }
+         return counts;
+     }
+-    @Override public Handle start(String operation,String raw) {
+-        return start("",operation,raw);
+-    }
+-    @Override public Handle start(String executionId,String operation,String raw) {
+-        onThread();
+-        executionId=executionId==null?"":executionId;
+-        if(bot==null || !bot.isAlive())throw new BridgeFault(409,"body_unavailable");
+-        if(!"strict_survival".equals(AIBotConfig.get().profile().configValue()))throw new BridgeFault(403,"strict_survival_required");
+-        JsonObject args=parse(raw);
+-        Set<String> allowed=switch(operation) {
+-            case "goto" -> Set.of("x","y","z","allow_terrain_changes");
+-            case "gather","craft" -> Set.of("item","count");
+-            case "smelt" -> Set.of("input_item","output_item","count");
+-            case "say" -> Set.of("message");
+-            case "register_home" -> Set.of("name","radius","below","above");
+-            case "capture_home","repair_home" -> Set.of("name");
+-            case "register_farm" -> Set.of("name","radius","crop");
+-            case "tend_farm" -> Set.of("name");
+-            case "mine_opportunity" -> Set.of("id");
+-            case "eat","set_base","deposit" -> Set.of();
+-            default -> throw new BridgeFault(400,"unsupported_operation");
+-        };
+-        if(!allowed.containsAll(args.keySet()))throw new BridgeFault(400,"unknown_argument");
+-        Task task;Item target=null;int count=0;BlockPos goal=null;String semanticId=null;
+-        switch(operation) {
+-            case "goto" -> {
+-                if(!args.has("allow_terrain_changes") || !args.get("allow_terrain_changes").isJsonPrimitive()
+-                        || !args.getAsJsonPrimitive("allow_terrain_changes").isBoolean() || !args.get("allow_terrain_changes").getAsBoolean())
+-                    throw new BridgeFault(400,"goto_can_dig_explicit_allow_terrain_changes_required");
+-                goal=new BlockPos(integer(args,"x",-29999984,29999984),integer(args,"y",bot.getServerWorld().getBottomY(),bot.getServerWorld().getBottomY()+bot.getServerWorld().getHeight()-1),integer(args,"z",-29999984,29999984));
+-                if(bot.getBlockPos().getSquaredDistance(goal)>128*128)throw new BridgeFault(400,"goto_distance_limit_128");
+-                task=new MoveTask(bot,goal);
+-            }
+-            case "gather" -> {target=item(args,"item");count=integer(args,"count",1,256);task=new GatherQuotaTask(target,count,executionId);}
+-            case "craft" -> {target=item(args,"item");count=integer(args,"count",1,64);task=new CraftTask(target,count);}
+-            case "smelt" -> {target=item(args,"output_item");count=integer(args,"count",1,64);task=new SmeltTask(item(args,"input_item"),target,count);}
+-            case "eat" -> task=new EatTask();
+-            case "register_home" -> {
+-                try {
+-                    var registration=SemanticWorldRegistry.registerHome(bot,
+-                            optionalString(args,"name","home",32),
+-                            optionalInt(args,"radius",6,2,16),
+-                            optionalInt(args,"below",1,0,8),
+-                            optionalInt(args,"above",6,1,16));
+-                    return semanticRegistrationHandle(registration);
+-                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
+-                    throw semanticFault(semanticFailure);
+-                }
+-            }
+-            case "capture_home" -> {
+-                try {
+-                    var registration=SemanticWorldRegistry.captureHome(bot,optionalString(args,"name","home",48));
+-                    return semanticRegistrationHandle(registration);
+-                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
+-                    throw semanticFault(semanticFailure);
+-                }
+-            }
+-            case "repair_home" -> {
+-                try {
+-                    semanticId=optionalString(args,"name","home",48);
+-                    var plan=SemanticWorldRegistry.homeRepairPlan(bot,semanticId);
+-                    if(plan.wrong()>0) throw new BridgeFault(409,"home_repair_v1_conflicting_cells:"+plan.wrong());
+-                    if(plan.missing()==0) return ()->new Snapshot("completed",1,"home_desired_cells_already_satisfied");
+-                    task=new BuildTask(plan.blueprint(),plan.anchor(),false,false);
+-                } catch (BridgeFault bridgeFault) {
+-                    throw bridgeFault;
+-                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
+-                    throw semanticFault(semanticFailure);
+-                }
+-            }
+-            case "register_farm" -> {
+-                try {
+-                    var registration=SemanticWorldRegistry.registerFarm(bot,
+-                            optionalString(args,"name","farm",32),
+-                            optionalInt(args,"radius",6,1,16),
+-                            optionalString(args,"crop","",64));
+-                    return semanticRegistrationHandle(registration);
+-                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
+-                    throw semanticFault(semanticFailure);
+-                }
+-            }
+-            case "tend_farm" -> {
+-                String farmId=optionalString(args,"name","farm",48);
+-                var farm=SemanticWorldRegistry.farm(bot,farmId)
+-                        .orElseThrow(()->new BridgeFault(404,"farm_not_registered_or_wrong_dimension_or_needs_reregister"));
+-                task=new FarmTask(farm.center(),farm.radius(),farm.seed(),farm.crop(),false,false);
+-            }
+-            case "mine_opportunity" -> {
+-                String opportunityId=string(args,"id",48);
+-                var opportunity=SemanticWorldRegistry.opportunity(bot,opportunityId)
+-                        .orElseThrow(()->new BridgeFault(404,"resource_opportunity_not_found_in_current_dimension"));
+-                // R2.1 lifecycle: MINED_PENDING_PICKUP runs pickup recovery only (never re-mines);
+-                // UNREACHABLE refuses until bounded revalidation (geometry change or cooldown).
+-                if("MINED_PENDING_PICKUP".equals(opportunity.status())) {
+-                    task=new KnownResourceTask(opportunity,true);
+-                } else if("UNREACHABLE".equals(opportunity.status())) {
+-                    if(!SemanticWorldRegistry.opportunityRevalidationReady(bot,opportunity))
+-                        throw new BridgeFault(409,"resource_opportunity_unreachable:"+opportunity.blockedReason()
+-                                +":revalidation_requires_geometry_change_or_cooldown");
+-                    opportunity=SemanticWorldRegistry.reactivateOpportunity(bot,opportunityId)
+-                            .orElseThrow(()->new BridgeFault(409,"resource_opportunity_unreachable:reactivation_failed"));
+-                    task=new KnownResourceTask(opportunity,false);
+-                } else if("ACTIONABLE".equals(opportunity.status())) {
+-                    task=new KnownResourceTask(opportunity,false);
+-                } else {
+-                    throw new BridgeFault(409,"resource_opportunity_blocked:"+opportunity.blockedReason());
+-                }
+-            }
+-            case "deposit" -> task=new StockpileTask(true);
+-            case "set_base" -> {
+-                BotMemoryStore.INSTANCE.of(bot.getUuid()).markPlace("base",bot.getServerWorld(),bot.getBlockPos());
+-                BotPersistence.INSTANCE.markDirty(server);
+-                return ()->new Snapshot("completed",1,"base_marker_saved_operational_state_only");
+-            }
+-            case "say" -> {
+-                String message=string(args,"message",1000);
+-                BrainCoordinator.INSTANCE.sendPanelChat(bot,"bot",message);
+-                server.getPlayerManager().broadcast(net.minecraft.text.Text.literal("<"+bot.getGameProfile().getName()+"> "+message),false);
+-                return ()->new Snapshot("completed",1,"sent_to_aibot_panel_and_global_chat");
+-            }
+-            default -> throw new BridgeFault(400,"unsupported_operation");
+-        }
+-        if(TaskManager.INSTANCE.getActive(bot).isPresent() || TaskManager.INSTANCE.hasPaused(bot)
+-                || bot.getActionPack().hasActiveActions())throw new BridgeFault(409,"body_busy_safety_or_legacy_work");
+-        if(TaskManager.INSTANCE.isUserPaused(bot))throw new BridgeFault(409,"body_user_paused");
+-        AIPlayerEntity executionBody=bot;
+-        Item expected=target; int quota=count; BlockPos destination=goal; String semantic=semanticId;
+-        String executionOrigin=executionId.isBlank()?"external_dsh":"external_dsh:"+executionId;
+-        ExternalBodyAccess.dispatch(()->{
+-            TaskManager.INSTANCE.assign(executionBody,task,TaskOrigin.of(TaskOrigin.Kind.LLM_TOOL,executionOrigin));return null;
+-        });
+-        managed=task;
+-        return ()->{
+-            onThread();
+-            if(bot!=executionBody)return new Snapshot("outcome_unknown",task.progress(),"body_instance_replaced");
+-            TaskStatus s=TaskStatus.from(task);
+-            String state=switch(s.state()) {
+-                case PENDING,RUNNING -> "running";
+-                case PAUSED -> "paused";
+-                case COMPLETED -> "completed";
+-                case FAILED -> "failed";
+-                case CANCELLED -> "cancelled";
+-            };
+-            String reason=s.failureReason()==null?"":s.failureReason();
+-            if(state.equals("running") && TaskManager.INSTANCE.getActive(bot).orElse(null)!=task)
+-                return new Snapshot("outcome_unknown",s.progress(),"tracked_task_no_longer_owns_execution");
+-            if(state.equals("paused"))reason=TaskManager.INSTANCE.isUserPaused(bot)?"user_or_lease_pause":"safety_preempted";
+-            if(state.equals("completed")) {
+-                if(operation.equals("gather")) {
+-                    int actual=GatherQuotaTask.acceptedInventoryCount(bot,expected);
+-                    if(actual<quota)return new Snapshot("failed",s.progress(),"gather_postcondition_missing:accepted="+actual+":quota="+quota);
+-                    reason="inventory_family_or_exact_quota_verified:accepted="+actual;
+-                } else if(operation.equals("goto")) {
+-                    if(bot.getBlockPos().getSquaredDistance(destination)>9)return new Snapshot("failed",s.progress(),"goto_postcondition_not_within_3_blocks");
+-                    reason="arrival_within_3_blocks_verified";
+-                } else if(operation.equals("repair_home")) {
+-                    try {
+-                        var verify=SemanticWorldRegistry.homeRepairPlan(bot,semantic);
+-                        if(verify.missing()>0 || verify.wrong()>0)
+-                            return new Snapshot("failed",s.progress(),"home_repair_postcondition_missing="+verify.missing()+":wrong="+verify.wrong());
+-                        reason="home_missing_only_repair_verified";
+-                    } catch(RuntimeException verifyFailure) {
+-                        return new Snapshot("failed",s.progress(),"home_repair_postcondition_error:"+verifyFailure.getClass().getSimpleName());
+-                    }
+-                } else reason="upstream_task_completed_reobserve_for_user_goal_verification";
+-            }
+-            return new Snapshot(state,s.progress(),reason);
+-        };
+-    }
+-    @Override public void pause() {
+-        onThread();
+-        if(bot!=null && managed!=null && (managed.state()==TaskState.RUNNING || managed.state()==TaskState.PAUSED))
+-            ExternalBodyAccess.dispatch(()->IntentController.INSTANCE.pause(bot,IntentController.ControlOrigin.SYSTEM,"external_pause"));
+-    }
+-    @Override public void resume() {
+-        onThread();if(bot!=null)ExternalBodyAccess.dispatch(()->IntentController.INSTANCE.resume(bot,IntentController.ControlOrigin.SYSTEM,"external_resume"));
+-    }
+-    @Override public void cancel(String reason) {
+-        onThread();if(bot!=null)ExternalBodyAccess.dispatch(()->IntentController.INSTANCE.cancelAll(bot,IntentController.ControlOrigin.SYSTEM,reason));
+-    }
+-    private static Handle semanticRegistrationHandle(SemanticWorldRegistry.Registration registration) {
+-        return () -> {
+-            if (!registration.persisted().isDone()) return new Snapshot("running",0.5D,"persisting_semantic_registry");
+-            try {
+-                registration.persisted().join();
+-                return new Snapshot("completed",1.0D,registration.payload());
+-            } catch (RuntimeException persistenceFailure) {
+-                return new Snapshot("failed",0.5D,"semantic_registry_persistence_failed:"+persistenceFailure.getClass().getSimpleName());
+-            }
+-        };
+-    }
+-    private static BridgeFault semanticFault(RuntimeException failure) {
+-        String reason=failure.getMessage()==null?failure.getClass().getSimpleName():failure.getMessage();
+-        int status=reason.startsWith("semantic_registry_failed_closed") || reason.equals("semantic_registry_not_started") ? 503 : 400;
+-        return new BridgeFault(status,reason.replaceAll("[^A-Za-z0-9:._-]","_"));
+-    }
+-    private static int optionalInt(JsonObject o,String key,int fallback,int min,int max) {
+-        return o.has(key)?integer(o,key,min,max):fallback;
+-    }
+-    private static String optionalString(JsonObject o,String key,String fallback,int max) {
+-        if(!o.has(key))return fallback;
+-        JsonElement v=o.get(key);
+-        if(v==null || !v.isJsonPrimitive() || !v.getAsJsonPrimitive().isString())throw new BridgeFault(400,"string_required:"+key);
+-        String s=v.getAsString().trim();if(s.isEmpty() || s.length()>max)throw new BridgeFault(400,"invalid_string_length:"+key);return s;
+-    }
+-
+-    private static JsonObject parse(String raw) {
+-        try { JsonElement value=JsonParser.parseString(raw);if(!value.isJsonObject())throw new IllegalArgumentException();return value.getAsJsonObject(); }
+-        catch(RuntimeException bad){throw new BridgeFault(400,"invalid_arguments_json_object");}
+-    }
+-    private static String string(JsonObject o,String key,int max) {
+-        JsonElement v=o.get(key);
+-        if(v==null || !v.isJsonPrimitive() || !v.getAsJsonPrimitive().isString())throw new BridgeFault(400,"string_required:"+key);
+-        String s=v.getAsString();if(s.isBlank() || s.length()>max)throw new BridgeFault(400,"invalid_string_length:"+key);return s;
+-    }
+-    private static int integer(JsonObject o,String key,int min,int max) {
+-        try {
+-            JsonElement v=o.get(key);if(v==null || !v.isJsonPrimitive() || !v.getAsJsonPrimitive().isNumber())throw new IllegalArgumentException();
+-            int n=v.getAsBigDecimal().intValueExact();if(n<min || n>max)throw new IllegalArgumentException();return n;
+-        }catch(RuntimeException bad){throw new BridgeFault(400,"integer_out_of_range:"+key);}
+-    }
+-    private static Item item(JsonObject o,String key) {
+-        String name=string(o,key,128);Identifier id=Identifier.tryParse(name);
+-        if(id==null || !Registries.ITEM.containsId(id) || name.equals("minecraft:air"))throw new BridgeFault(400,"unknown_item:"+key);
+-        return Registries.ITEM.get(id);
+-    }
+ }
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
+@@ -2,13 +2,23 @@
+ 
+ import io.github.zoyluo.aibot.entity.AIPlayerEntity;
+ import io.github.zoyluo.aibot.runtime.TaskOrigin;
++import java.util.Locale;
+ import java.util.UUID;
+ import java.util.function.Supplier;
+ 
+ /** Narrow authorization boundary for the configured external body. Disabled by default. */
+ public final class ExternalBodyAccess {
+     public static final String BOT_NAME=System.getenv().getOrDefault("AIBOT_EXTERNAL_BOT", "").trim();
++    public static final String BODY_ID=logicalBodyId();
+     private static final ThreadLocal<Integer> DEPTH=ThreadLocal.withInitial(()->0);
++    private static String logicalBodyId() {
++        if(BOT_NAME.isEmpty())return "";
++        String configured=System.getenv().getOrDefault(
++                "AIBOT_EXTERNAL_BODY_ID",BOT_NAME).trim().toLowerCase(Locale.ROOT);
++        if(!configured.matches("[a-z0-9][a-z0-9._:-]{0,79}"))
++            throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BODY_ID");
++        return configured;
++    }
+     private static volatile boolean RESERVATION_ACTIVE;
+     private ExternalBodyAccess() {}
+     public static boolean enabled() { return !BOT_NAME.isEmpty(); }
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+@@ -32,11 +32,14 @@
+             // Reconcile them before Graph construction and before the HTTP endpoint is reachable.
+             SemanticWorldRegistry.reconcileOpportunityLifecycleReceipts(journal);
+             var graphs=new TaskGraphStore(bodyRoot.resolve("task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".bin"),System::currentTimeMillis);
+-            kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME),graphs);
++            kernel=new BridgeKernel(journal,new MinecraftBodyBackend(
++                    server,ExternalBodyAccess.BOT_NAME,ExternalBodyAccess.BODY_ID),graphs);
+             kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
+             http=new BridgeHttpServer(kernel,port,token);http.start();
+             observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();
+-            AIBotMod.LOGGER.info("AIBot external-body bridge bound to loopback port {} for {}",port,ExternalBodyAccess.BOT_NAME);
++            AIBotMod.LOGGER.info(
++                    "AIBot external-body bridge bound to loopback port {} for {} body_id={}",
++                    port,ExternalBodyAccess.BOT_NAME,ExternalBodyAccess.BODY_ID);
+         }catch(Exception failure){
+             if(http!=null)http.close();
+             try{if(journal!=null)journal.close();}catch(Exception ignored){}
+@@ -54,14 +57,21 @@
+         if(!bot.getUuid().equals(observedBody)){observedBody=bot.getUuid();previousHealth=bot.getHealth();previousAlive=bot.isAlive();return;}
+         if(previousAlive && bot.isAlive() && bot.getHealth()<previousHealth)
+             kernel.publish("damage",Map.of("previous_health",previousHealth,"health",bot.getHealth(),"source","health_delta_not_causal_attribution"));
+-        if(!previousAlive && bot.isAlive())kernel.publish("respawn",Map.of("body_id",bot.getUuid().toString(),"health",bot.getHealth()));
++        if(!previousAlive && bot.isAlive())kernel.publish("respawn",Map.of(
++                "body_id",ExternalBodyAccess.BODY_ID,
++                "body_instance_id",bot.getUuid().toString(),
++                "health",bot.getHealth()));
+         previousAlive=bot.isAlive();previousHealth=bot.getHealth();
+     }
+     public static void death(AIPlayerEntity bot) {
+         if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+         String source=bot.getRecentDamageSource()==null?"unknown":bot.getRecentDamageSource().getName();
+-        kernel.publish("death",Map.of("body_id",bot.getUuid().toString(),"recent_damage_source",source,
+-                "causal_chain_complete",false,"x",bot.getX(),"y",bot.getY(),"z",bot.getZ(),
++        kernel.publish("death",Map.of(
++                "body_id",ExternalBodyAccess.BODY_ID,
++                "body_instance_id",bot.getUuid().toString(),
++                "recent_damage_source",source,
++                "causal_chain_complete",false,
++                "x",bot.getX(),"y",bot.getY(),"z",bot.getZ(),
+                 "dimension",bot.getServerWorld().getRegistryKey().getValue().toString()));
+         previousAlive=false;previousHealth=0;
+     }
+@@ -90,7 +100,8 @@
+         nextSurvivalAlertTick.put(key,now+200);
+         kernel.publish("survival_alert",Map.of(
+                 "reason",bounded(reason,80),
+-                "body_id",bot.getUuid().toString(),
++                "body_id",ExternalBodyAccess.BODY_ID,
++                "body_instance_id",bot.getUuid().toString(),
+                 "health",bot.getHealth(),
+                 "food",bot.getHungerManager().getFoodLevel(),
+                 "action","observe_and_replan"));
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+@@ -25,7 +25,7 @@
+     public final String runtimeEpoch=UUID.randomUUID().toString();
+     private String token, owner, leaseEpoch;
+     private long expiresAt, leaseCounter;
+-    private String bodyId="", observation="{}", fault="";
++    private String bodyId="", backendKind="", bodyInstanceId="", bodySessionEpoch="", observation="{}", fault="";
+     private long observedAt=-1;
+     private boolean ready, needsReconcile, pauseRequested, stopped;
+     private boolean graphStartupDoneAudit;
+@@ -50,12 +50,18 @@
+     }
+ 
+     private static final class Execution {
+-        String id, request, fingerprint, owner, operation, arguments, admittingLeaseEpoch, bodyId, state="accepted", reason="";
++        String id, request, fingerprint, owner, operation, arguments, admittingLeaseEpoch;
++        String bodyId, backendKind, bodyInstanceId, bodySessionEpoch;
++        String state="accepted", reason="";
+         double progress;
+         BodyBackend.Handle handle;
+         Map<String,Object> wire() {
+             Map<String,Object> out=new LinkedHashMap<>();
+-            out.put("execution_id",id); out.put("request_id",request); out.put("body_id",bodyId); out.put("operation",operation);
++            out.put("execution_id",id); out.put("request_id",request);
++            out.put("body_id",bodyId); out.put("backend_kind",backendKind);
++            out.put("body_instance_id",bodyInstanceId);
++            out.put("body_session_epoch",bodySessionEpoch);
++            out.put("operation",operation);
+             out.put("state",state); out.put("progress",progress); out.put("reason",reason);
+             out.put("terminal",TERMINAL.contains(state));
+             out.put("success_scope","bounded_body_operation_not_user_goal");
+@@ -91,13 +97,20 @@
+                     if(!m.containsKey("request_id")) throw new BridgeFault(503,"journal_missing_execution_acceptance");
+                     e=new Execution(); e.id=m.get("execution_id"); e.request=m.get("request_id");
+                     e.fingerprint=m.get("fingerprint"); e.owner=m.get("owner");
+-                    e.operation=m.get("operation"); e.arguments=m.get("arguments"); e.bodyId=m.getOrDefault("body_id", "");
++                    e.operation=m.get("operation"); e.arguments=m.get("arguments");
++                    e.bodyId=m.getOrDefault("body_id", "");
++                    e.backendKind=m.getOrDefault("backend_kind", "");
++                    e.bodyInstanceId=m.getOrDefault("body_instance_id", "");
++                    e.bodySessionEpoch=m.getOrDefault("body_session_epoch", "");
+                     byId.put(e.id,e); byRequest.put(e.request,e);
+                 }
+                 e.state=m.get("state"); e.reason=m.getOrDefault("reason","");
+                 e.progress=Double.parseDouble(m.getOrDefault("progress","0"));
+             } else if("body_binding".equals(m.get("kind"))) {
+                 bodyId=m.getOrDefault("body_id", "");
++                backendKind=m.getOrDefault("backend_kind", "");
++                bodyInstanceId=m.getOrDefault("body_instance_id", "");
++                bodySessionEpoch=m.getOrDefault("body_session_epoch", "");
+             } else if("control".equals(m.get("kind"))) {
+                 Control c=controls.computeIfAbsent(m.get("request_id"),k->new Control());
+                 c.request=m.get("request_id"); c.fingerprint=m.get("fingerprint");
+@@ -133,6 +146,42 @@
+     }
+     private static void identifier(String id) {
+         if(id==null || !id.matches("[A-Za-z0-9:._-]{1,160}")) throw new BridgeFault(400,"invalid_identifier");
++    }
++    private Map<String,Object> currentBindingWire() {
++        Map<String,Object> out=new LinkedHashMap<>();
++        out.put("body_id",bodyId); out.put("backend_kind",backendKind);
++        out.put("body_instance_id",bodyInstanceId);
++        out.put("body_session_epoch",bodySessionEpoch);
++        return out;
++    }
++    private void applyBinding(BodyBackend.Binding next) {
++        boolean logicalChanged=!bodyId.isEmpty() && !bodyId.equals(next.bodyId());
++        boolean legacyBinding=!bodyId.isEmpty() && bodySessionEpoch.isEmpty();
++        boolean sessionChanged=!logicalChanged && !bodyId.isEmpty()
++                && (legacyBinding || !backendKind.equals(next.backendKind())
++                || !bodyInstanceId.equals(next.instanceId())
++                || !bodySessionEpoch.equals(next.sessionEpoch()));
++        if(logicalChanged || sessionChanged) {
++            String reason=logicalChanged?"body_identity_changed":"body_session_changed";
++            if(active!=null) transition(active,"outcome_unknown",active.progress,reason);
++            token=null; owner=null; pauseRequested=true; needsReconcile=true;
++            event(logicalChanged?"body_changed":"body_session_changed","",Map.of(
++                    "previous",currentBindingWire(),"current",next.wire()));
++        }
++        boolean changed=!bodyId.equals(next.bodyId())
++                || !backendKind.equals(next.backendKind())
++                || !bodyInstanceId.equals(next.instanceId())
++                || !bodySessionEpoch.equals(next.sessionEpoch());
++        if(!changed)return;
++        Map<String,String> fields=new LinkedHashMap<>();
++        fields.put("kind","body_binding"); fields.put("body_id",next.bodyId());
++        fields.put("backend_kind",next.backendKind());
++        fields.put("body_instance_id",next.instanceId());
++        fields.put("body_session_epoch",next.sessionEpoch());
++        fields.put("payload",JsonOutput.encode(next.wire()));
++        journal.append(fields);
++        bodyId=next.bodyId(); backendKind=next.backendKind();
++        bodyInstanceId=next.instanceId(); bodySessionEpoch=next.sessionEpoch();
+     }
+     public synchronized Map<String,Object> claim(String newOwner) { return claim(newOwner,null); }
+     public synchronized Map<String,Object> claim(String newOwner,String existingToken) {
+@@ -165,6 +214,8 @@
+         Map<String,Object> out=new LinkedHashMap<>();
+         out.put("protocol_version",1); out.put("runtime_epoch",runtimeEpoch); out.put("event_epoch",journal.epoch);
+         out.put("event_sequence",journal.lastSequence()); out.put("body_id",bodyId);
++        out.put("backend_kind",backendKind); out.put("body_instance_id",bodyInstanceId);
++        out.put("body_session_epoch",bodySessionEpoch);
+         out.put("body_ready",ready && fresh()); out.put("needs_reconcile",needsReconcile);
+         out.put("control_active",token!=null && mono.getAsLong()<expiresAt);
+         out.put("fault",fault); out.put("stopped",stopped);
+@@ -174,8 +225,14 @@
+     }
+     public synchronized Map<String,Object> observe() {
+         requireReady(); needsReconcile=false;
+-        return Map.of("runtime_epoch",runtimeEpoch,"body_id",bodyId,"observation",new JsonOutput.Raw(observation),
+-                "snapshot_age_ms",Math.max(0,mono.getAsLong()-observedAt),"execution",active==null?Map.of():active.wire());
++        Map<String,Object> out=new LinkedHashMap<>();
++        out.put("runtime_epoch",runtimeEpoch); out.put("body_id",bodyId);
++        out.put("backend_kind",backendKind); out.put("body_instance_id",bodyInstanceId);
++        out.put("body_session_epoch",bodySessionEpoch);
++        out.put("observation",new JsonOutput.Raw(observation));
++        out.put("snapshot_age_ms",Math.max(0,mono.getAsLong()-observedAt));
++        out.put("execution",active==null?Map.of():active.wire());
++        return out;
+     }
+     // ---- MC-2A0 read-only cognitive queries ----
+     // 语义与 observe 的关键差异:只读新鲜度要求,不清 needsReconcile、不要求/消耗 lease、
+@@ -361,7 +418,9 @@
+         if(active!=null) throw new BridgeFault(409,"execution_in_progress");
+         if(byId.size()>=MAX_EXECUTIONS) throw new BridgeFault(503,"execution_ledger_capacity_exhausted");
+         Execution e=new Execution(); e.id=UUID.randomUUID().toString(); e.request=request; e.owner=owner;
+-        e.operation=operation; e.arguments=arguments; e.fingerprint=fp; e.admittingLeaseEpoch=leaseEpoch; e.bodyId=bodyId;
++        e.operation=operation; e.arguments=arguments; e.fingerprint=fp;
++        e.admittingLeaseEpoch=leaseEpoch; e.bodyId=bodyId; e.backendKind=backendKind;
++        e.bodyInstanceId=bodyInstanceId; e.bodySessionEpoch=bodySessionEpoch;
+         persistExecution(e,true); // durable acceptance before any world mutation
+         byId.put(e.id,e); byRequest.put(request,e); active=e;
+         return e.wire();
+@@ -390,7 +449,10 @@
+         fields.put("reason",bound(e.reason,2048)); fields.put("progress",Double.toString(e.progress));
+         if(first) {
+             fields.put("request_id",e.request); fields.put("fingerprint",e.fingerprint); fields.put("owner",e.owner);
+-            fields.put("operation",e.operation); fields.put("arguments",e.arguments); fields.put("body_id",e.bodyId);
++            fields.put("operation",e.operation); fields.put("arguments",e.arguments);
++            fields.put("body_id",e.bodyId); fields.put("backend_kind",e.backendKind);
++            fields.put("body_instance_id",e.bodyInstanceId);
++            fields.put("body_session_epoch",e.bodySessionEpoch);
+         }
+         fields.put("payload",JsonOutput.encode(e.wire())); journal.append(fields);
+     }
+@@ -416,16 +478,7 @@
+         try {
+             expire();
+             boolean nowReady=backend.ready();
+-            String id=backend.bodyId();
+-            if(!bodyId.isEmpty() && !id.isEmpty() && !bodyId.equals(id)) {
+-                if(active!=null) transition(active,"outcome_unknown",active.progress,"body_identity_changed");
+-                token=null; owner=null; pauseRequested=true; needsReconcile=true;
+-                event("body_changed","",Map.of("previous",bodyId,"current",id));
+-            }
+-            if(!id.isEmpty() && !bodyId.equals(id)) {
+-                journal.append(Map.of("kind","body_binding","body_id",id,"payload",JsonOutput.encode(Map.of("body_id",id))));
+-                bodyId=id;
+-            }
++            if(nowReady)applyBinding(backend.binding());
+             if(!nowReady) {
+                 ready=false;
+                 if(active!=null) { transition(active,"outcome_unknown",active.progress,"body_unavailable"); needsReconcile=true; }
+--- a/aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
++++ b/aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
+@@ -10,13 +10,15 @@
+ public final class BridgeCoreTest {
+     static int passed;
+     static final class FakeBackend implements BodyBackend {
+-        boolean alive=true; String id="body-1"; String state="running"; int starts,pauses,resumes,cancels; boolean failStart;
++        boolean alive=true; String id="body-1", kind="fake_backend", instance="instance-1", session="session-1";
++        String state="running"; int starts,pauses,resumes,cancels; boolean failStart;
+         String lastExecutionId="";
+         long tick; String localJson="{\"schema\":\"mc.local_view.v0\"}";
+         int inspectLocals, materializes; // MC-2A0.1 scheduling-budget counters
+         static final String SCENE="{\"world\":{\"world_id\":\"core-test-world\"}}";
+         static final String HOME_REF="mc://core-test-world/minecraft%3Aoverworld/structure/home1";
+         public boolean ready(){return alive;} public String bodyId(){return id;}
++        public Binding binding(){return new Binding(id,kind,instance,session);}
+         public long serverTick(){return ++tick;}
+         public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal){
+             java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index=new java.util.LinkedHashMap<>();
+@@ -182,6 +184,22 @@
+             check(f.body.pauses==1 && f.body.cancels==1,"shutdown pauses and cancels external work before upstream snapshot");
+         }
+         try(Fixture f=fixture()) {
++            var status=f.kernel.status();
++            check(status.get("body_id").equals("body-1"),"stable logical body id exposed");
++            check(status.get("backend_kind").equals("fake_backend"),"backend kind exposed");
++            check(status.get("body_instance_id").equals("instance-1"),"physical instance exposed");
++            check(status.get("body_session_epoch").equals("session-1"),"physical session exposed");
++            String t=claim(f);String id=(String)f.kernel.submit(t,"changed-session","gather","{}").get("execution_id");f.kernel.tick();
++            check(f.kernel.execution(id).get("body_session_epoch").equals("session-1"),"execution captures admitting body session");
++            f.body.instance="instance-2";f.body.session="session-2";f.kernel.tick();
++            check(f.kernel.execution(id).get("state").equals("outcome_unknown"),"body session change interrupts execution as unknown");
++            check(f.kernel.status().get("control_active").equals(false),"body session change revokes controller");
++            check(f.kernel.status().get("needs_reconcile").equals(true),"body session change requires reconciliation");
++            check(f.kernel.status().get("body_id").equals("body-1"),"session change preserves logical body id");
++            check(f.kernel.status().get("body_session_epoch").equals("session-2"),"new body session is published");
++            check(f.body.starts==1,"body session change never replays mutation");
++        }
++        try(Fixture f=fixture()) {
+             String t=claim(f);String id=(String)f.kernel.submit(t,"changed-body","gather","{}").get("execution_id");f.kernel.tick();
+             f.body.id="replacement-body";f.kernel.tick();
+             check(f.kernel.execution(id).get("state").equals("outcome_unknown"),"body identity change interrupts execution as unknown");
+--- a/aibot-dsh-m0/bridge-tests/FakeBridgeServer.java
++++ b/aibot-dsh-m0/bridge-tests/FakeBridgeServer.java
+@@ -23,9 +23,14 @@
+             final String fakeRef = "mc://fake-world-1/minecraft%3Aoverworld/structure/fake_home";
+             @Override public boolean ready() { return true; }
+             @Override public String bodyId() { return "fake-body-1"; }
++            @Override public Binding binding() {
++                return new Binding("fake-body-1","fake_bridge","fake-instance-1","fake-session-1");
++            }
+             @Override public long serverTick() { return ticks.incrementAndGet(); }
+             @Override public String observeJson() {
+-                return "{\"body_id\":\"fake-body-1\",\"physical_starts\":" + physicalStarts.get() + "}";
++                return "{\"body_id\":\"fake-body-1\",\"backend_kind\":\"fake_bridge\","
++                        + "\"body_instance_id\":\"fake-instance-1\",\"body_session_epoch\":\"fake-session-1\","
++                        + "\"physical_starts\":" + physicalStarts.get() + "}";
+             }
+             @Override public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal) {
+                 java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index = new java.util.LinkedHashMap<>();
+--- a/aibot-dsh-m0/dsh-plugin/test/FakeBridgeServer.java
++++ b/aibot-dsh-m0/dsh-plugin/test/FakeBridgeServer.java
+@@ -23,9 +23,14 @@
+             final String fakeRef = "mc://fake-world-1/minecraft%3Aoverworld/structure/fake_home";
+             @Override public boolean ready() { return true; }
+             @Override public String bodyId() { return "fake-body-1"; }
++            @Override public Binding binding() {
++                return new Binding("fake-body-1","fake_bridge","fake-instance-1","fake-session-1");
++            }
+             @Override public long serverTick() { return ticks.incrementAndGet(); }
+             @Override public String observeJson() {
+-                return "{\"body_id\":\"fake-body-1\",\"physical_starts\":" + physicalStarts.get() + "}";
++                return "{\"body_id\":\"fake-body-1\",\"backend_kind\":\"fake_bridge\","
++                        + "\"body_instance_id\":\"fake-instance-1\",\"body_session_epoch\":\"fake-session-1\","
++                        + "\"physical_starts\":" + physicalStarts.get() + "}";
+             }
+             @Override public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal) {
+                 java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index = new java.util.LinkedHashMap<>();
+--- a/aibot-dsh-m0/README.zh-CN.md
++++ b/aibot-dsh-m0/README.zh-CN.md
+@@ -78,6 +78,8 @@
+ 
+ ```bash
+ export AIBOT_EXTERNAL_BOT=Bob
++# Iris/DSH 的稳定身体身份；默认取 bot 名的小写形式。不要绑定 Minecraft UUID。
++export AIBOT_EXTERNAL_BODY_ID=bob
+ export AIBOT_BRIDGE_PORT=8765
+ # 生成一次，把同一密钥安全地提供给 Minecraft 和 DSH；不要提交或贴出值。
+ export AIBOT_BRIDGE_TOKEN="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/PhysicalExecutionDriver.java
+@@ -0,0 +1,30 @@
++package io.github.zoyluo.aibot.external;
++
++import java.nio.charset.StandardCharsets;
++import java.util.Objects;
++
++/**
++ * Backend-neutral physical execution seam.
++ *
++ * <p>The shared Bridge/Graph layer submits one normalized bounded operation. A server fake-player
++ * driver and a future real-client driver may implement this contract without putting backend
++ * selection branches inside Graph or DSH-facing code.</p>
++ */
++public interface PhysicalExecutionDriver {
++    record Request(String executionId,String operation,String argumentsJson) {
++        public Request {
++            executionId=executionId==null?"":executionId;
++            operation=Objects.requireNonNull(operation,"operation");
++            argumentsJson=Objects.requireNonNull(argumentsJson,"argumentsJson");
++            if(operation.isBlank() || operation.length()>80)
++                throw new IllegalArgumentException("invalid_operation");
++            if(argumentsJson.getBytes(StandardCharsets.UTF_8).length>16384)
++                throw new IllegalArgumentException("arguments_too_large");
++        }
++    }
++
++    BodyBackend.Handle start(Request request);
++    void pause();
++    void resume();
++    void cancel(String reason);
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ServerFakePlayerExecutionDriver.java
+@@ -0,0 +1,404 @@
++package io.github.zoyluo.aibot.external;
++
++import com.google.gson.JsonElement;
++import com.google.gson.JsonObject;
++import com.google.gson.JsonParser;
++import io.github.zoyluo.aibot.AIBotConfig;
++import io.github.zoyluo.aibot.brain.BrainCoordinator;
++import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.memory.BotMemoryStore;
++import io.github.zoyluo.aibot.persist.BotPersistence;
++import io.github.zoyluo.aibot.runtime.IntentController;
++import io.github.zoyluo.aibot.runtime.TaskOrigin;
++import io.github.zoyluo.aibot.task.*;
++import net.minecraft.item.Item;
++import net.minecraft.registry.Registries;
++import net.minecraft.server.MinecraftServer;
++import net.minecraft.util.Identifier;
++import net.minecraft.util.math.BlockPos;
++
++import java.util.Objects;
++import java.util.Set;
++import java.util.function.Supplier;
++
++/**
++ * Current physical driver: server-resident AIBot fake player and upstream TaskManager.
++ *
++ * <p>All task construction, assignment, pause/resume/cancel and bounded physical postcondition
++ * checks live here. MinecraftBodyBackend owns observation/binding only.</p>
++ */
++public final class ServerFakePlayerExecutionDriver implements PhysicalExecutionDriver {
++    private final MinecraftServer server;
++    private final AIPlayerEntity bot;
++    private final Supplier<AIPlayerEntity> currentBody;
++    private Task managed;
++
++    public ServerFakePlayerExecutionDriver(MinecraftServer server,AIPlayerEntity bot,
++                                           Supplier<AIPlayerEntity> currentBody) {
++        this.server=Objects.requireNonNull(server);
++        this.bot=Objects.requireNonNull(bot);
++        this.currentBody=Objects.requireNonNull(currentBody);
++        onThread();
++        // Fence restored legacy/internal work before the external bridge admits a command.
++        ExternalBodyAccess.dispatch(()->{
++            IntentController.INSTANCE.cancelAll(bot,IntentController.ControlOrigin.SYSTEM,"external_mode_enter");
++            BrainCoordinator.INSTANCE.reset(bot);
++            return null;
++        });
++    }
++
++    private void onThread() {
++        if(!server.isOnThread())throw new IllegalStateException("minecraft_access_off_server_thread");
++    }
++
++    @Override public BodyBackend.Handle start(Request request) {
++        onThread();
++        String executionId=request.executionId();
++        String operation=request.operation();
++        String raw=request.argumentsJson();
++        if(!bot.isAlive())throw new BridgeFault(409,"body_unavailable");
++        if(!"strict_survival".equals(AIBotConfig.get().profile().configValue()))
++            throw new BridgeFault(403,"strict_survival_required");
++
++        JsonObject args=parse(raw);
++        Set<String> allowed=switch(operation) {
++            case "goto" -> Set.of("x","y","z","allow_terrain_changes");
++            case "gather","craft" -> Set.of("item","count");
++            case "smelt" -> Set.of("input_item","output_item","count");
++            case "say" -> Set.of("message");
++            case "register_home" -> Set.of("name","radius","below","above");
++            case "capture_home","repair_home" -> Set.of("name");
++            case "register_farm" -> Set.of("name","radius","crop");
++            case "tend_farm" -> Set.of("name");
++            case "mine_opportunity" -> Set.of("id");
++            case "eat","set_base","deposit" -> Set.of();
++            default -> throw new BridgeFault(400,"unsupported_operation");
++        };
++        if(!allowed.containsAll(args.keySet()))throw new BridgeFault(400,"unknown_argument");
++
++        Task task;
++        Item target=null;
++        int count=0;
++        BlockPos goal=null;
++        String semanticId=null;
++
++        switch(operation) {
++            case "goto" -> {
++                if(!args.has("allow_terrain_changes") || !args.get("allow_terrain_changes").isJsonPrimitive()
++                        || !args.getAsJsonPrimitive("allow_terrain_changes").isBoolean()
++                        || !args.get("allow_terrain_changes").getAsBoolean())
++                    throw new BridgeFault(400,"goto_can_dig_explicit_allow_terrain_changes_required");
++                goal=new BlockPos(
++                        integer(args,"x",-29999984,29999984),
++                        integer(args,"y",bot.getServerWorld().getBottomY(),
++                                bot.getServerWorld().getBottomY()+bot.getServerWorld().getHeight()-1),
++                        integer(args,"z",-29999984,29999984));
++                if(bot.getBlockPos().getSquaredDistance(goal)>128*128)
++                    throw new BridgeFault(400,"goto_distance_limit_128");
++                task=new MoveTask(bot,goal);
++            }
++            case "gather" -> {
++                target=item(args,"item");
++                count=integer(args,"count",1,256);
++                task=new GatherQuotaTask(target,count,executionId);
++            }
++            case "craft" -> {
++                target=item(args,"item");
++                count=integer(args,"count",1,64);
++                task=new CraftTask(target,count);
++            }
++            case "smelt" -> {
++                target=item(args,"output_item");
++                count=integer(args,"count",1,64);
++                task=new SmeltTask(item(args,"input_item"),target,count);
++            }
++            case "eat" -> task=new EatTask();
++            case "register_home" -> {
++                try {
++                    var registration=SemanticWorldRegistry.registerHome(bot,
++                            optionalString(args,"name","home",32),
++                            optionalInt(args,"radius",6,2,16),
++                            optionalInt(args,"below",1,0,8),
++                            optionalInt(args,"above",6,1,16));
++                    return semanticRegistrationHandle(registration);
++                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
++                    throw semanticFault(semanticFailure);
++                }
++            }
++            case "capture_home" -> {
++                try {
++                    var registration=SemanticWorldRegistry.captureHome(
++                            bot,optionalString(args,"name","home",48));
++                    return semanticRegistrationHandle(registration);
++                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
++                    throw semanticFault(semanticFailure);
++                }
++            }
++            case "repair_home" -> {
++                try {
++                    semanticId=optionalString(args,"name","home",48);
++                    var plan=SemanticWorldRegistry.homeRepairPlan(bot,semanticId);
++                    if(plan.wrong()>0)
++                        throw new BridgeFault(409,"home_repair_v1_conflicting_cells:"+plan.wrong());
++                    if(plan.missing()==0)
++                        return ()->new BodyBackend.Snapshot(
++                                "completed",1,"home_desired_cells_already_satisfied");
++                    task=new BuildTask(plan.blueprint(),plan.anchor(),false,false);
++                } catch (BridgeFault bridgeFault) {
++                    throw bridgeFault;
++                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
++                    throw semanticFault(semanticFailure);
++                }
++            }
++            case "register_farm" -> {
++                try {
++                    var registration=SemanticWorldRegistry.registerFarm(bot,
++                            optionalString(args,"name","farm",32),
++                            optionalInt(args,"radius",6,1,16),
++                            optionalString(args,"crop","",64));
++                    return semanticRegistrationHandle(registration);
++                } catch (IllegalArgumentException | IllegalStateException semanticFailure) {
++                    throw semanticFault(semanticFailure);
++                }
++            }
++            case "tend_farm" -> {
++                String farmId=optionalString(args,"name","farm",48);
++                var farm=SemanticWorldRegistry.farm(bot,farmId)
++                        .orElseThrow(()->new BridgeFault(
++                                404,"farm_not_registered_or_wrong_dimension_or_needs_reregister"));
++                task=new FarmTask(farm.center(),farm.radius(),farm.seed(),farm.crop(),false,false);
++            }
++            case "mine_opportunity" -> {
++                String opportunityId=string(args,"id",48);
++                var opportunity=SemanticWorldRegistry.opportunity(bot,opportunityId)
++                        .orElseThrow(()->new BridgeFault(
++                                404,"resource_opportunity_not_found_in_current_dimension"));
++                if("MINED_PENDING_PICKUP".equals(opportunity.status())) {
++                    task=new KnownResourceTask(opportunity,true);
++                } else if("UNREACHABLE".equals(opportunity.status())) {
++                    if(!SemanticWorldRegistry.opportunityRevalidationReady(bot,opportunity))
++                        throw new BridgeFault(409,"resource_opportunity_unreachable:"
++                                +opportunity.blockedReason()
++                                +":revalidation_requires_geometry_change_or_cooldown");
++                    opportunity=SemanticWorldRegistry.reactivateOpportunity(bot,opportunityId)
++                            .orElseThrow(()->new BridgeFault(
++                                    409,"resource_opportunity_unreachable:reactivation_failed"));
++                    task=new KnownResourceTask(opportunity,false);
++                } else if("ACTIONABLE".equals(opportunity.status())) {
++                    task=new KnownResourceTask(opportunity,false);
++                } else {
++                    throw new BridgeFault(
++                            409,"resource_opportunity_blocked:"+opportunity.blockedReason());
++                }
++            }
++            case "deposit" -> task=new StockpileTask(true);
++            case "set_base" -> {
++                BotMemoryStore.INSTANCE.of(bot.getUuid())
++                        .markPlace("base",bot.getServerWorld(),bot.getBlockPos());
++                BotPersistence.INSTANCE.markDirty(server);
++                return ()->new BodyBackend.Snapshot(
++                        "completed",1,"base_marker_saved_operational_state_only");
++            }
++            case "say" -> {
++                String message=string(args,"message",1000);
++                BrainCoordinator.INSTANCE.sendPanelChat(bot,"bot",message);
++                server.getPlayerManager().broadcast(
++                        net.minecraft.text.Text.literal(
++                                "<"+bot.getGameProfile().getName()+"> "+message),false);
++                return ()->new BodyBackend.Snapshot(
++                        "completed",1,"sent_to_aibot_panel_and_global_chat");
++            }
++            default -> throw new BridgeFault(400,"unsupported_operation");
++        }
++
++        if(TaskManager.INSTANCE.getActive(bot).isPresent()
++                || TaskManager.INSTANCE.hasPaused(bot)
++                || bot.getActionPack().hasActiveActions())
++            throw new BridgeFault(409,"body_busy_safety_or_legacy_work");
++        if(TaskManager.INSTANCE.isUserPaused(bot))
++            throw new BridgeFault(409,"body_user_paused");
++
++        AIPlayerEntity executionBody=bot;
++        Item expected=target;
++        int quota=count;
++        BlockPos destination=goal;
++        String semantic=semanticId;
++        String executionOrigin=executionId.isBlank()
++                ?"external_dsh":"external_dsh:"+executionId;
++        ExternalBodyAccess.dispatch(()->{
++            TaskManager.INSTANCE.assign(
++                    executionBody,task,
++                    TaskOrigin.of(TaskOrigin.Kind.LLM_TOOL,executionOrigin));
++            return null;
++        });
++        managed=task;
++
++        return ()->{
++            onThread();
++            if(currentBody.get()!=executionBody)
++                return new BodyBackend.Snapshot(
++                        "outcome_unknown",task.progress(),"body_instance_replaced");
++            TaskStatus status=TaskStatus.from(task);
++            String state=switch(status.state()) {
++                case PENDING,RUNNING -> "running";
++                case PAUSED -> "paused";
++                case COMPLETED -> "completed";
++                case FAILED -> "failed";
++                case CANCELLED -> "cancelled";
++            };
++            String reason=status.failureReason()==null?"":status.failureReason();
++            if(state.equals("running")
++                    && TaskManager.INSTANCE.getActive(executionBody).orElse(null)!=task)
++                return new BodyBackend.Snapshot(
++                        "outcome_unknown",status.progress(),
++                        "tracked_task_no_longer_owns_execution");
++            if(state.equals("paused"))
++                reason=TaskManager.INSTANCE.isUserPaused(executionBody)
++                        ?"user_or_lease_pause":"safety_preempted";
++            if(state.equals("completed")) {
++                if(operation.equals("gather")) {
++                    int actual=GatherQuotaTask.acceptedInventoryCount(executionBody,expected);
++                    if(actual<quota)
++                        return new BodyBackend.Snapshot(
++                                "failed",status.progress(),
++                                "gather_postcondition_missing:accepted="+actual+":quota="+quota);
++                    reason="inventory_family_or_exact_quota_verified:accepted="+actual;
++                } else if(operation.equals("goto")) {
++                    if(executionBody.getBlockPos().getSquaredDistance(destination)>9)
++                        return new BodyBackend.Snapshot(
++                                "failed",status.progress(),
++                                "goto_postcondition_not_within_3_blocks");
++                    reason="arrival_within_3_blocks_verified";
++                } else if(operation.equals("repair_home")) {
++                    try {
++                        var verify=SemanticWorldRegistry.homeRepairPlan(executionBody,semantic);
++                        if(verify.missing()>0 || verify.wrong()>0)
++                            return new BodyBackend.Snapshot(
++                                    "failed",status.progress(),
++                                    "home_repair_postcondition_missing="+verify.missing()
++                                            +":wrong="+verify.wrong());
++                        reason="home_missing_only_repair_verified";
++                    } catch(RuntimeException verifyFailure) {
++                        return new BodyBackend.Snapshot(
++                                "failed",status.progress(),
++                                "home_repair_postcondition_error:"
++                                        +verifyFailure.getClass().getSimpleName());
++                    }
++                } else {
++                    reason="upstream_task_completed_reobserve_for_user_goal_verification";
++                }
++            }
++            return new BodyBackend.Snapshot(state,status.progress(),reason);
++        };
++    }
++
++    @Override public void pause() {
++        onThread();
++        if(managed!=null
++                && (managed.state()==TaskState.RUNNING || managed.state()==TaskState.PAUSED))
++            ExternalBodyAccess.dispatch(()->IntentController.INSTANCE.pause(
++                    bot,IntentController.ControlOrigin.SYSTEM,"external_pause"));
++    }
++
++    @Override public void resume() {
++        onThread();
++        ExternalBodyAccess.dispatch(()->IntentController.INSTANCE.resume(
++                bot,IntentController.ControlOrigin.SYSTEM,"external_resume"));
++    }
++
++    @Override public void cancel(String reason) {
++        onThread();
++        ExternalBodyAccess.dispatch(()->IntentController.INSTANCE.cancelAll(
++                bot,IntentController.ControlOrigin.SYSTEM,reason));
++    }
++
++    private static BodyBackend.Handle semanticRegistrationHandle(
++            SemanticWorldRegistry.Registration registration) {
++        return ()->{
++            if(!registration.persisted().isDone())
++                return new BodyBackend.Snapshot(
++                        "running",0.5D,"persisting_semantic_registry");
++            try {
++                registration.persisted().join();
++                return new BodyBackend.Snapshot(
++                        "completed",1.0D,registration.payload());
++            } catch(RuntimeException persistenceFailure) {
++                return new BodyBackend.Snapshot(
++                        "failed",0.5D,
++                        "semantic_registry_persistence_failed:"
++                                +persistenceFailure.getClass().getSimpleName());
++            }
++        };
++    }
++
++    private static BridgeFault semanticFault(RuntimeException failure) {
++        String reason=failure.getMessage()==null
++                ?failure.getClass().getSimpleName():failure.getMessage();
++        int status=reason.startsWith("semantic_registry_failed_closed")
++                || reason.equals("semantic_registry_not_started") ? 503 : 400;
++        return new BridgeFault(
++                status,reason.replaceAll("[^A-Za-z0-9:._-]","_"));
++    }
++
++    private static int optionalInt(
++            JsonObject object,String key,int fallback,int min,int max) {
++        return object.has(key)?integer(object,key,min,max):fallback;
++    }
++
++    private static String optionalString(
++            JsonObject object,String key,String fallback,int max) {
++        if(!object.has(key))return fallback;
++        JsonElement value=object.get(key);
++        if(value==null || !value.isJsonPrimitive()
++                || !value.getAsJsonPrimitive().isString())
++            throw new BridgeFault(400,"string_required:"+key);
++        String result=value.getAsString().trim();
++        if(result.isEmpty() || result.length()>max)
++            throw new BridgeFault(400,"invalid_string_length:"+key);
++        return result;
++    }
++
++    private static JsonObject parse(String raw) {
++        try {
++            JsonElement value=JsonParser.parseString(raw);
++            if(!value.isJsonObject())throw new IllegalArgumentException();
++            return value.getAsJsonObject();
++        } catch(RuntimeException bad) {
++            throw new BridgeFault(400,"invalid_arguments_json_object");
++        }
++    }
++
++    private static String string(JsonObject object,String key,int max) {
++        JsonElement value=object.get(key);
++        if(value==null || !value.isJsonPrimitive()
++                || !value.getAsJsonPrimitive().isString())
++            throw new BridgeFault(400,"string_required:"+key);
++        String result=value.getAsString();
++        if(result.isBlank() || result.length()>max)
++            throw new BridgeFault(400,"invalid_string_length:"+key);
++        return result;
++    }
++
++    private static int integer(JsonObject object,String key,int min,int max) {
++        try {
++            JsonElement value=object.get(key);
++            if(value==null || !value.isJsonPrimitive()
++                    || !value.getAsJsonPrimitive().isNumber())
++                throw new IllegalArgumentException();
++            int result=value.getAsBigDecimal().intValueExact();
++            if(result<min || result>max)throw new IllegalArgumentException();
++            return result;
++        } catch(RuntimeException bad) {
++            throw new BridgeFault(400,"integer_out_of_range:"+key);
++        }
++    }
++
++    private static Item item(JsonObject object,String key) {
++        String name=string(object,key,128);
++        Identifier id=Identifier.tryParse(name);
++        if(id==null || !Registries.ITEM.containsId(id)
++                || name.equals("minecraft:air"))
++            throw new BridgeFault(400,"unknown_item:"+key);
++        return Registries.ITEM.get(id);
++    }
++}
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/BodyBackendSeamSourceTest.java
+@@ -0,0 +1,76 @@
++package io.github.zoyluo.aibot.external;
++
++import org.junit.jupiter.api.Test;
++
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++final class BodyBackendSeamSourceTest {
++    private static final Path ROOT=Path.of("src/main/java/io/github/zoyluo/aibot/external");
++    private static String read(String name)throws IOException {
++        return Files.readString(ROOT.resolve(name));
++    }
++
++    @Test void physicalExecutionPortHasNoMinecraftDependency()throws Exception {
++        String source=read("PhysicalExecutionDriver.java");
++        assertFalse(source.contains("net.minecraft"));
++        assertFalse(source.contains("AIPlayerEntity"));
++        assertTrue(source.contains("record Request(String executionId,String operation,String argumentsJson)"));
++        assertTrue(source.contains("BodyBackend.Handle start(Request request)"));
++    }
++
++    @Test void minecraftBackendDelegatesMutationAndDoesNotConstructTasks()throws Exception {
++        String source=read("MinecraftBodyBackend.java");
++        assertTrue(source.contains("new ServerFakePlayerExecutionDriver"));
++        assertTrue(source.contains("executionDriver.start("));
++        assertTrue(source.contains("executionDriver.pause()"));
++        assertTrue(source.contains("executionDriver.resume()"));
++        assertTrue(source.contains("executionDriver.cancel(reason)"));
++        for(String forbidden:new String[]{
++                "new MoveTask(","new GatherQuotaTask(","new CraftTask(","new SmeltTask(",
++                "new KnownResourceTask(","new FarmTask(","new BuildTask(","new StockpileTask(",
++                "TaskManager.INSTANCE.assign(","IntentController.INSTANCE.pause(",
++                "IntentController.INSTANCE.resume(","IntentController.INSTANCE.cancelAll("
++        }) assertFalse(source.contains(forbidden),"backend still owns mechanics: "+forbidden);
++    }
++
++    @Test void serverFakePlayerDriverOwnsCurrentOperationMapping()throws Exception {
++        String source=read("ServerFakePlayerExecutionDriver.java");
++        for(String operation:new String[]{
++                "\"goto\"","\"gather\"","\"craft\"","\"smelt\"","\"eat\"",
++                "\"set_base\"","\"deposit\"","\"say\"","\"register_home\"",
++                "\"capture_home\"","\"repair_home\"","\"register_farm\"",
++                "\"tend_farm\"","\"mine_opportunity\""
++        }) assertTrue(source.contains(operation),"missing operation "+operation);
++        assertTrue(source.contains("TaskManager.INSTANCE.assign("));
++        assertTrue(source.contains("currentBody.get()!=executionBody"));
++    }
++
++    @Test void logicalBodyIdentityIsSeparatedFromPhysicalSession()throws Exception {
++        String access=read("ExternalBodyAccess.java");
++        String backend=read("MinecraftBodyBackend.java");
++        String contract=read("BodyBackend.java");
++        assertTrue(access.contains("AIBOT_EXTERNAL_BODY_ID"));
++        assertTrue(backend.contains("\"server_fake_player\""));
++        assertTrue(backend.contains("UUID.randomUUID().toString()"));
++        assertTrue(backend.contains("minecraft_profile_uuid"));
++        assertTrue(contract.contains("record Binding(String bodyId,String backendKind,String instanceId,String sessionEpoch)"));
++    }
++
++    @Test void kernelPersistsAndFencesPhysicalSessionChangesWithoutTouchingGraphDispatch()throws Exception {
++        String kernel=read("BridgeKernel.java");
++        assertTrue(kernel.contains("body_session_changed"));
++        assertTrue(kernel.contains("body_instance_id"));
++        assertTrue(kernel.contains("body_session_epoch"));
++        assertTrue(kernel.contains("backend_kind"));
++        int run=kernel.indexOf("Map<String,Object> graphRunNext");
++        int cancel=kernel.indexOf("Map<String,Object> graphCancel",run);
++        assertTrue(run>=0 && cancel>run);
++        String graphBlock=kernel.substring(run,cancel);
++        assertTrue(graphBlock.contains("submit(supplied,d.requestId(),d.operation(),d.arguments())"));
++        assertFalse(graphBlock.contains("backend.start("));
++    }
++}

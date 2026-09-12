@@ -1,0 +1,14 @@
+{
+ "backend_kind": "server_fake_player",
+ "body_id": "bob",
+ "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+ "body_session_epoch": "851693bb-04d2-4db2-9861-18d6e2b41dc9",
+ "execution_id": "e3de66a1-34b5-4cd4-a3f9-54d6948e372c",
+ "operation": "gather",
+ "progress": 1.0,
+ "reason": "inventory_family_or_exact_quota_verified:accepted=4",
+ "request_id": "live3-tree-1789221597",
+ "state": "completed",
+ "success_scope": "bounded_body_operation_not_user_goal",
+ "terminal": true
+}

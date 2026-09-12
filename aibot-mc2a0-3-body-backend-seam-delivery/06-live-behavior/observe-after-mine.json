@@ -1,0 +1,615 @@
+{
+ "backend_kind": "server_fake_player",
+ "body_id": "bob",
+ "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+ "body_session_epoch": "851693bb-04d2-4db2-9861-18d6e2b41dc9",
+ "current_task": "mine_known_resource",
+ "dimension": "minecraft:overworld",
+ "food": 20,
+ "health": 20.0,
+ "inventory": {
+  "minecraft:raw_iron": 1,
+  "minecraft:stone_pickaxe": 1
+ },
+ "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+ "name": "Bob",
+ "paused_depth": 0,
+ "perception": {
+  "blocks": [],
+  "entities": [],
+  "highlights": {
+   "nearest_bed": [],
+   "nearest_chest": [],
+   "nearest_crafting_table": [],
+   "nearest_furnace": [],
+   "nearest_hostile": [],
+   "nearest_ore": [
+    {
+     "distance": 2.83,
+     "type": "minecraft:iron_ore",
+     "x": 566,
+     "y": 68,
+     "z": 129
+    },
+    {
+     "distance": 4.47,
+     "type": "minecraft:iron_ore",
+     "x": 564,
+     "y": 68,
+     "z": 129
+    }
+   ],
+   "nearest_stone": [
+    {
+     "distance": 1.0,
+     "type": "minecraft:stone",
+     "x": 568,
+     "y": 67,
+     "z": 127
+    },
+    {
+     "distance": 1.41,
+     "type": "minecraft:stone",
+     "x": 567,
+     "y": 67,
+     "z": 127
+    }
+   ],
+   "nearest_tree": [
+    {
+     "distance": 4.47,
+     "type": "minecraft:oak_log",
+     "x": 566,
+     "y": 68,
+     "z": 131
+    },
+    {
+     "distance": 4.58,
+     "type": "minecraft:oak_log",
+     "x": 566,
+     "y": 69,
+     "z": 131
+    }
+   ],
+   "nearest_water": []
+  },
+  "items": [],
+  "self": {
+   "holdingItem": "minecraft:stone_pickaxe",
+   "hp": 20.0,
+   "hunger": 20,
+   "inventoryCount": {
+    "minecraft:stone_pickaxe": 1
+   },
+   "pitch": 57.85995,
+   "x": 568.482195331693,
+   "y": 68.0,
+   "yaw": -90.0,
+   "z": 127.5
+  },
+  "task": {
+   "description": "Mine known minecraft:iron_ore at 569, 68, 127 phase=PICKUP",
+   "elapsedTicks": 35,
+   "failureReason": "",
+   "name": "mine_known_resource",
+   "progress": 0.9,
+   "state": "RUNNING"
+  },
+  "time": {
+   "isDay": true,
+   "light": 15,
+   "worldTime": 1000
+  }
+ },
+ "perception_age_ticks": 5,
+ "position": {
+  "x": 568.482195331693,
+  "y": 68.0,
+  "z": 127.5
+ },
+ "profile": "strict_survival",
+ "safety_active": false,
+ "semantic_age_ticks": 5,
+ "semantic_world": {
+  "destructive_policy": "physical_mining_gate_must_enforce_registered_structure_and_farm_cells; safety_origin_can_override",
+  "dimension": "minecraft:overworld",
+  "farms": [],
+  "persistence_fault": "",
+  "repair_policy": "missing_expected_block_ids_only; never_delete_extra_blocks; no_block_entity_or_inventory_restore",
+  "resource_opportunities": [
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "pickup_recovery_pending",
+    "distance": 1.0,
+    "id": "ore_637b3d8d874b_d4485d7ae90048c0",
+    "last_seen_game_time": 303221,
+    "position": {
+     "x": 567,
+     "y": 68,
+     "z": 127
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 559,
+     "y": 68,
+     "z": 127
+    },
+    "status": "MINED_PENDING_PICKUP"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 1.0,
+    "id": "ore_27a43aee7126_be10b3e546fa4fa3",
+    "last_seen_game_time": 305195,
+    "position": {
+     "x": 569,
+     "y": 68,
+     "z": 127
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 561,
+     "y": 68,
+     "z": 127
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "pickup_recovery_pending",
+    "distance": 2.0,
+    "id": "ore_d3bcf61889be_b52b7d43c9a04658",
+    "last_seen_game_time": 301137,
+    "position": {
+     "x": 566,
+     "y": 68,
+     "z": 127
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 558,
+     "y": 68,
+     "z": 127
+    },
+    "status": "MINED_PENDING_PICKUP"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 2.8,
+    "id": "ore_fc5799c7eeb93d7f9f8e92a4871be484",
+    "last_seen_game_time": 305215,
+    "position": {
+     "x": 566,
+     "y": 68,
+     "z": 129
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 562,
+     "y": 68,
+     "z": 129
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 4.5,
+    "id": "ore_d9b0920ed1f1_ecac03c338f1444b",
+    "last_seen_game_time": 305215,
+    "position": {
+     "x": 564,
+     "y": 68,
+     "z": 129
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 559,
+     "y": 68,
+     "z": 129
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 10.2,
+    "id": "ore_4c1fc7783fbc3834959406ffe1a692e6",
+    "last_seen_game_time": 305035,
+    "position": {
+     "x": 558,
+     "y": 68,
+     "z": 129
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 551,
+     "y": 68,
+     "z": 129
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 11.2,
+    "id": "ore_ec01382592993ea0a02a395df0cb0de3",
+    "last_seen_game_time": 305035,
+    "position": {
+     "x": 558,
+     "y": 68,
+     "z": 132
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 550,
+     "y": 68,
+     "z": 133
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "pickup_recovery_pending",
+    "distance": 19.1,
+    "id": "ore_49f0833108d538e58eeacf480649fedf",
+    "last_seen_game_time": 173863,
+    "position": {
+     "x": 549,
+     "y": 67,
+     "z": 126
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 550,
+     "y": 68,
+     "z": 133
+    },
+    "status": "MINED_PENDING_PICKUP"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 29.2,
+    "id": "ore_769151ef5a8d3c12bc11eca310341d56",
+    "last_seen_game_time": 194930,
+    "position": {
+     "x": 550,
+     "y": 68,
+     "z": 104
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 550,
+     "y": 64,
+     "z": 106
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 35.8,
+    "id": "ore_3cceb394963f3d40bb920e4ab3ab08cd",
+    "last_seen_game_time": 196377,
+    "position": {
+     "x": 550,
+     "y": 68,
+     "z": 96
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 550,
+     "y": 67,
+     "z": 98
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 35.9,
+    "id": "ore_7d9072bb521c3b53b985c0af1ae24001",
+    "last_seen_game_time": 81917,
+    "position": {
+     "x": 574,
+     "y": 63,
+     "z": 162
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 572,
+     "y": 63,
+     "z": 157
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:diamond_ore",
+    "blocked_reason": "insufficient_tool",
+    "distance": 36.8,
+    "id": "ore_ca8a03284cb13021b4125ee3216eae0d",
+    "last_seen_game_time": 81907,
+    "position": {
+     "x": 574,
+     "y": 63,
+     "z": 163
+    },
+    "required_tool": "minecraft:iron_pickaxe",
+    "seen_from": {
+     "x": 572,
+     "y": 63,
+     "z": 157
+    },
+    "status": "BLOCKED"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 78.4,
+    "id": "ore_9a88ceb8e7993ae1a5cba009d925447d",
+    "last_seen_game_time": 26148,
+    "position": {
+     "x": 490,
+     "y": 64,
+     "z": 120
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 491,
+     "y": 69,
+     "z": 118
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 79.2,
+    "id": "ore_c7be6124b5003394bd12ec7e7b6f3f22",
+    "last_seen_game_time": 96022,
+    "position": {
+     "x": 489,
+     "y": 69,
+     "z": 122
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 487,
+     "y": 69,
+     "z": 121
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 79.4,
+    "id": "ore_2abfaa05f88e34cb80b6c71a34f0b2e6",
+    "last_seen_game_time": 26298,
+    "position": {
+     "x": 489,
+     "y": 64,
+     "z": 120
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 491,
+     "y": 64,
+     "z": 121
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:iron_ore",
+    "blocked_reason": "",
+    "distance": 80.1,
+    "id": "ore_f235b51a241b30ce90bdb791180b1529",
+    "last_seen_game_time": 96022,
+    "position": {
+     "x": 488,
+     "y": 70,
+     "z": 123
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 487,
+     "y": 69,
+     "z": 121
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:copper_ore",
+    "blocked_reason": "",
+    "distance": 237.6,
+    "id": "ore_49a6cff84000316f9425d27449766626",
+    "last_seen_game_time": 13668,
+    "position": {
+     "x": 334,
+     "y": 69,
+     "z": 86
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 331,
+     "y": 70,
+     "z": 88
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:copper_ore",
+    "blocked_reason": "",
+    "distance": 238.6,
+    "id": "ore_bd7436f87128375dbe44e8e9cecfcd1c",
+    "last_seen_game_time": 13658,
+    "position": {
+     "x": 333,
+     "y": 69,
+     "z": 86
+    },
+    "required_tool": "minecraft:stone_pickaxe",
+    "seen_from": {
+     "x": 331,
+     "y": 70,
+     "z": 88
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:coal_ore",
+    "blocked_reason": "",
+    "distance": 255.1,
+    "id": "ore_13e8883449d738fb90a6bba2af25c0f3",
+    "last_seen_game_time": 13588,
+    "position": {
+     "x": 316,
+     "y": 74,
+     "z": 88
+    },
+    "required_tool": "minecraft:wooden_pickaxe",
+    "seen_from": {
+     "x": 309,
+     "y": 70,
+     "z": 94
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:coal_ore",
+    "blocked_reason": "",
+    "distance": 255.2,
+    "id": "ore_fa6099fb14393727981ad6828bb1f76b",
+    "last_seen_game_time": 13528,
+    "position": {
+     "x": 316,
+     "y": 74,
+     "z": 87
+    },
+    "required_tool": "minecraft:wooden_pickaxe",
+    "seen_from": {
+     "x": 309,
+     "y": 70,
+     "z": 94
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:coal_ore",
+    "blocked_reason": "",
+    "distance": 256.1,
+    "id": "ore_2409a7f67ddf3c60871c1098e01cdc47",
+    "last_seen_game_time": 13578,
+    "position": {
+     "x": 315,
+     "y": 74,
+     "z": 88
+    },
+    "required_tool": "minecraft:wooden_pickaxe",
+    "seen_from": {
+     "x": 309,
+     "y": 70,
+     "z": 94
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:coal_ore",
+    "blocked_reason": "",
+    "distance": 256.2,
+    "id": "ore_f23db7ff890d32e0b79bc72332d5b153",
+    "last_seen_game_time": 13528,
+    "position": {
+     "x": 315,
+     "y": 74,
+     "z": 87
+    },
+    "required_tool": "minecraft:wooden_pickaxe",
+    "seen_from": {
+     "x": 309,
+     "y": 70,
+     "z": 94
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:coal_ore",
+    "blocked_reason": "",
+    "distance": 349.0,
+    "id": "ore_28a5381fa9593ae99f8f399047550507",
+    "last_seen_game_time": 12828,
+    "position": {
+     "x": 232,
+     "y": 111,
+     "z": 43
+    },
+    "required_tool": "minecraft:wooden_pickaxe",
+    "seen_from": {
+     "x": 236,
+     "y": 117,
+     "z": 46
+    },
+    "status": "ACTIONABLE"
+   },
+   {
+    "block": "minecraft:coal_ore",
+    "blocked_reason": "no_reachable_work_pose",
+    "distance": 349.1,
+    "id": "ore_53f147fa1fc439519ff35ad94e2f5520",
+    "last_seen_game_time": 12828,
+    "position": {
+     "x": 232,
+     "y": 112,
+     "z": 43
+    },
+    "required_tool": "minecraft:wooden_pickaxe",
+    "seen_from": {
+     "x": 236,
+     "y": 117,
+     "z": 46
+    },
+    "status": "UNREACHABLE"
+   }
+  ],
+  "resource_opportunities_other_dimensions": 0,
+  "schema": "mc_spatial_semantics_v2_bounded",
+  "structures": [
+   {
+    "bounds": {
+     "max_x": 9,
+     "max_y": 122,
+     "max_z": 9,
+     "min_x": -7,
+     "min_y": 112,
+     "min_z": -7
+    },
+    "id": "home",
+    "inside": false,
+    "kind": "HOME",
+    "protected": true,
+    "snapshot_cells": 0
+   },
+   {
+    "bounds": {
+     "max_x": 575,
+     "max_y": 65,
+     "max_z": 160,
+     "min_x": 569,
+     "min_y": 63,
+     "min_z": 154
+    },
+    "id": "live2a01",
+    "inside": false,
+    "kind": "HOME",
+    "protected": true,
+    "snapshot_cells": 4
+   }
+  ],
+  "tree_policy": "natural_tree_cluster_is_leased_to_one_active_gather_after_initial_proof",
+  "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39"
+ },
+ "user_paused": false
+}

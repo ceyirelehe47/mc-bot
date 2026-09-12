@@ -1,0 +1,58 @@
+{
+ "asserts": [
+  {
+   "detail": "",
+   "name": "B1 重启后 body_id 仍为 bob",
+   "ok": true
+  },
+  {
+   "detail": "epoch_a=62cdf01b-e174-4691-9204-7a9ede8470d2 epoch_b=98356085-7da2-468a-97af-3ab4fd211464",
+   "name": "B2 重启后 body_session_epoch 轮换",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "B3 重启后 instance 仍为旧 profile UUID",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "B4 重启后 needs_reconcile=true",
+   "ok": true
+  },
+  {
+   "detail": "execution=",
+   "name": "B5 无旧物理执行被重放(status 无 active execution)",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "B6 observe 后 needs_reconcile 清除",
+   "ok": true
+  },
+  {
+   "detail": "session_changed_frames=1",
+   "name": "B7 body_session_changed 事件帧存在",
+   "ok": true
+  },
+  {
+   "detail": "new_bindings=1",
+   "name": "B8 新 body_binding 帧发布新 epoch",
+   "ok": true
+  },
+  {
+   "detail": "new_accepted=0",
+   "name": "B9 重启窗口无自动重放的 mutation(无新增 accepted execution 帧)",
+   "ok": true
+  },
+  {
+   "detail": "",
+   "name": "B10 journal 终帧为 runtime_stopped",
+   "ok": true
+  }
+ ],
+ "epoch_a": "62cdf01b-e174-4691-9204-7a9ede8470d2",
+ "epoch_b": "98356085-7da2-468a-97af-3ab4fd211464",
+ "gate": "LIVE-1-phaseB",
+ "ok": true
+}

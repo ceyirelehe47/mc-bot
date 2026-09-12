@@ -1,0 +1,14 @@
+{
+ "backend_kind": "server_fake_player",
+ "body_id": "bob",
+ "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+ "body_session_epoch": "62cdf01b-e174-4691-9204-7a9ede8470d2",
+ "execution_id": "9bcec73c-8ef1-4a32-8498-612f6062ece7",
+ "operation": "say",
+ "progress": 1.0,
+ "reason": "sent_to_aibot_panel_and_global_chat",
+ "request_id": "live1-say-binding-check",
+ "state": "completed",
+ "success_scope": "bounded_body_operation_not_user_goal",
+ "terminal": true
+}

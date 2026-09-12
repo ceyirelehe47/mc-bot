@@ -1,0 +1,32 @@
+{
+ "active_execution": null,
+ "backend_kind": "server_fake_player",
+ "body_id": "bob",
+ "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+ "body_ready": true,
+ "body_session_epoch": "62cdf01b-e174-4691-9204-7a9ede8470d2",
+ "control_active": false,
+ "event_epoch": "fdb19d84-1462-448f-b84e-7f7824a24bfa",
+ "event_sequence": 992,
+ "fault": "",
+ "needs_reconcile": true,
+ "operations": [
+  "capture_home",
+  "craft",
+  "deposit",
+  "eat",
+  "gather",
+  "goto",
+  "mine_opportunity",
+  "register_farm",
+  "register_home",
+  "repair_home",
+  "say",
+  "set_base",
+  "smelt",
+  "tend_farm"
+ ],
+ "protocol_version": 1,
+ "runtime_epoch": "a27cd5d8-2207-4cfb-90ba-e1eb3788b336",
+ "stopped": false
+}
