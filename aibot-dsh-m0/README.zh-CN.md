@@ -137,3 +137,38 @@ sha256sum -c SHA256SUMS
 ```
 
 重新运行测试会更新证据文件，届时这些文件与发布时摘要不一致是正常现象。不要通过覆盖旧证据伪装原始发布结果。
+
+## MC-2A0.4：真实客户端身体 MVP
+
+服务器端显式选择唯一 physical authority：
+
+```bash
+export AIBOT_EXTERNAL_BOT=Bob
+export AIBOT_EXTERNAL_BODY_ID=bob
+export AIBOT_EXTERNAL_BACKEND=real_client
+export AIBOT_REAL_CLIENT_PORT=8766
+export AIBOT_REAL_CLIENT_TOKEN="$AIBOT_BRIDGE_TOKEN"
+```
+
+Bob 客户端是独立的 offline profile，不使用拥有者的 Microsoft/Minecraft 账户。客户端进程还需：
+
+```bash
+export AIBOT_REAL_CLIENT=1
+export AIBOT_REAL_CLIENT_BOT_NAME=Bob
+export AIBOT_REAL_CLIENT_BODY_ID=bob
+export AIBOT_REAL_CLIENT_HOST=127.0.0.1
+export AIBOT_REAL_CLIENT_PORT=8766
+export AIBOT_REAL_CLIENT_TOKEN="$AIBOT_BRIDGE_TOKEN"
+```
+
+`scripts/real_client_supervisor.py` 根据配置数组启动/重启客户端，计算标准 offline UUID，且
+不经 shell 拼接命令。MVP 只支持 `say`、短距离 `goto` 与 explicit opportunity
+`mine_opportunity`；其余现有 DSH 工具会得到 `operation_not_supported_by_backend`，绝不偷偷
+回落 FakePlayer。GUI、模组 Screen、BOT_POV、音频与直播不在本轮。
+
+真实客户端崩溃或断线会将在途执行置为 `outcome_unknown:body_session_changed`，吊销旧租约、
+清空旧认知读平面并要求显式 `mc_observe`；重连后不自动重放任何 mutation。
+
+发布前必须用 `python scripts/gen_sums.py` 重新生成 `SHA256SUMS`。canonical manifest
+必须排除 `SHA256SUMS` 自身，再执行 `sha256sum -c SHA256SUMS` 验证全部条目。
+

@@ -727,9 +727,13 @@ CHANGES = {
 # 不在 PREFIX 下的补充锚点补丁(带同样的 blob 校验)。MC-1C-A:把专项 GameTest 注册进 gametest 入口,
 # 否则 fabric-gametest 不会发现它,干净重建后测试静默消失。
 EXTRA_CHANGES={
+ 'src/client/java/io/github/zoyluo/aibot/client/AIBotClient.java': ('d9476d8f310699a3c3ff1d8eddf5200d90339214', [
+  ('        AIBotClientNetworking.register();\n',
+   '        AIBotClientNetworking.register();\n        io.github.zoyluo.aibot.client.realclient.RealClientBodyClientRuntime.register();\n', 1),
+ ]),
  'src/gametest/resources/fabric.mod.json': ('25ecb31ca127ed2e9d57ccb9b5c223066092f3e5', [
   ('"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",',
-   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A02TreeHarvestGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A03OpportunityIncarnationGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A03ASessionBoundaryGameTests",', 1),
+   '"io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",\n            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A02TreeHarvestGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A03OpportunityIncarnationGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A03ASessionBoundaryGameTests",\n            "io.github.zoyluo.aibot.gametest.MC2A04RealClientTrackerGameTests",', 1),
  ]),
  'src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java': ('07d61c3c7b180d12361b8ab6bbe8983f42ed30f4', [
   ('        assertEquals(2, occurrences(buildTask, "isObservableStandable(bot, candidate)"),\n                "both work-pose scans must cross the observable-world boundary");\n',

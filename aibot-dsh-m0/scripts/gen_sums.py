@@ -1,23 +1,24 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Regenerate aibot-dsh-m0/SHA256SUMS: every file under the handoff dir except
-SHA256SUMS itself and __pycache__ trees. LF newlines, sorted by path."""
+#!/usr/bin/env python3
+"""Regenerate SHA256SUMS for this handoff tree, excluding the manifest and build caches."""
+from __future__ import annotations
+
 import hashlib
+import os
 import pathlib
 
-root = pathlib.Path(r'D:\code\mc-bot\aibot-dsh-m0')
-entries = []
-for path in sorted(root.rglob('*')):
+root = pathlib.Path(__file__).resolve().parents[1]
+entries: list[str] = []
+for path in sorted(root.rglob("*")):
     if not path.is_file():
         continue
-    rel = path.relative_to(root).as_posix()
-    if rel == 'SHA256SUMS':
+    relative = path.relative_to(root).as_posix()
+    if relative == "SHA256SUMS":
         continue
-    if '__pycache__' in path.parts or '.build' in path.parts:
+    if "__pycache__" in path.parts or ".build" in path.parts:
         continue
-    digest = hashlib.sha256(path.read_bytes()).hexdigest()
-    entries.append(f'{digest}  {rel}')
+    entries.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {relative}")
 
-out = root / 'SHA256SUMS'
-out.write_text('\n'.join(entries) + '\n', encoding='utf-8', newline='\n')
-print(f'wrote {len(entries)} entries')
+temporary = root / "SHA256SUMS.tmp"
+temporary.write_text("\n".join(entries) + "\n", encoding="utf-8", newline="\n")
+os.replace(temporary, root / "SHA256SUMS")
+print(f"wrote {len(entries)} entries; SHA256SUMS self-entry excluded")

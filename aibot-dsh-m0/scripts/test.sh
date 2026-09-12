@@ -16,4 +16,5 @@ javac -d .build "$J"/{JsonOutput,BridgeFault,BridgeJournal,BodyBackend,TaskGraph
 java -cp .build io.github.zoyluo.aibot.external.BridgeCoreTest | tee evidence/java-core-tests.txt
 node --test dsh-plugin/test/*.test.mjs | tee evidence/node-tests.txt
 python3 scripts/test_installers.py 2>&1 | tee evidence/installer-tests.txt
+python3 scripts/test_real_client_supervisor.py 2>&1 | tee evidence/real-client-supervisor-tests.txt
 printf '\nOffline suites passed. NOT a real Minecraft GameTest or actual DSH loading result.\n'

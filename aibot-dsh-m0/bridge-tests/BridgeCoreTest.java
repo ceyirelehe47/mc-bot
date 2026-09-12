@@ -11,6 +11,7 @@ public final class BridgeCoreTest {
     static int passed;
     static final class FakeBackend implements BodyBackend {
         boolean alive=true; String id="body-1", kind="fake_backend", instance="instance-1", session="session-1";
+        Set<String> operations=BodyBackend.ALL_OPERATIONS;
         String state="running"; int starts,pauses,resumes,cancels; boolean failStart;
         String lastExecutionId="";
         long tick; String localJson="{\"schema\":\"mc.local_view.v0\"}";
@@ -20,6 +21,7 @@ public final class BridgeCoreTest {
         String sceneHash(){return ("session-1".equals(session)?"cafe":"beef").repeat(16);}
         public boolean ready(){return alive;} public String bodyId(){return id;}
         public Binding binding(){return new Binding(id,kind,instance,session);}
+        public Set<String> supportedOperations(){return operations;}
         public long serverTick(){return ++tick;}
         public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal){
             java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index=new java.util.LinkedHashMap<>();
@@ -212,6 +214,37 @@ public final class BridgeCoreTest {
             check(rebuiltView.contains("\"session\":\"session-2\"")
                             && !rebuiltView.contains("\"session\":\"session-1\""),
                     "view is rebuilt for the replacement physical session");
+        }
+        try(Fixture f=fixture()) {
+            check(((List<?>)f.kernel.status().get("operations")).contains("gather"),
+                    "status exposes the selected backend capability set");
+            f.body.operations=Set.of("say");
+            check(f.kernel.status().get("operations").equals(List.of("say")),
+                    "status updates when the physical backend capability set changes");
+            String token=claim(f);
+            fault(409,"operation_not_supported_by_backend",
+                    ()->f.kernel.submit(token,"unsupported-on-real","gather","{}"));
+            String execution=(String)f.kernel.submit(token,"availability-loss","say","{}").get("execution_id");
+            f.kernel.tick();
+            var pending=f.kernel.submitLocalQuery(4,"summary");
+            int starts=f.body.starts;
+            f.body.alive=false;
+            f.kernel.tick();
+            check(f.kernel.execution(execution).get("state").equals("outcome_unknown"),
+                    "physical body loss interrupts execution as unknown");
+            check(f.kernel.execution(execution).get("reason").equals("body_session_changed"),
+                    "physical body loss uses session-boundary reason");
+            check(f.kernel.status().get("control_active").equals(false),
+                    "physical body loss revokes lease");
+            check(f.kernel.status().get("needs_reconcile").equals(true),
+                    "physical body loss requires observe");
+            check(pending.isCompletedExceptionally(),
+                    "physical body loss cancels queued read queries");
+            check(f.body.starts==starts,"physical body loss never replays mutation");
+            f.body.session="session-2";f.body.alive=true;f.kernel.tick();
+            check(f.kernel.status().get("body_session_epoch").equals("session-2"),
+                    "reconnected physical body publishes a new session");
+            check(f.body.starts==starts,"reconnect still never replays mutation");
         }
         try(Fixture f=fixture()) {
             String t=claim(f);String id=(String)f.kernel.submit(t,"changed-body","gather","{}").get("execution_id");f.kernel.tick();
