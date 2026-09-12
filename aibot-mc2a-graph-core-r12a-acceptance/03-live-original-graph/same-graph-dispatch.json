@@ -1,0 +1,41 @@
+{
+  "execution": {
+    "body_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "execution_id": "18e48128-dcf3-4310-b493-803354d51908",
+    "operation": "mine_opportunity",
+    "progress": 0.0,
+    "reason": "",
+    "request_id": "graphd-18902c85c89d68107386d234f60791fb5a057535",
+    "state": "accepted",
+    "success_scope": "bounded_body_operation_not_user_goal",
+    "terminal": false
+  },
+  "graph": {
+    "created_at_ms": 1789208593392,
+    "graph_id": "graph-473aa3ba293a669ea646d83c",
+    "nodes": [
+      {
+        "attempt": 1,
+        "dependencies": [],
+        "dispatch_request_id": "graphd-18902c85c89d68107386d234f60791fb5a057535",
+        "execution_id": "18e48128-dcf3-4310-b493-803354d51908",
+        "node_id": "n-mine-999d744ac59a",
+        "operation": "mine_opportunity",
+        "postcondition": "OPPORTUNITY_RESOLVED",
+        "reason": "execution_attached",
+        "resource_claim": "opportunity|80980dea-4a25-46fa-ab97-eeefcc8b4b39|minecraft:overworld|ore_c3d87bacf760_a2a8da5dccb4495c",
+        "state": "RUNNING",
+        "subject_ref": {
+          "dimension_id": "minecraft:overworld",
+          "object_id": "ore_c3d87bacf760_a2a8da5dccb4495c",
+          "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39"
+        }
+      }
+    ],
+    "plan_key": "r12a-original-570-127",
+    "producer_key": "opportunity|r12a-original-570-127|80980dea-4a25-46fa-ab97-eeefcc8b4b39|minecraft:overworld|ore_c3d87bacf760_a2a8da5dccb4495c",
+    "producer_kind": "OPPORTUNITY_EXPLICIT",
+    "state": "RUNNING",
+    "updated_at_ms": 1789208664325
+  }
+}

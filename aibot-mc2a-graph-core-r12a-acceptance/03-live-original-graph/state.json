@@ -1,0 +1,32 @@
+{
+  "before_snapshot": "D:\\code\\mc-experiment\\r12a-acceptance\\semantic-before-A.json",
+  "birth_sequence": 980,
+  "far": [
+    540,
+    68,
+    127
+  ],
+  "graph_id": "graph-473aa3ba293a669ea646d83c",
+  "graph_store_sha_before_rollback": "1b6683d4fd0ee767306b73fdf640a5e5e2d1d9ad8be911b9e14a455fa3c2f3a8",
+  "journal_sha_before_rollback": "dbde1e335a097f013563633051715547467f1ce17c996f7e315f7f6e12ecc054",
+  "opportunity_id": "ore_c3d87bacf760_a2a8da5dccb4495c",
+  "ore": [
+    570,
+    68,
+    127
+  ],
+  "phase1_graph": "D:\\code\\mc-experiment\\r12a-acceptance\\graph-before-rollback.json",
+  "plan_key": "r12a-original-570-127",
+  "restored_id_before_first_http": "ore_c3d87bacf760_a2a8da5dccb4495c",
+  "semantic_before_sha": "b327b3537dd3556aaf366b1abcb0175a215dd52a29f2c4098f2711c7a2edc052",
+  "semantic_restored_sha": "cad9d101ad0c1507212846170c3607be9ee3de4883b7c345c81ff39546811f08",
+  "semantic_rollback_sha": "b327b3537dd3556aaf366b1abcb0175a215dd52a29f2c4098f2711c7a2edc052",
+  "semantic_with_a_sha": "dcb762b0f2cca36257caaba9cb3b0599c47ee3f61d750b4695482f7ab7533dfd",
+  "stand": [
+    569,
+    68,
+    127
+  ],
+  "with_a_snapshot": "D:\\code\\mc-experiment\\r12a-acceptance\\semantic-with-A.json",
+  "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39"
+}

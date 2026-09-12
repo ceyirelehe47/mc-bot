@@ -1,0 +1,29 @@
+[
+  {
+    "fields": {
+      "block_id": "minecraft:iron_ore",
+      "blocked_reason": "",
+      "dimension": "minecraft:overworld",
+      "execution_id": "",
+      "kind": "resource_opportunity_birth",
+      "last_seen_game_time": "289513",
+      "opportunity_id": "ore_c3d87bacf760_a2a8da5dccb4495c",
+      "pickup_baseline": "-1",
+      "required_tool": "minecraft:stone_pickaxe",
+      "seen_x": "569",
+      "seen_y": "68",
+      "seen_z": "127",
+      "state_since_game_time": "289513",
+      "state_x": "569",
+      "state_y": "68",
+      "state_z": "127",
+      "status": "ACTIONABLE",
+      "world_id": "80980dea-4a25-46fa-ab97-eeefcc8b4b39",
+      "x": "570",
+      "y": "68",
+      "z": "127"
+    },
+    "observed_at_ms": 1789208584377,
+    "sequence": 980
+  }
+]

@@ -1,0 +1,19 @@
+# MC-2A Graph Core R1.2A — 执行环境
+
+- OS: Windows 10.0.26200 x64（Git Bash）
+- Java: D:\mc-server\jdk-21.0.12.1+1（Gradle toolchain 同源）
+- Gradle: 9.4.0 wrapper（gradlew.bat）
+- dev 树:   D:\code\mc-experiment\aibot        （源码 440 文件与 replay 树零 diff，仅运行日志差异）
+- replay 树: D:\code\mc-experiment\aibot-replay（独立重建的干净重放树）
+- 隔离服:   D:\code\mc-experiment\mc-server-mc1ca（世界 world_play，bot Bob）
+- 服务器 mod jar sha256:
+    97eb1fa93c3b15f78de80da42560c8d69af56e1f8697b081ace5b03e5e2956d1  aibot-0.0.1.jar
+    （与 R1.2 交付 00-meta 记录的正式构建一致，即 f70c9c2 生产树构建产物）
+- 桥 token 经 mc-server-mc1ca/bridge-token.txt 文件读取，驱动脚本无硬编码 token。
+
+# LIVE 装置
+
+- 任务书默认装置格 566,68,127 在语义快照中已被遗留机会 ore_fc5799c7… 占用，
+  按任务书 "fresh fixture cell" 要求换用 570,68,127（该格无任何占用记录）。
+- R12A_ORE=570,68,127 / R12A_PLAN_KEY=r12a-original-570-127
+- 站位 (569,68,127)，遣远点 (540,68,127)

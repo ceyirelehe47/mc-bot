@@ -1,0 +1,10 @@
+# MC-2A Graph Core R1.2A — 基线 SHA
+
+- R1.2 证据头（本轮分支基点）: cc5517e2812b85f71f1cb12ac70be7caec0bd937
+- R1.2 生产源:                  f70c9c2cd3eae552af0ee7e5f12b3d0efd728901
+- R1.1 评审证据头（merge 第二亲）: e300f09fe20dfe943a1ee332b591c7420654f8c7
+- 共同生产祖先（R1.1 生产）:      e52558209b7890128fb22fe172f77819dcb3e21a
+- merge-base(cc5517e, e300f09) 实测: e52558209b7890128fb22fe172f77819dcb3e21a
+
+验收分支: experiment/mc2a-graph-core-r12a-acceptance-repair（自 cc5517e 新建）
+冻结分支: experiment/mc2a-graph-core-frozen（双亲 = 验收证据提交 + e300f09）

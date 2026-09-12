@@ -1,0 +1,13 @@
+{
+  "birth_sequence": 980,
+  "consumed_sequence": 987,
+  "final_graph_state": "DONE",
+  "graph_ready_after_restart": true,
+  "opportunity_id": "ore_c3d87bacf760_a2a8da5dccb4495c",
+  "original_graph_id": "graph-473aa3ba293a669ea646d83c",
+  "reobserve_kept_same_id": true,
+  "restored_before_first_http": true,
+  "result": "PASS",
+  "same_original_graph_done": true,
+  "semantic_restored_sha": "157a30c20c4219d7aae1eaa0758648df90ca60ec5340be54a772f4c837b92538"
+}

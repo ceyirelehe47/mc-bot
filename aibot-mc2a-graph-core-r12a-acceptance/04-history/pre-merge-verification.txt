@@ -1,0 +1,34 @@
+# R1.2A — 冻结 merge 前预检（在验收提交前执行）
+
+merge 计划: experiment/mc2a-graph-core-frozen
+  亲 1 = 本验收分支的验收证据提交 <ACCEPTANCE_SHA>
+  亲 2 = e300f09fe20dfe943a1ee332b591c7420654f8c7（R1.1 评审证据头）
+  方式 = git merge --no-ff --no-commit（merge 提交本身即冻结基线，其后不得再有提交）
+
+预检记录（git 实测输出摘录）:
+
+1. merge-base(cc5517e, e300f09) = e52558209b7890128fb22fe172f77819dcb3e21a
+   （与任务书 BASELINE 的共同生产祖先一致）
+
+2. R1.1 证据链对生产树零改动:
+   git diff --name-only e525582 e300f09 -- aibot-dsh-m0
+   → 空（e300f09 侧 aibot-dsh-m0 与 e525582 相同，即 R1.1 生产树）
+
+3. merge-tree 预演（--write-tree）:
+   git merge-tree --write-tree --name-only cc5517e e300f09
+   → 输出 tree oid 7b15044fd185d03cbbd70a1aa70f636ce2a6cf6c，rc=0，无冲突条目
+   （预演对象是分支基点 cc5517e；验收证据提交相对 cc5517e 只新增
+    aibot-mc2a-graph-core-r12a-acceptance/ 目录，e300f09 侧不含该路径，故
+    验收提交作为亲 1 的实际 merge 结果与预演一致、无新冲突面）
+
+4. R1.2 链对生产树的唯一改动即 f70c9c2 生产提交本身:
+   git diff --exit-code cc5517e HEAD -- aibot-dsh-m0（验收提交前 HEAD 尚未含证据）
+   git diff --exit-code f70c9c2 cc5517e -- aibot-dsh-m0 → 空
+
+merge 后终检（在冻结分支 HEAD 上）由 history/verify_freeze_history.py 执行:
+  双亲序 = [ACCEPTANCE_SHA, e300f09]；三祖先校验（e300f09/cc5517e/ACCEPTANCE_SHA）；
+  diff f70c9c2 HEAD -- aibot-dsh-m0 为空；验收提交改动路径全部位于
+  aibot-mc2a-graph-core-r12a-acceptance/ 之下。
+
+终检的完整 JSON 输出（含最终 merge SHA）记录于交付报告 RESULT.zh-CN.md，
+不落盘为冻结分支上的提交——避免自引用的 post-merge 提交。

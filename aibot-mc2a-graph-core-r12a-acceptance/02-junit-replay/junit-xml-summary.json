@@ -1,0 +1,15 @@
+{
+  "tree": "D:\\code\\mc-experiment\\aibot-replay",
+  "command": [
+    "D:\\code\\mc-experiment\\aibot-replay\\gradlew.bat",
+    "test",
+    "--rerun-tasks",
+    "--console=plain"
+  ],
+  "return_code": 0,
+  "tests": 385,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "files": 72
+}
