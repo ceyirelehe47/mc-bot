@@ -1,0 +1,27 @@
+[23:49:50] [Server thread/INFO] (Minecraft) Running test batch 'mc2a03a_session_boundary:0' (1 tests)...
+[23:49:50] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++            ]
+[23:49:50] [Server thread/INFO] (Minecraft) Mc2a03aBot[127.0.0.1] logged in with entity id 1517 at (0.5, -60.0, 9.5)
+[23:49:50] [Server thread/INFO] (Minecraft) Mc2a03aBot joined the game
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] LIFECYCLE event=bot_spawned bot=Mc2a03aBot {mode=survival, pos=12050518,-57,11758241}
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] COMM event=conversation_reset bot=Mc2a03aBot {}
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] ACTION event=capability_decision bot=Mc2a03aBot {reason=DENIED_STRICT_SURVIVAL, context=perception_snapshot, capability=HIDDEN_BLOCK_SCAN, profile=strict_survival, allowed=false}
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] ACTION event=capability_decision bot=Mc2a03aBot {reason=DENIED_STRICT_SURVIVAL, context=observable_block_query, capability=HIDDEN_BLOCK_SCAN, profile=strict_survival, allowed=false}
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] TASK event=task_assigned bot=Mc2a03aBot {name=move, origin_reason=external_dsh:3d3eba5f-6e1a-422d-8d7c-edbcabb0f920, params=Walking to 12050538,-57,11758241, origin=LLM_TOOL}
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] TASK event=task_cancelled bot=Mc2a03aBot {name=move, reason=cancelled:bot_despawn}
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] COMM event=intent_cancelled bot=Mc2a03aBot {scope=ALL, reason=bot_despawn, origin=SYSTEM, queue_remaining=0}
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] COMM event=conversation_reset bot=Mc2a03aBot {}
+[23:49:50] [Server thread/INFO] (Minecraft) Mc2a03aBot lost connection: AIBot despawn
+[23:49:50] [Server thread/INFO] (Minecraft) Mc2a03aBot left the game
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] LIFECYCLE event=bot_despawned bot=Mc2a03aBot {reason=command_or_shutdown}
+[23:49:50] [Server thread/INFO] (Minecraft) Mc2a03aBot[127.0.0.1] logged in with entity id 1518 at (1.20505185E7, -57.0, 1.17582415E7)
+[23:49:50] [Server thread/INFO] (Minecraft) Mc2a03aBot joined the game
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] LIFECYCLE event=bot_spawned bot=Mc2a03aBot {mode=survival, pos=12050515,-57,11758241}
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] COMM event=conversation_reset bot=Mc2a03aBot {}
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] ACTION event=capability_decision bot=Mc2a03aBot {reason=DENIED_STRICT_SURVIVAL, context=perception_snapshot, capability=HIDDEN_BLOCK_SCAN, profile=strict_survival, allowed=false}
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] ACTION event=capability_decision bot=Mc2a03aBot {reason=DENIED_STRICT_SURVIVAL, context=observable_block_query, capability=HIDDEN_BLOCK_SCAN, profile=strict_survival, allowed=false}
+[23:49:50] [Server thread/WARN] (aibot) [AIBot] PERCEPTION event=snapshot_slow bot=Mc2a03aBot {elapsed_ms=11}
+[23:49:50] [Server thread/INFO] (Minecraft) <Mc2a03aBot> mc2a03a-session-reconciled
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] COMM event=conversation_reset bot=Mc2a03aBot {}
+[23:49:50] [Server thread/INFO] (Minecraft) Mc2a03aBot lost connection: AIBot despawn
+[23:49:50] [Server thread/INFO] (Minecraft) Mc2a03aBot left the game
+[23:49:50] [Server thread/INFO] (aibot) [AIBot] LIFECYCLE event=bot_despawned bot=Mc2a03aBot {reason=command_or_shutdown}

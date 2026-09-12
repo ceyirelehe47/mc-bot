@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.task.DigDownCheckpointTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-09-12T15:55:46.120Z" hostname="FORST" time="0.031">
+  <properties/>
+  <testcase name="currentSchemaPersistsRejectedWaterSealDirection()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.014"/>
+  <testcase name="returnBudgetIsIndependentBoundedAndFailClosed()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.002"/>
+  <testcase name="unsafeOrInterruptedEntriesAreQuarantinedWithoutPoisoningToolRecovery()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.0"/>
+  <testcase name="safetyInterruptedReturnDebtRoundTripsAndRemainsARequiredReturn()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.002"/>
+  <testcase name="largeQuotaWorkBudgetScalesAndCheckpointUsesTheExactInclusiveBoundary()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.001"/>
+  <testcase name="stoneDescentGrossReserveTracksDepthAcrossEveryCheckpointSchema()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.003"/>
+  <testcase name="failureReturnOutcomeSurvivesRestartButCannotAppearDuringDescent()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.001"/>
+  <testcase name="schemaShapeTargetAndMinimumYAreValidated()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.001"/>
+  <testcase name="horizontalFrontierSettleDebtRoundTripsAtTheHardWorkBoundary()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.001"/>
+  <testcase name="descendingCheckpointKeepsItsTrailAndDoesNotInventReturnDebt()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.0"/>
+  <testcase name="currentSafetyReturnCheckpointPersistsProgressLeaseAndHardCap()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.0"/>
+  <testcase name="threeAxisDiagonalAndLongJumpAreNeverMicroSteps()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.0"/>
+  <testcase name="sameHeightFarAwayIsNotACompletedReturn()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.0"/>
+  <testcase name="returnCheckpointRoundTripsEveryDebtField()" classname="io.github.zoyluo.aibot.task.DigDownCheckpointTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

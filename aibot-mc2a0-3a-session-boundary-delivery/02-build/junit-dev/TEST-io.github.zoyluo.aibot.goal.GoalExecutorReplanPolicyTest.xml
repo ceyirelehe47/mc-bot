@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-12T15:45:45.277Z" hostname="FORST" time="0.005">
+  <properties/>
+  <testcase name="lifetimeBoundaryAndConsecutiveNoProgressGateRemainBounded()" classname="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" time="0.001"/>
+  <testcase name="nonHuntMovementProgressIsDimensionBoundAndLegacySafe()" classname="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" time="0.0"/>
+  <testcase name="nonHuntTasksRetainControlledMovementProgress()" classname="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" time="0.001"/>
+  <testcase name="shortRareMissionsKeepBaseLimit()" classname="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" time="0.0"/>
+  <testcase name="completedStepAndGoalOutputRemainUniversalProgress()" classname="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" time="0.0"/>
+  <testcase name="longRareOreLimitUsesOriginalEightItemBatchCount()" classname="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" time="0.0"/>
+  <testcase name="huntAcceptsOnlyNetRawMeatOrNewVisitedSectorAsExtraProgress()" classname="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" time="0.0"/>
+  <testcase name="huntDoesNotTreatHorizontalTravelOrDescentAsProgress()" classname="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" time="0.001"/>
+  <testcase name="foodHuntSurfaceDebtCannotReachBestEffortSkip()" classname="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" time="0.001"/>
+  <testcase name="foodHuntOrdinaryFailureRemainsBestEffortAndDebtIsHuntScoped()" classname="io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

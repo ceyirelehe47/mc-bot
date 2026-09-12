@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.mining.MiningCursorTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-12T15:55:45.533Z" hostname="FORST" time="0.007">
+  <properties/>
+  <testcase name="roundTripsBranchAndBatchProgress()" classname="io.github.zoyluo.aibot.mining.MiningCursorTest" time="0.005"/>
+  <testcase name="clampsUntrustedNumericFields()" classname="io.github.zoyluo.aibot.mining.MiningCursorTest" time="0.001"/>
+  <testcase name="rejectsFutureOrMalformedCheckpoints()" classname="io.github.zoyluo.aibot.mining.MiningCursorTest" time="0.0"/>
+  <testcase name="preFirstTickCheckpointPreservesUnstartedDirectionSentinel()" classname="io.github.zoyluo.aibot.mining.MiningCursorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

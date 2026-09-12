@@ -1,0 +1,10 @@
+aibot-dsh-m0/SHA256SUMS
+aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A03ASessionBoundaryGameTests.java
+aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
+aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/BodyBackendSeamSourceTest.java
+aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
+aibot-dsh-m0/dsh-plugin/src/events.mjs
+aibot-dsh-m0/dsh-plugin/test/events.test.mjs
+aibot-dsh-m0/scripts/apply_to_aibot.py

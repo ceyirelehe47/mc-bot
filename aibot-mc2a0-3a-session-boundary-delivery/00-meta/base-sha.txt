@@ -1,0 +1,5 @@
+branch: experiment/mc2a0-3a-session-boundary-closure
+base: 36e18becbe6b57e48add070dc35df29b35764c34 (accepted MC-2A0.3 HEAD)
+production-source-under-review: a767826d2d6325a884dff2478b1774c960177d71 (MC-2A0.3 production)
+production-commit: 74bb4d8 (this round, code/tests/manifests only)
+frozen-graph-ancestor: 3df7fb9a0086f4eb0bd7249e0925f799c47ccb8e

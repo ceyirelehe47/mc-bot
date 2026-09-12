@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.cognition.CognitiveCanonicalizationTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-12T15:45:44.988Z" hostname="FORST" time="0.008">
+  <properties/>
+  <testcase name="listOrderIsPreservedWhileSetLikeCollectionsMustBeSortedByBuilder()" classname="io.github.zoyluo.aibot.external.cognition.CognitiveCanonicalizationTest" time="0.002"/>
+  <testcase name="stringEscapingMatchesJsonOutput()" classname="io.github.zoyluo.aibot.external.cognition.CognitiveCanonicalizationTest" time="0.0"/>
+  <testcase name="evidenceRefRoundTripsAndFailsClosed()" classname="io.github.zoyluo.aibot.external.cognition.CognitiveCanonicalizationTest" time="0.002"/>
+  <testcase name="mapInsertionOrderNeverChangesCanonicalBytes()" classname="io.github.zoyluo.aibot.external.cognition.CognitiveCanonicalizationTest" time="0.0"/>
+  <testcase name="numberEncodingIsDeterministicAndFinite()" classname="io.github.zoyluo.aibot.external.cognition.CognitiveCanonicalizationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

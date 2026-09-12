@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.brain.DecisionSessionTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-12T15:45:44.107Z" hostname="FORST" time="0.016">
+  <properties/>
+  <testcase name="newerIntentRejectsLateSuccessFromPreviousIntent()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.003"/>
+  <testcase name="failedSubmissionReturnsOnlyItsOwnInflightLeaseToIdle()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.0"/>
+  <testcase name="lateErrorCannotClearBusyStateOfNewerIntent()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.0"/>
+  <testcase name="conditionalInvalidationOnlyChangesAnActiveDecision()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.0"/>
+  <testcase name="continuationKeepsEpochAndAdvancesRequestSequence()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.001"/>
+  <testcase name="invalidationRejectsCallbackWhileResponseIsBeingApplied()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.0"/>
+  <testcase name="invalidationRejectsInflightAndWaitingCallbacks()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.0"/>
+  <testcase name="responseCanOnlyBeClaimedOnce()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.001"/>
+  <testcase name="leaseForAnotherBotCannotMatchEvenWithSameSessionAndCounters()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.002"/>
+  <testcase name="recreatedConversationUsesDifferentSessionIdentityForSameBotUuid()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.003"/>
+  <testcase name="staleContinuationTimerCannotAdvanceAfterNewIntent()" classname="io.github.zoyluo.aibot.brain.DecisionSessionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

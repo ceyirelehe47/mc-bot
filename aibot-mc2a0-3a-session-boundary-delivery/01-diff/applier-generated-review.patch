@@ -1,0 +1,629 @@
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
+@@ -2,53 +2,111 @@
+ 
+ import io.github.zoyluo.aibot.entity.AIPlayerEntity;
+ import io.github.zoyluo.aibot.runtime.TaskOrigin;
++
+ import java.util.Locale;
+ import java.util.UUID;
+ import java.util.function.Supplier;
+ 
+ /** Narrow authorization boundary for the configured external body. Disabled by default. */
+ public final class ExternalBodyAccess {
+-    public static final String BOT_NAME=System.getenv().getOrDefault("AIBOT_EXTERNAL_BOT", "").trim();
+-    public static final String BODY_ID=logicalBodyId();
++    public static final String BOT_NAME=System.getenv()
++            .getOrDefault("AIBOT_EXTERNAL_BOT","").trim();
++
++    private static volatile String configuredBodyId="";
+     private static final ThreadLocal<Integer> DEPTH=ThreadLocal.withInitial(()->0);
+-    private static String logicalBodyId() {
+-        if(BOT_NAME.isEmpty())return "";
++    private static volatile boolean RESERVATION_ACTIVE;
++
++    private ExternalBodyAccess() {}
++
++    public static boolean enabled() {
++        return !BOT_NAME.isEmpty();
++    }
++
++    /**
++     * Pure normalizer used by the controlled runtime start boundary and direct regression tests.
++     * Class loading never validates AIBOT_EXTERNAL_BODY_ID.
++     */
++    static String normalizeBodyId(String botName,String configured) {
++        if(botName==null || botName.isBlank())return "";
++        String candidate=configured==null || configured.isBlank()
++                ? botName : configured;
++        candidate=candidate.trim().toLowerCase(Locale.ROOT);
++        if(!candidate.matches("[a-z0-9][a-z0-9._:-]{0,79}"))
++            throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BODY_ID");
++        return candidate;
++    }
++
++    /** Called only from ExternalBodyRuntime.start inside its fail-closed try/catch boundary. */
++    static String configureBodyId() {
+         String configured=System.getenv().getOrDefault(
+-                "AIBOT_EXTERNAL_BODY_ID",BOT_NAME).trim().toLowerCase(Locale.ROOT);
+-        if(!configured.matches("[a-z0-9][a-z0-9._:-]{0,79}"))
+-            throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BODY_ID");
+-        return configured;
++                "AIBOT_EXTERNAL_BODY_ID","");
++        String resolved=normalizeBodyId(BOT_NAME,configured);
++        configuredBodyId=resolved;
++        return resolved;
+     }
+-    private static volatile boolean RESERVATION_ACTIVE;
+-    private ExternalBodyAccess() {}
+-    public static boolean enabled() { return !BOT_NAME.isEmpty(); }
++
++    /** Stable Iris/DSH body identity after successful runtime configuration. */
++    public static String bodyId() {
++        String current=configuredBodyId;
++        if(current.isBlank() && enabled())
++            throw new IllegalStateException("external_body_id_not_configured");
++        return current;
++    }
++
+     public static boolean reserved(AIPlayerEntity bot) {
+-        return enabled() && RESERVATION_ACTIVE && bot!=null && BOT_NAME.equalsIgnoreCase(bot.getGameProfile().getName());
++        return enabled() && RESERVATION_ACTIVE && bot!=null
++                && BOT_NAME.equalsIgnoreCase(bot.getGameProfile().getName());
+     }
+-    public static void activateReservation() { if(enabled()) RESERVATION_ACTIVE=true; }
+-    public static boolean dispatching() { return DEPTH.get()>0; }
++
++    public static void activateReservation() {
++        if(enabled())RESERVATION_ACTIVE=true;
++    }
++
++    public static boolean dispatching() {
++        return DEPTH.get()>0;
++    }
++
+     public static <T> T dispatch(Supplier<T> body) {
+-        int old=DEPTH.get(); DEPTH.set(old+1);
+-        try { return body.get(); } finally { if(old==0)DEPTH.remove();else DEPTH.set(old); }
++        int old=DEPTH.get();
++        DEPTH.set(old+1);
++        try {
++            return body.get();
++        } finally {
++            if(old==0)DEPTH.remove();
++            else DEPTH.set(old);
++        }
+     }
++
+     public static void checkAssignment(AIPlayerEntity bot,TaskOrigin origin) {
+         if(reserved(bot) && !dispatching() && (origin==null || !origin.safety()))
+             throw new IllegalStateException("external_body_reserved_use_dsh_bridge");
+     }
++
+     public static void checkTool(AIPlayerEntity bot) {
+-        if(reserved(bot) && !dispatching()) throw new IllegalStateException("external_body_reserved_use_dsh_bridge");
++        if(reserved(bot) && !dispatching())
++            throw new IllegalStateException("external_body_reserved_use_dsh_bridge");
+     }
++
+     /** Public legacy controllers may observe and send authorized chat, never mutate this body. */
+-    public static boolean permitsLegacyOperation(AIPlayerEntity bot,String operation,String channel) {
++    public static boolean permitsLegacyOperation(
++            AIPlayerEntity bot,String operation,String channel) {
+         if(!reserved(bot))return true;
+         if("VIEW".equals(operation))return true;
+-        return "COMMAND".equals(operation) && ("chat:@bot".equals(channel) || "chat:plain_external".equals(channel) || "network:command".equals(channel));
++        return "COMMAND".equals(operation)
++                && ("chat:@bot".equals(channel)
++                || "chat:plain_external".equals(channel)
++                || "network:command".equals(channel));
+     }
++
+     public static void message(AIPlayerEntity bot,String sender,String text) {
+-        ExternalBodyRuntime.playerMessage(bot,null,sender,"legacy_brain_handle",false,text);
++        ExternalBodyRuntime.playerMessage(
++                bot,null,sender,"legacy_brain_handle",false,text);
+     }
+-    public static void playerMessage(AIPlayerEntity bot,UUID senderUuid,String senderName,
+-                                     String channel,boolean authorizedControl,String text) {
+-        ExternalBodyRuntime.playerMessage(bot,senderUuid,senderName,channel,authorizedControl,text);
++
++    public static void playerMessage(
++            AIPlayerEntity bot,UUID senderUuid,String senderName,
++            String channel,boolean authorizedControl,String text) {
++        ExternalBodyRuntime.playerMessage(
++                bot,senderUuid,senderName,channel,authorizedControl,text);
+     }
+ }
+--- a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/BodyBackendSeamSourceTest.java
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/BodyBackendSeamSourceTest.java
+@@ -9,7 +9,9 @@
+ import static org.junit.jupiter.api.Assertions.*;
+ 
+ final class BodyBackendSeamSourceTest {
+-    private static final Path ROOT=Path.of("src/main/java/io/github/zoyluo/aibot/external");
++    private static final Path ROOT=Path.of(
++            "src/main/java/io/github/zoyluo/aibot/external");
++
+     private static String read(String name)throws IOException {
+         return Files.readString(ROOT.resolve(name));
+     }
+@@ -18,7 +20,8 @@
+         String source=read("PhysicalExecutionDriver.java");
+         assertFalse(source.contains("net.minecraft"));
+         assertFalse(source.contains("AIPlayerEntity"));
+-        assertTrue(source.contains("record Request(String executionId,String operation,String argumentsJson)"));
++        assertTrue(source.contains(
++                "record Request(String executionId,String operation,String argumentsJson)"));
+         assertTrue(source.contains("BodyBackend.Handle start(Request request)"));
+     }
+ 
+@@ -34,7 +37,8 @@
+                 "new KnownResourceTask(","new FarmTask(","new BuildTask(","new StockpileTask(",
+                 "TaskManager.INSTANCE.assign(","IntentController.INSTANCE.pause(",
+                 "IntentController.INSTANCE.resume(","IntentController.INSTANCE.cancelAll("
+-        }) assertFalse(source.contains(forbidden),"backend still owns mechanics: "+forbidden);
++        }) assertFalse(source.contains(forbidden),
++                "backend still owns mechanics: "+forbidden);
+     }
+ 
+     @Test void serverFakePlayerDriverOwnsCurrentOperationMapping()throws Exception {
+@@ -57,7 +61,8 @@
+         assertTrue(backend.contains("\"server_fake_player\""));
+         assertTrue(backend.contains("UUID.randomUUID().toString()"));
+         assertTrue(backend.contains("minecraft_profile_uuid"));
+-        assertTrue(contract.contains("record Binding(String bodyId,String backendKind,String instanceId,String sessionEpoch)"));
++        assertTrue(contract.contains(
++                "record Binding(String bodyId,String backendKind,String instanceId,String sessionEpoch)"));
+     }
+ 
+     @Test void kernelPersistsAndFencesPhysicalSessionChangesWithoutTouchingGraphDispatch()throws Exception {
+@@ -70,7 +75,49 @@
+         int cancel=kernel.indexOf("Map<String,Object> graphCancel",run);
+         assertTrue(run>=0 && cancel>run);
+         String graphBlock=kernel.substring(run,cancel);
+-        assertTrue(graphBlock.contains("submit(supplied,d.requestId(),d.operation(),d.arguments())"));
++        assertTrue(graphBlock.contains(
++                "submit(supplied,d.requestId(),d.operation(),d.arguments())"));
+         assertFalse(graphBlock.contains("backend.start("));
+     }
++
++    @Test void bodyIdNormalizationIsExplicitAndClassLoadingIsSafe() {
++        assertEquals("bob",ExternalBodyAccess.normalizeBodyId("Bob",""));
++        assertEquals(
++                "bob.client-1",
++                ExternalBodyAccess.normalizeBodyId("Bob"," Bob.Client-1 "));
++        assertThrows(
++                IllegalArgumentException.class,
++                ()->ExternalBodyAccess.normalizeBodyId("Bob","bad body id"));
++    }
++
++    @Test void bodyIdValidationRunsInsideTheControlledRuntimeStartBoundary()throws Exception {
++        String access=read("ExternalBodyAccess.java");
++        String runtime=read("ExternalBodyRuntime.java");
++        assertFalse(access.contains("public static final String BODY_ID="));
++        assertTrue(access.contains("private static volatile String configuredBodyId"));
++        int start=runtime.indexOf("public static void start(MinecraftServer server)");
++        int tryBoundary=runtime.indexOf("        try {",start);
++        int configure=runtime.indexOf(
++                "ExternalBodyAccess.configureBodyId()",tryBoundary);
++        assertTrue(start>=0 && tryBoundary>start && configure>tryBoundary,
++                "body id validation must execute inside start() fail-closed try/catch");
++    }
++
++    @Test void physicalSessionChangeInvalidatesCognitionAndQueuedQueries()throws Exception {
++        String kernel=read("BridgeKernel.java");
++        int invalidator=kernel.indexOf("private void invalidateReadPlane(");
++        int binding=kernel.indexOf("private void applyBinding(");
++        int call=kernel.indexOf("invalidateReadPlane(reason)",binding);
++        int transition=kernel.indexOf(
++                "transition(active,\"outcome_unknown\",active.progress,reason)",binding);
++        assertTrue(invalidator>=0 && binding>invalidator);
++        assertTrue(call>binding && transition>call,
++                "read-plane invalidation must precede execution/session transition");
++        String method=kernel.substring(invalidator,binding);
++        assertTrue(method.contains("cognitive=null"));
++        assertTrue(method.contains("cognitiveTick=-1"));
++        assertTrue(method.contains("localQueries.poll()"));
++        assertTrue(method.contains("completeExceptionally"));
++        assertTrue(method.contains("reason+\"_query_cancelled\""));
++    }
+ }
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+@@ -19,9 +19,12 @@
+     private ExternalBodyRuntime() {}
+     public static void start(MinecraftServer server) {
+         if(!ExternalBodyAccess.enabled())return;
+-        ExternalBodyAccess.activateReservation(); // after persistence restore; before any tick/network control
+-        if(!ExternalBodyAccess.BOT_NAME.matches("[A-Za-z0-9_]{1,16}"))throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BOT");
++        // Preserve the reservation even when configuration is invalid: never fall back to the old brain.
++        ExternalBodyAccess.activateReservation();
+         try {
++            if(!ExternalBodyAccess.BOT_NAME.matches("[A-Za-z0-9_]{1,16}"))
++                throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BOT");
++            String logicalBodyId=ExternalBodyAccess.configureBodyId();
+             SemanticWorldRegistry.start(server, ExternalBodyAccess.BOT_NAME);
+             String token=System.getenv("AIBOT_BRIDGE_TOKEN");
+             int port=Integer.parseInt(System.getenv().getOrDefault("AIBOT_BRIDGE_PORT","8765"));
+@@ -33,13 +36,13 @@
+             SemanticWorldRegistry.reconcileOpportunityLifecycleReceipts(journal);
+             var graphs=new TaskGraphStore(bodyRoot.resolve("task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".bin"),System::currentTimeMillis);
+             kernel=new BridgeKernel(journal,new MinecraftBodyBackend(
+-                    server,ExternalBodyAccess.BOT_NAME,ExternalBodyAccess.BODY_ID),graphs);
++                    server,ExternalBodyAccess.BOT_NAME,logicalBodyId),graphs);
+             kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
+             http=new BridgeHttpServer(kernel,port,token);http.start();
+             observedBody=null;previousHealth=Float.NaN;previousAlive=false;nextSurvivalAlertTick.clear();
+             AIBotMod.LOGGER.info(
+                     "AIBot external-body bridge bound to loopback port {} for {} body_id={}",
+-                    port,ExternalBodyAccess.BOT_NAME,ExternalBodyAccess.BODY_ID);
++                    port,ExternalBodyAccess.BOT_NAME,logicalBodyId);
+         }catch(Exception failure){
+             if(http!=null)http.close();
+             try{if(journal!=null)journal.close();}catch(Exception ignored){}
+@@ -58,7 +61,7 @@
+         if(previousAlive && bot.isAlive() && bot.getHealth()<previousHealth)
+             kernel.publish("damage",Map.of("previous_health",previousHealth,"health",bot.getHealth(),"source","health_delta_not_causal_attribution"));
+         if(!previousAlive && bot.isAlive())kernel.publish("respawn",Map.of(
+-                "body_id",ExternalBodyAccess.BODY_ID,
++                "body_id",ExternalBodyAccess.bodyId(),
+                 "body_instance_id",bot.getUuid().toString(),
+                 "health",bot.getHealth()));
+         previousAlive=bot.isAlive();previousHealth=bot.getHealth();
+@@ -67,7 +70,7 @@
+         if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+         String source=bot.getRecentDamageSource()==null?"unknown":bot.getRecentDamageSource().getName();
+         kernel.publish("death",Map.of(
+-                "body_id",ExternalBodyAccess.BODY_ID,
++                "body_id",ExternalBodyAccess.bodyId(),
+                 "body_instance_id",bot.getUuid().toString(),
+                 "recent_damage_source",source,
+                 "causal_chain_complete",false,
+@@ -100,7 +103,7 @@
+         nextSurvivalAlertTick.put(key,now+200);
+         kernel.publish("survival_alert",Map.of(
+                 "reason",bounded(reason,80),
+-                "body_id",ExternalBodyAccess.BODY_ID,
++                "body_id",ExternalBodyAccess.bodyId(),
+                 "body_instance_id",bot.getUuid().toString(),
+                 "health",bot.getHealth(),
+                 "food",bot.getHungerManager().getFoodLevel(),
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+@@ -154,6 +154,17 @@
+         out.put("body_session_epoch",bodySessionEpoch);
+         return out;
+     }
++    private void invalidateReadPlane(String reason) {
++        cognitive=null;
++        cognitiveTick=-1;
++        cognitiveFault=reason+"_rebuild_required";
++        while(!localQueries.isEmpty()) {
++            LocalQuery query=localQueries.poll();
++            if(!query.future().isDone())
++                query.future().completeExceptionally(
++                        new BridgeFault(409,reason+"_query_cancelled"));
++        }
++    }
+     private void applyBinding(BodyBackend.Binding next) {
+         boolean logicalChanged=!bodyId.isEmpty() && !bodyId.equals(next.bodyId());
+         boolean legacyBinding=!bodyId.isEmpty() && bodySessionEpoch.isEmpty();
+@@ -163,6 +174,9 @@
+                 || !bodySessionEpoch.equals(next.sessionEpoch()));
+         if(logicalChanged || sessionChanged) {
+             String reason=logicalChanged?"body_identity_changed":"body_session_changed";
++            // Never allow a view or queued EvidenceRef admitted under the old physical session
++            // to execute against the replacement body.
++            invalidateReadPlane(reason);
+             if(active!=null) transition(active,"outcome_unknown",active.progress,reason);
+             token=null; owner=null; pauseRequested=true; needsReconcile=true;
+             event(logicalChanged?"body_changed":"body_session_changed","",Map.of(
+--- a/aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
++++ b/aibot-dsh-m0/bridge-tests/BridgeCoreTest.java
+@@ -15,8 +15,9 @@
+         String lastExecutionId="";
+         long tick; String localJson="{\"schema\":\"mc.local_view.v0\"}";
+         int inspectLocals, materializes; // MC-2A0.1 scheduling-budget counters
+-        static final String SCENE="{\"world\":{\"world_id\":\"core-test-world\"}}";
+         static final String HOME_REF="mc://core-test-world/minecraft%3Aoverworld/structure/home1";
++        String scene(){return "{\"world\":{\"world_id\":\"core-test-world\"},\"session\":\""+session+"\"}";}
++        String sceneHash(){return ("session-1".equals(session)?"cafe":"beef").repeat(16);}
+         public boolean ready(){return alive;} public String bodyId(){return id;}
+         public Binding binding(){return new Binding(id,kind,instance,session);}
+         public long serverTick(){return ++tick;}
+@@ -24,7 +25,7 @@
+             java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index=new java.util.LinkedHashMap<>();
+             index.put(HOME_REF,new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor(
+                     HOME_REF,"structure","home1","HOME"));
+-            return new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot(SCENE,"cafe".repeat(16),42L,index);
++            return new io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot(scene(),sceneHash(),42L,index);
+         }
+         public String inspectLocalJson(int radius,String detail){inspectLocals++;return localJson;}
+         public String materializeEvidence(String ref,String detail,long gameTime){
+@@ -189,8 +190,13 @@
+             check(status.get("backend_kind").equals("fake_backend"),"backend kind exposed");
+             check(status.get("body_instance_id").equals("instance-1"),"physical instance exposed");
+             check(status.get("body_session_epoch").equals("session-1"),"physical session exposed");
++            check(JsonOutput.encode(f.kernel.view()).contains("\"session\":\"session-1\""),
++                    "view is bound to the admitting physical session");
+             String t=claim(f);String id=(String)f.kernel.submit(t,"changed-session","gather","{}").get("execution_id");f.kernel.tick();
+             check(f.kernel.execution(id).get("body_session_epoch").equals("session-1"),"execution captures admitting body session");
++            var staleInspect=f.kernel.submitInspectQuery(FakeBackend.HOME_REF,"baseline");
++            var staleLocal=f.kernel.submitLocalQuery(4,"summary");
++            int materializesBefore=f.body.materializes, localsBefore=f.body.inspectLocals;
+             f.body.instance="instance-2";f.body.session="session-2";f.kernel.tick();
+             check(f.kernel.execution(id).get("state").equals("outcome_unknown"),"body session change interrupts execution as unknown");
+             check(f.kernel.status().get("control_active").equals(false),"body session change revokes controller");
+@@ -198,6 +204,14 @@
+             check(f.kernel.status().get("body_id").equals("body-1"),"session change preserves logical body id");
+             check(f.kernel.status().get("body_session_epoch").equals("session-2"),"new body session is published");
+             check(f.body.starts==1,"body session change never replays mutation");
++            check(staleInspect.isCompletedExceptionally(),"old-session inspect query is cancelled");
++            check(staleLocal.isCompletedExceptionally(),"old-session local query is cancelled");
++            check(f.body.materializes==materializesBefore && f.body.inspectLocals==localsBefore,
++                    "cancelled old-session queries never execute on the replacement body");
++            String rebuiltView=JsonOutput.encode(f.kernel.view());
++            check(rebuiltView.contains("\"session\":\"session-2\"")
++                            && !rebuiltView.contains("\"session\":\"session-1\""),
++                    "view is rebuilt for the replacement physical session");
+         }
+         try(Fixture f=fixture()) {
+             String t=claim(f);String id=(String)f.kernel.submit(t,"changed-body","gather","{}").get("execution_id");f.kernel.tick();
+--- a/aibot-dsh-m0/dsh-plugin/src/events.mjs
++++ b/aibot-dsh-m0/dsh-plugin/src/events.mjs
+@@ -1,7 +1,7 @@
+ import { setTimeout as sleep } from 'node:timers/promises';
+ 
+ const TERMINAL = new Set(['completed','failed','cancelled','outcome_unknown']);
+-const IMPORTANT = new Set(['death','respawn','player_message','survival_alert','resource_opportunity_actionable','resource_opportunity_stale','control_lost','body_changed','runtime_started','runtime_stopped']);
++const IMPORTANT = new Set(['death','respawn','player_message','survival_alert','resource_opportunity_actionable','resource_opportunity_stale','control_lost','body_changed','body_session_changed','runtime_started','runtime_stopped']);
+ export function shouldDeliver(event) {
+   if (IMPORTANT.has(event.kind)) return true;
+   if (event.kind === 'execution') {
+@@ -40,7 +40,7 @@
+  * - steer(): running redirects the current step; idle wakes a continuation turn
+  *   (urgent events always, and wake-worthy terminal/routine deliverables when idle).
+  */
+-const URGENT_KINDS = ['death','damage','player_message','survival_alert','control_lost','body_changed'];
++const URGENT_KINDS = ['death','damage','player_message','survival_alert','control_lost','body_changed','body_session_changed'];
+ export function enqueueEvents(agent, api, epoch, events, { autoWake = true } = {}) {
+   if (!events.length) return;
+   const message = createEventMessage(api, epoch, events);
+--- a/aibot-dsh-m0/dsh-plugin/test/events.test.mjs
++++ b/aibot-dsh-m0/dsh-plugin/test/events.test.mjs
+@@ -19,6 +19,7 @@
+   assert.equal(shouldDeliver(event(1)),true);assert.equal(shouldDeliver(event(1,'death','')),true);
+   assert.equal(shouldDeliver(event(1,'survival_alert','')),true);
+   assert.equal(shouldDeliver(event(1,'resource_opportunity_actionable','')),true);
++  assert.equal(shouldDeliver(event(1,'body_session_changed','')),true);
+ });
+ test('ingress matrix: idle terminal steer, running urgent steer, running routine inject, autoWake false inject',()=>{
+   const a=agent();
+@@ -37,12 +38,13 @@
+   assert.deepEqual(a.calls.map(c=>c[0]),['inject','inject','inject']);
+ });
+ test('running urgent event steers',()=>{
+-  for (const kind of ['death','damage','player_message','survival_alert','control_lost','body_changed']) {
++  for (const kind of ['death','damage','player_message','survival_alert','control_lost','body_changed','body_session_changed']) {
+     const a=agent('running');enqueueEvents(a,api,'epoch',[event(1,kind,'')]);
+     assert.equal(a.calls[0][0],'steer',kind+' must steer a running agent');
+   }
+   const idle=agent('idle');enqueueEvents(idle,api,'epoch',[event(1,'player_message','')]); // urgent also wakes an idle agent
+-  assert.equal(idle.calls[0][0],'steer');
++  enqueueEvents(idle,api,'epoch',[event(2,'body_session_changed','')]);
++  assert.deepEqual(idle.calls.map(c=>c[0]),['steer','steer']);
+ });
+ test('idle wake-worthy event steers instead of followup',()=>{
+   const a=agent('idle');
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A03ASessionBoundaryGameTests.java
+@@ -0,0 +1,208 @@
++package io.github.zoyluo.aibot.gametest;
++
++import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import io.github.zoyluo.aibot.external.BridgeJournal;
++import io.github.zoyluo.aibot.external.BridgeKernel;
++import io.github.zoyluo.aibot.external.JsonOutput;
++import io.github.zoyluo.aibot.external.MinecraftBodyBackend;
++import io.github.zoyluo.aibot.external.TaskGraphStore;
++import io.github.zoyluo.aibot.manager.AIPlayerManager;
++import io.github.zoyluo.aibot.task.TaskManager;
++import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
++import net.minecraft.block.Block;
++import net.minecraft.block.Blocks;
++import net.minecraft.server.world.ServerWorld;
++import net.minecraft.test.GameTest;
++import net.minecraft.test.TestContext;
++import net.minecraft.util.math.BlockPos;
++import net.minecraft.util.math.Vec3d;
++import net.minecraft.world.GameMode;
++
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.Map;
++import java.util.Set;
++import java.util.concurrent.CompletableFuture;
++
++/**
++ * MC-2A0.3A: replace the physical fake-player body inside one running Minecraft server process.
++ * This exercises AIPlayerManager -> MinecraftBodyBackend.ready -> Binding -> BridgeKernel fencing.
++ */
++public final class MC2A03ASessionBoundaryGameTests implements FabricGameTest {
++    private static final String BOT="Mc2a03aBot";
++    private static final String LOGICAL_BODY="mc2a03a-body";
++
++    @GameTest(templateName=FabricGameTest.EMPTY_STRUCTURE,
++            batchId="mc2a03a_session_boundary",tickLimit=200)
++    public void mc2a03aInProcessBodyReplacementFencesExecutionAndReadPlane(
++            TestContext context) {
++        ServerWorld world=context.getWorld();
++        BlockPos start=context.getAbsolutePos(new BlockPos(2,2,2));
++        prepareFlat(world,start);
++
++        Path journalPath=null;
++        BridgeJournal journal=null;
++        BridgeKernel kernel=null;
++        try {
++            AIPlayerManager.INSTANCE.despawn(world.getServer(),BOT);
++            AIPlayerEntity first=AIPlayerManager.INSTANCE.spawn(
++                    world.getServer(),BOT,world,Vec3d.ofBottomCenter(start),
++                    0.0F,0.0F,GameMode.SURVIVAL).orElseThrow();
++            first.teleport(
++                    world,start.getX()+.5D,start.getY(),start.getZ()+.5D,
++                    Set.of(),0,0,true);
++
++            journalPath=Files.createTempFile(
++                    "mc2a03a-session-boundary-",".journal");
++            journal=new BridgeJournal(
++                    journalPath,()->(long)world.getServer().getTicks());
++            MinecraftBodyBackend backend=new MinecraftBodyBackend(
++                    world.getServer(),BOT,LOGICAL_BODY);
++            kernel=new BridgeKernel(
++                    journal,backend,TaskGraphStore.memory());
++            kernel.tick();
++
++            Map<String,Object> initial=kernel.status();
++            String firstSession=String.valueOf(
++                    initial.get("body_session_epoch"));
++            require(context,LOGICAL_BODY.equals(initial.get("body_id")),
++                    "logical body id mismatch");
++            require(context,"server_fake_player".equals(
++                            initial.get("backend_kind")),
++                    "wrong backend kind");
++            require(context,!firstSession.isBlank(),
++                    "first session epoch missing");
++
++            kernel.observe();
++            String token=String.valueOf(
++                    kernel.claim("mc2a03a-owner").get("token"));
++            BlockPos target=start.east(20);
++            String arguments=JsonOutput.encode(Map.of(
++                    "x",target.getX(),
++                    "y",target.getY(),
++                    "z",target.getZ(),
++                    "allow_terrain_changes",true));
++            Map<String,Object> accepted=kernel.submit(
++                    token,"mc2a03a-running-goto","goto",arguments);
++            String executionId=String.valueOf(
++                    accepted.get("execution_id"));
++            kernel.tick();
++            require(context,"running".equals(
++                            kernel.execution(executionId).get("state")),
++                    "fixture execution did not enter running");
++
++            CompletableFuture<String> oldSessionQuery=
++                    kernel.submitLocalQuery(4,"summary");
++            require(context,!oldSessionQuery.isDone(),
++                    "queued read query executed before replacement");
++
++            AIPlayerManager.INSTANCE.despawn(world.getServer(),BOT);
++            AIPlayerEntity replacement=AIPlayerManager.INSTANCE.spawn(
++                    world.getServer(),BOT,world,
++                    Vec3d.ofBottomCenter(start.west(3)),
++                    0.0F,0.0F,GameMode.SURVIVAL).orElseThrow();
++            replacement.teleport(
++                    world,start.getX()-2.5D,start.getY(),start.getZ()+.5D,
++                    Set.of(),0,0,true);
++
++            kernel.tick();
++
++            Map<String,Object> after=kernel.status();
++            String secondSession=String.valueOf(
++                    after.get("body_session_epoch"));
++            Map<String,Object> interrupted=kernel.execution(executionId);
++            require(context,LOGICAL_BODY.equals(after.get("body_id")),
++                    "logical body changed during physical replacement");
++            require(context,!firstSession.equals(secondSession),
++                    "session epoch did not rotate");
++            require(context,"outcome_unknown".equals(
++                            interrupted.get("state")),
++                    "running execution was not fenced outcome_unknown");
++            require(context,"body_session_changed".equals(
++                            interrupted.get("reason")),
++                    "wrong replacement terminal reason: "
++                            +interrupted.get("reason"));
++            require(context,Boolean.FALSE.equals(after.get("control_active")),
++                    "old lease survived physical replacement");
++            require(context,Boolean.TRUE.equals(after.get("needs_reconcile")),
++                    "replacement did not require deliberate observation");
++            require(context,oldSessionQuery.isCompletedExceptionally(),
++                    "old-session local query was not cancelled");
++            require(context,TaskManager.INSTANCE.getActive(replacement).isEmpty(),
++                    "replacement body automatically replayed old mutation");
++
++            long sessionEvents=journal.replay().stream()
++                    .filter(frame->"body_session_changed".equals(
++                            frame.fields().get("kind")))
++                    .count();
++            long bindings=journal.replay().stream()
++                    .filter(frame->"body_binding".equals(
++                            frame.fields().get("kind")))
++                    .count();
++            require(context,sessionEvents==1,
++                    "expected one body_session_changed event, got "
++                            +sessionEvents);
++            require(context,bindings==2,
++                    "expected initial+replacement binding frames, got "
++                            +bindings);
++
++            kernel.observe();
++            require(context,Boolean.FALSE.equals(
++                            kernel.status().get("needs_reconcile")),
++                    "observe did not clear replacement reconcile fence");
++            String replacementToken=String.valueOf(
++                    kernel.claim("mc2a03a-owner-2").get("token"));
++            Map<String,Object> deliberate=kernel.submit(
++                    replacementToken,
++                    "mc2a03a-deliberate-say",
++                    "say",
++                    JsonOutput.encode(Map.of(
++                            "message","mc2a03a-session-reconciled")));
++            String deliberateId=String.valueOf(
++                    deliberate.get("execution_id"));
++            kernel.tick();
++            Map<String,Object> terminal=kernel.execution(deliberateId);
++            require(context,"completed".equals(terminal.get("state")),
++                    "deliberate new-session work did not complete");
++            require(context,secondSession.equals(
++                            terminal.get("body_session_epoch")),
++                    "new execution did not capture replacement session");
++
++            context.complete();
++        } catch(Throwable failure) {
++            context.throwGameTestException(
++                    "session boundary fixture failed: "+failure);
++        } finally {
++            if(kernel!=null) {
++                try { kernel.shutdown(); } catch(Throwable ignored) {}
++            }
++            try {
++                AIPlayerManager.INSTANCE.despawn(world.getServer(),BOT);
++            } catch(Throwable ignored) {}
++            if(journal!=null) {
++                try { journal.close(); } catch(Throwable ignored) {}
++            }
++            if(journalPath!=null) {
++                try { Files.deleteIfExists(journalPath); }
++                catch(Throwable ignored) {}
++            }
++        }
++    }
++
++    private static void prepareFlat(ServerWorld world,BlockPos start) {
++        for(int dx=-6;dx<=28;dx++)for(int dz=-5;dz<=5;dz++) {
++            BlockPos feet=start.add(dx,0,dz);
++            world.setBlockState(
++                    feet.down(),Blocks.STONE.getDefaultState(),Block.NOTIFY_ALL);
++            world.setBlockState(
++                    feet,Blocks.AIR.getDefaultState(),Block.NOTIFY_ALL);
++            world.setBlockState(
++                    feet.up(),Blocks.AIR.getDefaultState(),Block.NOTIFY_ALL);
++        }
++    }
++
++    private static void require(
++            TestContext context,boolean condition,String message) {
++        if(!condition)context.throwGameTestException(message);
++    }
++}

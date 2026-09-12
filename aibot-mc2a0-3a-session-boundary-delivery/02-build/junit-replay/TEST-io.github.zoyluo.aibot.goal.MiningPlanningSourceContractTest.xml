@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.goal.MiningPlanningSourceContractTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-12T15:55:45.512Z" hostname="FORST" time="0.011">
+  <properties/>
+  <testcase name="optionalExpeditionProvisioningSurvivesRuntimeResourceMisses()" classname="io.github.zoyluo.aibot.goal.MiningPlanningSourceContractTest" time="0.002"/>
+  <testcase name="longRareExpeditionReadinessPrecedesSealedDescentHandoff()" classname="io.github.zoyluo.aibot.goal.MiningPlanningSourceContractTest" time="0.005"/>
+  <testcase name="stoneBootstrapMustPhysicallyReturnBeforePublishingCompletion()" classname="io.github.zoyluo.aibot.goal.MiningPlanningSourceContractTest" time="0.002"/>
+  <testcase name="mineOreParserFailsClosedInsteadOfChoosingCommonOres()" classname="io.github.zoyluo.aibot.goal.MiningPlanningSourceContractTest" time="0.001"/>
+  <testcase name="obsidianPlanningBindsAcquisitionAndTargetToolContracts()" classname="io.github.zoyluo.aibot.goal.MiningPlanningSourceContractTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

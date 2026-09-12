@@ -1,0 +1,4 @@
+shouldDeliver(body_session_changed) = true
+running agent + body_session_changed -> steer
+idle agent + body_session_changed -> steer
+PASS gate-b: important + running steer + idle steer all verified directly

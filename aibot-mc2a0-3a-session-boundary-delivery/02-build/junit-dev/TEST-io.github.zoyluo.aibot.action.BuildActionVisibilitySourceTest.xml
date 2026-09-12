@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.action.BuildActionVisibilitySourceTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-12T15:45:44.017Z" hostname="FORST" time="0.03">
+  <properties/>
+  <testcase name="exactPlacementSampleRangeUsesTheSmallerPhysicalBoundary()" classname="io.github.zoyluo.aibot.action.BuildActionVisibilitySourceTest" time="0.016"/>
+  <testcase name="supportCenterDistanceCannotRejectAReachableFaceInset()" classname="io.github.zoyluo.aibot.action.BuildActionVisibilitySourceTest" time="0.005"/>
+  <testcase name="realVanillaFailureSurvivesLaterInvisibleSupports()" classname="io.github.zoyluo.aibot.action.BuildActionVisibilitySourceTest" time="0.004"/>
+  <testcase name="placeAtDoesNotUseFaceCenterVisibilityOrDirectMutationInStrictMode()" classname="io.github.zoyluo.aibot.action.BuildActionVisibilitySourceTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

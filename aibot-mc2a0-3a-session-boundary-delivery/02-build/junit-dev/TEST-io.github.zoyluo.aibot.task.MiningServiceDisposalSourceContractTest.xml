@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" tests="22" skipped="0" failures="0" errors="0" timestamp="2026-09-12T15:45:46.174Z" hostname="FORST" time="0.035">
+  <properties/>
+  <testcase name="serviceReceivesAReadOnlyCopyOfTheParentMiningCursor()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.002"/>
+  <testcase name="alternatePocketStartsOnlyAfterPublishingANonPocketCheckpoint()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.002"/>
+  <testcase name="committedPhysicalDebtReturnsAndSealsBeforePublishingFailure()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.002"/>
+  <testcase name="sinkQueryMarginCannotExpandThePhysicalContainmentBoundary()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="successfulSealClearsSettledTransactionBeforePublishingSupplies()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="disposalCentersAndStopsTheCursorFaceBeforePublishingOpenDebt()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.002"/>
+  <testcase name="hardRecoveryRevokesRetryRoutingAndTreatsEveryPocketPhaseAsDebt()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="prebaselineReturnKeepsCaptureAuthorityUntilContainmentCanResume()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="checkpointEncoderRejectsInvalidInternalLedgerInsteadOfFilteringIt()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="onlyVerifiedSealTreatsTrackedMouthIdentityAsEscape()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="naturalOpenPocketUsesObservedFloorBeforeHeadSeal()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="runtimePocketLedgerMergeCannotWrapAnInteger()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="schemaSixRareServiceCannotDecodeWithoutItsEmbeddedCursor()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="aggregateSinkCountsCannotReplacePersistedEntityAttestation()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="oreRerouteSealRecoveryHasABoundedTerminalPath()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="hiddenSinkIsReadOnlyAfterEachObservedCursorCellAdvances()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="dropAndSettleCannotPersistStaleSealVerification()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="openingSpoilDetectionKeepsTrackedInflightEntitiesOutOfCollection()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="checkpointUuidCountIsBoundedByPerItemStacksAndRecordedItems()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="schemaSixBindsOreRetryMarkerToPhaseAndOppositePocketDirection()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="unreachableUnsealedReturnFailsBoundedlyWithoutClearingPocketPayload()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.001"/>
+  <testcase name="disposalUsesVanillaEntitiesWithoutPickupDelayOrInventoryDeletion()" classname="io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

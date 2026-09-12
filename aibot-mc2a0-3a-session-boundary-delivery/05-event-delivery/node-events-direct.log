@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: only important or terminal events wake models, not action progress
+ok 1 - only important or terminal events wake models, not action progress
+  ---
+  duration_ms: 1.6141
+  type: 'test'
+  ...
+# Subtest: ingress matrix: idle terminal steer, running urgent steer, running routine inject, autoWake false inject
+ok 2 - ingress matrix: idle terminal steer, running urgent steer, running routine inject, autoWake false inject
+  ---
+  duration_ms: 0.6737
+  type: 'test'
+  ...
+# Subtest: running routine event injects and never followups
+ok 3 - running routine event injects and never followups
+  ---
+  duration_ms: 0.8647
+  type: 'test'
+  ...
+# Subtest: running urgent event steers
+ok 4 - running urgent event steers
+  ---
+  duration_ms: 0.3148
+  type: 'test'
+  ...
+# Subtest: idle wake-worthy event steers instead of followup
+ok 5 - idle wake-worthy event steers instead of followup
+  ---
+  duration_ms: 0.2383
+  type: 'test'
+  ...
+# Subtest: autoWake false injects without waking
+ok 6 - autoWake false injects without waking
+  ---
+  duration_ms: 0.2487
+  type: 'test'
+  ...
+# Subtest: body event transport source contains no followup call
+ok 7 - body event transport source contains no followup call
+  ---
+  duration_ms: 2.0956
+  type: 'test'
+  ...
+# Subtest: game chat is plugin-attributed data, not human/system instructions
+ok 8 - game chat is plugin-attributed data, not human/system instructions
+  ---
+  duration_ms: 0.311
+  type: 'test'
+  ...
+# Subtest: cursor persists atomically, preserves version and rejects malformed state
+ok 9 - cursor persists atomically, preserves version and rejects malformed state
+  ---
+  duration_ms: 33.4186
+  type: 'test'
+  ...
+# Subtest: pump checkpoints only after delivery and batches without dropping payloads
+ok 10 - pump checkpoints only after delivery and batches without dropping payloads
+  ---
+  duration_ms: 1.6986
+  type: 'test'
+  ...
+# Subtest: delivery failure never advances acknowledgement past failed event
+ok 11 - delivery failure never advances acknowledgement past failed event
+  ---
+  duration_ms: 1.078
+  type: 'test'
+  ...
+# Subtest: gap produces explicit resync notice before replacing cursor
+ok 12 - gap produces explicit resync notice before replacing cursor
+  ---
+  duration_ms: 0.6785
+  type: 'test'
+  ...
+# Subtest: unannounced event gaps are rejected rather than silently skipped
+ok 13 - unannounced event gaps are rejected rather than silently skipped
+  ---
+  duration_ms: 0.376
+  type: 'test'
+  ...
+# Subtest: successful say does not self-wake; failure and significant damage still deliver
+ok 14 - successful say does not self-wake; failure and significant damage still deliver
+  ---
+  duration_ms: 0.1953
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 173.2588
