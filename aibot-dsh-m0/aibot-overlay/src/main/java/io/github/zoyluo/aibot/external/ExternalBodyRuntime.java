@@ -28,8 +28,9 @@ public final class ExternalBodyRuntime {
             if(port<1024 || port>65535)throw new IllegalArgumentException("invalid_bridge_port");
             var bodyRoot=server.getSavePath(WorldSavePath.ROOT).resolve("aibot");
             journal=new BridgeJournal(bodyRoot.resolve("external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".journal"),System::currentTimeMillis);
-            // A prior crash may have fsynced the terminal receipt before the async semantic snapshot.
-            SemanticWorldRegistry.reconcileOpportunityTerminalReceipts(journal);
+            // Birth/terminal lifecycle receipts are the durability fence for opportunity identity.
+            // Reconcile them before Graph construction and before the HTTP endpoint is reachable.
+            SemanticWorldRegistry.reconcileOpportunityLifecycleReceipts(journal);
             var graphs=new TaskGraphStore(bodyRoot.resolve("task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".bin"),System::currentTimeMillis);
             kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME),graphs);
             kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
@@ -123,9 +124,9 @@ public final class ExternalBodyRuntime {
      * being proven into inventory (externally consumed, or a pending pickup whose drop vanished).
      * Distinct from actionable/completion events so DSH never mistakes it for success.
      */
-    public static void resourceOpportunityStale(AIPlayerEntity bot,String opportunityId,String blockId,
-                                                net.minecraft.util.math.BlockPos pos,String reason) {
-        if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+    public static boolean resourceOpportunityStale(AIPlayerEntity bot,String opportunityId,String blockId,
+                                                   net.minecraft.util.math.BlockPos pos,String reason) {
+        if(kernel==null || !ExternalBodyAccess.reserved(bot))return false;
         String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
         String world=SemanticWorldRegistry.worldId();
         Map<String,Object> payload=Map.of(
@@ -133,7 +134,7 @@ public final class ExternalBodyRuntime {
                 "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
                 "reason",bounded(reason,120),
                 "dimension",dimension,"world_id",world);
-        kernel.recordOpportunityResolution("resource_opportunity_stale",
+        return kernel.recordOpportunityResolution("resource_opportunity_stale",
                 opportunityId,world,dimension,payload);
     }
     private static String bounded(String s,int length){return s==null?"":s.length()<=length?s:s.substring(0,length);}

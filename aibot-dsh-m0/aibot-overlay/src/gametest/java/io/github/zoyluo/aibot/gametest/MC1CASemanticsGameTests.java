@@ -218,7 +218,7 @@ public final class MC1CASemanticsGameTests implements FabricGameTest {
             require(context, SemanticWorldRegistry.farm(bot, "gt7_farm").isPresent(),
                     "restored registry must serve farm lookups again");
         } catch (IOException failure) {
-            context.throwGameTestException("gt7 io failure: " + failure);
+            context.throwGameTestException("gt7 io failure: " + failure + " / cause=" + failure.getCause());
         }
         finish(context, fixture);
     }
