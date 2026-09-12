@@ -398,7 +398,8 @@ public final class CognitiveViewBuilder {
             String kind = frame.fields().getOrDefault("kind", "");
             boolean keep = switch (kind) {
                 case "death", "damage", "respawn", "survival_alert", "resource_opportunity_actionable",
-                        "resource_opportunity_stale", "control_acquired", "control_lost", "body_changed" -> true;
+                        "resource_opportunity_stale", "control_acquired", "control_lost",
+                        "body_changed", "body_session_changed" -> true;
                 case "execution" -> List.of("completed", "failed", "cancelled", "outcome_unknown")
                         .contains(frame.fields().getOrDefault("state", ""));
                 default -> false;

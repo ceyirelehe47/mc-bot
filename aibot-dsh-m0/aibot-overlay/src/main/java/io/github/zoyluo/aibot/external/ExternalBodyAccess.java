@@ -4,15 +4,17 @@ import io.github.zoyluo.aibot.entity.AIPlayerEntity;
 import io.github.zoyluo.aibot.runtime.TaskOrigin;
 
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-/** Narrow authorization boundary for the configured external body. Disabled by default. */
+/** Narrow authorization and single-physical-authority boundary for the configured external body. */
 public final class ExternalBodyAccess {
     public static final String BOT_NAME=System.getenv()
             .getOrDefault("AIBOT_EXTERNAL_BOT","").trim();
 
     private static volatile String configuredBodyId="";
+    private static volatile String configuredBackendKind="";
     private static final ThreadLocal<Integer> DEPTH=ThreadLocal.withInitial(()->0);
     private static volatile boolean RESERVATION_ACTIVE;
 
@@ -22,30 +24,39 @@ public final class ExternalBodyAccess {
         return !BOT_NAME.isEmpty();
     }
 
-    /**
-     * Pure normalizer used by the controlled runtime start boundary and direct regression tests.
-     * Class loading never validates AIBOT_EXTERNAL_BODY_ID.
-     */
     static String normalizeBodyId(String botName,String configured) {
         if(botName==null || botName.isBlank())return "";
-        String candidate=configured==null || configured.isBlank()
-                ? botName : configured;
+        String candidate=configured==null || configured.isBlank()?botName:configured;
         candidate=candidate.trim().toLowerCase(Locale.ROOT);
         if(!candidate.matches("[a-z0-9][a-z0-9._:-]{0,79}"))
             throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BODY_ID");
         return candidate;
     }
 
+    static String normalizeBackendKind(String configured) {
+        String candidate=configured==null || configured.isBlank()
+                ?"server_fake_player":configured.trim().toLowerCase(Locale.ROOT);
+        if(!Set.of("server_fake_player","real_client").contains(candidate))
+            throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BACKEND");
+        return candidate;
+    }
+
     /** Called only from ExternalBodyRuntime.start inside its fail-closed try/catch boundary. */
     static String configureBodyId() {
-        String configured=System.getenv().getOrDefault(
-                "AIBOT_EXTERNAL_BODY_ID","");
-        String resolved=normalizeBodyId(BOT_NAME,configured);
+        String resolved=normalizeBodyId(BOT_NAME,System.getenv()
+                .getOrDefault("AIBOT_EXTERNAL_BODY_ID",""));
         configuredBodyId=resolved;
         return resolved;
     }
 
-    /** Stable Iris/DSH body identity after successful runtime configuration. */
+    /** Select exactly one physical authority for this process lifetime. */
+    static String configureBackendKind() {
+        String resolved=normalizeBackendKind(System.getenv()
+                .getOrDefault("AIBOT_EXTERNAL_BACKEND","server_fake_player"));
+        configuredBackendKind=resolved;
+        return resolved;
+    }
+
     public static String bodyId() {
         String current=configuredBodyId;
         if(current.isBlank() && enabled())
@@ -53,6 +64,17 @@ public final class ExternalBodyAccess {
         return current;
     }
 
+    public static String backendKind() {
+        String current=configuredBackendKind;
+        if(current.isBlank() && enabled())
+            throw new IllegalStateException("external_backend_not_configured");
+        return current;
+    }
+
+    /**
+     * A same-named fake player remains reserved even while real_client is selected. This prevents
+     * accidental fallback to the old brain or a second physical authority.
+     */
     public static boolean reserved(AIPlayerEntity bot) {
         return enabled() && RESERVATION_ACTIVE && bot!=null
                 && BOT_NAME.equalsIgnoreCase(bot.getGameProfile().getName());
@@ -87,7 +109,6 @@ public final class ExternalBodyAccess {
             throw new IllegalStateException("external_body_reserved_use_dsh_bridge");
     }
 
-    /** Public legacy controllers may observe and send authorized chat, never mutate this body. */
     public static boolean permitsLegacyOperation(
             AIPlayerEntity bot,String operation,String channel) {
         if(!reserved(bot))return true;

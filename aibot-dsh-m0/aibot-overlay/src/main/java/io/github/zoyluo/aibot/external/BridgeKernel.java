@@ -234,7 +234,7 @@ public final class BridgeKernel {
         out.put("control_active",token!=null && mono.getAsLong()<expiresAt);
         out.put("fault",fault); out.put("stopped",stopped);
         out.put("active_execution",active==null?null:active.wire());
-        out.put("operations",OPERATIONS.stream().sorted().toList());
+        out.put("operations",backend.supportedOperations().stream().sorted().toList());
         return out;
     }
     public synchronized Map<String,Object> observe() {
@@ -427,6 +427,8 @@ public final class BridgeKernel {
             return previous.wire();
         }
         if(controls.containsKey(request)) throw new BridgeFault(409,"idempotency_conflict");
+        if(!backend.supportedOperations().contains(operation))
+            throw new BridgeFault(409,"operation_not_supported_by_backend:"+operation);
         requireReady();
         if(needsReconcile) throw new BridgeFault(409,"observe_required_before_new_work");
         if(active!=null) throw new BridgeFault(409,"execution_in_progress");
@@ -494,8 +496,19 @@ public final class BridgeKernel {
             boolean nowReady=backend.ready();
             if(nowReady)applyBinding(backend.binding());
             if(!nowReady) {
+                boolean wasReady=ready;
                 ready=false;
-                if(active!=null) { transition(active,"outcome_unknown",active.progress,"body_unavailable"); needsReconcile=true; }
+                if(wasReady) {
+                    // Physical carrier loss is the same authority boundary as an in-process
+                    // replacement. Never retain old visual evidence, leases, or mutation intent.
+                    invalidateReadPlane("body_session_changed");
+                    if(active!=null)
+                        transition(active,"outcome_unknown",active.progress,"body_session_changed");
+                    token=null; owner=null; pauseRequested=true; needsReconcile=true;
+                    event("body_session_changed","",Map.of(
+                            "reason","physical_body_unavailable",
+                            "previous",currentBindingWire()));
+                }
                 return;
             }
             ready=true; observation=backend.observeJson(); observedAt=mono.getAsLong();

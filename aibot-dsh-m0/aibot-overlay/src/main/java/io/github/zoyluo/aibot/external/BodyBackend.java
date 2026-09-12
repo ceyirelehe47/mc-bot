@@ -1,23 +1,30 @@
 package io.github.zoyluo.aibot.external;
 
+import java.util.Set;
+
 /** Every method is called exclusively by BridgeKernel.tick on the owning body thread. */
 public interface BodyBackend {
+    /** Operations admitted by this physical backend. The public DSH tool surface remains fixed. */
+    Set<String> ALL_OPERATIONS=Set.of(
+            "goto","gather","craft","smelt","eat","set_base","deposit","say",
+            "register_home","capture_home","repair_home","register_farm","tend_farm",
+            "mine_opportunity");
+
     /** Returns false until the configured, living physical body exists. */
     boolean ready();
 
-    /**
-     * Stable Iris/DSH body identity. This is not a Minecraft entity UUID and must survive backend
-     * replacement (server fake player -> real client) when both represent the same logical body.
-     */
+    /** Stable Iris/DSH body identity; never a transient Minecraft entity/session id. */
     String bodyId();
 
-    /**
-     * Current physical binding. Legacy/fake test backends remain source-compatible through this
-     * default; production backends should override it with a real backend kind/instance/session.
-     */
+    /** Current physical binding. */
     default Binding binding() {
         String id=bodyId();
         return new Binding(id,"legacy_body_backend",id,"legacy");
+    }
+
+    /** Backends may implement a strict subset. Unsupported work must never fall back elsewhere. */
+    default Set<String> supportedOperations() {
+        return ALL_OPERATIONS;
     }
 
     String observeJson();
@@ -34,13 +41,7 @@ public interface BodyBackend {
     void resume();
     void cancel(String reason);
 
-    /**
-     * Stable logical body plus replaceable physical carrier/session identity.
-     *
-     * <p>bodyId is durable product identity. instanceId identifies the current Minecraft profile
-     * or physical entity. sessionEpoch changes whenever the physical execution carrier is replaced
-     * or reconnected, even if instanceId remains the same.</p>
-     */
+    /** Stable logical body plus replaceable physical carrier/session identity. */
     record Binding(String bodyId,String backendKind,String instanceId,String sessionEpoch) {
         public Binding {
             bodyId=bounded(bodyId,"body_id",160);
@@ -66,27 +67,24 @@ public interface BodyBackend {
 
     // ---- MC-2A0 read-only cognitive query surface ----
 
-    /** Build a cognitive view snapshot; journal is non-consuming read-only event-tail evidence. */
-    default io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal) {
+    default io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(
+            BridgeJournal journal) {
         return null;
     }
 
-    /** Bounded local view centered on the current body. */
     default String inspectLocalJson(int radius,String detail) {
         return null;
     }
 
-    /** Materialize one bounded EvidenceRef detail from the current view generation. */
     default String materializeEvidence(String ref,String detail,long gameTime) {
         return null;
     }
 
-    /** Current server/body tick for cache freshness. */
     default long serverTick() {
         return -1L;
     }
 
-    // ---- MC-2A Graph Core: postconditions are revalidated on the body thread ----
+    // ---- MC-2A Graph Core postconditions ----
 
     enum GraphPostconditionState { SATISFIED, UNSATISFIED, TERMINAL_UNSATISFIED, UNKNOWN }
 
@@ -109,21 +107,21 @@ public interface BodyBackend {
         }
     }
 
-    /** Read-only proof after physical execution termination; never starts or replays work. */
-    default GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition postcondition) {
+    default GraphPostconditionResult verifyGraphPostcondition(
+            TaskGraphStore.Postcondition postcondition) {
         return GraphPostconditionResult.unknown("backend_postcondition_not_supported");
     }
 
     interface Handle {
-        /** Never consult a global lastStatus: it may belong to a different Safety task. */
         Snapshot snapshot();
     }
 
     record Snapshot(String state,double progress,String reason) {
         public Snapshot {
-            if(!java.util.Set.of("running","paused","completed","failed","cancelled","outcome_unknown").contains(state))
+            if(!Set.of("running","paused","completed","failed","cancelled","outcome_unknown")
+                    .contains(state))
                 throw new IllegalArgumentException("invalid_backend_state");
-            if(!Double.isFinite(progress)) progress=0;
+            if(!Double.isFinite(progress))progress=0;
             progress=Math.max(0,Math.min(1,progress));
             reason=reason==null?"":reason;
         }
