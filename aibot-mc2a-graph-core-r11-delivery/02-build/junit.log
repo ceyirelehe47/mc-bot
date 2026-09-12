@@ -1,0 +1,3 @@
+# R1.1 开发树 JUnit(gradlew test, JDK21)
+tests=380 failures=0 errors=0
+# 逐套件 XML 汇总(build/test-results/test/TEST-*.xml)

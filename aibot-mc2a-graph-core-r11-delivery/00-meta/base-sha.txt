@@ -1,0 +1,3 @@
+base=experiment/mc2a-graph-core-r1-closure@079e16f187f8b245f4ed8fe3f20eab6bad0e1550
+production_source_base=fca017b7266ac09d0de5b39f82ee60b6204e2d0e
+branch=experiment/mc2a-graph-core-r11-final-freeze

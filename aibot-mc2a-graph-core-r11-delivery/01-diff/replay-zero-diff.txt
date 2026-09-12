@@ -1,0 +1,8 @@
+upstream_base=a029fa6a3760fd0f83834c104051b041d986da60
+production_branch=experiment/mc2a-graph-core-r11-final-freeze
+基于=experiment/mc2a-graph-core-r1-closure@079e16f(生产基 fca017b)
+compared_files=460
+排除=.git / build / run / .gradle
+方法=开发树(overlay 应用+本轮修正)全文件 sha256 清单 vs 干净 a029fa6 重放树清单
+结果=ZERO DIFF(diff 退出码 0,460 文件逐字节一致)
+清单=r11-dev-manifest.txt / r11-replay-manifest.txt(见 04-live-incarnation/drivers 同级执行环境)

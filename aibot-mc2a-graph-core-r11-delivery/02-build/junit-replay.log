@@ -1,0 +1,6 @@
+
+BUILD SUCCESSFUL in 2s
+6 actionable tasks: 6 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.0/userguide/configuration_cache_enabling.html
+
+replay JUnit: tests=380 failures=0 errors=0
