@@ -1,0 +1,2 @@
+# dev 与 干净重放 检出逐文件 sha256 对比
+identical=64 differing=0 (总 64 文件, 逐字节零 diff)
