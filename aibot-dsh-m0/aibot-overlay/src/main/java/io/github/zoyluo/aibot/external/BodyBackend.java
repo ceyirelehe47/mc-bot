@@ -42,7 +42,7 @@ public interface BodyBackend {
         return -1L;
     }
     // ---- MC-2A Graph Core: postconditions are revalidated on the server thread ----
-    enum GraphPostconditionState { SATISFIED, UNSATISFIED, UNKNOWN }
+    enum GraphPostconditionState { SATISFIED, UNSATISFIED, TERMINAL_UNSATISFIED, UNKNOWN }
     record GraphPostconditionResult(GraphPostconditionState state,String reason) {
         public GraphPostconditionResult {
             java.util.Objects.requireNonNull(state);
@@ -53,6 +53,9 @@ public interface BodyBackend {
         }
         public static GraphPostconditionResult unsatisfied(String reason) {
             return new GraphPostconditionResult(GraphPostconditionState.UNSATISFIED,reason);
+        }
+        public static GraphPostconditionResult terminalUnsatisfied(String reason) {
+            return new GraphPostconditionResult(GraphPostconditionState.TERMINAL_UNSATISFIED,reason);
         }
         public static GraphPostconditionResult unknown(String reason) {
             return new GraphPostconditionResult(GraphPostconditionState.UNKNOWN,reason);

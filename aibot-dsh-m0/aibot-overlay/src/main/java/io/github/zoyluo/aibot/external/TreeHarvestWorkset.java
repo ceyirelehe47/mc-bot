@@ -141,12 +141,15 @@ public final class TreeHarvestWorkset {
     private BlockPos accessBase;
     private boolean accessPathStarted;
     private int accessTicks;
+    /** Frozen identity of the displaced support stack; null while no re-entry is in progress. */
+    private List<TemporarySupport> reentryChain;
+    private int reentrySettleTicks;
+    private int reentryRegroundSteps;
+    private static final int MAX_REENTRY_SETTLE_TICKS = 40;
+    private static final int MAX_REENTRY_REGROUND_STEPS = 4;
     private final LinkedHashSet<Long> rejectedAccessBases = new LinkedHashSet<>();
 
-    private BlockPos cleanupPathTarget;
-    private boolean cleanupPathStarted;
-    private MiningController cleanupMiner;
-    private BlockPos cleanupMiningPos;
+    private MiningController cleanupMiner;    private BlockPos cleanupMiningPos;
     private int cleanupTicks;
 
     private String cleanupDebt = "";
@@ -241,7 +244,9 @@ public final class TreeHarvestWorkset {
 
     public void onResume() {
         accessPathStarted = false;
-        cleanupPathStarted = false;
+        reentryChain = null;
+        reentrySettleTicks = 0;
+        reentryRegroundSteps = 0;
         cleanupMiner = null;
         cleanupMiningPos = null;
     }
@@ -249,9 +254,12 @@ public final class TreeHarvestWorkset {
     public void abandon(String reason) {
         abandonReason = reason == null ? "abandoned" : reason;
         accessPathStarted = false;
-        cleanupPathStarted = false;
+        reentryChain = null;
+        reentrySettleTicks = 0;
+        reentryRegroundSteps = 0;
         cleanupMiner = null;
         cleanupMiningPos = null;
+        if (!hasTemporarySupports()) accessTarget = null;
     }
 
     /** Reconcile only the frozen candidate cells. Never expands the tree after acquisition. */
@@ -279,6 +287,13 @@ public final class TreeHarvestWorkset {
 
     public BlockPos nextRemaining(AIPlayerEntity bot) {
         reconcile(bot);
+        // A live TREE_ACCESS stack belongs to one exact committed log.  Safety may move the bot
+        // away, but it must not make the gather loop silently choose a different log while owned
+        // supports are still standing.  Re-enter the same work face first.
+        if (hasTemporarySupports()) {
+            if (accessTarget != null && remaining.contains(accessTarget.asLong())) return accessTarget;
+            return null; // target was externally resolved: cleanup before choosing another log
+        }
         return remaining.stream()
                 .map(BlockPos::fromLong)
                 .min(Comparator.comparingInt(BlockPos::getY)
@@ -338,26 +353,40 @@ public final class TreeHarvestWorkset {
         }
         var breakDecision = BreakPolicy.decide(bot, target);
         if (!breakDecision.allowed()) return StepResult.blocked("committed_log_protected:" + breakDecision.reason());
-        if (HarvestCore.canReach(bot, target) && ObservableWorldQuery.canObserveBlock(bot, target)) {
-            resetAccessTransient();
-            return StepResult.ready();
-        }
 
         if (accessTarget == null || !accessTarget.equals(target)) {
             if (hasTemporarySupports()) {
-                return debt("tree_access_target_changed_with_owned_supports");
+                // MC-2A0.2F may have cleared the transient target immediately before HARVEST while
+                // the owned support receipts intentionally survived.  Rebind only when this is
+                // still the same frozen remaining cell; nextRemaining() guarantees no retarget.
+                if (accessTarget == null && remaining.contains(target.asLong())) {
+                    accessTarget = target.toImmutable();
+                } else {
+                    return debt("tree_access_target_changed_with_owned_supports");
+                }
+            } else {
+                resetAccessTransient();
+                accessTarget = target.toImmutable();
             }
-            resetAccessTransient();
-            accessTarget = target.toImmutable();
         }
         if (++accessTicks > MAX_ACCESS_TICKS) return StepResult.blocked("tree_access_timeout");
 
         if (hasTemporarySupports()) {
             TemporarySupport last = latestPlacedSupport();
-            if (last == null || !bot.getBlockPos().equals(last.pos().up())) {
-                return debt("tree_access_pose_lost_with_owned_supports");
+            if (last == null) return debt("tree_access_support_ledger_empty");
+            if (!bot.getBlockPos().equals(last.pos().up())) {
+                return tickSupportReentry(bot, target);
+            }
+            if (HarvestCore.canReach(bot, target) && ObservableWorldQuery.canObserveBlock(bot, target)) {
+                resetAccessTransient();
+                return StepResult.ready();
             }
             return placeOneSupport(bot, target);
+        }
+
+        if (HarvestCore.canReach(bot, target) && ObservableWorldQuery.canObserveBlock(bot, target)) {
+            resetAccessTransient();
+            return StepResult.ready();
         }
 
         if (accessBase == null) {
@@ -387,12 +416,175 @@ public final class TreeHarvestWorkset {
         return placeOneSupport(bot, target);
     }
 
+    /**
+     * Re-enter the owned TREE_ACCESS transaction after a SAFETY displacement.
+     *
+     * <p>This never scans nearby blocks and never infers ownership from material/shape.  Every
+     * live receipt is re-verified each tick: exact owner_execution, purpose TREE_ACCESS, exact
+     * position, exact current block id; a foreign or modified receipt is typed cleanup debt,
+     * never a guessed repair.  Because TREE_ACCESS supports are placed under the bot's own feet,
+     * a stack of two or more carries the next receipt on the previous receipt's top, so the
+     * standing face cannot be re-entered from the ground.  Re-entry therefore walks back to a
+     * ground cell directly beside the frozen stack and resumes the same owned placement primitive
+     * one column over; the ordinary access branch then continues that owned climb to harvest.
+     * All newly placed cells are ordinary owned TREE_ACCESS receipts and are reverse-cleaned
+     * together with the displaced stack.</p>
+     */
+    private StepResult tickSupportReentry(AIPlayerEntity bot, BlockPos target) {
+        List<TemporarySupport> chain = supports.stream()
+                .filter(s -> s.state() == SupportState.PLACED)
+                .toList();
+        if (chain.isEmpty()) {
+            reentryChain = null;
+            return StepResult.complete();
+        }
+        ServerWorld world = bot.getServerWorld();
+        for (TemporarySupport support : chain) {
+            if (!ownerExecution.equals(support.ownerExecution()) || !"TREE_ACCESS".equals(support.purpose())) {
+                return debt("tree_access_reentry_foreign_receipt");
+            }
+            String actual = Registries.BLOCK.getId(world.getBlockState(support.pos()).getBlock()).toString();
+            if (!actual.equals(support.blockId())) {
+                replaceSupportState(support.pos(), SupportState.CONFLICT);
+                return debt("tree_access_reentry_support_conflict:" + support.pos().toShortString());
+            }
+        }
+        // Freeze the displaced stack identity once; later re-entry receipts join the owned
+        // ledger without moving the column the re-entry walks back to.  Access-phase walk
+        // rejections belong to the abandoned approach and must not starve the re-entry base
+        // choice — the displaced bot gets a fresh rejection budget for its own column walk.
+        if (reentryChain == null) {
+            reentryChain = List.copyOf(chain);
+            rejectedAccessBases.clear();
+        }
+        BlockPos stackBase = reentryChain.getFirst().pos();
+
+
+        boolean onOwnedTop = chain.stream().anyMatch(s -> bot.getBlockPos().equals(s.pos().up()));
+        int besideStack = Math.abs(bot.getBlockPos().getX() - stackBase.getX())
+                + Math.abs(bot.getBlockPos().getZ() - stackBase.getZ());
+        if (!onOwnedTop && (besideStack > 1 || bot.getBlockPos().getY() > stackBase.getY() + 1)) {
+            StepResult walking = walkBesideColumn(bot, stackBase, "tree_access_reentry_no_adjacent_base");
+            if (walking != null) return walking;
+        }
+
+        // Beside the verified stack: a knockback can leave the clientless body with a stale
+        // onGround=false even on a standable cell, which rejects every pillar jump.  Same-cell
+        // re-anchoring is not expressible with the reviewed motion adapters, so a strictly
+        // bounded number of validated neighbour steps re-publishes the grounded bit through
+        // FakePlayerMotion; a genuinely airborne body instead gets a bounded settle window.
+        if (!bot.isOnGround()) {
+            Standability.clearCache();
+            BlockPos feet = bot.getBlockPos().toImmutable();
+            boolean standableNow = Standability.isStandable(world, feet);
+            if (standableNow && reentryRegroundSteps < MAX_REENTRY_REGROUND_STEPS) {
+                for (Direction dir : new Direction[]{Direction.EAST, Direction.WEST,
+                        Direction.NORTH, Direction.SOUTH}) {
+                    if (FakePlayerMotion.stepToStandable(bot, feet.offset(dir),
+                            "tree_access_reentry_reground")) {
+                        reentryRegroundSteps++;
+                        return StepResult.progress();
+                    }
+                }
+            } else if (!standableNow) {
+                if (++reentrySettleTicks > MAX_REENTRY_SETTLE_TICKS) {
+                    return debt("tree_access_reentry_pose_unsettled:" + feet.toShortString());
+                }
+                return StepResult.progress();
+            }
+        }
+
+        // Beside the verified stack: resume ordinary owned placement.  If the pinned target is
+        // already reachable from here the caller harvests it without any new receipt.
+        BotLog.action(bot, "tree_support_reentered",
+                "tree", treeId, "execution", ownerExecution, "supports", chain.size());
+        reentryChain = null;
+        return placeOneSupport(bot, target);
+    }
+
+    /**
+     * Surface walk to a standable ground cell directly beside {@code columnBottom}'s column.
+     * Returns null once the bot stands on that cell; otherwise a progress/blocked/debt step.
+     */
+    private StepResult walkBesideColumn(AIPlayerEntity bot, BlockPos columnBottom, String noBaseDebt) {
+        if (accessBase != null
+                && Math.abs(accessBase.getX() - columnBottom.getX())
+                        + Math.abs(accessBase.getZ() - columnBottom.getZ()) > 1) {
+            accessBase = null; // chosen beside a different column
+        }
+        if (accessBase == null) {
+            accessBase = chooseReentryBase(bot, columnBottom);
+            if (accessBase == null) return debt(noBaseDebt);
+        }
+        if (!bot.getBlockPos().equals(accessBase)) {
+            if (accessPathStarted) {
+                if (!bot.getActionPack().isPathExecutorIdle()) return StepResult.progress();
+                rejectedAccessBases.add(accessBase.asLong());
+                accessBase = null;
+                accessPathStarted = false;
+                return StepResult.progress();
+            }
+            ActionResult path = bot.getActionPack().startSurfacePathTo(accessBase);
+            BlockPos resolved = bot.getActionPack().activePathGoal();
+            if (path.isFailed() || resolved == null || !resolved.equals(accessBase)) {
+                bot.getActionPack().stopAll();
+                rejectedAccessBases.add(accessBase.asLong());
+                accessBase = null;
+                return StepResult.progress();
+            }
+            accessPathStarted = true;
+            return StepResult.progress();
+        }
+        accessPathStarted = false;
+        return null;
+    }
+
+    /** Standable ground cell directly beside the support column, excluding rejected bases. */
+    private BlockPos chooseReentryBase(AIPlayerEntity bot, BlockPos columnBottom) {
+        ServerWorld world = bot.getServerWorld();
+        int[][] adjacent = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        BlockPos best = null;
+        for (int[] offset : adjacent) {
+            for (int y = columnBottom.getY(); y >= columnBottom.getY() - 2 && y >= world.getBottomY(); y--) {
+                BlockPos feet = new BlockPos(columnBottom.getX() + offset[0], y, columnBottom.getZ() + offset[1]);
+                if (rejectedAccessBases.contains(feet.asLong())) break;
+                Standability.clearCache();
+                if (!Standability.isStandable(world, feet)) continue;
+                BlockState ground = world.getBlockState(feet.down());
+                if (ground.isIn(BlockTags.LOGS) || ground.isIn(BlockTags.LEAVES)
+                        || Standability.isDangerous(ground)) break;
+                if (!clearAccessColumn(world, feet, columnBottom.up(4))) continue;
+                if (best == null || feet.getSquaredDistance(bot.getBlockPos())
+                        < best.getSquaredDistance(bot.getBlockPos())) {
+                    best = feet.toImmutable();
+                }
+                break;
+            }
+        }
+        return best;
+    }
+
+    /** Lowest still-placed owned support of {@code supportPos}'s column. */
+    private BlockPos columnBottomOf(BlockPos supportPos) {
+        return supports.stream()
+                .filter(s -> s.state() == SupportState.PLACED)
+                .map(TemporarySupport::pos)
+                .filter(p -> p.getX() == supportPos.getX() && p.getZ() == supportPos.getZ()
+                        && p.getY() <= supportPos.getY())
+                .min(Comparator.comparingInt(BlockPos::getY))
+                .orElse(supportPos);
+    }
+
     /** Reverse-clean exactly this execution's support receipts. */
     public StepResult tickCleanup(AIPlayerEntity bot) {
         if (hasCleanupDebt()) return StepResult.debt(cleanupDebt);
         if (!scopeMatches(bot)) return debt("tree_cleanup_scope_changed");
         if (++cleanupTicks > MAX_CLEANUP_TICKS) return debt("tree_cleanup_timeout");
-        TemporarySupport support = latestPlacedSupport();
+        // Topmost first, earliest on ties.  Latest-first would immediately re-target a
+        // climb-assist receipt placed by the approach below, oscillating place/remove until the
+        // material runs out; with a single column topmost == latest, so the classic reverse
+        // pillar descent is unchanged.
+        TemporarySupport support = topmostPlacedSupport();
         if (support == null) {
             resetCleanupTransient();
             return StepResult.complete();
@@ -417,22 +609,37 @@ public final class TreeHarvestWorkset {
             if (!Standability.isStandable(world, cleanupStand)) {
                 return debt("tree_cleanup_stand_not_available:" + cleanupStand.toShortString());
             }
-            if (cleanupPathStarted && cleanupPathTarget != null && cleanupPathTarget.equals(cleanupStand)) {
-                if (!bot.getActionPack().isPathExecutorIdle()) return StepResult.progress();
-                return debt("tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
+            // An owned support stand is normally one bounded step/jump away; an elevated one
+            // (mixed columns after re-entry) is approached by resuming owned TREE_ACCESS
+            // placement beside its column — the same primitive as SAFETY re-entry.  A plain
+            // surface route cannot resolve elevated owned stands at all.
+            int bdx = Math.abs(cleanupStand.getX() - bot.getBlockPos().getX());
+            int bdy = cleanupStand.getY() - bot.getBlockPos().getY();
+            int bdz = Math.abs(cleanupStand.getZ() - bot.getBlockPos().getZ());
+            if (bdy == 1 && bdx + bdz <= 1) {
+                return FakePlayerMotion.jumpTo(bot, cleanupStand, "tree_access_support_reentry")
+                        ? StepResult.progress()
+                        : debt("tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
             }
-            ActionResult path = bot.getActionPack().startSurfacePathTo(cleanupStand);
-            BlockPos resolved = bot.getActionPack().activePathGoal();
-            if (path.isFailed() || resolved == null || !resolved.equals(cleanupStand)) {
-                bot.getActionPack().stopAll();
-                return debt("tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
+            if (bdy >= -1 && bdy <= 0 && bdx <= 1 && bdz <= 1 && bdx + bdz > 0) {
+                return FakePlayerMotion.stepToStandable(bot, cleanupStand, "tree_access_support_reentry")
+                        ? StepResult.progress()
+                        : debt("tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
             }
-            cleanupPathStarted = true;
-            cleanupPathTarget = cleanupStand.toImmutable();
-            return StepResult.progress();
+            BlockPos columnBottom = columnBottomOf(support.pos());
+            boolean onOwnedTop = supports.stream()
+                    .filter(s -> s.state() == SupportState.PLACED)
+                    .anyMatch(s -> bot.getBlockPos().equals(s.pos().up()));
+            int besideColumn = Math.abs(bot.getBlockPos().getX() - columnBottom.getX())
+                    + Math.abs(bot.getBlockPos().getZ() - columnBottom.getZ());
+            if (!onOwnedTop
+                    && (besideColumn > 1 || bot.getBlockPos().getY() > columnBottom.getY() + 1)) {
+                StepResult walking = walkBesideColumn(bot, columnBottom,
+                        "tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
+                if (walking != null) return walking;
+            }
+            return placeOneSupportCell(bot);
         }
-        cleanupPathStarted = false;
-        cleanupPathTarget = null;
 
         String descentProblem = validateSafeDescentAfterRemoval(bot, support.pos());
         if (descentProblem != null) return debt(descentProblem);
@@ -472,6 +679,11 @@ public final class TreeHarvestWorkset {
             resetAccessTransient();
             return StepResult.ready();
         }
+        return placeOneSupportCell(bot);
+    }
+
+    /** Place one owned TREE_ACCESS support under the bot's feet (validated vanilla placement). */
+    private StepResult placeOneSupportCell(AIPlayerEntity bot) {
         if (supports.stream().filter(s -> s.state() == SupportState.PLACED).count() >= MAX_TEMP_SUPPORTS) {
             return StepResult.blocked("tree_access_support_limit");
         }
@@ -598,6 +810,16 @@ public final class TreeHarvestWorkset {
         return null;
     }
 
+    /** Highest still-placed receipt; earliest in ledger order on ties. */
+    private TemporarySupport topmostPlacedSupport() {
+        TemporarySupport best = null;
+        for (TemporarySupport support : supports) {
+            if (support.state() != SupportState.PLACED) continue;
+            if (best == null || support.pos().getY() > best.pos().getY()) best = support;
+        }
+        return best;
+    }
+
     private void replaceSupportState(BlockPos pos, SupportState state) {
         for (int i = supports.size() - 1; i >= 0; i--) {
             TemporarySupport support = supports.get(i);
@@ -609,16 +831,19 @@ public final class TreeHarvestWorkset {
     }
 
     private void resetAccessTransient() {
-        accessTarget = null;
+        // The exact working target is part of the support transaction identity.  Do not erase it
+        // while owned supports remain; SAFETY resume needs it to prove same-target re-entry.
+        if (!hasTemporarySupports()) accessTarget = null;
         accessBase = null;
         accessPathStarted = false;
+        reentryChain = null;
+        reentrySettleTicks = 0;
+        reentryRegroundSteps = 0;
         accessTicks = 0;
         rejectedAccessBases.clear();
     }
 
     private void resetCleanupTransient() {
-        cleanupPathTarget = null;
-        cleanupPathStarted = false;
         cleanupMiner = null;
         cleanupMiningPos = null;
         cleanupTicks = 0;

@@ -28,6 +28,7 @@ public final class BridgeKernel {
     private String bodyId="", observation="{}", fault="";
     private long observedAt=-1;
     private boolean ready, needsReconcile, pauseRequested, stopped;
+    private boolean graphStartupDoneAudit;
     private Execution active;
     // MC-2A0 只读认知查询缓存:server 线程 tick 构建,HTTP 线程只读。
     private CognitiveSnapshot.Snapshot cognitive;
@@ -289,6 +290,56 @@ public final class BridgeKernel {
         }
         return graphs.cancel(graphId,reason==null?"external_replan":reason);
     }
+    /**
+     * Durable semantic terminal receipt.  Unlike publish(), callers need a success bit because a
+     * proven inventory gain must not become a physical Task success until the receipt itself has
+     * crossed BridgeJournal's fsync boundary.
+     */
+    public synchronized boolean recordOpportunityResolution(String kind,String opportunityId,
+                                                            String worldId,String dimension,
+                                                            Map<String,Object> payload) {
+        if(!Set.of("resource_opportunity_consumed","resource_opportunity_stale").contains(kind)) return false;
+        if(stopped || !fault.isEmpty()) return false;
+        try {
+            Map<String,String> fields=new LinkedHashMap<>();
+            fields.put("kind",kind);
+            fields.put("execution_id",active==null?"":active.id);
+            fields.put("opportunity_id",opportunityId);
+            fields.put("world_id",worldId);
+            fields.put("dimension",dimension);
+            fields.put("payload",JsonOutput.encode(payload));
+            journal.append(fields); // append() fsyncs before returning
+            return true;
+        } catch(RuntimeException failure) {
+            fault="event_persistence_failed";
+            pauseRequested=true;
+            token=null;
+            return false;
+        }
+    }
+    static Optional<BodyBackend.GraphPostconditionResult> durableOpportunityResolution(
+            BridgeJournal journal,TaskGraphStore.SpatialRef ref) {
+        List<BridgeJournal.Frame> frames=journal.replay();
+        for(int i=frames.size()-1;i>=0;i--) {
+            Map<String,String> f=frames.get(i).fields();
+            String kind=f.get("kind");
+            if(!Set.of("resource_opportunity_consumed","resource_opportunity_stale").contains(kind)) continue;
+            if(!ref.objectId().equals(f.get("opportunity_id"))
+                    || !ref.worldId().equals(f.get("world_id"))
+                    || !ref.dimensionId().equals(f.get("dimension"))) continue;
+            return Optional.of("resource_opportunity_consumed".equals(kind)
+                    ? BodyBackend.GraphPostconditionResult.satisfied("durable_inventory_gain_receipt")
+                    : BodyBackend.GraphPostconditionResult.terminalUnsatisfied("durable_stale_or_loss_receipt"));
+        }
+        return Optional.empty();
+    }
+    private BodyBackend.GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition pc) {
+        if("OPPORTUNITY_RESOLVED".equals(pc.kind())) {
+            Optional<BodyBackend.GraphPostconditionResult> durable=durableOpportunityResolution(journal,pc.subject());
+            if(durable.isPresent()) return durable.get();
+        }
+        return backend.verifyGraphPostcondition(pc);
+    }
     private static String fingerprint(String type,String payload) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
                 .digest((type+"\n"+payload).getBytes(StandardCharsets.UTF_8))); }
@@ -351,7 +402,7 @@ public final class BridgeKernel {
         catch(RuntimeException ex) { e.state=oldState; e.progress=oldProgress; e.reason=oldReason; throw ex; }
         if(TERMINAL.contains(state) && active==e) active=null;
         if(TERMINAL.contains(state))
-            graphs.executionTerminal(e.id,state,backend::verifyGraphPostcondition);
+            graphs.executionTerminal(e.id,state,this::verifyGraphPostcondition);
     }
     private void event(String kind,String executionId,Map<String,Object> payload) {
         journal.append(Map.of("kind",kind,"execution_id",executionId,"payload",JsonOutput.encode(payload)));
@@ -382,9 +433,14 @@ public final class BridgeKernel {
             }
             ready=true; observation=backend.observeJson(); observedAt=mono.getAsLong();
             lastServerTick=backend.serverTick();
-            // Reconcile-only: a suspended graph may become DONE if the world now proves its
-            // postcondition. This path never re-dispatches an unknown mutation.
-            graphs.reconcileSuspended(backend::verifyGraphPostcondition);
+            // One-time migration audit: Graph Core v0 used registry absence as success proof.
+            // Revalidate old DONE nodes against durable receipts before trusting them.
+            if(!graphStartupDoneAudit) {
+                graphs.auditCompletedPostconditions(this::verifyGraphPostcondition);
+                graphStartupDoneAudit=true;
+            }
+            // Reconcile-only: may prove DONE or a terminal loss; never re-dispatches mutation.
+            graphs.reconcileSuspended(this::verifyGraphPostcondition);
             // 认知快照独立刷新:构建失败只令 view/inspect 503,绝不拖垮 observe/execution 主链。
             if(cognitive==null || lastServerTick-cognitiveTick>=5 || lastServerTick<cognitiveTick) {
                 try { cognitive=backend.cognitiveSnapshot(journal); cognitiveTick=lastServerTick; cognitiveFault=""; }

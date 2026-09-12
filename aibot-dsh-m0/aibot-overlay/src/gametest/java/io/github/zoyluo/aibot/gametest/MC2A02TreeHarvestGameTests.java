@@ -270,6 +270,93 @@ public final class MC2A02TreeHarvestGameTests implements FabricGameTest {
         });
     }
 
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE,
+            batchId = "mc2a02_reentry", tickLimit = 3200)
+    public void mc2a02DisplacedStackReentersOwnedSupportsAndCompletes(TestContext context) {
+        Fixture f = fixture(context, 18);
+        f.bot.getInventory().clear();
+        BlockPos base = naturalTree(f, 1, 8);
+        InventoryAction.giveItem(f.bot, new ItemStack(Items.IRON_AXE));
+        InventoryAction.giveItem(f.bot, new ItemStack(Items.DIRT, 32));
+        GatherQuotaTask task = new GatherQuotaTask(Items.OAK_LOG, 1, "gt-support-reentry-owner");
+
+        BlockPos proofStand = f.start;
+        for (int i = 0; i < 3; i++) set(f.world, proofStand.up(i), Blocks.DIRT);
+        f.bot.teleport(f.world, proofStand.getX() + .5D, proofStand.getY() + 3,
+                proofStand.getZ() + .5D, Set.of(), 0, 0, true);
+        f.bot.setOnGround(true);
+
+        boolean[] assigned = {false};
+        boolean[] grounded = {false};
+        boolean[] displaced = {false};
+        boolean[] sawReentryProgress = {false};
+        String[] treeId = {null};
+        int[] fenceSettle = {0};
+
+        context.runAtEveryTick(() -> {
+            if (!assigned[0]) {
+                if (++fenceSettle[0] <= 5) return;
+                assign(f.bot, task, "gt-support-reentry-owner");
+                assigned[0] = true;
+                return;
+            }
+            if (task.state() == TaskState.FAILED || task.state() == TaskState.CANCELLED) {
+                failAndDespawn(context, f, "reentry gather failed: " + task.failureReason());
+                return;
+            }
+            // Completion must be checked before the snapshot gate: the workset snapshot is
+            // released once the task completes, and polling it first would stall this callback.
+            if (task.state() == TaskState.COMPLETED) {
+                TreeHarvestWorkset.Snapshot done = task.treeWorksetSnapshot();
+                require(context, displaced[0], "fixture never displaced a live support stack");
+                require(context, sawReentryProgress[0], "task did not continue with owned supports after displacement");
+                require(context, done == null || treeId[0].equals(done.treeId()),
+                        "resume silently rebuilt a different tree workset");
+                for (int i = 0; i < 8; i++) {
+                    require(context, !f.world.getBlockState(base.up(i)).isOf(Blocks.OAK_LOG),
+                            "committed log remained after support re-entry");
+                    require(context, !f.world.getBlockState(base.up(i)).isOf(Blocks.DIRT),
+                            "owned support remained after support re-entry");
+                }
+                finish(context, f);
+                return;
+            }
+            TreeHarvestWorkset.Snapshot snapshot = task.treeWorksetSnapshot();
+            if (snapshot == null) return;
+            if (treeId[0] == null) treeId[0] = snapshot.treeId();
+
+            if (!grounded[0] && snapshot.candidates().size() >= 8) {
+                for (int i = 0; i < 3; i++) set(f.world, proofStand.up(i), Blocks.AIR);
+                f.bot.teleport(f.world, proofStand.getX() + .5D, proofStand.getY(),
+                        proofStand.getZ() + .5D, Set.of(), 0, 0, true);
+                f.bot.setOnGround(true);
+                grounded[0] = true;
+                return;
+            }
+            List<TreeHarvestWorkset.TemporarySupport> placed = snapshot.supports().stream()
+                    .filter(s -> s.state() == TreeHarvestWorkset.SupportState.PLACED).toList();
+            if (grounded[0] && !displaced[0] && placed.size() >= 2) {
+                TaskManager.INSTANCE.pauseFor(f.bot, "gt_safety_displacement");
+                require(context, task.state() == TaskState.PAUSED, "gather did not pause");
+                BlockPos recovery = f.start.south(5);
+                set(f.world, recovery.down(), Blocks.STONE);
+                set(f.world, recovery, Blocks.AIR);
+                set(f.world, recovery.up(), Blocks.AIR);
+                f.bot.teleport(f.world, recovery.getX() + .5D, recovery.getY(),
+                        recovery.getZ() + .5D, Set.of(), 0, 0, true);
+                f.bot.setOnGround(true);
+                TaskManager.INSTANCE.resumeFromPause(f.bot);
+                displaced[0] = true;
+                return;
+            }
+            if (displaced[0] && task.state() == TaskState.RUNNING
+                    && snapshot.supports().stream().anyMatch(s ->
+                    s.state() == TreeHarvestWorkset.SupportState.PLACED)) {
+                sawReentryProgress[0] = true;
+            }
+        });
+    }
+
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc2a02_debt", tickLimit = 500)
     public void mc2a02ModifiedOwnedSupportBecomesCleanupDebtAndIsNotRemoved(TestContext context) {
         Fixture f = fixture(context, 14);

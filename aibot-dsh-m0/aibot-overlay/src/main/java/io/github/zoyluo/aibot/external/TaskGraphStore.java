@@ -104,7 +104,7 @@ public final class TaskGraphStore {
     }
 
     /** Generic finite-DAG seam for future deterministic producers. Not exposed as an LLM tool. */
-    private synchronized Graph createFragment(String graphId,String producerKey,String planKey,String producerKind,
+    synchronized Graph createFragment(String graphId,String producerKey,String planKey,String producerKind,
                                       List<NodeSpec> specs) {
         if(graphs.size()>=MAX_GRAPHS) throw new BridgeFault(503,"task_graph_capacity_exhausted");
         if(specs==null || specs.isEmpty() || specs.size()>MAX_NODES) throw new BridgeFault(400,"invalid_graph_fragment_size");
@@ -130,6 +130,7 @@ public final class TaskGraphStore {
         refreshReadiness(g);
         graphs.put(g.id,g); producerIndex.put(g.producerKey,g.id);
         for(Node n:g.nodes.values()) if(isClaimHolding(n.state)) claims.put(n.resourceClaim,g.id);
+        save();
         return g;
     }
 
@@ -196,7 +197,8 @@ public final class TaskGraphStore {
                     BodyBackend.GraphPostconditionResult v=verifier.apply(n.postcondition);
                     if(v.state()==BodyBackend.GraphPostconditionState.SATISFIED) {
                         n.state=NodeState.DONE; n.reason="postcondition_satisfied:"+bound(v.reason(),160);
-                    } else if(v.state()==BodyBackend.GraphPostconditionState.UNSATISFIED) {
+                    } else if(v.state()==BodyBackend.GraphPostconditionState.UNSATISFIED
+                            || v.state()==BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED) {
                         n.state=NodeState.STALE; n.reason="postcondition_unsatisfied:"+bound(v.reason(),160);
                     } else {
                         n.state=NodeState.SUSPENDED; n.reason="postcondition_unknown:"+bound(v.reason(),160);
@@ -219,7 +221,31 @@ public final class TaskGraphStore {
             if(v.state()==BodyBackend.GraphPostconditionState.SATISFIED) {
                 n.state=NodeState.DONE; n.reason="reconciled_postcondition_satisfied:"+bound(v.reason(),160);
                 g.updatedAt=clock.getAsLong(); refreshReadiness(g); dirty=true;
+            } else if(v.state()==BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED) {
+                n.state=NodeState.STALE; n.reason="reconciled_terminal_unsatisfied:"+bound(v.reason(),160);
+                g.updatedAt=clock.getAsLong(); refreshReadiness(g); dirty=true;
             }
+        }
+        if(dirty) { rebuildClaims(); save(); }
+    }
+
+    /** One-time migration audit for Graph Core v0 DONE nodes that predate durable success receipts. */
+    public synchronized void auditCompletedPostconditions(
+            Function<Postcondition,BodyBackend.GraphPostconditionResult> verifier) {
+        boolean dirty=false;
+        for(Graph g:graphs.values()) for(Node n:g.nodes.values()) if(n.state==NodeState.DONE) {
+            BodyBackend.GraphPostconditionResult v=verifier.apply(n.postcondition);
+            if(v.state()==BodyBackend.GraphPostconditionState.SATISFIED) continue;
+            if(v.state()==BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED) {
+                n.state=NodeState.STALE;
+                n.reason="done_audit_terminal_unsatisfied:"+bound(v.reason(),160);
+            } else {
+                n.state=NodeState.SUSPENDED;
+                n.reason="done_audit_success_not_durably_proven:"+bound(v.reason(),160);
+            }
+            g.updatedAt=clock.getAsLong();
+            refreshReadiness(g);
+            dirty=true;
         }
         if(dirty) { rebuildClaims(); save(); }
     }
@@ -384,7 +410,9 @@ public final class TaskGraphStore {
         byte[] b=value.getBytes(StandardCharsets.UTF_8);if(b.length>max)throw new IOException("string_too_large");d.writeInt(b.length);d.write(b);
     }
     private static String read(DataInputStream in,int max)throws IOException{
-        int n=in.readInt();if(n<0||n>max)throw new IOException("bad_string");return new String(in.readNBytes(n),StandardCharsets.UTF_8);
+        int n=in.readInt();if(n<0||n>max)throw new IOException("bad_string");
+        byte[] bytes=in.readNBytes(n);if(bytes.length!=n)throw new EOFException("truncated_string");
+        return new String(bytes,StandardCharsets.UTF_8);
     }
     private static String boundedId(String value,String what,int max){
         if(value==null||value.isBlank()||value.length()>max||value.chars().anyMatch(c->c<0x20))

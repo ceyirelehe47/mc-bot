@@ -171,7 +171,10 @@ public final class KnownResourceTask extends AbstractTask {
         HarvestCore.forcePickupNearbyAnyOf(bot, targetDrops);
         int collected = HarvestCore.countInventoryItems(bot, targetDrops) - inventoryBefore;
         if (collected > 0) {
-            SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id());
+            if(!SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id())) {
+                fail("known_resource_success_receipt_not_durable");
+                return;
+            }
             BotLog.action(bot, "known_resource_collected", "opportunity", opportunity.id(), "count", collected);
             complete();
             return;
@@ -201,7 +204,10 @@ public final class KnownResourceTask extends AbstractTask {
         HarvestCore.forcePickupNearbyAnyOf(bot, targetDrops);
         int collected = HarvestCore.countInventoryItems(bot, targetDrops) - inventoryBefore;
         if (collected > 0) {
-            SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id());
+            if(!SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id())) {
+                fail("known_resource_success_receipt_not_durable");
+                return;
+            }
             BotLog.action(bot, "known_resource_collected",
                     "opportunity", opportunity.id(), "count", collected, "mode", "pickup_recovery");
             complete();

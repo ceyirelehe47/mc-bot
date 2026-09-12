@@ -118,9 +118,12 @@ public final class MinecraftBodyBackend implements BodyBackend {
             return GraphPostconditionResult.unknown("dimension_not_current");
         if("OPPORTUNITY_RESOLVED".equals(postcondition.kind())) {
             var remaining=SemanticWorldRegistry.opportunity(bot,ref.objectId());
-            return remaining.isEmpty()
-                    ? GraphPostconditionResult.satisfied("opportunity_absent_from_current_registry")
-                    : GraphPostconditionResult.unsatisfied("opportunity_still_"+remaining.get().status().toLowerCase(java.util.Locale.ROOT));
+            if(remaining.isPresent())
+                return GraphPostconditionResult.unsatisfied("opportunity_still_"
+                        +remaining.get().status().toLowerCase(java.util.Locale.ROOT));
+            // Absence is ambiguous: consumed-by-this-bot and stale/lost both remove the active
+            // entry. BridgeKernel's durable resolution receipt is the only success authority.
+            return GraphPostconditionResult.unknown("opportunity_absent_without_durable_resolution_receipt");
         }
         return GraphPostconditionResult.unknown("unsupported_graph_postcondition");
     }

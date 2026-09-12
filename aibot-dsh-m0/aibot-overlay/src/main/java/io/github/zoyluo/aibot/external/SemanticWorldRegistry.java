@@ -487,10 +487,49 @@ public final class SemanticWorldRegistry {
                 opportunity.stateSinceGameTime, opportunity.stateAt(), opportunity.pickupBaseline));
     }
 
-    public static void markOpportunityConsumed(AIPlayerEntity bot, String rawId) {
-        if (server == null || bot == null) return;
+    public static boolean markOpportunityConsumed(AIPlayerEntity bot, String rawId) {
+        if (server == null || bot == null) return false;
         String key = scoped(dimension(bot), id(rawId, "opportunity"));
-        if (OPPORTUNITIES.remove(key) != null) persistAsync();
+        ResourceOpportunity prior=OPPORTUNITIES.get(key);
+        if(prior==null) return false;
+        // Inventory delta was already proven by the caller.  Cross the synchronous BridgeJournal
+        // fsync boundary BEFORE removing the semantic entry or reporting physical Task success.
+        if(!ExternalBodyRuntime.resourceOpportunityConsumed(bot,prior.id,prior.blockId,prior.pos()))
+            return false;
+        OPPORTUNITIES.remove(key);
+        persistAsync();
+        return true;
+    }
+
+    /**
+     * Startup repair for the only legitimate cross-store crash window:
+     * BridgeJournal terminal receipt durable, semantic async snapshot still old.
+     * Both consumed and stale receipts mean the active opportunity must not resurrect.
+     */
+    public static int reconcileOpportunityTerminalReceipts(BridgeJournal journal) {
+        if(server==null || journal==null) return 0;
+        if(!server.isOnThread()) throw new IllegalStateException("semantic_registry_reconcile_off_server_thread");
+        Set<String> terminal=new HashSet<>();
+        for(BridgeJournal.Frame frame:journal.replay()) {
+            Map<String,String> fields=frame.fields();
+            String kind=fields.get("kind");
+            if(!"resource_opportunity_consumed".equals(kind)
+                    && !"resource_opportunity_stale".equals(kind)) continue;
+            if(!worldId.equals(fields.get("world_id"))) continue;
+            String dim=fields.get("dimension"), opportunityId=fields.get("opportunity_id");
+            if(dim==null || opportunityId==null) continue;
+            terminal.add(scoped(dim,opportunityId));
+        }
+        int removed=0;
+        for(String key:terminal) if(OPPORTUNITIES.remove(key)!=null) removed++;
+        if(removed>0) {
+            try { persistAsync().join(); }
+            catch(RuntimeException failure) {
+                persistenceFault="terminal_receipt_reconcile_failed:"+failure.getClass().getSimpleName();
+                throw new IllegalStateException("semantic_registry_failed_closed:"+persistenceFault,failure);
+            }
+        }
+        return removed;
     }
 
     /**

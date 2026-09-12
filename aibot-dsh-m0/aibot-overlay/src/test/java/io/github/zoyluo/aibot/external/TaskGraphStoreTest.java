@@ -3,8 +3,12 @@ package io.github.zoyluo.aibot.external;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -61,5 +65,53 @@ final class TaskGraphStoreTest {
         store.cancel(id,"replan");
         assertEquals("CANCELLED",store.inspect(id).get("state"));
         assertDoesNotThrow(()->store.planOpportunity("plan-b",ref("opp-1")));
+    }
+
+    @Test void suspendedTerminalLossBecomesStaleNeverDone() {
+        TaskGraphStore store=TaskGraphStore.memory();
+        String id=(String)store.planOpportunity("plan-a",ref("opp-loss")).get("graph_id");
+        TaskGraphStore.Dispatch d=store.prepareDispatch(id);store.attachExecution(d,"execution-loss");
+        store.executionTerminal("execution-loss","outcome_unknown",
+                pc->BodyBackend.GraphPostconditionResult.unknown("transport_lost"));
+        assertEquals("SUSPENDED",store.inspect(id).get("state"));
+        store.reconcileSuspended(pc->BodyBackend.GraphPostconditionResult
+                .terminalUnsatisfied("durable_stale_or_loss_receipt"));
+        assertEquals("STALE",store.inspect(id).get("state"));
+    }
+
+    @Test void legacyDoneWithoutDurableSuccessReceiptIsDowngraded() {
+        TaskGraphStore store=TaskGraphStore.memory();
+        String id=(String)store.planOpportunity("plan-a",ref("opp-old")).get("graph_id");
+        TaskGraphStore.Dispatch d=store.prepareDispatch(id);store.attachExecution(d,"execution-old");
+        store.executionTerminal("execution-old","completed",
+                pc->BodyBackend.GraphPostconditionResult.satisfied("old_registry_absence"));
+        assertEquals("DONE",store.inspect(id).get("state"));
+        store.auditCompletedPostconditions(pc->BodyBackend.GraphPostconditionResult
+                .unknown("no_durable_success_receipt"));
+        assertEquals("SUSPENDED",store.inspect(id).get("state"));
+        store.reconcileSuspended(pc->BodyBackend.GraphPostconditionResult
+                .satisfied("durable_inventory_gain_receipt"));
+        assertEquals("DONE",store.inspect(id).get("state"));
+    }
+
+    @Test void truncatedFinalDependencyStringFailsClosedEvenWhenPrefixIsAnotherValidNode() throws Exception {
+        Path file=temp.resolve("truncated-dependency.bin");
+        TaskGraphStore store=new TaskGraphStore(file,()->100L);
+        TaskGraphStore.SpatialRef a=ref("a"), ax=ref("ax"), z=ref("z");
+        store.createFragment("graph-trunc","producer-trunc","plan-trunc","TEST",List.of(
+                new TaskGraphStore.NodeSpec("a",Set.of(),"mine_opportunity",
+                        JsonOutput.encode(Map.of("id","a")),a,
+                        new TaskGraphStore.Postcondition("OPPORTUNITY_RESOLVED",a),a.claimKey("opportunity")),
+                new TaskGraphStore.NodeSpec("aX",Set.of(),"mine_opportunity",
+                        JsonOutput.encode(Map.of("id","ax")),ax,
+                        new TaskGraphStore.Postcondition("OPPORTUNITY_RESOLVED",ax),ax.claimKey("opportunity")),
+                new TaskGraphStore.NodeSpec("z",Set.of("aX"),"mine_opportunity",
+                        JsonOutput.encode(Map.of("id","z")),z,
+                        new TaskGraphStore.Postcondition("OPPORTUNITY_RESOLVED",z),z.claimKey("opportunity"))));
+        byte[] bytes=Files.readAllBytes(file);
+        Files.write(file,Arrays.copyOf(bytes,bytes.length-1)); // "aX" -> "a" if short read were accepted
+        BridgeFault fault=assertThrows(BridgeFault.class,
+                ()->new TaskGraphStore(file,()->200L));
+        assertEquals("task_graph_store_invalid",fault.code);
     }
 }

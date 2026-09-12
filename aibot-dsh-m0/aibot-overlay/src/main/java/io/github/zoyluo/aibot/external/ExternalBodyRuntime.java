@@ -28,6 +28,8 @@ public final class ExternalBodyRuntime {
             if(port<1024 || port>65535)throw new IllegalArgumentException("invalid_bridge_port");
             var bodyRoot=server.getSavePath(WorldSavePath.ROOT).resolve("aibot");
             journal=new BridgeJournal(bodyRoot.resolve("external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".journal"),System::currentTimeMillis);
+            // A prior crash may have fsynced the terminal receipt before the async semantic snapshot.
+            SemanticWorldRegistry.reconcileOpportunityTerminalReceipts(journal);
             var graphs=new TaskGraphStore(bodyRoot.resolve("task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".bin"),System::currentTimeMillis);
             kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME),graphs);
             kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
@@ -103,6 +105,19 @@ public final class ExternalBodyRuntime {
                 "dimension",bot.getServerWorld().getRegistryKey().getValue().toString(),
                 "world_id",SemanticWorldRegistry.worldId()));
     }
+    public static boolean resourceOpportunityConsumed(AIPlayerEntity bot,String opportunityId,String blockId,
+                                                      net.minecraft.util.math.BlockPos pos) {
+        if(kernel==null || !ExternalBodyAccess.reserved(bot))return false;
+        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
+        String world=SemanticWorldRegistry.worldId();
+        Map<String,Object> payload=Map.of(
+                "opportunity_id",opportunityId,"block",blockId,
+                "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
+                "resolution","inventory_gain_proven",
+                "dimension",dimension,"world_id",world);
+        return kernel.recordOpportunityResolution("resource_opportunity_consumed",
+                opportunityId,world,dimension,payload);
+    }
     /**
      * R2.1 terminal tombstone: an opportunity left the active registry without the resource ever
      * being proven into inventory (externally consumed, or a pending pickup whose drop vanished).
@@ -111,12 +126,15 @@ public final class ExternalBodyRuntime {
     public static void resourceOpportunityStale(AIPlayerEntity bot,String opportunityId,String blockId,
                                                 net.minecraft.util.math.BlockPos pos,String reason) {
         if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
-        kernel.publish("resource_opportunity_stale",Map.of(
+        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
+        String world=SemanticWorldRegistry.worldId();
+        Map<String,Object> payload=Map.of(
                 "opportunity_id",opportunityId,"block",blockId,
                 "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
                 "reason",bounded(reason,120),
-                "dimension",bot.getServerWorld().getRegistryKey().getValue().toString(),
-                "world_id",SemanticWorldRegistry.worldId()));
+                "dimension",dimension,"world_id",world);
+        kernel.recordOpportunityResolution("resource_opportunity_stale",
+                opportunityId,world,dimension,payload);
     }
     private static String bounded(String s,int length){return s==null?"":s.length()<=length?s:s.substring(0,length);}
     public static void stop() {
