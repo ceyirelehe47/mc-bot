@@ -1,0 +1,3 @@
+base=8df1ca38f3d3488afa59cd4b938b8936d26f73b6
+branch=experiment/mc2a-graph-core-r1-closure
+production_commit=见 git log(生产提交先行, 证据提交随后)

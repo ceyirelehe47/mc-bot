@@ -1,0 +1,1 @@
+79fa0bcbd4a17cc1d5cf7c33041aec9954aaceed5d79ced6375fe7c512494fd2 *build/libs/aibot-0.0.1.jar

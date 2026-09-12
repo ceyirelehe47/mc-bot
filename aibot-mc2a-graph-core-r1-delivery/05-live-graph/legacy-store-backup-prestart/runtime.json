@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "savedAtUtc": "2026-09-11T17:16:21.835748300Z",
+  "buildVersion": "0.0.1",
+  "runtimeSessionId": "d8aaf5f2-fe73-4c71-9d0a-7456c99e47e0",
+  "bots": [
+    {
+      "bot": {
+        "name": "Bob",
+        "dimension": "minecraft:overworld",
+        "x": 550.508763460545,
+        "y": 68.0,
+        "z": 129.58022017283926,
+        "yaw": 3.9716032,
+        "pitch": 19.788855,
+        "gameMode": "survival",
+        "health": 15.0,
+        "hunger": 16,
+        "inventoryNbt": "{Inventory:[{Slot:0b,components:{\"minecraft:damage\":34},count:1,id:\"minecraft:iron_axe\"},{Slot:1b,count:46,id:\"minecraft:dirt\"},{Slot:2b,components:{\"minecraft:damage\":24},count:1,id:\"minecraft:iron_axe\"},{Slot:3b,count:8,id:\"minecraft:oak_log\"},{Slot:4b,count:1,id:\"minecraft:oak_sapling\"},{Slot:5b,components:{\"minecraft:damage\":7},count:1,id:\"minecraft:iron_pickaxe\"},{Slot:6b,count:6,id:\"minecraft:raw_iron\"}]}",
+        "role": "worker",
+        "memoryNbt": "{facts:{},goalCursor:0,goalSteps:[],goalTitle:\"\",places:{}}",
+        "ownerUuid": "53b8c64e-8fa2-3285-8bdc-6e3a2d8554c4"
+      },
+      "missions": {
+        "queue": [],
+        "userPaused": false
+      }
+    }
+  ],
+  "jobs": []
+}

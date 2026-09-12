@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "savedAtUtc": "2026-09-10T13:41:12.173610800Z",
+  "buildVersion": "0.0.1",
+  "runtimeSessionId": "ab2305dd-4a47-4f97-81d6-1f07e5be7491",
+  "bots": [
+    {
+      "bot": {
+        "name": "Bob",
+        "dimension": "minecraft:overworld",
+        "x": 263.5,
+        "y": 113.0,
+        "z": 12.43381094151944,
+        "yaw": -180.0,
+        "pitch": 89.99999,
+        "gameMode": "survival",
+        "health": 20.0,
+        "hunger": 20,
+        "inventoryNbt": "{Inventory:[{Slot:0b,count:11,id:\"minecraft:cherry_log\"},{Slot:1b,count:1,id:\"minecraft:wooden_sword\"},{Slot:2b,count:1,id:\"minecraft:crafting_table\"},{Slot:3b,count:2,id:\"minecraft:stick\"},{Slot:4b,components:{\"minecraft:damage\":20},count:1,id:\"minecraft:wooden_pickaxe\"},{Slot:5b,count:1,id:\"minecraft:wooden_axe\"},{Slot:6b,count:9,id:\"minecraft:cobblestone\"},{Slot:7b,count:1,id:\"minecraft:stone_pickaxe\"},{Slot:8b,count:2,id:\"minecraft:cherry_planks\"},{Slot:9b,count:1,id:\"minecraft:stone_axe\"},{Slot:10b,count:1,id:\"minecraft:stone_sword\"}]}",
+        "role": "worker",
+        "memoryNbt": "{facts:{},goalCursor:0,goalSteps:[],goalTitle:\"\",places:{}}",
+        "ownerUuid": ""
+      },
+      "missions": {
+        "queue": [],
+        "userPaused": false
+      }
+    }
+  ],
+  "jobs": []
+}

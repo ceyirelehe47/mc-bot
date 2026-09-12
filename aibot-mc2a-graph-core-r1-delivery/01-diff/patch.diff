@@ -1,0 +1,1023 @@
+diff --git a/aibot-dsh-m0/SHA256SUMS b/aibot-dsh-m0/SHA256SUMS
+index 0038283..f45f251 100644
+--- a/aibot-dsh-m0/SHA256SUMS
++++ b/aibot-dsh-m0/SHA256SUMS
+@@ -5,14 +5,14 @@ d09ec1adb1255fe5fca15844cfec86aab5677b4d8cefe78090f71bd95c1d5aa6  aibot-overlay/
+ 21192bc79e5ac3ad7f85a8a480650e6584263caea9b3d2be72d9595ecdb99663  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC1CASemanticsGameTests.java
+ 70bb94d965c39a6683114f5851e46cb4f40542505d3f43f3a9333211b6f008ed  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01CognitiveBoundaryGameTests.java
+ 8402333c70be2cfad393de9f700a5a9320adc96cb1222ec13a1a46e5bbec0374  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A01FClosureGameTests.java
+-d19f27c2b895b4c427cab0403e91d63059f820338492f1667491c7acd43436d1  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
++11ad19b2be93839bb13ef4031de482eb4ee380a6bad235c910881cce5c992208  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
+ 761dccf15a2d6b3e43bac3a867b6635155aadcee7347a72a3661a92d9654792b  aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A0CognitiveViewGameTests.java
+-f86186d288889cc1dabfb620f9371f98b6e410d34102d96e451d951064851031  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
++f53809013aca5fb1ab39edfc61a43d03a0d12edd51f73722c0d7608ca3e50cf7  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+ 73cea3d91de06f6b6535d2499fe00164fdf5a48b8d5803709bde8a4b5de41588  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BreakPolicy.java
+ dc505946bacfdda09068a4f33ff9ec372436fe06fef06c52c6624b53d70e26e1  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeFault.java
+ 0f29a3bba773e96ad17f90be012a839230161eb0cdc383fae60cae122ffc9171  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeHttpServer.java
+ b34ee4eabe2d578f3c5f7b8b471e699957a54510e8d7e9775ab184dc7ac49f14  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeJournal.java
+-815fca63a18087221681fc11d577969a9fd1cbb606dbe655a8ebcc995940540e  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
++e9ee5d04c81a122dbb4ffc79c113cb18d725295b90b5812acdab66302be18846  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+ dd39e0913f021d781975f59b6438e898427c31ffdb0d92eaf664123b623223d6  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CanonicalJson.java
+ 844082a96f195297e0964634db74393644fd957c2aa27a899878b459482c30d9  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveInspector.java
+ 408163155c219f6dfe357e78168af39e9d03670337b59622a382814147df064a  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/CognitiveSnapshot.java
+@@ -20,18 +20,19 @@ dd39e0913f021d781975f59b6438e898427c31ffdb0d92eaf664123b623223d6  aibot-overlay/
+ 406469e8ec89679b647580b59501ea4887bebfc4598d1e90e2c6b3f904b99b6b  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/EvidenceRef.java
+ 0f0501c7cccead59093e71cc94ed412b48768e3ad5bba8249d43a384a9c81627  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/cognition/StructureKnowledge.java
+ 38f92dea13b36cb38bed701b75e1dae1c5e7cd43d87435b0d1ac8f887e85c5ef  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyAccess.java
+-29118fd8f5e409b18922ed3dad4182ab494e12b7db06e060ff468f7f70af81ba  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
++8b4be4cfd9afec9a3438c6bf0f991fd00e98dcef6feda8891303d8074ea58e8d  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+ 2aa84671efa0545c7247d36d92ab3d899222798f1d5158e4b0af34b3fcbef575  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/HomeBlockEquivalence.java
+ aadb1abb0cebe4658c20bce3267566105c11ac2a9aaf05c0fc7b6b75dc01acc9  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/JsonOutput.java
+-1ab3f12711cc4b33f26a9cdb41c0c8279f40c0d3a7dd15fd91cd4a2a10a0ac09  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java
+-8e0a3cc6b0810ba11481f4b50fbf2fc04b1da2010e6d41828312b067e1f707b8  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
++bb2fcee8824070890cf7f7b8bc3ca9f869d607ab3ea3fa988767fa3db6046c99  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java
++0c5c6a6d6f1bff7b5dff04010e0210515ce453c923bda681ba73f8b9f076ea92  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+ f127d98a2f18ae61026d21f6aee22b121ae6335426a07c92afc6c594dbe52179  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/NaturalTreeClassifier.java
+-8043330c8cd6536da6881762e5574bde9a737e6cb7d9222133885c6df2731222  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
+-ac60b411ec608fda0d8c86802d07bdc08d107e850ff0398a07e931c79c8169bf  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
+-0a856caa0f3e9f1d5746f6c1a3ad25f82e2e92af126cf19f21d9e43864855c48  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
++ad8b678bb9d339733417bd64c44d643b86ae474b08e3585cc83020f33ac56d0d  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
++ad4d66ac5d91687c4fc4f1b0d727dde6f570e33c6fba77dbc534516800988ec6  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
++2a9cdec3c219034fc1b05b2ce85b0dd5a0caccf0e4dd4cb611e4a6e6eb00fec6  aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
+ f67eafd4066d92c844c39634ec7ce5144a91f0e6c7a1c57695f2bfa50e84ecb6  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/cognition/CognitiveCanonicalizationTest.java
++06682ae8328263564b20eb0ba0ac2a7f19cd9f0317e2578eb21634d648116ce3  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityResolutionReceiptTest.java
+ 8d4f02fbcc991f980ba34ee24afde8b42b6bfe94230662a44f053a06741908e4  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphBridgeSourceContractTest.java
+-cfb34fa1f8d625457bd18bb064bcc11e1719de9fc28900181e63edef8c9819d2  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
++0e2318907b60ef926d4779011331726b07f5e11a0848b31cce426d85f29b1a36  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
+ 715f92a6d45615f09ba1ba00d869333424fe8767732fb739c24ad151d1d23c83  aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TreeHarvestSourceContractTest.java
+ 402298d4cc2129eb5000699cd508fa4f80db16c8966054c58d09b54a389ee7db  aibot-overlay/src/test/java/io/github/zoyluo/aibot/task/TreeAccessContinuationSourceContractTest.java
+ a5d9e7654839fa94e1a5827bf12f3b8ec7850eb45de63c36e1f3ab314a14f7b3  BASELINES.json
+diff --git a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
+index 1f68124..894446f 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
++++ b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A02TreeHarvestGameTests.java
+@@ -270,6 +270,93 @@ public final class MC2A02TreeHarvestGameTests implements FabricGameTest {
+         });
+     }
+ 
++    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE,
++            batchId = "mc2a02_reentry", tickLimit = 3200)
++    public void mc2a02DisplacedStackReentersOwnedSupportsAndCompletes(TestContext context) {
++        Fixture f = fixture(context, 18);
++        f.bot.getInventory().clear();
++        BlockPos base = naturalTree(f, 1, 8);
++        InventoryAction.giveItem(f.bot, new ItemStack(Items.IRON_AXE));
++        InventoryAction.giveItem(f.bot, new ItemStack(Items.DIRT, 32));
++        GatherQuotaTask task = new GatherQuotaTask(Items.OAK_LOG, 1, "gt-support-reentry-owner");
++
++        BlockPos proofStand = f.start;
++        for (int i = 0; i < 3; i++) set(f.world, proofStand.up(i), Blocks.DIRT);
++        f.bot.teleport(f.world, proofStand.getX() + .5D, proofStand.getY() + 3,
++                proofStand.getZ() + .5D, Set.of(), 0, 0, true);
++        f.bot.setOnGround(true);
++
++        boolean[] assigned = {false};
++        boolean[] grounded = {false};
++        boolean[] displaced = {false};
++        boolean[] sawReentryProgress = {false};
++        String[] treeId = {null};
++        int[] fenceSettle = {0};
++
++        context.runAtEveryTick(() -> {
++            if (!assigned[0]) {
++                if (++fenceSettle[0] <= 5) return;
++                assign(f.bot, task, "gt-support-reentry-owner");
++                assigned[0] = true;
++                return;
++            }
++            if (task.state() == TaskState.FAILED || task.state() == TaskState.CANCELLED) {
++                failAndDespawn(context, f, "reentry gather failed: " + task.failureReason());
++                return;
++            }
++            // Completion must be checked before the snapshot gate: the workset snapshot is
++            // released once the task completes, and polling it first would stall this callback.
++            if (task.state() == TaskState.COMPLETED) {
++                TreeHarvestWorkset.Snapshot done = task.treeWorksetSnapshot();
++                require(context, displaced[0], "fixture never displaced a live support stack");
++                require(context, sawReentryProgress[0], "task did not continue with owned supports after displacement");
++                require(context, done == null || treeId[0].equals(done.treeId()),
++                        "resume silently rebuilt a different tree workset");
++                for (int i = 0; i < 8; i++) {
++                    require(context, !f.world.getBlockState(base.up(i)).isOf(Blocks.OAK_LOG),
++                            "committed log remained after support re-entry");
++                    require(context, !f.world.getBlockState(base.up(i)).isOf(Blocks.DIRT),
++                            "owned support remained after support re-entry");
++                }
++                finish(context, f);
++                return;
++            }
++            TreeHarvestWorkset.Snapshot snapshot = task.treeWorksetSnapshot();
++            if (snapshot == null) return;
++            if (treeId[0] == null) treeId[0] = snapshot.treeId();
++
++            if (!grounded[0] && snapshot.candidates().size() >= 8) {
++                for (int i = 0; i < 3; i++) set(f.world, proofStand.up(i), Blocks.AIR);
++                f.bot.teleport(f.world, proofStand.getX() + .5D, proofStand.getY(),
++                        proofStand.getZ() + .5D, Set.of(), 0, 0, true);
++                f.bot.setOnGround(true);
++                grounded[0] = true;
++                return;
++            }
++            List<TreeHarvestWorkset.TemporarySupport> placed = snapshot.supports().stream()
++                    .filter(s -> s.state() == TreeHarvestWorkset.SupportState.PLACED).toList();
++            if (grounded[0] && !displaced[0] && placed.size() >= 2) {
++                TaskManager.INSTANCE.pauseFor(f.bot, "gt_safety_displacement");
++                require(context, task.state() == TaskState.PAUSED, "gather did not pause");
++                BlockPos recovery = f.start.south(5);
++                set(f.world, recovery.down(), Blocks.STONE);
++                set(f.world, recovery, Blocks.AIR);
++                set(f.world, recovery.up(), Blocks.AIR);
++                f.bot.teleport(f.world, recovery.getX() + .5D, recovery.getY(),
++                        recovery.getZ() + .5D, Set.of(), 0, 0, true);
++                f.bot.setOnGround(true);
++                TaskManager.INSTANCE.resumeFromPause(f.bot);
++                displaced[0] = true;
++                return;
++            }
++            if (displaced[0] && task.state() == TaskState.RUNNING
++                    && snapshot.supports().stream().anyMatch(s ->
++                    s.state() == TreeHarvestWorkset.SupportState.PLACED)) {
++                sawReentryProgress[0] = true;
++            }
++        });
++    }
++
+     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mc2a02_debt", tickLimit = 500)
+     public void mc2a02ModifiedOwnedSupportBecomesCleanupDebtAndIsNotRemoved(TestContext context) {
+         Fixture f = fixture(context, 14);
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+index 095c85f..119549f 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BodyBackend.java
+@@ -42,7 +42,7 @@ public interface BodyBackend {
+         return -1L;
+     }
+     // ---- MC-2A Graph Core: postconditions are revalidated on the server thread ----
+-    enum GraphPostconditionState { SATISFIED, UNSATISFIED, UNKNOWN }
++    enum GraphPostconditionState { SATISFIED, UNSATISFIED, TERMINAL_UNSATISFIED, UNKNOWN }
+     record GraphPostconditionResult(GraphPostconditionState state,String reason) {
+         public GraphPostconditionResult {
+             java.util.Objects.requireNonNull(state);
+@@ -54,6 +54,9 @@ public interface BodyBackend {
+         public static GraphPostconditionResult unsatisfied(String reason) {
+             return new GraphPostconditionResult(GraphPostconditionState.UNSATISFIED,reason);
+         }
++        public static GraphPostconditionResult terminalUnsatisfied(String reason) {
++            return new GraphPostconditionResult(GraphPostconditionState.TERMINAL_UNSATISFIED,reason);
++        }
+         public static GraphPostconditionResult unknown(String reason) {
+             return new GraphPostconditionResult(GraphPostconditionState.UNKNOWN,reason);
+         }
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+index b918167..16fefe6 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/BridgeKernel.java
+@@ -28,6 +28,7 @@ public final class BridgeKernel {
+     private String bodyId="", observation="{}", fault="";
+     private long observedAt=-1;
+     private boolean ready, needsReconcile, pauseRequested, stopped;
++    private boolean graphStartupDoneAudit;
+     private Execution active;
+     // MC-2A0 只读认知查询缓存:server 线程 tick 构建,HTTP 线程只读。
+     private CognitiveSnapshot.Snapshot cognitive;
+@@ -289,6 +290,56 @@ public final class BridgeKernel {
+         }
+         return graphs.cancel(graphId,reason==null?"external_replan":reason);
+     }
++    /**
++     * Durable semantic terminal receipt.  Unlike publish(), callers need a success bit because a
++     * proven inventory gain must not become a physical Task success until the receipt itself has
++     * crossed BridgeJournal's fsync boundary.
++     */
++    public synchronized boolean recordOpportunityResolution(String kind,String opportunityId,
++                                                            String worldId,String dimension,
++                                                            Map<String,Object> payload) {
++        if(!Set.of("resource_opportunity_consumed","resource_opportunity_stale").contains(kind)) return false;
++        if(stopped || !fault.isEmpty()) return false;
++        try {
++            Map<String,String> fields=new LinkedHashMap<>();
++            fields.put("kind",kind);
++            fields.put("execution_id",active==null?"":active.id);
++            fields.put("opportunity_id",opportunityId);
++            fields.put("world_id",worldId);
++            fields.put("dimension",dimension);
++            fields.put("payload",JsonOutput.encode(payload));
++            journal.append(fields); // append() fsyncs before returning
++            return true;
++        } catch(RuntimeException failure) {
++            fault="event_persistence_failed";
++            pauseRequested=true;
++            token=null;
++            return false;
++        }
++    }
++    static Optional<BodyBackend.GraphPostconditionResult> durableOpportunityResolution(
++            BridgeJournal journal,TaskGraphStore.SpatialRef ref) {
++        List<BridgeJournal.Frame> frames=journal.replay();
++        for(int i=frames.size()-1;i>=0;i--) {
++            Map<String,String> f=frames.get(i).fields();
++            String kind=f.get("kind");
++            if(!Set.of("resource_opportunity_consumed","resource_opportunity_stale").contains(kind)) continue;
++            if(!ref.objectId().equals(f.get("opportunity_id"))
++                    || !ref.worldId().equals(f.get("world_id"))
++                    || !ref.dimensionId().equals(f.get("dimension"))) continue;
++            return Optional.of("resource_opportunity_consumed".equals(kind)
++                    ? BodyBackend.GraphPostconditionResult.satisfied("durable_inventory_gain_receipt")
++                    : BodyBackend.GraphPostconditionResult.terminalUnsatisfied("durable_stale_or_loss_receipt"));
++        }
++        return Optional.empty();
++    }
++    private BodyBackend.GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition pc) {
++        if("OPPORTUNITY_RESOLVED".equals(pc.kind())) {
++            Optional<BodyBackend.GraphPostconditionResult> durable=durableOpportunityResolution(journal,pc.subject());
++            if(durable.isPresent()) return durable.get();
++        }
++        return backend.verifyGraphPostcondition(pc);
++    }
+     private static String fingerprint(String type,String payload) {
+         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                 .digest((type+"\n"+payload).getBytes(StandardCharsets.UTF_8))); }
+@@ -351,7 +402,7 @@ public final class BridgeKernel {
+         catch(RuntimeException ex) { e.state=oldState; e.progress=oldProgress; e.reason=oldReason; throw ex; }
+         if(TERMINAL.contains(state) && active==e) active=null;
+         if(TERMINAL.contains(state))
+-            graphs.executionTerminal(e.id,state,backend::verifyGraphPostcondition);
++            graphs.executionTerminal(e.id,state,this::verifyGraphPostcondition);
+     }
+     private void event(String kind,String executionId,Map<String,Object> payload) {
+         journal.append(Map.of("kind",kind,"execution_id",executionId,"payload",JsonOutput.encode(payload)));
+@@ -382,9 +433,14 @@ public final class BridgeKernel {
+             }
+             ready=true; observation=backend.observeJson(); observedAt=mono.getAsLong();
+             lastServerTick=backend.serverTick();
+-            // Reconcile-only: a suspended graph may become DONE if the world now proves its
+-            // postcondition. This path never re-dispatches an unknown mutation.
+-            graphs.reconcileSuspended(backend::verifyGraphPostcondition);
++            // One-time migration audit: Graph Core v0 used registry absence as success proof.
++            // Revalidate old DONE nodes against durable receipts before trusting them.
++            if(!graphStartupDoneAudit) {
++                graphs.auditCompletedPostconditions(this::verifyGraphPostcondition);
++                graphStartupDoneAudit=true;
++            }
++            // Reconcile-only: may prove DONE or a terminal loss; never re-dispatches mutation.
++            graphs.reconcileSuspended(this::verifyGraphPostcondition);
+             // 认知快照独立刷新:构建失败只令 view/inspect 503,绝不拖垮 observe/execution 主链。
+             if(cognitive==null || lastServerTick-cognitiveTick>=5 || lastServerTick<cognitiveTick) {
+                 try { cognitive=backend.cognitiveSnapshot(journal); cognitiveTick=lastServerTick; cognitiveFault=""; }
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+index e2f7bb5..7e9bddf 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/ExternalBodyRuntime.java
+@@ -28,6 +28,8 @@ public final class ExternalBodyRuntime {
+             if(port<1024 || port>65535)throw new IllegalArgumentException("invalid_bridge_port");
+             var bodyRoot=server.getSavePath(WorldSavePath.ROOT).resolve("aibot");
+             journal=new BridgeJournal(bodyRoot.resolve("external-body-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".journal"),System::currentTimeMillis);
++            // A prior crash may have fsynced the terminal receipt before the async semantic snapshot.
++            SemanticWorldRegistry.reconcileOpportunityTerminalReceipts(journal);
+             var graphs=new TaskGraphStore(bodyRoot.resolve("task-graphs-"+ExternalBodyAccess.BOT_NAME.toLowerCase(Locale.ROOT)+".bin"),System::currentTimeMillis);
+             kernel=new BridgeKernel(journal,new MinecraftBodyBackend(server,ExternalBodyAccess.BOT_NAME),graphs);
+             kernel.tick(); // fence restored legacy work before the network endpoint becomes reachable
+@@ -103,6 +105,19 @@ public final class ExternalBodyRuntime {
+                 "dimension",bot.getServerWorld().getRegistryKey().getValue().toString(),
+                 "world_id",SemanticWorldRegistry.worldId()));
+     }
++    public static boolean resourceOpportunityConsumed(AIPlayerEntity bot,String opportunityId,String blockId,
++                                                      net.minecraft.util.math.BlockPos pos) {
++        if(kernel==null || !ExternalBodyAccess.reserved(bot))return false;
++        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
++        String world=SemanticWorldRegistry.worldId();
++        Map<String,Object> payload=Map.of(
++                "opportunity_id",opportunityId,"block",blockId,
++                "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
++                "resolution","inventory_gain_proven",
++                "dimension",dimension,"world_id",world);
++        return kernel.recordOpportunityResolution("resource_opportunity_consumed",
++                opportunityId,world,dimension,payload);
++    }
+     /**
+      * R2.1 terminal tombstone: an opportunity left the active registry without the resource ever
+      * being proven into inventory (externally consumed, or a pending pickup whose drop vanished).
+@@ -111,12 +126,15 @@ public final class ExternalBodyRuntime {
+     public static void resourceOpportunityStale(AIPlayerEntity bot,String opportunityId,String blockId,
+                                                 net.minecraft.util.math.BlockPos pos,String reason) {
+         if(kernel==null || !ExternalBodyAccess.reserved(bot))return;
+-        kernel.publish("resource_opportunity_stale",Map.of(
++        String dimension=bot.getServerWorld().getRegistryKey().getValue().toString();
++        String world=SemanticWorldRegistry.worldId();
++        Map<String,Object> payload=Map.of(
+                 "opportunity_id",opportunityId,"block",blockId,
+                 "x",pos.getX(),"y",pos.getY(),"z",pos.getZ(),
+                 "reason",bounded(reason,120),
+-                "dimension",bot.getServerWorld().getRegistryKey().getValue().toString(),
+-                "world_id",SemanticWorldRegistry.worldId()));
++                "dimension",dimension,"world_id",world);
++        kernel.recordOpportunityResolution("resource_opportunity_stale",
++                opportunityId,world,dimension,payload);
+     }
+     private static String bounded(String s,int length){return s==null?"":s.length()<=length?s:s.substring(0,length);}
+     public static void stop() {
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java
+index a99f66f..0d7574c 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/KnownResourceTask.java
+@@ -171,7 +171,10 @@ public final class KnownResourceTask extends AbstractTask {
+         HarvestCore.forcePickupNearbyAnyOf(bot, targetDrops);
+         int collected = HarvestCore.countInventoryItems(bot, targetDrops) - inventoryBefore;
+         if (collected > 0) {
+-            SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id());
++            if(!SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id())) {
++                fail("known_resource_success_receipt_not_durable");
++                return;
++            }
+             BotLog.action(bot, "known_resource_collected", "opportunity", opportunity.id(), "count", collected);
+             complete();
+             return;
+@@ -201,7 +204,10 @@ public final class KnownResourceTask extends AbstractTask {
+         HarvestCore.forcePickupNearbyAnyOf(bot, targetDrops);
+         int collected = HarvestCore.countInventoryItems(bot, targetDrops) - inventoryBefore;
+         if (collected > 0) {
+-            SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id());
++            if(!SemanticWorldRegistry.markOpportunityConsumed(bot, opportunity.id())) {
++                fail("known_resource_success_receipt_not_durable");
++                return;
++            }
+             BotLog.action(bot, "known_resource_collected",
+                     "opportunity", opportunity.id(), "count", collected, "mode", "pickup_recovery");
+             complete();
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+index 3c6622a..6cb316d 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/MinecraftBodyBackend.java
+@@ -118,9 +118,12 @@ public final class MinecraftBodyBackend implements BodyBackend {
+             return GraphPostconditionResult.unknown("dimension_not_current");
+         if("OPPORTUNITY_RESOLVED".equals(postcondition.kind())) {
+             var remaining=SemanticWorldRegistry.opportunity(bot,ref.objectId());
+-            return remaining.isEmpty()
+-                    ? GraphPostconditionResult.satisfied("opportunity_absent_from_current_registry")
+-                    : GraphPostconditionResult.unsatisfied("opportunity_still_"+remaining.get().status().toLowerCase(java.util.Locale.ROOT));
++            if(remaining.isPresent())
++                return GraphPostconditionResult.unsatisfied("opportunity_still_"
++                        +remaining.get().status().toLowerCase(java.util.Locale.ROOT));
++            // Absence is ambiguous: consumed-by-this-bot and stale/lost both remove the active
++            // entry. BridgeKernel's durable resolution receipt is the only success authority.
++            return GraphPostconditionResult.unknown("opportunity_absent_without_durable_resolution_receipt");
+         }
+         return GraphPostconditionResult.unknown("unsupported_graph_postcondition");
+     }
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
+index 53d115d..674c4d9 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/SemanticWorldRegistry.java
+@@ -487,10 +487,49 @@ public final class SemanticWorldRegistry {
+                 opportunity.stateSinceGameTime, opportunity.stateAt(), opportunity.pickupBaseline));
+     }
+ 
+-    public static void markOpportunityConsumed(AIPlayerEntity bot, String rawId) {
+-        if (server == null || bot == null) return;
++    public static boolean markOpportunityConsumed(AIPlayerEntity bot, String rawId) {
++        if (server == null || bot == null) return false;
+         String key = scoped(dimension(bot), id(rawId, "opportunity"));
+-        if (OPPORTUNITIES.remove(key) != null) persistAsync();
++        ResourceOpportunity prior=OPPORTUNITIES.get(key);
++        if(prior==null) return false;
++        // Inventory delta was already proven by the caller.  Cross the synchronous BridgeJournal
++        // fsync boundary BEFORE removing the semantic entry or reporting physical Task success.
++        if(!ExternalBodyRuntime.resourceOpportunityConsumed(bot,prior.id,prior.blockId,prior.pos()))
++            return false;
++        OPPORTUNITIES.remove(key);
++        persistAsync();
++        return true;
++    }
++
++    /**
++     * Startup repair for the only legitimate cross-store crash window:
++     * BridgeJournal terminal receipt durable, semantic async snapshot still old.
++     * Both consumed and stale receipts mean the active opportunity must not resurrect.
++     */
++    public static int reconcileOpportunityTerminalReceipts(BridgeJournal journal) {
++        if(server==null || journal==null) return 0;
++        if(!server.isOnThread()) throw new IllegalStateException("semantic_registry_reconcile_off_server_thread");
++        Set<String> terminal=new HashSet<>();
++        for(BridgeJournal.Frame frame:journal.replay()) {
++            Map<String,String> fields=frame.fields();
++            String kind=fields.get("kind");
++            if(!"resource_opportunity_consumed".equals(kind)
++                    && !"resource_opportunity_stale".equals(kind)) continue;
++            if(!worldId.equals(fields.get("world_id"))) continue;
++            String dim=fields.get("dimension"), opportunityId=fields.get("opportunity_id");
++            if(dim==null || opportunityId==null) continue;
++            terminal.add(scoped(dim,opportunityId));
++        }
++        int removed=0;
++        for(String key:terminal) if(OPPORTUNITIES.remove(key)!=null) removed++;
++        if(removed>0) {
++            try { persistAsync().join(); }
++            catch(RuntimeException failure) {
++                persistenceFault="terminal_receipt_reconcile_failed:"+failure.getClass().getSimpleName();
++                throw new IllegalStateException("semantic_registry_failed_closed:"+persistenceFault,failure);
++            }
++        }
++        return removed;
+     }
+ 
+     /**
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
+index e267f11..aa42658 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TaskGraphStore.java
+@@ -104,7 +104,7 @@ public final class TaskGraphStore {
+     }
+ 
+     /** Generic finite-DAG seam for future deterministic producers. Not exposed as an LLM tool. */
+-    private synchronized Graph createFragment(String graphId,String producerKey,String planKey,String producerKind,
++    synchronized Graph createFragment(String graphId,String producerKey,String planKey,String producerKind,
+                                       List<NodeSpec> specs) {
+         if(graphs.size()>=MAX_GRAPHS) throw new BridgeFault(503,"task_graph_capacity_exhausted");
+         if(specs==null || specs.isEmpty() || specs.size()>MAX_NODES) throw new BridgeFault(400,"invalid_graph_fragment_size");
+@@ -130,6 +130,7 @@ public final class TaskGraphStore {
+         refreshReadiness(g);
+         graphs.put(g.id,g); producerIndex.put(g.producerKey,g.id);
+         for(Node n:g.nodes.values()) if(isClaimHolding(n.state)) claims.put(n.resourceClaim,g.id);
++        save();
+         return g;
+     }
+ 
+@@ -196,7 +197,8 @@ public final class TaskGraphStore {
+                     BodyBackend.GraphPostconditionResult v=verifier.apply(n.postcondition);
+                     if(v.state()==BodyBackend.GraphPostconditionState.SATISFIED) {
+                         n.state=NodeState.DONE; n.reason="postcondition_satisfied:"+bound(v.reason(),160);
+-                    } else if(v.state()==BodyBackend.GraphPostconditionState.UNSATISFIED) {
++                    } else if(v.state()==BodyBackend.GraphPostconditionState.UNSATISFIED
++                            || v.state()==BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED) {
+                         n.state=NodeState.STALE; n.reason="postcondition_unsatisfied:"+bound(v.reason(),160);
+                     } else {
+                         n.state=NodeState.SUSPENDED; n.reason="postcondition_unknown:"+bound(v.reason(),160);
+@@ -219,7 +221,31 @@ public final class TaskGraphStore {
+             if(v.state()==BodyBackend.GraphPostconditionState.SATISFIED) {
+                 n.state=NodeState.DONE; n.reason="reconciled_postcondition_satisfied:"+bound(v.reason(),160);
+                 g.updatedAt=clock.getAsLong(); refreshReadiness(g); dirty=true;
++            } else if(v.state()==BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED) {
++                n.state=NodeState.STALE; n.reason="reconciled_terminal_unsatisfied:"+bound(v.reason(),160);
++                g.updatedAt=clock.getAsLong(); refreshReadiness(g); dirty=true;
++            }
++        }
++        if(dirty) { rebuildClaims(); save(); }
++    }
++
++    /** One-time migration audit for Graph Core v0 DONE nodes that predate durable success receipts. */
++    public synchronized void auditCompletedPostconditions(
++            Function<Postcondition,BodyBackend.GraphPostconditionResult> verifier) {
++        boolean dirty=false;
++        for(Graph g:graphs.values()) for(Node n:g.nodes.values()) if(n.state==NodeState.DONE) {
++            BodyBackend.GraphPostconditionResult v=verifier.apply(n.postcondition);
++            if(v.state()==BodyBackend.GraphPostconditionState.SATISFIED) continue;
++            if(v.state()==BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED) {
++                n.state=NodeState.STALE;
++                n.reason="done_audit_terminal_unsatisfied:"+bound(v.reason(),160);
++            } else {
++                n.state=NodeState.SUSPENDED;
++                n.reason="done_audit_success_not_durably_proven:"+bound(v.reason(),160);
+             }
++            g.updatedAt=clock.getAsLong();
++            refreshReadiness(g);
++            dirty=true;
+         }
+         if(dirty) { rebuildClaims(); save(); }
+     }
+@@ -384,7 +410,9 @@ public final class TaskGraphStore {
+         byte[] b=value.getBytes(StandardCharsets.UTF_8);if(b.length>max)throw new IOException("string_too_large");d.writeInt(b.length);d.write(b);
+     }
+     private static String read(DataInputStream in,int max)throws IOException{
+-        int n=in.readInt();if(n<0||n>max)throw new IOException("bad_string");return new String(in.readNBytes(n),StandardCharsets.UTF_8);
++        int n=in.readInt();if(n<0||n>max)throw new IOException("bad_string");
++        byte[] bytes=in.readNBytes(n);if(bytes.length!=n)throw new EOFException("truncated_string");
++        return new String(bytes,StandardCharsets.UTF_8);
+     }
+     private static String boundedId(String value,String what,int max){
+         if(value==null||value.isBlank()||value.length()>max||value.chars().anyMatch(c->c<0x20))
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
+index 0d01067..a375c89 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/TreeHarvestWorkset.java
+@@ -141,12 +141,15 @@ public final class TreeHarvestWorkset {
+     private BlockPos accessBase;
+     private boolean accessPathStarted;
+     private int accessTicks;
++    /** Frozen identity of the displaced support stack; null while no re-entry is in progress. */
++    private List<TemporarySupport> reentryChain;
++    private int reentrySettleTicks;
++    private int reentryRegroundSteps;
++    private static final int MAX_REENTRY_SETTLE_TICKS = 40;
++    private static final int MAX_REENTRY_REGROUND_STEPS = 4;
+     private final LinkedHashSet<Long> rejectedAccessBases = new LinkedHashSet<>();
+ 
+-    private BlockPos cleanupPathTarget;
+-    private boolean cleanupPathStarted;
+-    private MiningController cleanupMiner;
+-    private BlockPos cleanupMiningPos;
++    private MiningController cleanupMiner;    private BlockPos cleanupMiningPos;
+     private int cleanupTicks;
+ 
+     private String cleanupDebt = "";
+@@ -241,7 +244,9 @@ public final class TreeHarvestWorkset {
+ 
+     public void onResume() {
+         accessPathStarted = false;
+-        cleanupPathStarted = false;
++        reentryChain = null;
++        reentrySettleTicks = 0;
++        reentryRegroundSteps = 0;
+         cleanupMiner = null;
+         cleanupMiningPos = null;
+     }
+@@ -249,9 +254,12 @@ public final class TreeHarvestWorkset {
+     public void abandon(String reason) {
+         abandonReason = reason == null ? "abandoned" : reason;
+         accessPathStarted = false;
+-        cleanupPathStarted = false;
++        reentryChain = null;
++        reentrySettleTicks = 0;
++        reentryRegroundSteps = 0;
+         cleanupMiner = null;
+         cleanupMiningPos = null;
++        if (!hasTemporarySupports()) accessTarget = null;
+     }
+ 
+     /** Reconcile only the frozen candidate cells. Never expands the tree after acquisition. */
+@@ -279,6 +287,13 @@ public final class TreeHarvestWorkset {
+ 
+     public BlockPos nextRemaining(AIPlayerEntity bot) {
+         reconcile(bot);
++        // A live TREE_ACCESS stack belongs to one exact committed log.  Safety may move the bot
++        // away, but it must not make the gather loop silently choose a different log while owned
++        // supports are still standing.  Re-enter the same work face first.
++        if (hasTemporarySupports()) {
++            if (accessTarget != null && remaining.contains(accessTarget.asLong())) return accessTarget;
++            return null; // target was externally resolved: cleanup before choosing another log
++        }
+         return remaining.stream()
+                 .map(BlockPos::fromLong)
+                 .min(Comparator.comparingInt(BlockPos::getY)
+@@ -338,28 +353,42 @@ public final class TreeHarvestWorkset {
+         }
+         var breakDecision = BreakPolicy.decide(bot, target);
+         if (!breakDecision.allowed()) return StepResult.blocked("committed_log_protected:" + breakDecision.reason());
+-        if (HarvestCore.canReach(bot, target) && ObservableWorldQuery.canObserveBlock(bot, target)) {
+-            resetAccessTransient();
+-            return StepResult.ready();
+-        }
+ 
+         if (accessTarget == null || !accessTarget.equals(target)) {
+             if (hasTemporarySupports()) {
+-                return debt("tree_access_target_changed_with_owned_supports");
++                // MC-2A0.2F may have cleared the transient target immediately before HARVEST while
++                // the owned support receipts intentionally survived.  Rebind only when this is
++                // still the same frozen remaining cell; nextRemaining() guarantees no retarget.
++                if (accessTarget == null && remaining.contains(target.asLong())) {
++                    accessTarget = target.toImmutable();
++                } else {
++                    return debt("tree_access_target_changed_with_owned_supports");
++                }
++            } else {
++                resetAccessTransient();
++                accessTarget = target.toImmutable();
+             }
+-            resetAccessTransient();
+-            accessTarget = target.toImmutable();
+         }
+         if (++accessTicks > MAX_ACCESS_TICKS) return StepResult.blocked("tree_access_timeout");
+ 
+         if (hasTemporarySupports()) {
+             TemporarySupport last = latestPlacedSupport();
+-            if (last == null || !bot.getBlockPos().equals(last.pos().up())) {
+-                return debt("tree_access_pose_lost_with_owned_supports");
++            if (last == null) return debt("tree_access_support_ledger_empty");
++            if (!bot.getBlockPos().equals(last.pos().up())) {
++                return tickSupportReentry(bot, target);
++            }
++            if (HarvestCore.canReach(bot, target) && ObservableWorldQuery.canObserveBlock(bot, target)) {
++                resetAccessTransient();
++                return StepResult.ready();
+             }
+             return placeOneSupport(bot, target);
+         }
+ 
++        if (HarvestCore.canReach(bot, target) && ObservableWorldQuery.canObserveBlock(bot, target)) {
++            resetAccessTransient();
++            return StepResult.ready();
++        }
++
+         if (accessBase == null) {
+             accessBase = chooseAccessBase(bot, target);
+             if (accessBase == null) return StepResult.blocked("tree_access_no_safe_base");
+@@ -387,12 +416,175 @@ public final class TreeHarvestWorkset {
+         return placeOneSupport(bot, target);
+     }
+ 
++    /**
++     * Re-enter the owned TREE_ACCESS transaction after a SAFETY displacement.
++     *
++     * <p>This never scans nearby blocks and never infers ownership from material/shape.  Every
++     * live receipt is re-verified each tick: exact owner_execution, purpose TREE_ACCESS, exact
++     * position, exact current block id; a foreign or modified receipt is typed cleanup debt,
++     * never a guessed repair.  Because TREE_ACCESS supports are placed under the bot's own feet,
++     * a stack of two or more carries the next receipt on the previous receipt's top, so the
++     * standing face cannot be re-entered from the ground.  Re-entry therefore walks back to a
++     * ground cell directly beside the frozen stack and resumes the same owned placement primitive
++     * one column over; the ordinary access branch then continues that owned climb to harvest.
++     * All newly placed cells are ordinary owned TREE_ACCESS receipts and are reverse-cleaned
++     * together with the displaced stack.</p>
++     */
++    private StepResult tickSupportReentry(AIPlayerEntity bot, BlockPos target) {
++        List<TemporarySupport> chain = supports.stream()
++                .filter(s -> s.state() == SupportState.PLACED)
++                .toList();
++        if (chain.isEmpty()) {
++            reentryChain = null;
++            return StepResult.complete();
++        }
++        ServerWorld world = bot.getServerWorld();
++        for (TemporarySupport support : chain) {
++            if (!ownerExecution.equals(support.ownerExecution()) || !"TREE_ACCESS".equals(support.purpose())) {
++                return debt("tree_access_reentry_foreign_receipt");
++            }
++            String actual = Registries.BLOCK.getId(world.getBlockState(support.pos()).getBlock()).toString();
++            if (!actual.equals(support.blockId())) {
++                replaceSupportState(support.pos(), SupportState.CONFLICT);
++                return debt("tree_access_reentry_support_conflict:" + support.pos().toShortString());
++            }
++        }
++        // Freeze the displaced stack identity once; later re-entry receipts join the owned
++        // ledger without moving the column the re-entry walks back to.  Access-phase walk
++        // rejections belong to the abandoned approach and must not starve the re-entry base
++        // choice — the displaced bot gets a fresh rejection budget for its own column walk.
++        if (reentryChain == null) {
++            reentryChain = List.copyOf(chain);
++            rejectedAccessBases.clear();
++        }
++        BlockPos stackBase = reentryChain.getFirst().pos();
++
++
++        boolean onOwnedTop = chain.stream().anyMatch(s -> bot.getBlockPos().equals(s.pos().up()));
++        int besideStack = Math.abs(bot.getBlockPos().getX() - stackBase.getX())
++                + Math.abs(bot.getBlockPos().getZ() - stackBase.getZ());
++        if (!onOwnedTop && (besideStack > 1 || bot.getBlockPos().getY() > stackBase.getY() + 1)) {
++            StepResult walking = walkBesideColumn(bot, stackBase, "tree_access_reentry_no_adjacent_base");
++            if (walking != null) return walking;
++        }
++
++        // Beside the verified stack: a knockback can leave the clientless body with a stale
++        // onGround=false even on a standable cell, which rejects every pillar jump.  Same-cell
++        // re-anchoring is not expressible with the reviewed motion adapters, so a strictly
++        // bounded number of validated neighbour steps re-publishes the grounded bit through
++        // FakePlayerMotion; a genuinely airborne body instead gets a bounded settle window.
++        if (!bot.isOnGround()) {
++            Standability.clearCache();
++            BlockPos feet = bot.getBlockPos().toImmutable();
++            boolean standableNow = Standability.isStandable(world, feet);
++            if (standableNow && reentryRegroundSteps < MAX_REENTRY_REGROUND_STEPS) {
++                for (Direction dir : new Direction[]{Direction.EAST, Direction.WEST,
++                        Direction.NORTH, Direction.SOUTH}) {
++                    if (FakePlayerMotion.stepToStandable(bot, feet.offset(dir),
++                            "tree_access_reentry_reground")) {
++                        reentryRegroundSteps++;
++                        return StepResult.progress();
++                    }
++                }
++            } else if (!standableNow) {
++                if (++reentrySettleTicks > MAX_REENTRY_SETTLE_TICKS) {
++                    return debt("tree_access_reentry_pose_unsettled:" + feet.toShortString());
++                }
++                return StepResult.progress();
++            }
++        }
++
++        // Beside the verified stack: resume ordinary owned placement.  If the pinned target is
++        // already reachable from here the caller harvests it without any new receipt.
++        BotLog.action(bot, "tree_support_reentered",
++                "tree", treeId, "execution", ownerExecution, "supports", chain.size());
++        reentryChain = null;
++        return placeOneSupport(bot, target);
++    }
++
++    /**
++     * Surface walk to a standable ground cell directly beside {@code columnBottom}'s column.
++     * Returns null once the bot stands on that cell; otherwise a progress/blocked/debt step.
++     */
++    private StepResult walkBesideColumn(AIPlayerEntity bot, BlockPos columnBottom, String noBaseDebt) {
++        if (accessBase != null
++                && Math.abs(accessBase.getX() - columnBottom.getX())
++                        + Math.abs(accessBase.getZ() - columnBottom.getZ()) > 1) {
++            accessBase = null; // chosen beside a different column
++        }
++        if (accessBase == null) {
++            accessBase = chooseReentryBase(bot, columnBottom);
++            if (accessBase == null) return debt(noBaseDebt);
++        }
++        if (!bot.getBlockPos().equals(accessBase)) {
++            if (accessPathStarted) {
++                if (!bot.getActionPack().isPathExecutorIdle()) return StepResult.progress();
++                rejectedAccessBases.add(accessBase.asLong());
++                accessBase = null;
++                accessPathStarted = false;
++                return StepResult.progress();
++            }
++            ActionResult path = bot.getActionPack().startSurfacePathTo(accessBase);
++            BlockPos resolved = bot.getActionPack().activePathGoal();
++            if (path.isFailed() || resolved == null || !resolved.equals(accessBase)) {
++                bot.getActionPack().stopAll();
++                rejectedAccessBases.add(accessBase.asLong());
++                accessBase = null;
++                return StepResult.progress();
++            }
++            accessPathStarted = true;
++            return StepResult.progress();
++        }
++        accessPathStarted = false;
++        return null;
++    }
++
++    /** Standable ground cell directly beside the support column, excluding rejected bases. */
++    private BlockPos chooseReentryBase(AIPlayerEntity bot, BlockPos columnBottom) {
++        ServerWorld world = bot.getServerWorld();
++        int[][] adjacent = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
++        BlockPos best = null;
++        for (int[] offset : adjacent) {
++            for (int y = columnBottom.getY(); y >= columnBottom.getY() - 2 && y >= world.getBottomY(); y--) {
++                BlockPos feet = new BlockPos(columnBottom.getX() + offset[0], y, columnBottom.getZ() + offset[1]);
++                if (rejectedAccessBases.contains(feet.asLong())) break;
++                Standability.clearCache();
++                if (!Standability.isStandable(world, feet)) continue;
++                BlockState ground = world.getBlockState(feet.down());
++                if (ground.isIn(BlockTags.LOGS) || ground.isIn(BlockTags.LEAVES)
++                        || Standability.isDangerous(ground)) break;
++                if (!clearAccessColumn(world, feet, columnBottom.up(4))) continue;
++                if (best == null || feet.getSquaredDistance(bot.getBlockPos())
++                        < best.getSquaredDistance(bot.getBlockPos())) {
++                    best = feet.toImmutable();
++                }
++                break;
++            }
++        }
++        return best;
++    }
++
++    /** Lowest still-placed owned support of {@code supportPos}'s column. */
++    private BlockPos columnBottomOf(BlockPos supportPos) {
++        return supports.stream()
++                .filter(s -> s.state() == SupportState.PLACED)
++                .map(TemporarySupport::pos)
++                .filter(p -> p.getX() == supportPos.getX() && p.getZ() == supportPos.getZ()
++                        && p.getY() <= supportPos.getY())
++                .min(Comparator.comparingInt(BlockPos::getY))
++                .orElse(supportPos);
++    }
++
+     /** Reverse-clean exactly this execution's support receipts. */
+     public StepResult tickCleanup(AIPlayerEntity bot) {
+         if (hasCleanupDebt()) return StepResult.debt(cleanupDebt);
+         if (!scopeMatches(bot)) return debt("tree_cleanup_scope_changed");
+         if (++cleanupTicks > MAX_CLEANUP_TICKS) return debt("tree_cleanup_timeout");
+-        TemporarySupport support = latestPlacedSupport();
++        // Topmost first, earliest on ties.  Latest-first would immediately re-target a
++        // climb-assist receipt placed by the approach below, oscillating place/remove until the
++        // material runs out; with a single column topmost == latest, so the classic reverse
++        // pillar descent is unchanged.
++        TemporarySupport support = topmostPlacedSupport();
+         if (support == null) {
+             resetCleanupTransient();
+             return StepResult.complete();
+@@ -417,22 +609,37 @@ public final class TreeHarvestWorkset {
+             if (!Standability.isStandable(world, cleanupStand)) {
+                 return debt("tree_cleanup_stand_not_available:" + cleanupStand.toShortString());
+             }
+-            if (cleanupPathStarted && cleanupPathTarget != null && cleanupPathTarget.equals(cleanupStand)) {
+-                if (!bot.getActionPack().isPathExecutorIdle()) return StepResult.progress();
+-                return debt("tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
++            // An owned support stand is normally one bounded step/jump away; an elevated one
++            // (mixed columns after re-entry) is approached by resuming owned TREE_ACCESS
++            // placement beside its column — the same primitive as SAFETY re-entry.  A plain
++            // surface route cannot resolve elevated owned stands at all.
++            int bdx = Math.abs(cleanupStand.getX() - bot.getBlockPos().getX());
++            int bdy = cleanupStand.getY() - bot.getBlockPos().getY();
++            int bdz = Math.abs(cleanupStand.getZ() - bot.getBlockPos().getZ());
++            if (bdy == 1 && bdx + bdz <= 1) {
++                return FakePlayerMotion.jumpTo(bot, cleanupStand, "tree_access_support_reentry")
++                        ? StepResult.progress()
++                        : debt("tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
+             }
+-            ActionResult path = bot.getActionPack().startSurfacePathTo(cleanupStand);
+-            BlockPos resolved = bot.getActionPack().activePathGoal();
+-            if (path.isFailed() || resolved == null || !resolved.equals(cleanupStand)) {
+-                bot.getActionPack().stopAll();
+-                return debt("tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
++            if (bdy >= -1 && bdy <= 0 && bdx <= 1 && bdz <= 1 && bdx + bdz > 0) {
++                return FakePlayerMotion.stepToStandable(bot, cleanupStand, "tree_access_support_reentry")
++                        ? StepResult.progress()
++                        : debt("tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
+             }
+-            cleanupPathStarted = true;
+-            cleanupPathTarget = cleanupStand.toImmutable();
+-            return StepResult.progress();
++            BlockPos columnBottom = columnBottomOf(support.pos());
++            boolean onOwnedTop = supports.stream()
++                    .filter(s -> s.state() == SupportState.PLACED)
++                    .anyMatch(s -> bot.getBlockPos().equals(s.pos().up()));
++            int besideColumn = Math.abs(bot.getBlockPos().getX() - columnBottom.getX())
++                    + Math.abs(bot.getBlockPos().getZ() - columnBottom.getZ());
++            if (!onOwnedTop
++                    && (besideColumn > 1 || bot.getBlockPos().getY() > columnBottom.getY() + 1)) {
++                StepResult walking = walkBesideColumn(bot, columnBottom,
++                        "tree_cleanup_owned_support_unreachable:" + support.pos().toShortString());
++                if (walking != null) return walking;
++            }
++            return placeOneSupportCell(bot);
+         }
+-        cleanupPathStarted = false;
+-        cleanupPathTarget = null;
+ 
+         String descentProblem = validateSafeDescentAfterRemoval(bot, support.pos());
+         if (descentProblem != null) return debt(descentProblem);
+@@ -472,6 +679,11 @@ public final class TreeHarvestWorkset {
+             resetAccessTransient();
+             return StepResult.ready();
+         }
++        return placeOneSupportCell(bot);
++    }
++
++    /** Place one owned TREE_ACCESS support under the bot's feet (validated vanilla placement). */
++    private StepResult placeOneSupportCell(AIPlayerEntity bot) {
+         if (supports.stream().filter(s -> s.state() == SupportState.PLACED).count() >= MAX_TEMP_SUPPORTS) {
+             return StepResult.blocked("tree_access_support_limit");
+         }
+@@ -598,6 +810,16 @@ public final class TreeHarvestWorkset {
+         return null;
+     }
+ 
++    /** Highest still-placed receipt; earliest in ledger order on ties. */
++    private TemporarySupport topmostPlacedSupport() {
++        TemporarySupport best = null;
++        for (TemporarySupport support : supports) {
++            if (support.state() != SupportState.PLACED) continue;
++            if (best == null || support.pos().getY() > best.pos().getY()) best = support;
++        }
++        return best;
++    }
++
+     private void replaceSupportState(BlockPos pos, SupportState state) {
+         for (int i = supports.size() - 1; i >= 0; i--) {
+             TemporarySupport support = supports.get(i);
+@@ -609,16 +831,19 @@ public final class TreeHarvestWorkset {
+     }
+ 
+     private void resetAccessTransient() {
+-        accessTarget = null;
++        // The exact working target is part of the support transaction identity.  Do not erase it
++        // while owned supports remain; SAFETY resume needs it to prove same-target re-entry.
++        if (!hasTemporarySupports()) accessTarget = null;
+         accessBase = null;
+         accessPathStarted = false;
++        reentryChain = null;
++        reentrySettleTicks = 0;
++        reentryRegroundSteps = 0;
+         accessTicks = 0;
+         rejectedAccessBases.clear();
+     }
+ 
+     private void resetCleanupTransient() {
+-        cleanupPathTarget = null;
+-        cleanupPathStarted = false;
+         cleanupMiner = null;
+         cleanupMiningPos = null;
+         cleanupTicks = 0;
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityResolutionReceiptTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityResolutionReceiptTest.java
+new file mode 100644
+index 0000000..df8ac0e
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/OpportunityResolutionReceiptTest.java
+@@ -0,0 +1,55 @@
++package io.github.zoyluo.aibot.external;
++
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.io.TempDir;
++
++import java.nio.file.Path;
++import java.util.LinkedHashMap;
++import java.util.Map;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++final class OpportunityResolutionReceiptTest {
++    @TempDir Path temp;
++    private static final TaskGraphStore.SpatialRef REF =
++            new TaskGraphStore.SpatialRef("world-a","minecraft:overworld","opp-1");
++
++    @Test void absenceAloneIsNotAReceipt() throws Exception {
++        try(BridgeJournal journal=new BridgeJournal(temp.resolve("none.journal"),()->1L)) {
++            assertTrue(BridgeKernel.durableOpportunityResolution(journal,REF).isEmpty());
++        }
++    }
++
++    @Test void durableConsumedReceiptProvesSuccessAndStaleReceiptProvesTerminalLoss() throws Exception {
++        try(BridgeJournal consumed=new BridgeJournal(temp.resolve("consumed.journal"),()->1L)) {
++            consumed.append(fields("resource_opportunity_consumed"));
++            var result=BridgeKernel.durableOpportunityResolution(consumed,REF).orElseThrow();
++            assertEquals(BodyBackend.GraphPostconditionState.SATISFIED,result.state());
++        }
++        try(BridgeJournal stale=new BridgeJournal(temp.resolve("stale.journal"),()->1L)) {
++            stale.append(fields("resource_opportunity_stale"));
++            var result=BridgeKernel.durableOpportunityResolution(stale,REF).orElseThrow();
++            assertEquals(BodyBackend.GraphPostconditionState.TERMINAL_UNSATISFIED,result.state());
++        }
++    }
++
++    @Test void receiptIsScopedByWorldDimensionAndObject() throws Exception {
++        try(BridgeJournal journal=new BridgeJournal(temp.resolve("scope.journal"),()->1L)) {
++            Map<String,String> wrong=fields("resource_opportunity_consumed");
++            wrong.put("world_id","other-world");
++            journal.append(wrong);
++            assertTrue(BridgeKernel.durableOpportunityResolution(journal,REF).isEmpty());
++        }
++    }
++
++    private static Map<String,String> fields(String kind) {
++        Map<String,String> out=new LinkedHashMap<>();
++        out.put("kind",kind);
++        out.put("execution_id","e");
++        out.put("opportunity_id","opp-1");
++        out.put("world_id","world-a");
++        out.put("dimension","minecraft:overworld");
++        out.put("payload","{}");
++        return out;
++    }
++}
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
+index 2675c11..6f56352 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/TaskGraphStoreTest.java
+@@ -3,8 +3,12 @@ package io.github.zoyluo.aibot.external;
+ import org.junit.jupiter.api.Test;
+ import org.junit.jupiter.api.io.TempDir;
+ 
++import java.nio.file.Files;
+ import java.nio.file.Path;
++import java.util.Arrays;
++import java.util.List;
+ import java.util.Map;
++import java.util.Set;
+ 
+ import static org.junit.jupiter.api.Assertions.*;
+ 
+@@ -62,4 +66,52 @@ final class TaskGraphStoreTest {
+         assertEquals("CANCELLED",store.inspect(id).get("state"));
+         assertDoesNotThrow(()->store.planOpportunity("plan-b",ref("opp-1")));
+     }
++
++    @Test void suspendedTerminalLossBecomesStaleNeverDone() {
++        TaskGraphStore store=TaskGraphStore.memory();
++        String id=(String)store.planOpportunity("plan-a",ref("opp-loss")).get("graph_id");
++        TaskGraphStore.Dispatch d=store.prepareDispatch(id);store.attachExecution(d,"execution-loss");
++        store.executionTerminal("execution-loss","outcome_unknown",
++                pc->BodyBackend.GraphPostconditionResult.unknown("transport_lost"));
++        assertEquals("SUSPENDED",store.inspect(id).get("state"));
++        store.reconcileSuspended(pc->BodyBackend.GraphPostconditionResult
++                .terminalUnsatisfied("durable_stale_or_loss_receipt"));
++        assertEquals("STALE",store.inspect(id).get("state"));
++    }
++
++    @Test void legacyDoneWithoutDurableSuccessReceiptIsDowngraded() {
++        TaskGraphStore store=TaskGraphStore.memory();
++        String id=(String)store.planOpportunity("plan-a",ref("opp-old")).get("graph_id");
++        TaskGraphStore.Dispatch d=store.prepareDispatch(id);store.attachExecution(d,"execution-old");
++        store.executionTerminal("execution-old","completed",
++                pc->BodyBackend.GraphPostconditionResult.satisfied("old_registry_absence"));
++        assertEquals("DONE",store.inspect(id).get("state"));
++        store.auditCompletedPostconditions(pc->BodyBackend.GraphPostconditionResult
++                .unknown("no_durable_success_receipt"));
++        assertEquals("SUSPENDED",store.inspect(id).get("state"));
++        store.reconcileSuspended(pc->BodyBackend.GraphPostconditionResult
++                .satisfied("durable_inventory_gain_receipt"));
++        assertEquals("DONE",store.inspect(id).get("state"));
++    }
++
++    @Test void truncatedFinalDependencyStringFailsClosedEvenWhenPrefixIsAnotherValidNode() throws Exception {
++        Path file=temp.resolve("truncated-dependency.bin");
++        TaskGraphStore store=new TaskGraphStore(file,()->100L);
++        TaskGraphStore.SpatialRef a=ref("a"), ax=ref("ax"), z=ref("z");
++        store.createFragment("graph-trunc","producer-trunc","plan-trunc","TEST",List.of(
++                new TaskGraphStore.NodeSpec("a",Set.of(),"mine_opportunity",
++                        JsonOutput.encode(Map.of("id","a")),a,
++                        new TaskGraphStore.Postcondition("OPPORTUNITY_RESOLVED",a),a.claimKey("opportunity")),
++                new TaskGraphStore.NodeSpec("aX",Set.of(),"mine_opportunity",
++                        JsonOutput.encode(Map.of("id","ax")),ax,
++                        new TaskGraphStore.Postcondition("OPPORTUNITY_RESOLVED",ax),ax.claimKey("opportunity")),
++                new TaskGraphStore.NodeSpec("z",Set.of("aX"),"mine_opportunity",
++                        JsonOutput.encode(Map.of("id","z")),z,
++                        new TaskGraphStore.Postcondition("OPPORTUNITY_RESOLVED",z),z.claimKey("opportunity"))));
++        byte[] bytes=Files.readAllBytes(file);
++        Files.write(file,Arrays.copyOf(bytes,bytes.length-1)); // "aX" -> "a" if short read were accepted
++        BridgeFault fault=assertThrows(BridgeFault.class,
++                ()->new TaskGraphStore(file,()->200L));
++        assertEquals("task_graph_store_invalid",fault.code);
++    }
+ }
