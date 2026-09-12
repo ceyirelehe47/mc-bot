@@ -10,13 +10,15 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class BridgeCoreTest {
     static int passed;
     static final class FakeBackend implements BodyBackend {
-        boolean alive=true; String id="body-1"; String state="running"; int starts,pauses,resumes,cancels; boolean failStart;
+        boolean alive=true; String id="body-1", kind="fake_backend", instance="instance-1", session="session-1";
+        String state="running"; int starts,pauses,resumes,cancels; boolean failStart;
         String lastExecutionId="";
         long tick; String localJson="{\"schema\":\"mc.local_view.v0\"}";
         int inspectLocals, materializes; // MC-2A0.1 scheduling-budget counters
         static final String SCENE="{\"world\":{\"world_id\":\"core-test-world\"}}";
         static final String HOME_REF="mc://core-test-world/minecraft%3Aoverworld/structure/home1";
         public boolean ready(){return alive;} public String bodyId(){return id;}
+        public Binding binding(){return new Binding(id,kind,instance,session);}
         public long serverTick(){return ++tick;}
         public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal){
             java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index=new java.util.LinkedHashMap<>();
@@ -180,6 +182,22 @@ public final class BridgeCoreTest {
             String t=claim(f);String id=(String)f.kernel.submit(t,"shutdown","gather","{}").get("execution_id");f.kernel.tick();f.kernel.shutdown();
             check(f.kernel.execution(id).get("state").equals("outcome_unknown"),"shutdown records unknown before unloading external work");
             check(f.body.pauses==1 && f.body.cancels==1,"shutdown pauses and cancels external work before upstream snapshot");
+        }
+        try(Fixture f=fixture()) {
+            var status=f.kernel.status();
+            check(status.get("body_id").equals("body-1"),"stable logical body id exposed");
+            check(status.get("backend_kind").equals("fake_backend"),"backend kind exposed");
+            check(status.get("body_instance_id").equals("instance-1"),"physical instance exposed");
+            check(status.get("body_session_epoch").equals("session-1"),"physical session exposed");
+            String t=claim(f);String id=(String)f.kernel.submit(t,"changed-session","gather","{}").get("execution_id");f.kernel.tick();
+            check(f.kernel.execution(id).get("body_session_epoch").equals("session-1"),"execution captures admitting body session");
+            f.body.instance="instance-2";f.body.session="session-2";f.kernel.tick();
+            check(f.kernel.execution(id).get("state").equals("outcome_unknown"),"body session change interrupts execution as unknown");
+            check(f.kernel.status().get("control_active").equals(false),"body session change revokes controller");
+            check(f.kernel.status().get("needs_reconcile").equals(true),"body session change requires reconciliation");
+            check(f.kernel.status().get("body_id").equals("body-1"),"session change preserves logical body id");
+            check(f.kernel.status().get("body_session_epoch").equals("session-2"),"new body session is published");
+            check(f.body.starts==1,"body session change never replays mutation");
         }
         try(Fixture f=fixture()) {
             String t=claim(f);String id=(String)f.kernel.submit(t,"changed-body","gather","{}").get("execution_id");f.kernel.tick();

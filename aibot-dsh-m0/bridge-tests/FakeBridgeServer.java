@@ -23,9 +23,14 @@ public final class FakeBridgeServer {
             final String fakeRef = "mc://fake-world-1/minecraft%3Aoverworld/structure/fake_home";
             @Override public boolean ready() { return true; }
             @Override public String bodyId() { return "fake-body-1"; }
+            @Override public Binding binding() {
+                return new Binding("fake-body-1","fake_bridge","fake-instance-1","fake-session-1");
+            }
             @Override public long serverTick() { return ticks.incrementAndGet(); }
             @Override public String observeJson() {
-                return "{\"body_id\":\"fake-body-1\",\"physical_starts\":" + physicalStarts.get() + "}";
+                return "{\"body_id\":\"fake-body-1\",\"backend_kind\":\"fake_bridge\","
+                        + "\"body_instance_id\":\"fake-instance-1\",\"body_session_epoch\":\"fake-session-1\","
+                        + "\"physical_starts\":" + physicalStarts.get() + "}";
             }
             @Override public io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal) {
                 java.util.Map<String,io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.EvidenceDescriptor> index = new java.util.LinkedHashMap<>();

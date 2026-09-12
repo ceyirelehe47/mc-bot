@@ -2,13 +2,23 @@ package io.github.zoyluo.aibot.external;
 
 import io.github.zoyluo.aibot.entity.AIPlayerEntity;
 import io.github.zoyluo.aibot.runtime.TaskOrigin;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Supplier;
 
 /** Narrow authorization boundary for the configured external body. Disabled by default. */
 public final class ExternalBodyAccess {
     public static final String BOT_NAME=System.getenv().getOrDefault("AIBOT_EXTERNAL_BOT", "").trim();
+    public static final String BODY_ID=logicalBodyId();
     private static final ThreadLocal<Integer> DEPTH=ThreadLocal.withInitial(()->0);
+    private static String logicalBodyId() {
+        if(BOT_NAME.isEmpty())return "";
+        String configured=System.getenv().getOrDefault(
+                "AIBOT_EXTERNAL_BODY_ID",BOT_NAME).trim().toLowerCase(Locale.ROOT);
+        if(!configured.matches("[a-z0-9][a-z0-9._:-]{0,79}"))
+            throw new IllegalArgumentException("invalid_AIBOT_EXTERNAL_BODY_ID");
+        return configured;
+    }
     private static volatile boolean RESERVATION_ACTIVE;
     private ExternalBodyAccess() {}
     public static boolean enabled() { return !BOT_NAME.isEmpty(); }

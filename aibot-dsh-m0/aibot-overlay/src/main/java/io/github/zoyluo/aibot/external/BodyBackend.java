@@ -1,48 +1,95 @@
 package io.github.zoyluo.aibot.external;
 
-/** Every method is called exclusively by BridgeKernel.tick on the Minecraft server thread. */
+/** Every method is called exclusively by BridgeKernel.tick on the owning body thread. */
 public interface BodyBackend {
-    /** Returns false until the configured, living body exists. */
+    /** Returns false until the configured, living physical body exists. */
     boolean ready();
-    String bodyId();
-    String observeJson();
-    /** Must perform argument validation before mutation and retain the exact Task instance. */
-    Handle start(String operation,String argumentsJson);
+
     /**
-     * Exact bounded-execution identity seam. Legacy/fake backends stay source-compatible while the
-     * real external body may bind execution-scoped operational provenance to its task.
+     * Stable Iris/DSH body identity. This is not a Minecraft entity UUID and must survive backend
+     * replacement (server fake player -> real client) when both represent the same logical body.
      */
+    String bodyId();
+
+    /**
+     * Current physical binding. Legacy/fake test backends remain source-compatible through this
+     * default; production backends should override it with a real backend kind/instance/session.
+     */
+    default Binding binding() {
+        String id=bodyId();
+        return new Binding(id,"legacy_body_backend",id,"legacy");
+    }
+
+    String observeJson();
+
+    /** Must perform argument validation before mutation and retain the exact physical execution. */
+    Handle start(String operation,String argumentsJson);
+
+    /** Exact bounded-execution identity seam. */
     default Handle start(String executionId,String operation,String argumentsJson) {
         return start(operation,argumentsJson);
     }
+
     void pause();
     void resume();
     void cancel(String reason);
-    // ---- MC-2A0 read-only cognitive query surface ----
-    // 与 observeJson 相同的线程契约:只由 BridgeKernel.tick 在 server 线程调用,
-    // HTTP 线程只读 kernel 缓存。default null 表示该 backend 不支持认知查询(桥按 503 fail-closed)。
 
-    /** 构建 cognitive view 快照;journal 仅作 non-consuming 只读事件尾部来源,可为 null。 */
+    /**
+     * Stable logical body plus replaceable physical carrier/session identity.
+     *
+     * <p>bodyId is durable product identity. instanceId identifies the current Minecraft profile
+     * or physical entity. sessionEpoch changes whenever the physical execution carrier is replaced
+     * or reconnected, even if instanceId remains the same.</p>
+     */
+    record Binding(String bodyId,String backendKind,String instanceId,String sessionEpoch) {
+        public Binding {
+            bodyId=bounded(bodyId,"body_id",160);
+            backendKind=bounded(backendKind,"backend_kind",80);
+            instanceId=bounded(instanceId,"body_instance_id",160);
+            sessionEpoch=bounded(sessionEpoch,"body_session_epoch",160);
+        }
+        public java.util.Map<String,Object> wire() {
+            java.util.LinkedHashMap<String,Object> out=new java.util.LinkedHashMap<>();
+            out.put("body_id",bodyId);
+            out.put("backend_kind",backendKind);
+            out.put("body_instance_id",instanceId);
+            out.put("body_session_epoch",sessionEpoch);
+            return out;
+        }
+        private static String bounded(String value,String field,int max) {
+            if(value==null || value.isBlank() || value.length()>max
+                    || value.chars().anyMatch(c->c<0x20))
+                throw new IllegalArgumentException("invalid_"+field);
+            return value;
+        }
+    }
+
+    // ---- MC-2A0 read-only cognitive query surface ----
+
+    /** Build a cognitive view snapshot; journal is non-consuming read-only event-tail evidence. */
     default io.github.zoyluo.aibot.external.cognition.CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal journal) {
         return null;
     }
-    /** 以当前身体为中心的 bounded 局部视图(server 线程执行,由 kernel 查询队列驱动)。 */
+
+    /** Bounded local view centered on the current body. */
     default String inspectLocalJson(int radius,String detail) {
         return null;
     }
-    /**
-     * MC-2A0.1 on-demand evidence materialization:把单个 EvidenceRef+detail 展开成
-     * bounded JSON。gameTime 是 kernel 当前快照的构建时刻——freshness 与 view 卡同源。
-     */
+
+    /** Materialize one bounded EvidenceRef detail from the current view generation. */
     default String materializeEvidence(String ref,String detail,long gameTime) {
         return null;
     }
-    /** 当前服务器 tick,供 kernel 缓存刷新节奏与 view meta 使用。 */
+
+    /** Current server/body tick for cache freshness. */
     default long serverTick() {
         return -1L;
     }
-    // ---- MC-2A Graph Core: postconditions are revalidated on the server thread ----
+
+    // ---- MC-2A Graph Core: postconditions are revalidated on the body thread ----
+
     enum GraphPostconditionState { SATISFIED, UNSATISFIED, TERMINAL_UNSATISFIED, UNKNOWN }
+
     record GraphPostconditionResult(GraphPostconditionState state,String reason) {
         public GraphPostconditionResult {
             java.util.Objects.requireNonNull(state);
@@ -61,17 +108,17 @@ public interface BodyBackend {
             return new GraphPostconditionResult(GraphPostconditionState.UNKNOWN,reason);
         }
     }
-    /**
-     * Read-only proof used after a physical execution terminates. Never starts/replays work.
-     * Backends that cannot prove a postcondition must return UNKNOWN, never false certainty.
-     */
+
+    /** Read-only proof after physical execution termination; never starts or replays work. */
     default GraphPostconditionResult verifyGraphPostcondition(TaskGraphStore.Postcondition postcondition) {
         return GraphPostconditionResult.unknown("backend_postcondition_not_supported");
     }
+
     interface Handle {
-        /** No lookup of global lastStatus: that could refer to a different safety task. */
+        /** Never consult a global lastStatus: it may belong to a different Safety task. */
         Snapshot snapshot();
     }
+
     record Snapshot(String state,double progress,String reason) {
         public Snapshot {
             if(!java.util.Set.of("running","paused","completed","failed","cancelled","outcome_unknown").contains(state))

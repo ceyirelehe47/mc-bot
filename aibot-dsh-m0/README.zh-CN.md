@@ -78,6 +78,8 @@ Minecraft 进程环境：
 
 ```bash
 export AIBOT_EXTERNAL_BOT=Bob
+# Iris/DSH 的稳定身体身份；默认取 bot 名的小写形式。不要绑定 Minecraft UUID。
+export AIBOT_EXTERNAL_BODY_ID=bob
 export AIBOT_BRIDGE_PORT=8765
 # 生成一次，把同一密钥安全地提供给 Minecraft 和 DSH；不要提交或贴出值。
 export AIBOT_BRIDGE_TOKEN="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"

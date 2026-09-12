@@ -37,10 +37,11 @@ final class TreeHarvestSourceContractTest {
     @Test
     void bridgePassesTheExactBoundedExecutionIdIntoTheBodyBackend() throws IOException {
         String kernel = Files.readString(MAIN.resolve("external/BridgeKernel.java"));
-        String backend = Files.readString(MAIN.resolve("external/MinecraftBodyBackend.java"));
+        // MC-2A0.3 后 Task 构建移入 ServerFakePlayerExecutionDriver;executionId 绑定契约不变。
+        String driver = Files.readString(MAIN.resolve("external/ServerFakePlayerExecutionDriver.java"));
         assertTrue(kernel.contains("backend.start(e.id,e.operation,e.arguments)"),
                 "BridgeKernel must pass its exact execution id into the backend dispatch");
-        assertTrue(backend.contains("new GatherQuotaTask(target,count,executionId)"),
+        assertTrue(driver.contains("new GatherQuotaTask(target,count,executionId)"),
                 "external gather must bind the exact bridge execution id into its tree workset");
     }
 }

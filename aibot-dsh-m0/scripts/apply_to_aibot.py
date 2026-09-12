@@ -756,7 +756,8 @@ EXTRA_CHANGES={
             assertFalse(source.contains(".assign("), relative + " must not assign tasks");
         }
         String backend = read("external/MinecraftBodyBackend.java");
-        assertTrue(backend.contains("CognitiveViewBuilder.build(bot,journal,semanticSnapshot)"),
+        // MC-2A0.3: 调用点改为 FQN 前缀+换行布局,匹配串放宽为方法调用尾部(语义不变)。
+        assertTrue(backend.contains(".build(bot,journal,semanticSnapshot)"),
                 "the view must reuse the observe semantic cache, never run a second full scan");
     }
 
@@ -799,7 +800,8 @@ EXTRA_CHANGES={
                         > inspector.indexOf("private static Map<String, Object> structureBaselineDetail"),
                 "homeRepairPlan may only be reached from the explicit baseline detail path");
         String backend = read("external/MinecraftBodyBackend.java");
-        assertTrue(backend.contains("CognitiveInspector.materialize(bot,semanticSnapshot,gameTime,ref,detail)"),
+        // MC-2A0.3: 调用点改为 FQN 前缀+换行布局,匹配串放宽为方法调用尾部(语义不变)。
+        assertTrue(backend.contains(".materialize(bot,semanticSnapshot,gameTime,ref,detail)"),
                 "on-demand materialization must reuse the same cached semantic snapshot");
         for (String banned : new String[]{"AgendaItem", "TaskGraphStore", "GraphFragment", "GraphProducer", "AutonomyScheduler"}) {
             for (String relative : new String[]{

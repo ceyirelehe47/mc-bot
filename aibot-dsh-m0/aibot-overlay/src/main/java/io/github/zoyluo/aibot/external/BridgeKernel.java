@@ -25,7 +25,7 @@ public final class BridgeKernel {
     public final String runtimeEpoch=UUID.randomUUID().toString();
     private String token, owner, leaseEpoch;
     private long expiresAt, leaseCounter;
-    private String bodyId="", observation="{}", fault="";
+    private String bodyId="", backendKind="", bodyInstanceId="", bodySessionEpoch="", observation="{}", fault="";
     private long observedAt=-1;
     private boolean ready, needsReconcile, pauseRequested, stopped;
     private boolean graphStartupDoneAudit;
@@ -50,12 +50,18 @@ public final class BridgeKernel {
     }
 
     private static final class Execution {
-        String id, request, fingerprint, owner, operation, arguments, admittingLeaseEpoch, bodyId, state="accepted", reason="";
+        String id, request, fingerprint, owner, operation, arguments, admittingLeaseEpoch;
+        String bodyId, backendKind, bodyInstanceId, bodySessionEpoch;
+        String state="accepted", reason="";
         double progress;
         BodyBackend.Handle handle;
         Map<String,Object> wire() {
             Map<String,Object> out=new LinkedHashMap<>();
-            out.put("execution_id",id); out.put("request_id",request); out.put("body_id",bodyId); out.put("operation",operation);
+            out.put("execution_id",id); out.put("request_id",request);
+            out.put("body_id",bodyId); out.put("backend_kind",backendKind);
+            out.put("body_instance_id",bodyInstanceId);
+            out.put("body_session_epoch",bodySessionEpoch);
+            out.put("operation",operation);
             out.put("state",state); out.put("progress",progress); out.put("reason",reason);
             out.put("terminal",TERMINAL.contains(state));
             out.put("success_scope","bounded_body_operation_not_user_goal");
@@ -91,13 +97,20 @@ public final class BridgeKernel {
                     if(!m.containsKey("request_id")) throw new BridgeFault(503,"journal_missing_execution_acceptance");
                     e=new Execution(); e.id=m.get("execution_id"); e.request=m.get("request_id");
                     e.fingerprint=m.get("fingerprint"); e.owner=m.get("owner");
-                    e.operation=m.get("operation"); e.arguments=m.get("arguments"); e.bodyId=m.getOrDefault("body_id", "");
+                    e.operation=m.get("operation"); e.arguments=m.get("arguments");
+                    e.bodyId=m.getOrDefault("body_id", "");
+                    e.backendKind=m.getOrDefault("backend_kind", "");
+                    e.bodyInstanceId=m.getOrDefault("body_instance_id", "");
+                    e.bodySessionEpoch=m.getOrDefault("body_session_epoch", "");
                     byId.put(e.id,e); byRequest.put(e.request,e);
                 }
                 e.state=m.get("state"); e.reason=m.getOrDefault("reason","");
                 e.progress=Double.parseDouble(m.getOrDefault("progress","0"));
             } else if("body_binding".equals(m.get("kind"))) {
                 bodyId=m.getOrDefault("body_id", "");
+                backendKind=m.getOrDefault("backend_kind", "");
+                bodyInstanceId=m.getOrDefault("body_instance_id", "");
+                bodySessionEpoch=m.getOrDefault("body_session_epoch", "");
             } else if("control".equals(m.get("kind"))) {
                 Control c=controls.computeIfAbsent(m.get("request_id"),k->new Control());
                 c.request=m.get("request_id"); c.fingerprint=m.get("fingerprint");
@@ -134,6 +147,42 @@ public final class BridgeKernel {
     private static void identifier(String id) {
         if(id==null || !id.matches("[A-Za-z0-9:._-]{1,160}")) throw new BridgeFault(400,"invalid_identifier");
     }
+    private Map<String,Object> currentBindingWire() {
+        Map<String,Object> out=new LinkedHashMap<>();
+        out.put("body_id",bodyId); out.put("backend_kind",backendKind);
+        out.put("body_instance_id",bodyInstanceId);
+        out.put("body_session_epoch",bodySessionEpoch);
+        return out;
+    }
+    private void applyBinding(BodyBackend.Binding next) {
+        boolean logicalChanged=!bodyId.isEmpty() && !bodyId.equals(next.bodyId());
+        boolean legacyBinding=!bodyId.isEmpty() && bodySessionEpoch.isEmpty();
+        boolean sessionChanged=!logicalChanged && !bodyId.isEmpty()
+                && (legacyBinding || !backendKind.equals(next.backendKind())
+                || !bodyInstanceId.equals(next.instanceId())
+                || !bodySessionEpoch.equals(next.sessionEpoch()));
+        if(logicalChanged || sessionChanged) {
+            String reason=logicalChanged?"body_identity_changed":"body_session_changed";
+            if(active!=null) transition(active,"outcome_unknown",active.progress,reason);
+            token=null; owner=null; pauseRequested=true; needsReconcile=true;
+            event(logicalChanged?"body_changed":"body_session_changed","",Map.of(
+                    "previous",currentBindingWire(),"current",next.wire()));
+        }
+        boolean changed=!bodyId.equals(next.bodyId())
+                || !backendKind.equals(next.backendKind())
+                || !bodyInstanceId.equals(next.instanceId())
+                || !bodySessionEpoch.equals(next.sessionEpoch());
+        if(!changed)return;
+        Map<String,String> fields=new LinkedHashMap<>();
+        fields.put("kind","body_binding"); fields.put("body_id",next.bodyId());
+        fields.put("backend_kind",next.backendKind());
+        fields.put("body_instance_id",next.instanceId());
+        fields.put("body_session_epoch",next.sessionEpoch());
+        fields.put("payload",JsonOutput.encode(next.wire()));
+        journal.append(fields);
+        bodyId=next.bodyId(); backendKind=next.backendKind();
+        bodyInstanceId=next.instanceId(); bodySessionEpoch=next.sessionEpoch();
+    }
     public synchronized Map<String,Object> claim(String newOwner) { return claim(newOwner,null); }
     public synchronized Map<String,Object> claim(String newOwner,String existingToken) {
         identifier(newOwner); requireReady(); expire();
@@ -165,6 +214,8 @@ public final class BridgeKernel {
         Map<String,Object> out=new LinkedHashMap<>();
         out.put("protocol_version",1); out.put("runtime_epoch",runtimeEpoch); out.put("event_epoch",journal.epoch);
         out.put("event_sequence",journal.lastSequence()); out.put("body_id",bodyId);
+        out.put("backend_kind",backendKind); out.put("body_instance_id",bodyInstanceId);
+        out.put("body_session_epoch",bodySessionEpoch);
         out.put("body_ready",ready && fresh()); out.put("needs_reconcile",needsReconcile);
         out.put("control_active",token!=null && mono.getAsLong()<expiresAt);
         out.put("fault",fault); out.put("stopped",stopped);
@@ -174,8 +225,14 @@ public final class BridgeKernel {
     }
     public synchronized Map<String,Object> observe() {
         requireReady(); needsReconcile=false;
-        return Map.of("runtime_epoch",runtimeEpoch,"body_id",bodyId,"observation",new JsonOutput.Raw(observation),
-                "snapshot_age_ms",Math.max(0,mono.getAsLong()-observedAt),"execution",active==null?Map.of():active.wire());
+        Map<String,Object> out=new LinkedHashMap<>();
+        out.put("runtime_epoch",runtimeEpoch); out.put("body_id",bodyId);
+        out.put("backend_kind",backendKind); out.put("body_instance_id",bodyInstanceId);
+        out.put("body_session_epoch",bodySessionEpoch);
+        out.put("observation",new JsonOutput.Raw(observation));
+        out.put("snapshot_age_ms",Math.max(0,mono.getAsLong()-observedAt));
+        out.put("execution",active==null?Map.of():active.wire());
+        return out;
     }
     // ---- MC-2A0 read-only cognitive queries ----
     // 语义与 observe 的关键差异:只读新鲜度要求,不清 needsReconcile、不要求/消耗 lease、
@@ -361,7 +418,9 @@ public final class BridgeKernel {
         if(active!=null) throw new BridgeFault(409,"execution_in_progress");
         if(byId.size()>=MAX_EXECUTIONS) throw new BridgeFault(503,"execution_ledger_capacity_exhausted");
         Execution e=new Execution(); e.id=UUID.randomUUID().toString(); e.request=request; e.owner=owner;
-        e.operation=operation; e.arguments=arguments; e.fingerprint=fp; e.admittingLeaseEpoch=leaseEpoch; e.bodyId=bodyId;
+        e.operation=operation; e.arguments=arguments; e.fingerprint=fp;
+        e.admittingLeaseEpoch=leaseEpoch; e.bodyId=bodyId; e.backendKind=backendKind;
+        e.bodyInstanceId=bodyInstanceId; e.bodySessionEpoch=bodySessionEpoch;
         persistExecution(e,true); // durable acceptance before any world mutation
         byId.put(e.id,e); byRequest.put(request,e); active=e;
         return e.wire();
@@ -390,7 +449,10 @@ public final class BridgeKernel {
         fields.put("reason",bound(e.reason,2048)); fields.put("progress",Double.toString(e.progress));
         if(first) {
             fields.put("request_id",e.request); fields.put("fingerprint",e.fingerprint); fields.put("owner",e.owner);
-            fields.put("operation",e.operation); fields.put("arguments",e.arguments); fields.put("body_id",e.bodyId);
+            fields.put("operation",e.operation); fields.put("arguments",e.arguments);
+            fields.put("body_id",e.bodyId); fields.put("backend_kind",e.backendKind);
+            fields.put("body_instance_id",e.bodyInstanceId);
+            fields.put("body_session_epoch",e.bodySessionEpoch);
         }
         fields.put("payload",JsonOutput.encode(e.wire())); journal.append(fields);
     }
@@ -416,16 +478,7 @@ public final class BridgeKernel {
         try {
             expire();
             boolean nowReady=backend.ready();
-            String id=backend.bodyId();
-            if(!bodyId.isEmpty() && !id.isEmpty() && !bodyId.equals(id)) {
-                if(active!=null) transition(active,"outcome_unknown",active.progress,"body_identity_changed");
-                token=null; owner=null; pauseRequested=true; needsReconcile=true;
-                event("body_changed","",Map.of("previous",bodyId,"current",id));
-            }
-            if(!id.isEmpty() && !bodyId.equals(id)) {
-                journal.append(Map.of("kind","body_binding","body_id",id,"payload",JsonOutput.encode(Map.of("body_id",id))));
-                bodyId=id;
-            }
+            if(nowReady)applyBinding(backend.binding());
             if(!nowReady) {
                 ready=false;
                 if(active!=null) { transition(active,"outcome_unknown",active.progress,"body_unavailable"); needsReconcile=true; }
