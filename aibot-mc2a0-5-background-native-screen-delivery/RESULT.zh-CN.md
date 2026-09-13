@@ -26,7 +26,7 @@
 
 | # | 问题 | 答案 |
 |---|---|---|
-| 11 | final-facing execution 与 pre-ack running 区间 | goto(face) 走位版轨迹（liveB-goto-face4.json）：walking→**1.14s 起 `awaiting_client_final_facing_ack` 持续 running**→5s 后 `client_final_facing_timeout`（面向不可达目标时正确失败）；站桩版 0.81s 完成 |
+| 11 | final-facing execution 与 pre-ack running 区间 | goto(face) 走位版轨迹（liveB-goto-face4.json）：walking→**1.02s 起 `awaiting_client_final_facing_ack`（trail 第二采样 1.14s） 持续 running**→5s 后 `client_final_facing_timeout`（面向不可达目标时正确失败）；站桩版 0.81s 完成 |
 | 12 | final-facing 终态 reason 与 sensor 目标 | `server_authoritative_arrival_and_facing_verified`（服务器到达 + 客户端 facing ack + **服务器侧 fresh sensor crosshair==face 格**三合一，driver 代码校验）——face6/face_barrel 均此 reason |
 | 13 | 一帧一观测 birth 证明 | 服务器全程 `diag birth` 总数=**1**（liveF-regression.json births_total=1；多次 facing/重复服务器 tick/心跳不新增 durable birth）；journal 全量 birth/actionable/consumed 各恰 1 条 |
 
@@ -42,13 +42,13 @@
 
 | # | 问题 | 答案 |
 |---|---|---|
-| 17 | deposit execution id | `82c7ae1f-821d-47c5-b7bc-620af977a942`（首次成功）；后续 smoke/崩溃后 fresh 各有独立 id（证据文件内） |
+| 17 | deposit execution id | 首次成功轮 request_id `mc2a05-liveD-deposit2`（transfer verified:8，见 liveD-deposit2.json；轮询原始输出未单独落盘 execution_id，验收已核此瑕疵）；崩溃后 fresh 轮 request_id `mc2a05-liveF-fresh-deposit`（verified:12）；两者均以 request_id 链接 bridge 日志可回溯 |
 | 18 | 目标桶与服务器验证 | barrel `(200,-60,196)`；服务器验证 crosshair→vanilla barrel（`validatedBarrelTarget`）后才派发（GUI-1） |
 | 19 | 玩家库存 baseline/current | 铁镐×1 + 圆石×8 → 转移后仅铁镐×1（deposit 当轮）；后续各轮同型 |
 | 20 | 桶库存 baseline/current | 空 → 圆石×8；fresh deposit 轮 12 items 等——**玩家减 N == 桶增 N > 0** 才 `server_authoritative_container_transfer_verified:N`（GUI-3） |
 | 21 | 选定工具保留 | 铁镐 slot 0（selected）全程保留（DepositAction 排除 selected hotbar；多轮后 inv 仅铁镐） |
 | 22 | QUICK_MOVE/Screen 证据 | 客户端 DepositAction：interactBlock→handled Screen→`clickSlot(handler.syncId, slot.id, 0, SlotActionType.QUICK_MOVE, player)`→closeHandledScreen；源码唯一 GUI 变更点（08-audit：ActionController clickSlot 计数=1、ScreenController 无 clickSlot/interactBlock）；LIVE 期间 view/observe 的 HandledScreen 快照佐证 Screen 真实开启（GUI-2） |
-| 23 | 负面探针 | ①crosshair 指石头→`failed real_client_container_crosshair_required`（变异前拒绝）②指 chest→`failed real_client_deposit_mvp_requires_barrel_crosshair`（typed MVP 拒绝）③空背包（client 报 completed 无服务器证明）→**保持 running `client_completed_awaiting_server_container_inventory_proof` 不完成** ④满桶（QUICK_MOVE 无效物理不变）→不成功（GUI-4） |
+| 23 | 负面探针 | ①crosshair 指石头→`failed real_client_container_crosshair_required`（变异前拒绝）②指 chest→`failed real_client_deposit_mvp_requires_barrel_crosshair`（typed MVP 拒绝）③空背包（client 报 completed 无服务器证明）→不完成（该轮人工 cancel 终态 cancelled；"保持 running 等待 `client_completed_awaiting_server_container_inventory_proof`"的运行期采样未落盘——语义由 driver 源码 RealClientExecutionDriver 的 reason 分支+满桶轮 running `client_container_quick_move` 采样佐证，验收已核此瑕疵） ④满桶（QUICK_MOVE 无效物理不变）→不成功（GUI-4） |
 
 ## 6. Screen 会话崩溃围栏（LOSS-1）
 
@@ -57,7 +57,7 @@
 | 24 | Screen 开启中崩溃终态 | pre-kill：execution running `client_container_quick_move` + observe screen present=true → `taskkill /T /F` exit 0 → **0.71s 起 `outcome_unknown:body_session_changed`** 稳定 15 采样（liveE-fence.json） |
 | 25 | 旧 Screen/read-plane 失效 | 围栏后 view 503、旧 lease renew 409；inspect(ref) 404 `evidence_ref_not_in_current_view`（read plane 已失效）；新会话 observe screen present=**False**（旧快照不暴露） |
 | 26 | 替换 game-session epoch | 冷启动新 incarnation `1856d888-…`（≠0c2b83ed）+ 新 PID（supervisor-state） |
-| 27 | 无旧点击/转移重放 | 重连后 10s 观察窗位置恒 `(200.5,-60,200.5)` 静止 + active_execution 恒 null（liveF-no-replay-fresh-deposit.json） |
+| 27 | 无旧点击/转移重放 | 重连后 10s 观察窗位置恒 `(200.5,-60,200.29)` 静止 + active_execution 恒 null（liveF-no-replay-fresh-deposit.json） |
 | 28 | 对账后 fresh deposit | deliberate observe→new lease→reface barrel→deposit → `completed server_authoritative_container_transfer_verified:12`，桶内 12 dirt+7 cobble、玩家仅剩铁镐（同上文件） |
 
 ## 7. 回归与审计（REG-1/2、TOOLS-1、REPLAY-1、SCOPE-1）
