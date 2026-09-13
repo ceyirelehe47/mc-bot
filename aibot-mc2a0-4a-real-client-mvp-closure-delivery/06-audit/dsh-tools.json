@@ -1,0 +1,8 @@
+{
+ "static_mc": 12,
+ "operations": 14,
+ "control_loop": 3,
+ "total": 29,
+ "exactly_29": true,
+ "source": "dsh-plugin/src/plugin.mjs register() 静态 12 + operations 数组 14 + ['pause','resume','cancel'] 循环 3;本轮未触碰 DSH 插件"
+}

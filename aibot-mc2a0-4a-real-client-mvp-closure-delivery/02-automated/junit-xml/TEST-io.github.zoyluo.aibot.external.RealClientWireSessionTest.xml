@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.RealClientWireSessionTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-13T06:56:14.164Z" hostname="FORST" time="0.483">
+  <properties/>
+  <testcase name="heartbeatWithoutGameSessionIsRejectedFailClosed()" classname="io.github.zoyluo.aibot.external.RealClientWireSessionTest" time="0.095"/>
+  <testcase name="validHeartbeatBindsGameSessionAndSensor()" classname="io.github.zoyluo.aibot.external.RealClientWireSessionTest" time="0.036"/>
+  <testcase name="executionStatusMustCarryTheCurrentIncarnation()" classname="io.github.zoyluo.aibot.external.RealClientWireSessionTest" time="0.007"/>
+  <testcase name="staleGameSessionIncarnationIsRejectedFailClosed()" classname="io.github.zoyluo.aibot.external.RealClientWireSessionTest" time="0.007"/>
+  <testcase name="gameSessionAdvanceResetsSensorAndExecutions()" classname="io.github.zoyluo.aibot.external.RealClientWireSessionTest" time="0.008"/>
+  <testcase name="protocolV1HelloIsRejectedFailClosed()" classname="io.github.zoyluo.aibot.external.RealClientWireSessionTest" time="0.005"/>
+  <testcase name="secondAuthorityWhileConnectedIsRejected()" classname="io.github.zoyluo.aibot.external.RealClientWireSessionTest" time="0.008"/>
+  <testcase name="duplicateAndOutOfOrderFramesNeverRefreshTheSensor()" classname="io.github.zoyluo.aibot.external.RealClientWireSessionTest" time="0.308"/>
+  <testcase name="gameSessionEpochDriftAtSameSeqIsRejectedFailClosed()" classname="io.github.zoyluo.aibot.external.RealClientWireSessionTest" time="0.006"/>
+  <system-out><![CDATA[[14:56:14] [Test worker/INFO]: AIBot real-client transport bound to loopback port 49897 body_id=bob player=Bob
+[14:56:14] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=53109b5b-2863-4f9e-b7ba-0d7615831bfc
+[14:56:14] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_heartbeat_missing_game_incarnation
+[14:56:14] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=53109b5b-2863-4f9e-b7ba-0d7615831bfc
+[14:56:14] [Test worker/INFO]: AIBot real-client transport bound to loopback port 49899 body_id=bob player=Bob
+[14:56:14] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=38990b48-55c0-4531-889a-cff0970581ec
+[14:56:14] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=38990b48-55c0-4531-889a-cff0970581ec
+[14:56:14] [Test worker/INFO]: AIBot real-client transport bound to loopback port 49901 body_id=bob player=Bob
+[14:56:14] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=13b9b2ca-96b0-4549-9532-05be3f44d6ea
+[14:56:14] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_game_session_stale_incarnation
+[14:56:14] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=13b9b2ca-96b0-4549-9532-05be3f44d6ea
+[14:56:14] [Test worker/INFO]: AIBot real-client transport bound to loopback port 49903 body_id=bob player=Bob
+[14:56:14] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=976b6768-993c-445b-8979-2b9ac1626d9b
+[14:56:14] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_game_session_stale_incarnation
+[14:56:14] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=976b6768-993c-445b-8979-2b9ac1626d9b
+[14:56:14] [Test worker/INFO]: AIBot real-client transport bound to loopback port 49905 body_id=bob player=Bob
+[14:56:14] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=46a733ac-69a3-4068-8988-8c2982024916
+[14:56:14] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=46a733ac-69a3-4068-8988-8c2982024916
+[14:56:14] [Test worker/INFO]: AIBot real-client transport bound to loopback port 49907 body_id=bob player=Bob
+[14:56:14] [aibot-real-client-handshake/WARN]: real-client handshake rejected: java.io.IOException: real_client_protocol_mismatch
+[14:56:14] [Test worker/INFO]: AIBot real-client transport bound to loopback port 49909 body_id=bob player=Bob
+[14:56:14] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=a05bb14c-8be6-4a1c-bad2-839a3e8a303c
+[14:56:14] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=8efe7e7f-5b6a-4f8f-a018-4f1f74d65cb4
+[14:56:14] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=a05bb14c-8be6-4a1c-bad2-839a3e8a303c
+[14:56:14] [Test worker/INFO]: AIBot real-client transport bound to loopback port 49912 body_id=bob player=Bob
+[14:56:14] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=78031048-2169-4a57-a1dc-7cf0caa6976f
+[14:56:14] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=78031048-2169-4a57-a1dc-7cf0caa6976f
+[14:56:14] [Test worker/INFO]: AIBot real-client transport bound to loopback port 49914 body_id=bob player=Bob
+[14:56:14] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=f244e04f-3fe9-4a46-a336-99e9fe3b49a4
+[14:56:14] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_game_session_epoch_mismatch
+[14:56:14] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=f244e04f-3fe9-4a46-a336-99e9fe3b49a4
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

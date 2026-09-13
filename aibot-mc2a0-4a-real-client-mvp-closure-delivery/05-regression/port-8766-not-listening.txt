@@ -1,0 +1,7 @@
+ExternalBodyRuntime 分支结构(节选):
+  if("real_client".equals(backendKind)) { ... realClientTransport = new RealClientServerTransport(...); realClientTransport.start(); }
+  else { backend = new MinecraftBodyBackend(...); }  // server_fake_player:RealClientServerTransport 永不构造
+
+fake 服务器日志(05-regression/fake-server.log)仅有 "bridge bound to loopback port 8767" 一行,
+无任何 8766 绑定行;LIVE 运行时 netstat 实测仅 8767 LISTENING、8766 无条目。
+real 模式日志(03-live-sensor-mine/server-live-a.log)则同时有 8765 与 8766 两行绑定。

@@ -108,7 +108,12 @@ public final class RealClientBodyClientRuntime {
             AIBotMod.LOGGER.info("AIBot real-client auto-join watcher screen={}",screen);
         }
         boolean idle=screen.endsWith("TitleScreen") || screen.endsWith("MultiplayerScreen")
-                || screen.endsWith("SelectServerScreen") || screen.endsWith("DisconnectedScreen");
+                || screen.endsWith("SelectServerScreen") || screen.endsWith("DisconnectedScreen")
+                // DLI dev 客户端偶尔无视 options.txt 的 onboardAccessibility:false 而停在
+                // 首启 onboarding 系列;直接从该屏发起连接即可替换它,无需任何人工输入。
+                || screen.endsWith("AccessibilityOnboardingScreen")
+                || screen.endsWith("AccessibilityOptionsScreen")
+                || screen.endsWith("LanguageOptionsScreen");
         if(!idle)return;
         long now=System.currentTimeMillis();
         if(now<nextAutoJoinAttemptMs)return;

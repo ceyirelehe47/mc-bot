@@ -1,0 +1,10 @@
+OS = Windows 10.0.26200 x64 (Git Bash shell)
+Java = openjdk version "21.0.12.1" 2026-08-18 LTS
+Gradle = 8.x via ./gradlew (wrapper)
+Minecraft = 1.21.3 / Yarn 1.21.3+build.2 / Fabric API 0.114.1+1.21.3 / Loader 0.18.4
+Python = Python 3.13.7
+Node = v22.19.0
+LIVE world seed = -442585930 (fresh disposable world, level-name=world)
+LIVE server port = 25599, bridge = 8765 + real control 8766 (loopback), fake-mode bridge = 8767
+production mod jar sha256 = b91145d5d5f5ffbc58f5fd1e8e8be806c8b7f28554ad09599f7ab99284af96a9
+tokens: AIBOT_BRIDGE_TOKEN / AIBOT_REAL_CLIENT_TOKEN = privately set (mc2a04a-tokens.env, never committed)

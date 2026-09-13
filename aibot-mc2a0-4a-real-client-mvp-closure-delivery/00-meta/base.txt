@@ -1,0 +1,4 @@
+base commit = 34fb49f779d8981c55680e83016ff9e782a2b73b
+base branch = experiment/mc2a0-4-real-client-body-mvp
+new branch  = experiment/mc2a0-4a-real-client-mvp-closure
+tracked worktree clean at branch creation; base manifest = 169-entry SHA256SUMS of previous round

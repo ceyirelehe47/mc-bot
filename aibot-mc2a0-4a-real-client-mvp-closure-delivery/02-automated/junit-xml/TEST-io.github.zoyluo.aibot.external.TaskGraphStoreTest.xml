@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.TaskGraphStoreTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-13T06:56:14.655Z" hostname="FORST" time="0.153">
+  <properties/>
+  <testcase name="failedExecutionWithDurableTerminalLossBecomesStaleNotFailed()" classname="io.github.zoyluo.aibot.external.TaskGraphStoreTest" time="0.016"/>
+  <testcase name="suspendedTerminalLossBecomesStaleNeverDone()" classname="io.github.zoyluo.aibot.external.TaskGraphStoreTest" time="0.006"/>
+  <testcase name="legacyDoneWithoutDurableSuccessReceiptIsDowngraded()" classname="io.github.zoyluo.aibot.external.TaskGraphStoreTest" time="0.006"/>
+  <testcase name="restartSuspendsRunningNodeAndNeverReplaysIt()" classname="io.github.zoyluo.aibot.external.TaskGraphStoreTest" time="0.059"/>
+  <testcase name="outcomeUnknownSuspendsAndCancelReleasesClaim()" classname="io.github.zoyluo.aibot.external.TaskGraphStoreTest" time="0.007"/>
+  <testcase name="producerIsIdempotentAndClaimsPreventCompetingPlan()" classname="io.github.zoyluo.aibot.external.TaskGraphStoreTest" time="0.016"/>
+  <testcase name="truncatedFinalDependencyStringFailsClosedEvenWhenPrefixIsAnotherValidNode()" classname="io.github.zoyluo.aibot.external.TaskGraphStoreTest" time="0.033"/>
+  <testcase name="completedExecutionNeedsPostconditionBeforeDone()" classname="io.github.zoyluo.aibot.external.TaskGraphStoreTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

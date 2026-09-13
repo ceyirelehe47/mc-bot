@@ -1,0 +1,150 @@
+{
+ "kill_rc": 0,
+ "kill_out": "成功: 已终止 PID 38420 (属于 PID 28044 子进程)的进程。\r\n",
+ "timeline": [
+  {
+   "t": 0.03,
+   "ready": true,
+   "needs_reconcile": false,
+   "control_active": true,
+   "epoch": "458d26a0",
+   "ex_state": "running",
+   "ex_reason": "walking_to_target"
+  },
+  {
+   "t": 0.73,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 1.44,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 2.14,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 2.85,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 3.55,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 4.25,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 4.96,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 5.67,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 6.37,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 7.08,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 7.78,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 8.49,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 9.21,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  },
+  {
+   "t": 9.91,
+   "ready": false,
+   "needs_reconcile": true,
+   "control_active": false,
+   "epoch": "458d26a0",
+   "ex_state": "outcome_unknown",
+   "ex_reason": "body_session_changed"
+  }
+ ],
+ "pre": {
+  "pid": 38420,
+  "execution_id": "2b09837f-9b07-43f2-9886-20eb049deb19",
+  "game_session_epoch": "458d26a0-d8d1-48fc-9db1-fc85c9729782",
+  "pos_at_kill": "\u0000\u0000\u0000\u0000Bob has the following entity data: [3.5999313104607755d, -60.0d, 31.998983019480875d]",
+  "state_at_kill": "running",
+  "progress_at_kill": 0.23433685085700806,
+  "ts": 1789281647.9197097
+ }
+}

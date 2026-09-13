@@ -1,0 +1,29 @@
+graphRunNext block contains real_client: False
+graphRunNext block contains server_fake_player: False
+graphRunNext submits via BridgeKernel.submit: True
+realclient sources contain 'requestTeleport': 0
+realclient sources contain 'setPos(': 0
+realclient sources contain '"/tp"': 0
+realclient sources contain 'teleport(': 0
+realclient sources contain '/setblock': 0
+realclient sources contain '/give': 0
+realclient sources contain 'operator scan': 0
+realclient sources contain 'HIDDEN_BLOCK_SCAN': 0
+client realclient sources contain 'Screen': 15
+client realclient sources contain 'BOT_POV': 0
+client realclient sources contain 'audio': 0
+client realclient sources contain 'Audio': 0
+client realclient sources contain 'streaming': 0
+client realclient sources contain 'Scheduler': 0
+client realclient sources contain 'screenshot': 0
+realclient delegates to AIPlayerEntity/TaskManager: True
+OUTBOUND_CAPACITY bounded queue anchor: True
+EXECUTION_CAPACITY anchor: True
+server transport world-free (ServerPlayerEntity absent): True
+backend onThread guard: True
+
+[定性说明]
+- client 'Screen' 15 处命中:全部为 auto-join 空闲屏白名单的类名字符串(endsWith 判定)与 ConnectScreen.connect 程序化连接调用;
+  未新增任何 Screen 子类/widget/slot UI 实现,无 GUI 内省。
+- 'AIPlayerManager' 命中:仅 RealClientBodyBackend.ready() 的同名 FakePlayer 权威冲突 fail-closed 检查
+  (real_client_fake_player_authority_conflict),不是 FakePlayer 委托;TaskManager.INSTANCE.assign 为 0。

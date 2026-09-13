@@ -1,0 +1,14 @@
+test_config_accepts_offline_argument_array (__main__.SupervisorTest.test_config_accepts_offline_argument_array) ... ok
+test_config_rejects_non_loopback_control_host (__main__.SupervisorTest.test_config_rejects_non_loopback_control_host) ... ok
+test_config_rejects_non_offline_access_token (__main__.SupervisorTest.test_config_rejects_non_offline_access_token) ... ok
+test_config_rejects_sensitive_account_environment (__main__.SupervisorTest.test_config_rejects_sensitive_account_environment) ... ok
+test_config_rejects_shell_string (__main__.SupervisorTest.test_config_rejects_shell_string) ... ok
+test_config_requires_offline_identity_placeholders (__main__.SupervisorTest.test_config_requires_offline_identity_placeholders) ... ok
+test_expand_is_deterministic (__main__.SupervisorTest.test_expand_is_deterministic) ... ok
+test_offline_uuid_is_case_sensitive_like_minecraft (__main__.SupervisorTest.test_offline_uuid_is_case_sensitive_like_minecraft) ... ok
+test_offline_uuid_matches_known_bob_value (__main__.SupervisorTest.test_offline_uuid_matches_known_bob_value) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.051s
+
+OK
