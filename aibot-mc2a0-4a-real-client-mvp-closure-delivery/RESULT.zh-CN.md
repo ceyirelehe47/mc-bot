@@ -15,7 +15,7 @@
 | # | 问题 | 答案 |
 |---|---|---|
 | 4 | game-session epoch 如何生成/轮换 | 客户端 `ClientPlayConnectionEvents.JOIN` 时生成 UUID 并递增 `gameSessionSeq`，帧序号清零（`RealClientBodyClientRuntime.gameSessionStarted`）；心跳/执行状态统一携带；控制 TCP epoch 仅作传输层身份 |
-| 5 | 同 UUID 重连是否必换 epoch | 是。LIVE 实证四代 epoch：`2cbc752e`→`661fc58f`（冷重启）→`78711a2c`（服务器重启）→`458d26a0`→`56284669`（强杀后 supervisor 冷启动），同一 offline UUID（SESS-1；03/04 目录日志） |
+| 5 | 同 UUID 重连是否必换 epoch | 是。LIVE 实证六代 epoch（客户端日志 6 条 incarnation 行）：`2cbc752e`→`661fc58f`（冷重启）→`78711a2c`（服务器重启）→`0012a10a`→`458d26a0`→`56284669`（强杀后 supervisor 冷启动），同一 offline UUID（SESS-1；03/04 目录日志） |
 | 6 | 旧 session 迟到 frame/status 如何被拒绝 | 服务端 `bindGameIncarnation`：seq 回退→断连、同 seq epoch 漂移→断连、seq 前进→接受并清空 sensor/executions；frame_seq 重复/倒序→丢弃不刷新快照。JUnit `RealClientWireSessionTest` 9 项 socket 契约（staleIncarnation/epochDrift/executionMustCarryCurrentIncarnation 等） |
 | 7 | sensor frame identity/freshness/位置容差 | 单调 `frame_seq`（transport 单调过滤）；`FRAME_FRESH_MS=2000`；`POSITION_TOLERANCE=2.0`（sensor 位置仅一致性提示，权威身体=服务器实体）；越界一律 fail closed（GameTest 5 项新测试） |
 | 8 | server raycast 如何与同一 frame 对齐 | 从服务器权威 `getEyePos()` + 该 frame 的 `Vec3d.fromPolar(sensor.pitch(), sensor.yaw())` 重建 world raycast（OUTLINE/NONE，7 格），格级精确比对；**已删除** `player.raycast()` 跨时间拼接（源码契约负锚 `assertFalse(tracker.contains("player.raycast("))`） |
