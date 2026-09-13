@@ -150,11 +150,24 @@ public final class RealClientCognitiveViewBuilder {
             Map<String,Object> item=CanonicalJson.object();
             item.put("widget_index",(long)widget.widgetIndex());
             item.put("widget_class",widget.widgetClass());
-            item.put("message",widget.message());
+            item.put("message",Map.of(
+                    "text",widget.message(),
+                    "origin",widget.messageOrigin(),
+                    "trust",widget.messageTrust()));
             item.put("active",widget.active());
             item.put("visible",widget.visible());
             widgets.add(item);
             if(widgets.size()>=32)break;
+        }
+        List<Map<String,Object>> storageItems=new ArrayList<>();
+        for(var stored:screen.storageItems()) {
+            Map<String,Object> item=CanonicalJson.object();
+            item.put("item",stored.itemId());
+            item.put("count",stored.count());
+            item.put("origin","mod_state");
+            item.put("trust","structured_data");
+            storageItems.add(item);
+            if(storageItems.size()>=128)break;
         }
         Map<String,Object> ui=CanonicalJson.object();
         ui.put("present",true);
@@ -165,14 +178,19 @@ public final class RealClientCognitiveViewBuilder {
         ui.put("capabilities",screen.capabilities());
         ui.put("screen_class",screen.screenClass());
         ui.put("handler_class",screen.handlerClass());
-        ui.put("title",screen.title());
+        ui.put("title",Map.of(
+                "text",screen.title(),
+                "origin",screen.titleOrigin(),
+                "trust",screen.titleTrust()));
         ui.put("sync_id",(long)screen.syncId());
         ui.put("widgets",widgets);
         ui.put("slots",slots);
+        ui.put("storage_items",storageItems);
         ui.put("slot_count",(long)screen.slotCount());
         ui.put("truncated",screen.truncated()
                 ||screen.slots().size()>64
-                ||screen.widgets().size()>32);
+                ||screen.widgets().size()>32
+                ||screen.storageItems().size()>128);
         return ui;
     }
 

@@ -127,6 +127,8 @@ final class RealClientScreenController {
         out.addProperty("handler_class",handlerClass);
         out.addProperty(
                 "title",client.currentScreen.getTitle().getString());
+        out.addProperty("title_origin","mod_ui");
+        out.addProperty("title_trust","untrusted_data");
         out.addProperty("sync_id",handler.syncId);
 
         JsonArray capabilities=new JsonArray();
@@ -142,11 +144,22 @@ final class RealClientScreenController {
             item.addProperty(
                     "widget_class",widget.widgetClass());
             item.addProperty("message",widget.message());
+            item.addProperty("message_origin",widget.messageOrigin());
+            item.addProperty("message_trust",widget.messageTrust());
             item.addProperty("active",widget.active());
             item.addProperty("visible",widget.visible());
             widgets.add(item);
         }
         out.add("widgets",widgets);
+
+        JsonArray storageItems=new JsonArray();
+        for(var storageItem:adapter.storageItems()) {
+            JsonObject item=new JsonObject();
+            item.addProperty("item",storageItem.itemId());
+            item.addProperty("count",storageItem.count());
+            storageItems.add(item);
+        }
+        out.add("storage_items",storageItems);
 
         JsonArray slots=new JsonArray();
         int limit=Math.min(MAX_SLOTS,handler.slots.size());

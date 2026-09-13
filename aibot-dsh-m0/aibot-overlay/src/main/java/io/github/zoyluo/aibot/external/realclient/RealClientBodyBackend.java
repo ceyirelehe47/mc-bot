@@ -272,10 +272,14 @@ public final class RealClientBodyBackend implements BodyBackend {
         out.put("adapter_id",screen.adapterId());
         out.put("screen_class",screen.screenClass());
         out.put("handler_class",screen.handlerClass());
-        out.put("title",screen.title());
+        out.put("title",Map.of(
+                "text",screen.title(),
+                "origin",screen.titleOrigin(),
+                "trust",screen.titleTrust()));
         out.put("sync_id",screen.syncId());
         out.put("capabilities",screen.capabilities());
         out.put("widget_count",screen.widgets().size());
+        out.put("storage_item_count",screen.storageItems().size());
         out.put("slot_count",screen.slotCount());
         out.put("truncated",screen.truncated());
         return out;

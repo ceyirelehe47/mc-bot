@@ -3,6 +3,7 @@ package io.github.zoyluo.aibot.client.realclient;
 import com.google.gson.JsonObject;
 import io.github.zoyluo.aibot.AIBotMod;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.MinecraftClient;
@@ -63,12 +64,12 @@ public final class RealClientBodyClientRuntime {
                         gameSessionStarted(client));
         ClientPlayConnectionEvents.DISCONNECT.register(
                 (handler,client)->{
+                    if(transport!=null)
+                        transport.clearGameSession();
                     if(actions!=null)
                         actions.disconnected(client);
                     if(screens!=null)
                         screens.disconnected();
-                    if(transport!=null)
-                        transport.clearGameSession();
                     gameSessionEpoch="";
                     frameSeq=-1L;
                 });
@@ -83,11 +84,13 @@ public final class RealClientBodyClientRuntime {
         AIBotMod.LOGGER.info(
                 "AIBot real-client runtime enabled "
                         +"body_id={} player={} control={}:{} "
-                        +"auto_join={} window_mode={}",
+                        +"auto_join={} window_mode={} runtime_namespace={}",
                 bodyId,playerName,host,port,
                 autoJoinTarget==null
                         ?"disabled":autoJoinTarget,
-                RealClientInputIsolation.modeName());
+                RealClientInputIsolation.modeName(),
+                FabricLoader.getInstance().getMappingResolver()
+                        .getCurrentRuntimeNamespace());
     }
 
     private static void tick(MinecraftClient client) {
@@ -125,7 +128,8 @@ public final class RealClientBodyClientRuntime {
         gameSessionSeq++;
         frameSeq=-1;
         if(transport!=null)
-            transport.bindGameSession(gameSessionEpoch,gameSessionSeq);
+            transport.bindGameSession(
+                    gameSessionEpoch,gameSessionSeq);
         if(actions!=null)
             actions.gameSessionStarted(client);
         if(screens!=null)
