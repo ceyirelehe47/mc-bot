@@ -34,6 +34,9 @@ public final class RealClientServerTransport
     private static final int SCREEN_SLOT_CAPACITY=128;
     private static final int SCREEN_WIDGET_CAPACITY=32;
     private static final int SCREEN_CAPABILITY_CAPACITY=16;
+    private static final int SCREEN_STORAGE_ITEM_CAPACITY=128;
+    private static final java.util.Set<String> SERVER_BOUND_TYPES=
+            java.util.Set.of("command","control");
 
     public record SensorSnapshot(
             String playerUuid,double x,double y,double z,
@@ -49,17 +52,22 @@ public final class RealClientServerTransport
 
     public record ScreenWidgetSnapshot(
             int widgetIndex,String widgetClass,String message,
+            String messageOrigin,String messageTrust,
             boolean active,boolean visible) {}
+
+    public record ScreenStorageItemSnapshot(
+            String itemId,long count) {}
 
     public record ScreenSnapshot(
             String gameSession,long screenSeq,
             String screenEpoch,String adapterId,
             boolean present,
             String screenClass,String handlerClass,
-            String title,int syncId,
+            String title,String titleOrigin,String titleTrust,int syncId,
             List<String> capabilities,
             List<ScreenWidgetSnapshot> widgets,
             List<ScreenSlotSnapshot> slots,
+            List<ScreenStorageItemSnapshot> storageItems,
             int slotCount,boolean truncated,long receivedAtMs) {}
 
     public record RemoteExecution(
@@ -156,13 +164,11 @@ public final class RealClientServerTransport
         command.addProperty(
                 "protocol",RealClientWire.PROTOCOL_VERSION);
         command.addProperty(
-                "session_epoch",session.sessionEpoch);
-        command.addProperty(
                 "execution_id",executionId);
         command.addProperty("operation",operation);
         command.addProperty(
                 "arguments_json",argumentsJson);
-        return session.outbound.offer(command);
+        return session.enqueueBound(command);
     }
 
     public boolean sendControl(
@@ -176,14 +182,12 @@ public final class RealClientServerTransport
         control.addProperty(
                 "protocol",RealClientWire.PROTOCOL_VERSION);
         control.addProperty(
-                "session_epoch",session.sessionEpoch);
-        control.addProperty(
                 "execution_id",
                 executionId==null?"":executionId);
         control.addProperty("action",action);
         control.addProperty(
                 "reason",reason==null?"":reason);
-        return session.outbound.offer(control);
+        return session.enqueueBound(control);
     }
 
     private void acceptLoop() {
@@ -268,7 +272,8 @@ public final class RealClientServerTransport
             if(prior!=null && prior.connected.get())
                 throw new IOException(
                         "real_client_authority_already_connected");
-            if(!active.compareAndSet(prior,replacement))
+            if(!active.compareAndSet(
+                    prior,replacement))
                 throw new IOException(
                         "real_client_authority_race_rejected");
             if(prior!=null)prior.close();
@@ -334,6 +339,7 @@ public final class RealClientServerTransport
         volatile String gameSession="";
         volatile long lastFrameSeq=-1;
         volatile long lastScreenSeq=-1;
+        long nextCommandSeq;
         Thread reader,writer;
 
         Session(
@@ -369,6 +375,28 @@ public final class RealClientServerTransport
                     windowMode,connected.get(),
                     lastHeartbeatMs,gameSession,
                     sensor.get(),screen.get());
+        }
+
+        synchronized boolean enqueueBound(JsonObject message) {
+            if(!connected.get() || gameSessionSeq<0 || gameSession.isBlank())
+                return false;
+            String type=message.has("type")
+                    ?message.get("type").getAsString():"";
+            if(!SERVER_BOUND_TYPES.contains(type))return false;
+            message.addProperty("session_epoch",sessionEpoch);
+            message.addProperty("game_session",gameSession);
+            message.addProperty("game_session_seq",gameSessionSeq);
+            message.addProperty("command_seq",nextCommandSeq++);
+            return outbound.offer(message);
+        }
+
+        private synchronized void resetServerCommandIncarnation() {
+            nextCommandSeq=0L;
+            outbound.removeIf(message->{
+                String type=message.has("type")
+                        ?message.get("type").getAsString():"";
+                return SERVER_BOUND_TYPES.contains(type);
+            });
         }
 
         void readLoop() {
@@ -419,6 +447,7 @@ public final class RealClientServerTransport
             if(gameSessionSeq<0) {
                 gameSessionSeq=messageGameSessionSeq;
                 gameSession=messageGameSession;
+                resetServerCommandIncarnation();
                 return;
             }
             if(messageGameSessionSeq==gameSessionSeq) {
@@ -433,6 +462,7 @@ public final class RealClientServerTransport
                         "real_client_game_session_stale_incarnation");
             gameSessionSeq=messageGameSessionSeq;
             gameSession=messageGameSession;
+            resetServerCommandIncarnation();
             lastFrameSeq=-1;
             lastScreenSeq=-1;
             sensor.set(null);
@@ -571,8 +601,8 @@ public final class RealClientServerTransport
             if(!present) {
                 screen.set(new ScreenSnapshot(
                         gs,screenSeq,"","",false,
-                        "","","",-1,
-                        List.of(),List.of(),List.of(),
+                        "","","","","",-1,
+                        List.of(),List.of(),List.of(),List.of(),
                         0,false,now));
                 return;
             }
@@ -591,6 +621,14 @@ public final class RealClientServerTransport
             String title=
                     RealClientWire.optionalString(
                             message,"title","",256);
+            String titleOrigin=RealClientWire.requiredString(
+                    message,"title_origin",32);
+            String titleTrust=RealClientWire.requiredString(
+                    message,"title_trust",32);
+            if(!"mod_ui".equals(titleOrigin)
+                    ||!"untrusted_data".equals(titleTrust))
+                throw new IOException(
+                        "real_client_screen_text_provenance_invalid");
             int syncId=
                     message.get("sync_id").getAsInt();
             int slotCount=
@@ -609,12 +647,15 @@ public final class RealClientServerTransport
                     parseWidgets(message);
             List<ScreenSlotSnapshot> slots=
                     parseSlots(message);
+            List<ScreenStorageItemSnapshot> storageItems=
+                    parseStorageItems(message);
 
             screen.set(new ScreenSnapshot(
                     gs,screenSeq,screenEpoch,
                     adapterId,true,
-                    screenClass,handlerClass,title,syncId,
-                    capabilities,widgets,slots,
+                    screenClass,handlerClass,title,
+                    titleOrigin,titleTrust,syncId,
+                    capabilities,widgets,slots,storageItems,
                     slotCount,truncated,now));
         }
 
@@ -664,6 +705,14 @@ public final class RealClientServerTransport
                 String widgetMessage=
                         RealClientWire.optionalString(
                                 widget,"message","",256);
+                String messageOrigin=RealClientWire.requiredString(
+                        widget,"message_origin",32);
+                String messageTrust=RealClientWire.requiredString(
+                        widget,"message_trust",32);
+                if(!"mod_ui".equals(messageOrigin)
+                        ||!"untrusted_data".equals(messageTrust))
+                    throw new IOException(
+                            "real_client_screen_widget_provenance_invalid");
                 boolean active=
                         widget.has("active")
                         &&widget.get("active").getAsBoolean();
@@ -675,9 +724,31 @@ public final class RealClientServerTransport
                             "real_client_screen_widget_invalid");
                 widgets.add(new ScreenWidgetSnapshot(
                         index,widgetClass,widgetMessage,
+                        messageOrigin,messageTrust,
                         active,visible));
             }
             return List.copyOf(widgets);
+        }
+
+        private List<ScreenStorageItemSnapshot> parseStorageItems(
+                JsonObject message)throws IOException {
+            JsonArray array=message.getAsJsonArray("storage_items");
+            if(array==null)return List.of();
+            if(array.size()>SCREEN_STORAGE_ITEM_CAPACITY)
+                throw new IOException(
+                        "real_client_screen_storage_items_invalid");
+            List<ScreenStorageItemSnapshot> items=new ArrayList<>();
+            for(JsonElement element:array) {
+                JsonObject item=element.getAsJsonObject();
+                String itemId=RealClientWire.requiredString(
+                        item,"item",128);
+                long count=item.get("count").getAsLong();
+                if(count<0 || count>Long.MAX_VALUE/4)
+                    throw new IOException(
+                            "real_client_screen_storage_item_count_invalid");
+                items.add(new ScreenStorageItemSnapshot(itemId,count));
+            }
+            return List.copyOf(items);
         }
 
         private List<ScreenSlotSnapshot> parseSlots(

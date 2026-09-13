@@ -24,16 +24,23 @@ import java.util.concurrent.atomic.AtomicReference;
 final class RealClientClientTransport implements AutoCloseable {
     private static final java.util.Set<String> GAME_BOUND_TYPES=
             java.util.Set.of("heartbeat","execution","screen");
+    private static final java.util.Set<String> SERVER_BOUND_TYPES=
+            java.util.Set.of("command","control");
+
+    record InboundFrame(
+            String controlSession,String gameSession,int gameSessionSeq,
+            long commandSeq,JsonObject message) {}
 
     private final InetAddress host;
     private final int port;
     private final String token,bodyId,playerName,windowMode;
     private final AtomicBoolean closed=new AtomicBoolean();
     private final AtomicReference<Connection> connection=new AtomicReference<>();
-    private final ArrayBlockingQueue<JsonObject> inbound=new ArrayBlockingQueue<>(64);
+    private final ArrayBlockingQueue<InboundFrame> inbound=new ArrayBlockingQueue<>(64);
     private final Thread connector;
     private volatile String gameSessionEpoch="";
     private volatile int gameSessionSeq=-1;
+    private volatile long lastInboundCommandSeq=-1L;
 
     RealClientClientTransport(
             String host,int port,String token,String bodyId,String playerName,
@@ -67,7 +74,21 @@ final class RealClientClientTransport implements AutoCloseable {
     }
 
     void start() { connector.start(); }
-    JsonObject poll() { return inbound.poll(); }
+    JsonObject poll() {
+        while(true) {
+            InboundFrame frame=inbound.poll();
+            if(frame==null)return null;
+            Connection current=connection.get();
+            if(current==null || !current.connected.get())continue;
+            if(!current.sessionEpoch.equals(frame.controlSession()))continue;
+            if(!gameSessionBound())continue;
+            if(!gameSessionEpoch.equals(frame.gameSession())
+                    ||gameSessionSeq!=frame.gameSessionSeq())continue;
+            if(frame.commandSeq()<=lastInboundCommandSeq)continue;
+            lastInboundCommandSeq=frame.commandSeq();
+            return frame.message();
+        }
+    }
     String sessionEpoch() {
         Connection current=connection.get();
         return current==null?"":current.sessionEpoch;
@@ -79,16 +100,23 @@ final class RealClientClientTransport implements AutoCloseable {
     boolean gameSessionBound() {
         return !gameSessionEpoch.isBlank() && gameSessionSeq>=0;
     }
-    void bindGameSession(String epoch,int seq) {
+    synchronized void bindGameSession(String epoch,int seq) {
         if(epoch==null || epoch.isBlank() || seq<0)
             throw new IllegalArgumentException(
                     "real_client_game_session_binding_invalid");
+        boolean changed=!epoch.equals(gameSessionEpoch)||seq!=gameSessionSeq;
+        if(changed) {
+            inbound.clear();
+            lastInboundCommandSeq=-1L;
+        }
         gameSessionEpoch=epoch;
         gameSessionSeq=seq;
     }
-    void clearGameSession() {
+    synchronized void clearGameSession() {
         gameSessionEpoch="";
         gameSessionSeq=-1;
+        lastInboundCommandSeq=-1L;
+        inbound.clear();
         Connection current=connection.get();
         if(current!=null) {
             current.outbound.removeIf(message->{
@@ -160,6 +188,8 @@ final class RealClientClientTransport implements AutoCloseable {
                             "real_client_welcome_binding_mismatch");
                 Connection connected=
                         new Connection(socket,input,output,epoch);
+                inbound.clear();
+                lastInboundCommandSeq=-1L;
                 Connection old=connection.getAndSet(connected);
                 if(old!=null)old.close();
                 failures=0;
@@ -228,12 +258,29 @@ final class RealClientClientTransport implements AutoCloseable {
             try {
                 while(connected.get() && !closed.get()) {
                     JsonObject message=RealClientWire.read(input);
+                    String type=RealClientWire.requiredString(message,"type",32);
+                    if(!SERVER_BOUND_TYPES.contains(type))
+                        throw new IOException(
+                                "real_client_server_message_type_unsupported:"+type);
                     String epoch=RealClientWire.requiredString(
                             message,"session_epoch",160);
                     if(!sessionEpoch.equals(epoch))
                         throw new IOException(
                                 "real_client_server_epoch_mismatch");
-                    if(!inbound.offer(message))
+                    String game=RealClientWire.requiredString(
+                            message,"game_session",160);
+                    if(!message.has("game_session_seq")
+                            ||!message.has("command_seq"))
+                        throw new IOException(
+                                "real_client_server_command_incarnation_missing");
+                    int gameSeq=message.get("game_session_seq").getAsInt();
+                    long commandSeq=message.get("command_seq").getAsLong();
+                    if(gameSeq<0 || commandSeq<0)
+                        throw new IOException(
+                                "real_client_server_command_sequence_invalid");
+                    InboundFrame frame=new InboundFrame(
+                            epoch,game,gameSeq,commandSeq,message);
+                    if(!inbound.offer(frame))
                         throw new IOException(
                                 "real_client_inbound_queue_overflow");
                 }
@@ -268,6 +315,7 @@ final class RealClientClientTransport implements AutoCloseable {
             if(writer!=null && writer!=Thread.currentThread())
                 writer.interrupt();
             outbound.clear();
+            inbound.removeIf(frame->sessionEpoch.equals(frame.controlSession()));
         }
     }
 }

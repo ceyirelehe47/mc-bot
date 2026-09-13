@@ -15,7 +15,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Wire-level session contract of the loopback control transport: protocol v4 fail-closed
+ * Wire-level session contract of the loopback control transport: protocol v5 fail-closed
  * behaviour, game-session incarnation monotonicity and sensor frame deduplication.
  * Pure sockets, no Minecraft classes involved.
  */
@@ -138,6 +138,14 @@ final class RealClientWireSessionTest {
         startTransport();
         try(Client client=new Client(transportLocalPort())) {
             client.hello(3);
+            awaitClosed(client);
+        }
+    }
+
+    @Test void protocolV4HelloIsRejectedFailClosed()throws Exception {
+        startTransport();
+        try(Client client=new Client(transportLocalPort())) {
+            client.hello(4);
             awaitClosed(client);
         }
     }

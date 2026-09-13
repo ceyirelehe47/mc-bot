@@ -33,6 +33,21 @@ final class RealClientActionController {
     }
 
     void command(JsonObject message) {
+        String executionId=safeExecutionId(message);
+        try {
+            commandChecked(message);
+        } catch(RuntimeException failure) {
+            if(active!=null && executionId.equals(active.executionId)) {
+                active.failed=true;
+                active=null;
+            }
+            send(executionId,"failed",0D,
+                    "real_client_command_invalid:"
+                            +failure.getClass().getSimpleName());
+        }
+    }
+
+    private void commandChecked(JsonObject message) {
         String executionId=
                 message.get("execution_id").getAsString();
         String operation=
@@ -40,6 +55,8 @@ final class RealClientActionController {
         JsonObject args=JsonParser.parseString(
                 message.get("arguments_json").getAsString())
                 .getAsJsonObject();
+        String phase=args.has("phase") && args.get("phase").isJsonPrimitive()
+                ?args.get("phase").getAsString():"";
 
         // Deposit is a two-phase protocol. The server authorizes mutation only after proving
         // the newly opened Screen belongs to the requested target inventory.
@@ -54,6 +71,11 @@ final class RealClientActionController {
             return;
         }
 
+        if("deposit".equals(operation) && "commit".equals(phase)) {
+            send(executionId,"failed",0D,
+                    "real_client_stale_or_unowned_commit");
+            return;
+        }
         if(active!=null && !active.terminal()) {
             send(executionId,"failed",0D,
                     "real_client_action_busy");
@@ -102,7 +124,8 @@ final class RealClientActionController {
                     Direction.valueOf(
                             args.get("face").getAsString()
                                     .toUpperCase(Locale.ROOT)),
-                    args.get("baseline_screen_seq").getAsLong());
+                    args.get("baseline_screen_seq").getAsLong(),
+                    args.get("target_kind").getAsString());
             default -> null;
         };
         if(active==null)
@@ -111,9 +134,22 @@ final class RealClientActionController {
         else
             send(executionId,"running",0D,
                     "real_client_action_admitted");
+    
     }
 
     void control(
+            JsonObject message,MinecraftClient client) {
+        String executionId=safeExecutionId(message);
+        try {
+            controlChecked(message,client);
+        } catch(RuntimeException failure) {
+            send(executionId,"failed",0D,
+                    "real_client_control_invalid:"
+                            +failure.getClass().getSimpleName());
+        }
+    }
+
+    private void controlChecked(
             JsonObject message,MinecraftClient client) {
         if(active==null || !active.executionId.equals(
                 message.get("execution_id").getAsString()))
@@ -145,6 +181,7 @@ final class RealClientActionController {
                                 :"external_cancel");
             }
         }
+    
     }
 
     void tick(MinecraftClient client) {
@@ -206,6 +243,17 @@ final class RealClientActionController {
                     "minecraft_connection_lost");
         }
         active=null;
+    }
+
+    private static String safeExecutionId(JsonObject message) {
+        try {
+            if(message!=null && message.has("execution_id")
+                    &&message.get("execution_id").isJsonPrimitive()) {
+                String value=message.get("execution_id").getAsString();
+                if(!value.isBlank() && value.length()<=160)return value;
+            }
+        } catch(RuntimeException ignored) {}
+        return "invalid-command";
     }
 
     private void send(
@@ -445,6 +493,7 @@ final class RealClientActionController {
         final BlockPos target;
         final Direction face;
         final long baselineScreenSeq;
+        final String targetKind;
 
         boolean interactionSent;
         boolean authorized;
@@ -456,19 +505,23 @@ final class RealClientActionController {
 
         DepositAction(
                 String executionId,BlockPos target,
-                Direction face,long baselineScreenSeq) {
+                Direction face,long baselineScreenSeq,
+                String targetKind) {
             super(executionId);
             this.target=target;
             this.face=face;
             this.baselineScreenSeq=baselineScreenSeq;
+            this.targetKind=targetKind;
         }
 
         void authorize(JsonObject args) {
             String epoch=args.get("screen_epoch").getAsString();
             String adapter=args.get("adapter_id").getAsString();
+            String commitTargetKind=args.get("target_kind").getAsString();
             long seq=args.get("screen_seq").getAsLong();
             int sync=args.get("sync_id").getAsInt();
             if(epoch.isBlank()
+                    ||!targetKind.equals(commitTargetKind)
                     ||seq<=baselineScreenSeq
                     ||sync<0
                     ||!RealClientScreenAdapterRegistry

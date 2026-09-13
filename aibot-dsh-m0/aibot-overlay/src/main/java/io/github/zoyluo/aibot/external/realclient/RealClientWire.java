@@ -11,9 +11,9 @@ import java.nio.charset.StandardCharsets;
 
 /** Length-prefixed loopback protocol shared by the dedicated server and Bob's Fabric client. */
 public final class RealClientWire {
-    // v4: v3 native Screen snapshots plus screen-incarnation/adapter ownership fields.
+    // v5: v4 Screen ownership plus game-incarnation-bound server command/control envelopes.
     // Older peers fail closed during hello/welcome.
-    public static final int PROTOCOL_VERSION=4;
+    public static final int PROTOCOL_VERSION=5;
     public static final int MAX_FRAME_BYTES=64*1024;
 
     private RealClientWire() {}
