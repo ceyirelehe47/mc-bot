@@ -120,6 +120,9 @@ public final class RealClientBodyBackend implements BodyBackend {
         out.put("position",position);
         out.put("inventory",inventory(current));
         out.put("sensor","client_crosshair_server_validated");
+        var session=transport.session().orElse(null);
+        out.put("client_window_mode",session==null?"unknown":session.windowMode());
+        out.put("screen",screenWire(session==null?null:session.screen()));
         out.put("supported_operations",supportedOperations().stream().sorted().toList());
         out.put("safety_active",false);
         out.put("user_paused",false);
@@ -130,8 +133,10 @@ public final class RealClientBodyBackend implements BodyBackend {
 
     @Override public CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal ignored) {
         onThread();
+        var screen=transport.session()
+                .map(RealClientServerTransport.SessionSnapshot::screen).orElse(null);
         return RealClientCognitiveViewBuilder.build(
-                logicalBodyId,requirePlayer(),tracker,journal);
+                logicalBodyId,requirePlayer(),tracker,journal,screen);
     }
 
     @Override public String inspectLocalJson(int radius,String detail) {
@@ -253,6 +258,19 @@ public final class RealClientBodyBackend implements BodyBackend {
                     stack.getCount(),Integer::sum);
         }
         return counts;
+    }
+
+    private static Map<String,Object> screenWire(
+            RealClientServerTransport.ScreenSnapshot screen) {
+        if(screen==null || !screen.present())return Map.of("present",false);
+        return Map.of(
+                "present",true,
+                "screen_class",screen.screenClass(),
+                "handler_class",screen.handlerClass(),
+                "title",screen.title(),
+                "sync_id",screen.syncId(),
+                "slot_count",screen.slotCount(),
+                "truncated",screen.truncated());
     }
 
     /** Avoids claiming hidden scans in the MVP response while keeping the wrapper shape stable. */

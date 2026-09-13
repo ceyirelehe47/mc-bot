@@ -80,6 +80,26 @@ class SupervisorTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "loopback"):
                 MODULE.load_config(path)
 
+    def test_window_mode_defaults_to_background(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = pathlib.Path(directory) / "config.json"
+            path.write_text(json.dumps({
+                "username":"Bob",
+                "command":["java","--username","{username}","--uuid","{offline_uuid}"]
+            }))
+            self.assertEqual(MODULE.load_config(path).get("window_mode","background"),"background")
+
+    def test_invalid_window_mode_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = pathlib.Path(directory) / "config.json"
+            path.write_text(json.dumps({
+                "username":"Bob",
+                "command":["java","--username","{username}","--uuid","{offline_uuid}"],
+                "window_mode":"steal-focus"
+            }))
+            with self.assertRaisesRegex(ValueError,"window_mode"):
+                MODULE.load_config(path)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -887,7 +887,21 @@ def plan(repo: pathlib.Path, *, validate_head: bool=True) -> tuple[dict[pathlib.
     for source in sorted((ROOT/'aibot-overlay').rglob('*')):
         if not source.is_file():continue
         target=repo/source.relative_to(ROOT/'aibot-overlay')
-        if target.exists():raise ValueError(f'Overlay target already exists: {target}')
+        if target.exists():
+            # MC-2A0.5 最小 installer 修正:上游已跟踪的 aibot.mixins.json 不再拒绝,
+            # 改为把 overlay 的 client mixin 项合并进上游数组(保序去重),其余冲突仍拒绝。
+            if target.relative_to(repo).as_posix()!='src/main/resources/aibot.mixins.json':
+                raise ValueError(f'Overlay target already exists: {target}')
+            import json as _json
+            merged=_json.loads(target.read_text(encoding='utf-8'))
+            overlay=_json.loads(source.read_text(encoding='utf-8'))
+            clients=list(merged.get('client',[]))
+            for entry in overlay.get('client',[]):
+                if entry not in clients:clients.append(entry)
+            merged['client']=clients
+            old_files[target]=target.read_bytes()
+            writes[target]=(_json.dumps(merged,indent=2)+'\n').encode('utf-8')
+            continue
         writes[target]=source.read_bytes()
     return old_files,writes
 

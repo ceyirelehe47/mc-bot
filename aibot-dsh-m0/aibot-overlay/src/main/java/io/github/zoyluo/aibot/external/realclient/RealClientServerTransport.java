@@ -1,5 +1,7 @@
 package io.github.zoyluo.aibot.external.realclient;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.zoyluo.aibot.AIBotMod;
 
@@ -14,7 +16,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -23,31 +26,35 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Authenticated loopback control transport for one real Minecraft client body.
- *
- * <p>Networking threads only update immutable snapshots and bounded queues. They never access the
- * Minecraft server/world. Minecraft access remains inside RealClientBodyBackend on the server
- * thread.</p>
- */
 public final class RealClientServerTransport implements AutoCloseable {
     public static final long HEARTBEAT_STALE_MS=3500L;
     private static final int OUTBOUND_CAPACITY=32;
     private static final int EXECUTION_CAPACITY=1024;
+    private static final int SCREEN_SLOT_CAPACITY=128;
 
-    /** One coherent client sample: pose, look and crosshair belong to the same frame. */
     public record SensorSnapshot(
             String playerUuid,double x,double y,double z,float yaw,float pitch,int selectedSlot,
             boolean crosshairPresent,int crosshairX,int crosshairY,int crosshairZ,
             String crosshairBlock,String crosshairSide,
             String gameSession,long frameSeq,long receivedAtMs) {}
 
+    public record ScreenSlotSnapshot(
+            int slotId,int inventoryIndex,String inventoryKind,
+            String itemId,int count,boolean canTake) {}
+
+    public record ScreenSnapshot(
+            String gameSession,long screenSeq,boolean present,
+            String screenClass,String handlerClass,String title,int syncId,
+            List<ScreenSlotSnapshot> slots,int slotCount,boolean truncated,
+            long receivedAtMs) {}
+
     public record RemoteExecution(
             String executionId,String state,double progress,String reason,long receivedAtMs) {}
 
     public record SessionSnapshot(
-            String bodyId,String playerName,String sessionEpoch,boolean connected,
-            long lastHeartbeatMs,String gameSession,SensorSnapshot sensor) {
+            String bodyId,String playerName,String sessionEpoch,String windowMode,
+            boolean connected,long lastHeartbeatMs,String gameSession,
+            SensorSnapshot sensor,ScreenSnapshot screen) {
         public boolean fresh(long nowMs) {
             return connected && nowMs-lastHeartbeatMs<=HEARTBEAT_STALE_MS;
         }
@@ -79,8 +86,7 @@ public final class RealClientServerTransport implements AutoCloseable {
         if(listener!=null)throw new IllegalStateException("real_client_transport_already_started");
         listener=new ServerSocket(port,4,InetAddress.getLoopbackAddress());
         acceptThread=new Thread(this::acceptLoop,"aibot-real-client-accept");
-        acceptThread.setDaemon(true);
-        acceptThread.start();
+        acceptThread.setDaemon(true);acceptThread.start();
         AIBotMod.LOGGER.info(
                 "AIBot real-client transport bound to loopback port {} body_id={} player={}",
                 port,expectedBodyId,expectedPlayerName);
@@ -90,14 +96,10 @@ public final class RealClientServerTransport implements AutoCloseable {
         Session session=active.get();
         return session==null?Optional.empty():Optional.of(session.snapshot());
     }
-
-    /** Loopback port this transport is bound to (for diagnostics and tests). */
     public int port() { return port; }
-
     public Optional<RemoteExecution> execution(String executionId) {
         Session session=active.get();
-        if(session==null)return Optional.empty();
-        return Optional.ofNullable(session.executions.get(executionId));
+        return session==null?Optional.empty():Optional.ofNullable(session.executions.get(executionId));
     }
 
     public boolean sendCommand(String executionId,String operation,String argumentsJson) {
@@ -130,15 +132,11 @@ public final class RealClientServerTransport implements AutoCloseable {
         while(!closed.get()) {
             try {
                 Socket socket=listener.accept();
-                socket.setTcpNoDelay(true);
-                socket.setSoTimeout(5000);
-                Thread handler=new Thread(
-                        ()->handshake(socket),"aibot-real-client-handshake");
-                handler.setDaemon(true);
-                handler.start();
+                socket.setTcpNoDelay(true);socket.setSoTimeout(5000);
+                Thread handler=new Thread(()->handshake(socket),"aibot-real-client-handshake");
+                handler.setDaemon(true);handler.start();
             } catch(IOException failure) {
-                if(!closed.get())
-                    AIBotMod.LOGGER.error("real-client accept failed",failure);
+                if(!closed.get())AIBotMod.LOGGER.error("real-client accept failed",failure);
             }
         }
     }
@@ -146,10 +144,8 @@ public final class RealClientServerTransport implements AutoCloseable {
     private void handshake(Socket socket) {
         Session replacement=null;
         try {
-            DataInputStream input=new DataInputStream(
-                    new BufferedInputStream(socket.getInputStream()));
-            DataOutputStream output=new DataOutputStream(
-                    new BufferedOutputStream(socket.getOutputStream()));
+            DataInputStream input=new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+            DataOutputStream output=new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             JsonObject hello=RealClientWire.read(input);
             if(!"hello".equals(RealClientWire.requiredString(hello,"type",32)))
                 throw new IOException("real_client_hello_required");
@@ -162,12 +158,15 @@ public final class RealClientServerTransport implements AutoCloseable {
             String bodyId=RealClientWire.requiredString(hello,"body_id",160);
             String playerName=RealClientWire.requiredString(hello,"player_name",64);
             String sessionEpoch=RealClientWire.requiredString(hello,"session_epoch",160);
+            String windowMode=RealClientWire.requiredString(hello,"window_mode",32);
+            if(!java.util.Set.of("background","minimized","interactive").contains(windowMode))
+                throw new IOException("real_client_window_mode_invalid");
             if(!expectedBodyId.equals(bodyId))throw new IOException("real_client_body_id_mismatch");
             if(!expectedPlayerName.equalsIgnoreCase(playerName))
                 throw new IOException("real_client_player_name_mismatch");
 
             replacement=new Session(
-                    socket,input,output,bodyId,playerName,sessionEpoch);
+                    socket,input,output,bodyId,playerName,sessionEpoch,windowMode);
             Session prior=active.get();
             if(prior!=null && prior.connected.get())
                 throw new IOException("real_client_authority_already_connected");
@@ -175,7 +174,6 @@ public final class RealClientServerTransport implements AutoCloseable {
                 throw new IOException("real_client_authority_race_rejected");
             if(prior!=null)prior.close();
             socket.setSoTimeout(0);
-
             JsonObject welcome=new JsonObject();
             welcome.addProperty("type","welcome");
             welcome.addProperty("protocol",RealClientWire.PROTOCOL_VERSION);
@@ -184,8 +182,8 @@ public final class RealClientServerTransport implements AutoCloseable {
             RealClientWire.write(output,welcome);
             replacement.start();
             AIBotMod.LOGGER.info(
-                    "AIBot real client connected body_id={} player={} session={}",
-                    bodyId,playerName,sessionEpoch);
+                    "AIBot real client connected body_id={} player={} session={} window_mode={}",
+                    bodyId,playerName,sessionEpoch,windowMode);
         } catch(Exception failure) {
             if(replacement!=null)replacement.close();
             else try { socket.close(); } catch(IOException ignored) {}
@@ -207,23 +205,23 @@ public final class RealClientServerTransport implements AutoCloseable {
         final Socket socket;
         final DataInputStream input;
         final DataOutputStream output;
-        final String bodyId,playerName,sessionEpoch;
+        final String bodyId,playerName,sessionEpoch,windowMode;
         final AtomicBoolean connected=new AtomicBoolean(true);
         final AtomicReference<SensorSnapshot> sensor=new AtomicReference<>();
+        final AtomicReference<ScreenSnapshot> screen=new AtomicReference<>();
         final ConcurrentHashMap<String,RemoteExecution> executions=new ConcurrentHashMap<>();
         final ArrayBlockingQueue<JsonObject> outbound=new ArrayBlockingQueue<>(OUTBOUND_CAPACITY);
         volatile long lastHeartbeatMs=System.currentTimeMillis();
-        // Minecraft 游戏连接 incarnation(与控制 TCP epoch 分离):-1=客户端尚未 JOIN。
-        // 同连接内只允许单调前进;回退或 epoch 漂移一律断连,迟到旧 incarnation 不得污染新会话。
         volatile int gameSessionSeq=-1;
         volatile String gameSession="";
-        volatile long lastFrameSeq=-1;
+        volatile long lastFrameSeq=-1,lastScreenSeq=-1;
         Thread reader,writer;
 
         Session(Socket socket,DataInputStream input,DataOutputStream output,
-                String bodyId,String playerName,String sessionEpoch) {
+                String bodyId,String playerName,String sessionEpoch,String windowMode) {
             this.socket=socket;this.input=input;this.output=output;
-            this.bodyId=bodyId;this.playerName=playerName;this.sessionEpoch=sessionEpoch;
+            this.bodyId=bodyId;this.playerName=playerName;
+            this.sessionEpoch=sessionEpoch;this.windowMode=windowMode;
         }
 
         void start() {
@@ -235,8 +233,8 @@ public final class RealClientServerTransport implements AutoCloseable {
 
         SessionSnapshot snapshot() {
             return new SessionSnapshot(
-                    bodyId,playerName,sessionEpoch,connected.get(),lastHeartbeatMs,
-                    gameSession,sensor.get());
+                    bodyId,playerName,sessionEpoch,windowMode,connected.get(),
+                    lastHeartbeatMs,gameSession,sensor.get(),screen.get());
         }
 
         void readLoop() {
@@ -250,28 +248,24 @@ public final class RealClientServerTransport implements AutoCloseable {
                     switch(type) {
                         case "heartbeat" -> receiveHeartbeat(message);
                         case "execution" -> receiveExecution(message);
-                        default -> throw new IOException("real_client_message_type_unsupported:"+type);
+                        case "screen" -> receiveScreen(message);
+                        default -> throw new IOException(
+                                "real_client_message_type_unsupported:"+type);
                     }
                 }
             } catch(EOFException ignored) {
-                // Normal disconnect path.
             } catch(Exception failure) {
                 if(!closed.get())
                     AIBotMod.LOGGER.warn("real-client session read ended: {}",failure.toString());
-            } finally {
-                close();
-            }
+            } finally { close(); }
         }
 
-        /** 校验消息携带的游戏 incarnation:首条固定,前进重置,回退/漂移断连 fail closed。 */
         private void bindGameIncarnation(String messageGameSession,int messageGameSessionSeq)
                 throws IOException {
             if(messageGameSessionSeq<0)
                 throw new IOException("real_client_game_session_seq_invalid");
             if(gameSessionSeq<0) {
-                gameSessionSeq=messageGameSessionSeq;
-                gameSession=messageGameSession;
-                return;
+                gameSessionSeq=messageGameSessionSeq;gameSession=messageGameSession;return;
             }
             if(messageGameSessionSeq==gameSessionSeq) {
                 if(!gameSession.equals(messageGameSession))
@@ -280,11 +274,9 @@ public final class RealClientServerTransport implements AutoCloseable {
             }
             if(messageGameSessionSeq<gameSessionSeq)
                 throw new IOException("real_client_game_session_stale_incarnation");
-            gameSessionSeq=messageGameSessionSeq;
-            gameSession=messageGameSession;
-            lastFrameSeq=-1;
-            sensor.set(null);
-            executions.clear();
+            gameSessionSeq=messageGameSessionSeq;gameSession=messageGameSession;
+            lastFrameSeq=-1;lastScreenSeq=-1;
+            sensor.set(null);screen.set(null);executions.clear();
         }
 
         void receiveHeartbeat(JsonObject message)throws IOException {
@@ -297,17 +289,16 @@ public final class RealClientServerTransport implements AutoCloseable {
             long frameSeq=message.get("frame_seq").getAsLong();
             bindGameIncarnation(messageGameSession,messageGameSessionSeq);
             lastHeartbeatMs=now;
-            if(frameSeq<0 || frameSeq<=lastFrameSeq)
-                return; // duplicate/out-of-order frame: never refresh the sensor snapshot
+            if(frameSeq<0 || frameSeq<=lastFrameSeq)return;
             double x=message.get("x").getAsDouble();
             double y=message.get("y").getAsDouble();
             double z=message.get("z").getAsDouble();
             float yaw=message.get("yaw").getAsFloat();
             float pitch=message.get("pitch").getAsFloat();
             int selected=message.get("selected_slot").getAsInt();
-            if(!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)
-                    || !Float.isFinite(yaw) || !Float.isFinite(pitch)
-                    || selected<0 || selected>8)
+            if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)
+                    ||!Float.isFinite(yaw)||!Float.isFinite(pitch)
+                    ||selected<0||selected>8)
                 throw new IOException("real_client_heartbeat_numeric_invalid");
             boolean present=message.has("crosshair_present")
                     && message.get("crosshair_present").getAsBoolean();
@@ -328,9 +319,9 @@ public final class RealClientServerTransport implements AutoCloseable {
         void receiveExecution(JsonObject message)throws IOException {
             if(!message.has("game_session_seq"))
                 throw new IOException("real_client_execution_missing_game_incarnation");
-            String messageGameSession=RealClientWire.requiredString(message,"game_session",160);
-            int messageGameSessionSeq=message.get("game_session_seq").getAsInt();
-            bindGameIncarnation(messageGameSession,messageGameSessionSeq);
+            String gs=RealClientWire.requiredString(message,"game_session",160);
+            int seq=message.get("game_session_seq").getAsInt();
+            bindGameIncarnation(gs,seq);
             String executionId=RealClientWire.requiredString(message,"execution_id",160);
             String state=RealClientWire.requiredString(message,"state",32);
             if(!java.util.Set.of(
@@ -349,9 +340,58 @@ public final class RealClientServerTransport implements AutoCloseable {
                     System.currentTimeMillis()));
         }
 
+        void receiveScreen(JsonObject message)throws IOException {
+            if(!message.has("game_session_seq") || !message.has("screen_seq"))
+                throw new IOException("real_client_screen_missing_game_incarnation");
+            String gs=RealClientWire.requiredString(message,"game_session",160);
+            int seq=message.get("game_session_seq").getAsInt();
+            long screenSeq=message.get("screen_seq").getAsLong();
+            bindGameIncarnation(gs,seq);
+            if(screenSeq<0 || screenSeq<=lastScreenSeq)return;
+            lastScreenSeq=screenSeq;
+            boolean present=message.has("present")&&message.get("present").getAsBoolean();
+            long now=System.currentTimeMillis();
+            if(!present) {
+                screen.set(new ScreenSnapshot(
+                        gs,screenSeq,false,"","","",-1,List.of(),0,false,now));
+                return;
+            }
+            String screenClass=RealClientWire.requiredString(message,"screen_class",256);
+            String handlerClass=RealClientWire.requiredString(message,"handler_class",256);
+            String title=RealClientWire.optionalString(message,"title","",256);
+            int syncId=message.get("sync_id").getAsInt();
+            int slotCount=message.get("slot_count").getAsInt();
+            boolean truncated=message.has("truncated")
+                    && message.get("truncated").getAsBoolean();
+            if(slotCount<0 || slotCount>4096)
+                throw new IOException("real_client_screen_slot_count_invalid");
+            JsonArray array=message.getAsJsonArray("slots");
+            if(array==null || array.size()>SCREEN_SLOT_CAPACITY)
+                throw new IOException("real_client_screen_slots_invalid");
+            List<ScreenSlotSnapshot> slots=new ArrayList<>();
+            for(JsonElement element:array) {
+                JsonObject slot=element.getAsJsonObject();
+                int slotId=slot.get("slot_id").getAsInt();
+                int inventoryIndex=slot.get("inventory_index").getAsInt();
+                String kind=RealClientWire.requiredString(slot,"inventory_kind",32);
+                String item=RealClientWire.requiredString(slot,"item",128);
+                int count=slot.get("count").getAsInt();
+                boolean canTake=slot.has("can_take")&&slot.get("can_take").getAsBoolean();
+                if(slotId<0 || inventoryIndex<0 || count<0 || count>999)
+                    throw new IOException("real_client_screen_slot_invalid");
+                if(!java.util.Set.of("player","container").contains(kind))
+                    throw new IOException("real_client_screen_inventory_kind_invalid");
+                slots.add(new ScreenSlotSnapshot(
+                        slotId,inventoryIndex,kind,item,count,canTake));
+            }
+            screen.set(new ScreenSnapshot(
+                    gs,screenSeq,true,screenClass,handlerClass,title,syncId,
+                    List.copyOf(slots),slotCount,truncated,now));
+        }
+
         void writeLoop() {
             try {
-                while(connected.get() && !closed.get()) {
+                while(connected.get()&&!closed.get()) {
                     JsonObject message=outbound.poll(1,TimeUnit.SECONDS);
                     if(message!=null)RealClientWire.write(output,message);
                 }
@@ -360,16 +400,14 @@ public final class RealClientServerTransport implements AutoCloseable {
             } catch(Exception failure) {
                 if(!closed.get())
                     AIBotMod.LOGGER.warn("real-client session write ended: {}",failure.toString());
-            } finally {
-                close();
-            }
+            } finally { close(); }
         }
 
         @Override public void close() {
             if(!connected.compareAndSet(true,false))return;
             try { socket.close(); } catch(IOException ignored) {}
-            if(reader!=null && reader!=Thread.currentThread())reader.interrupt();
-            if(writer!=null && writer!=Thread.currentThread())writer.interrupt();
+            if(reader!=null&&reader!=Thread.currentThread())reader.interrupt();
+            if(writer!=null&&writer!=Thread.currentThread())writer.interrupt();
             active.compareAndSet(this,null);
             AIBotMod.LOGGER.info(
                     "AIBot real client disconnected body_id={} player={} session={}",

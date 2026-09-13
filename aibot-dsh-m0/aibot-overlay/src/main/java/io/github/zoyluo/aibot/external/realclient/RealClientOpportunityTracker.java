@@ -44,6 +44,8 @@ public final class RealClientOpportunityTracker {
 
     private final BridgeJournal journal;
     private final LinkedHashMap<String,Opportunity> active=new LinkedHashMap<>();
+    private String lastProcessedGameSession="";
+    private long lastProcessedFrameSeq=-1L;
 
     public RealClientOpportunityTracker(BridgeJournal journal) {
         this.journal=journal;
@@ -60,6 +62,11 @@ public final class RealClientOpportunityTracker {
             diagReject(player,sensor,null,null,"game_session_missing");
             return Optional.empty();
         }
+        if(sensor.gameSession().equals(lastProcessedGameSession)
+                && sensor.frameSeq()<=lastProcessedFrameSeq)
+            return Optional.empty();
+        lastProcessedGameSession=sensor.gameSession();
+        lastProcessedFrameSeq=sensor.frameSeq();
         long now=System.currentTimeMillis();
         if(now-sensor.receivedAtMs()>FRAME_FRESH_MS) {
             diagReject(player,sensor,null,null,"frame_stale");

@@ -11,9 +11,9 @@ import java.nio.charset.StandardCharsets;
 
 /** Length-prefixed loopback protocol shared by the dedicated server and Bob's Fabric client. */
 public final class RealClientWire {
-    // v2: heartbeat/execution 携带 game_session/game_session_seq/frame_seq,采样与
-    // Minecraft 游戏连接 incarnation 绑定;v1 对端在握手时 fail closed。
-    public static final int PROTOCOL_VERSION=2;
+    // v3: v2 game/frame identity plus native Screen snapshots and client window-mode binding.
+    // Older clients/servers fail closed during hello/welcome.
+    public static final int PROTOCOL_VERSION=3;
     public static final int MAX_FRAME_BYTES=64*1024;
 
     private RealClientWire() {}

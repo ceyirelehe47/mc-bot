@@ -59,6 +59,7 @@ final class RealClientWireSessionTest {
             message.addProperty("body_id",BODY);
             message.addProperty("player_name",PLAYER);
             message.addProperty("session_epoch",epoch);
+            message.addProperty("window_mode","background");
             RealClientWire.write(output,message);
         }
         com.google.gson.JsonObject welcome()throws Exception {
@@ -121,6 +122,14 @@ final class RealClientWireSessionTest {
         startTransport();
         try(Client client=new Client(transportLocalPort())) {
             client.hello(1);
+            awaitClosed(client);
+        }
+    }
+
+    @Test void protocolV2HelloIsRejectedFailClosed()throws Exception {
+        startTransport();
+        try(Client client=new Client(transportLocalPort())) {
+            client.hello(2);
             awaitClosed(client);
         }
     }

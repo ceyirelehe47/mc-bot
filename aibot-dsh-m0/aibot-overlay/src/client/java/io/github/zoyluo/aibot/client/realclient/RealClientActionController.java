@@ -3,9 +3,15 @@ package io.github.zoyluo.aibot.client.realclient;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.screen.slot.Slot;
+import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
@@ -47,6 +53,10 @@ final class RealClientActionController {
                     Direction.valueOf(args.get("face").getAsString().toUpperCase(Locale.ROOT)),
                     args.get("slot").getAsInt(),args.get("block").getAsString(),
                     args.get("expected_item").getAsString(),args.get("baseline_count").getAsInt());
+            case "deposit" -> new DepositAction(
+                    executionId,
+                    new BlockPos(args.get("x").getAsInt(),args.get("y").getAsInt(),args.get("z").getAsInt()),
+                    Direction.valueOf(args.get("face").getAsString().toUpperCase(Locale.ROOT)));
             default -> null;
         };
         if(active==null)send(executionId,"failed",0D,"real_client_operation_unsupported");
@@ -69,6 +79,7 @@ final class RealClientActionController {
             case "cancel" -> {
                 active.cancelled=true;clearInputs(client);
                 if(client.interactionManager!=null)client.interactionManager.cancelBlockBreaking();
+                closeHandled(client);
                 send(active.executionId,"cancelled",active.progress,
                         message.has("reason")?message.get("reason").getAsString():"external_cancel");
             }
@@ -78,21 +89,15 @@ final class RealClientActionController {
     void tick(MinecraftClient client) {
         if(active==null)return;
         if(client.player==null || client.world==null || client.interactionManager==null) {
-            clearInputs(client);
-            return;
+            clearInputs(client);return;
         }
-        if(active.terminal()) {
-            clearInputs(client);
-            return;
-        }
-        if(active.paused) {
-            clearInputs(client);
-            return;
-        }
+        if(active.terminal()) { clearInputs(client);return; }
+        if(active.paused) { clearInputs(client);return; }
         try {
             active.tick(client);
         } catch(RuntimeException failure) {
             clearInputs(client);
+            closeHandled(client);
             active.failed=true;
             send(active.executionId,"failed",active.progress,
                     "real_client_action_exception:"+failure.getClass().getSimpleName());
@@ -102,21 +107,22 @@ final class RealClientActionController {
     void controlSessionLost(MinecraftClient client) {
         clearInputs(client);
         if(client.interactionManager!=null)client.interactionManager.cancelBlockBreaking();
-        // The server has fenced this physical session. Never retain an old intent across reconnect.
+        closeHandled(client);
         if(active!=null && !active.terminal())active.failed=true;
         active=null;
     }
 
-    /** 新 Minecraft 游戏 incarnation:旧 action 静默丢弃,其状态属于已被围栏的会话。 */
     void gameSessionStarted(MinecraftClient client) {
         clearInputs(client);
         if(client.interactionManager!=null)client.interactionManager.cancelBlockBreaking();
+        closeHandled(client);
         if(active!=null && !active.terminal())active.failed=true;
         active=null;
     }
 
     void disconnected(MinecraftClient client) {
         clearInputs(client);
+        closeHandled(client);
         if(active!=null && !active.terminal()) {
             active.failed=true;
             send(active.executionId,"outcome_unknown",active.progress,
@@ -146,6 +152,12 @@ final class RealClientActionController {
         client.options.attackKey.setPressed(false);
     }
 
+    private static void closeHandled(MinecraftClient client) {
+        if(client.player!=null
+                && client.player.currentScreenHandler!=client.player.playerScreenHandler)
+            client.player.closeHandledScreen();
+    }
+
     private abstract class Action {
         final String executionId;
         boolean paused,cancelled,failed,completed;
@@ -158,28 +170,22 @@ final class RealClientActionController {
     }
 
     private final class SayAction extends Action {
-        final String message;
-        boolean sent;
+        final String message; boolean sent;
         SayAction(String executionId,String message){super(executionId);this.message=message;}
         @Override void tick(MinecraftClient client) {
             if(sent)return;
             client.player.networkHandler.sendChatMessage(message);
-            sent=true;
-            complete("client_chat_packet_sent");
+            sent=true;complete("client_chat_packet_sent");
         }
     }
 
     private final class GotoAction extends Action {
-        final Vec3d target;
-        final double radius;
-        // 可选 final-facing:到达后把 crosshair 稳定压到该格再上报完成,
-        // 让服务器同帧验证能观察到 birth;不新增任何 public operation。
-        final BlockPos faceTarget;
+        final Vec3d target; final double radius; final BlockPos faceTarget;
         int facingTicks;
         static final int MAX_FACING_TICKS=100;
         GotoAction(String executionId,double x,double y,double z,double radius,BlockPos faceTarget) {
-            super(executionId);this.target=new Vec3d(x+.5D,y,z+.5D);this.radius=radius;
-            this.faceTarget=faceTarget;
+            super(executionId);this.target=new Vec3d(x+.5D,y,z+.5D);
+            this.radius=radius;this.faceTarget=faceTarget;
         }
         @Override void tick(MinecraftClient client) {
             double distance=client.player.getPos().distanceTo(target);
@@ -187,17 +193,17 @@ final class RealClientActionController {
                 clearInputs(client);
                 if(faceTarget==null) { complete("client_arrival_reported");return; }
                 lookAt(client,faceTarget.toCenterPos());
-                if(client.crosshairTarget instanceof net.minecraft.util.hit.BlockHitResult hit
-                        && hit.getType()==net.minecraft.util.hit.HitResult.Type.BLOCK
+                if(client.crosshairTarget instanceof BlockHitResult hit
+                        && hit.getType()==HitResult.Type.BLOCK
                         && hit.getBlockPos().equals(faceTarget)) {
                     complete("client_arrival_and_facing_reported");return;
                 }
-                if(++facingTicks>MAX_FACING_TICKS)complete("client_arrival_reported");
+                if(++facingTicks>MAX_FACING_TICKS)
+                    fail("client_final_facing_timeout");
                 else send(executionId,"running",progress,"client_final_facing");
                 return;
             }
-            clearInputs(client);
-            lookAt(client,target);
+            clearInputs(client);lookAt(client,target);
             client.options.forwardKey.setPressed(true);
             client.options.sprintKey.setPressed(distance>6D);
             progress=Math.max(progress,Math.min(.95D,1D-distance/32D));
@@ -206,11 +212,8 @@ final class RealClientActionController {
     }
 
     private final class MineAction extends Action {
-        final BlockPos target;
-        final Direction face;
-        final int slot,baseline;
-        final String blockId,expectedItem;
-        boolean started;
+        final BlockPos target; final Direction face; final int slot,baseline;
+        final String blockId,expectedItem; boolean started;
         MineAction(String executionId,BlockPos target,Direction face,int slot,
                 String blockId,String expectedItem,int baseline) {
             super(executionId);this.target=target;this.face=face;this.slot=slot;
@@ -225,21 +228,14 @@ final class RealClientActionController {
                     clearInputs(client);client.interactionManager.cancelBlockBreaking();
                     complete("client_block_gone_and_inventory_gain_observed");return;
                 }
-                walkTo(client,target.toCenterPos());
-                progress=.9D;
-                send(executionId,"running",progress,"waiting_for_physical_pickup");
-                return;
+                walkTo(client,target.toCenterPos());progress=.9D;
+                send(executionId,"running",progress,"waiting_for_physical_pickup");return;
             }
-            if(!actual.equals(blockId)) {
-                clearInputs(client);fail("client_target_cell_changed");return;
-            }
+            if(!actual.equals(blockId)) { clearInputs(client);fail("client_target_cell_changed");return; }
             if(client.player.getPos().squaredDistanceTo(target.toCenterPos())>16D) {
-                walkTo(client,target.toCenterPos());
-                progress=Math.max(progress,.1D);
-                return;
+                walkTo(client,target.toCenterPos());progress=Math.max(progress,.1D);return;
             }
-            clearInputs(client);
-            client.player.getInventory().selectedSlot=slot;
+            clearInputs(client);client.player.getInventory().selectedSlot=slot;
             lookAt(client,target.toCenterPos());
             if(!started) {
                 started=client.interactionManager.attackBlock(target,face);
@@ -249,6 +245,69 @@ final class RealClientActionController {
             client.player.swingHand(Hand.MAIN_HAND);
             progress=Math.max(progress,.5D);
             send(executionId,"running",progress,"client_breaking_block");
+        }
+    }
+
+    /** Vanilla barrel GUI vertical slice: open normally and QUICK_MOVE player inventory stacks. */
+    private final class DepositAction extends Action {
+        final BlockPos target; final Direction face;
+        boolean interactionSent;
+        int openTicks,clickCooldown,settleTicks;
+        DepositAction(String executionId,BlockPos target,Direction face) {
+            super(executionId);this.target=target;this.face=face;
+        }
+        @Override void tick(MinecraftClient client) {
+            if(client.currentScreen instanceof HandledScreen<?> handled
+                    && client.player.currentScreenHandler!=client.player.playerScreenHandler) {
+                clearInputs(client);
+                if(clickCooldown>0) { clickCooldown--;return; }
+                Slot next=nextDepositable(client,handled);
+                if(next!=null) {
+                    client.interactionManager.clickSlot(
+                            handled.getScreenHandler().syncId,next.id,0,
+                            SlotActionType.QUICK_MOVE,client.player);
+                    clickCooldown=2;settleTicks=0;progress=.7D;
+                    send(executionId,"running",progress,"client_container_quick_move");
+                    return;
+                }
+                if(++settleTicks<10) {
+                    send(executionId,"running",.9D,"client_container_settling");
+                    return;
+                }
+                closeHandled(client);
+                complete("client_container_quick_move_finished");
+                return;
+            }
+            if(client.player.getPos().squaredDistanceTo(target.toCenterPos())>16D) {
+                walkTo(client,target.toCenterPos());progress=.1D;return;
+            }
+            clearInputs(client);lookAt(client,target.toCenterPos());
+            if(client.crosshairTarget instanceof BlockHitResult hit
+                    && hit.getType()==HitResult.Type.BLOCK
+                    && hit.getBlockPos().equals(target)) {
+                if(!interactionSent) {
+                    ActionResult result=client.interactionManager.interactBlock(
+                            client.player,Hand.MAIN_HAND,hit);
+                    interactionSent=result.isAccepted();
+                    client.player.swingHand(Hand.MAIN_HAND);
+                }
+            }
+            if(++openTicks>100) { fail("client_container_open_timeout");return; }
+            send(executionId,"running",.25D,
+                    interactionSent?"waiting_for_container_screen":"aiming_at_container");
+        }
+
+        private Slot nextDepositable(
+                MinecraftClient client,HandledScreen<?> handled) {
+            int selected=client.player.getInventory().selectedSlot;
+            for(Slot slot:handled.getScreenHandler().slots) {
+                if(slot.inventory!=client.player.getInventory())continue;
+                int index=slot.getIndex();
+                if(index<0 || index>=36 || index==selected)continue;
+                if(slot.getStack().isEmpty() || !slot.canTakeItems(client.player))continue;
+                return slot;
+            }
+            return null;
         }
     }
 
@@ -264,8 +323,7 @@ final class RealClientActionController {
     }
 
     private static void walkTo(MinecraftClient client,Vec3d target) {
-        clearInputs(client);
-        lookAt(client,target);
+        clearInputs(client);lookAt(client,target);
         client.options.forwardKey.setPressed(true);
         client.options.sprintKey.setPressed(false);
     }
@@ -276,7 +334,6 @@ final class RealClientActionController {
         double horizontal=Math.sqrt(dx*dx+dz*dz);
         float yaw=(float)(MathHelper.atan2(dz,dx)*180D/Math.PI)-90F;
         float pitch=(float)(-(MathHelper.atan2(dy,horizontal)*180D/Math.PI));
-        // crosshair 由 headYaw 计算(getRotationVec(1F)),三处旋转一并同步避免等待追随。
         client.player.setYaw(yaw);
         client.player.setHeadYaw(yaw);
         client.player.setBodyYaw(yaw);

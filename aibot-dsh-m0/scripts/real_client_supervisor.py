@@ -63,6 +63,9 @@ def load_config(path: Path) -> dict[str, Any]:
     host = str(value.get("control_host", "127.0.0.1")).lower()
     if host not in {"127.0.0.1", "::1", "localhost"}:
         raise ValueError("control_host_must_be_loopback")
+    window_mode = str(value.get("window_mode", "background")).lower()
+    if window_mode not in {"background", "minimized", "interactive"}:
+        raise ValueError("window_mode_must_be_background_minimized_or_interactive")
     return value
 
 
@@ -120,6 +123,7 @@ def main() -> int:
     control_host = str(config.get("control_host", "127.0.0.1"))
     control_port = str(int(config.get("control_port", 8766)))
     minecraft_server = str(config.get("minecraft_server", "127.0.0.1:25565"))
+    window_mode = str(config.get("window_mode", "background")).lower()
     variables = {
         "username": username,
         "offline_uuid": player_uuid,
@@ -143,6 +147,7 @@ def main() -> int:
         "AIBOT_REAL_CLIENT_BOT_NAME": username,
         "AIBOT_REAL_CLIENT_HOST": control_host,
         "AIBOT_REAL_CLIENT_PORT": control_port,
+        "AIBOT_REAL_CLIENT_WINDOW_MODE": window_mode,
     })
     if not environment.get("AIBOT_REAL_CLIENT_TOKEN"):
         raise ValueError("AIBOT_REAL_CLIENT_TOKEN_must_be_supplied_in_environment")
@@ -154,6 +159,7 @@ def main() -> int:
         "offline_uuid": player_uuid,
         "body_id": body_id,
         "minecraft_server": minecraft_server,
+        "window_mode": window_mode,
     }
     if args.print_launch:
         print(json.dumps(launch, ensure_ascii=False, indent=2))
@@ -189,6 +195,11 @@ def main() -> int:
             }
             if os.name == "nt":
                 launch_options["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+                if window_mode != "interactive":
+                    startup = subprocess.STARTUPINFO()
+                    startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    startup.wShowWindow = getattr(subprocess, "SW_SHOWMINNOACTIVE", 7)
+                    launch_options["startupinfo"] = startup
             else:
                 launch_options["start_new_session"] = True
             child = subprocess.Popen(command, **launch_options)

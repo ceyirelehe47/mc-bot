@@ -39,9 +39,8 @@ public final class MC2A04RealClientTrackerGameTests implements FabricGameTest {
                                     && first.id().equals(frame.fields().get("opportunity_id"))),
                     "durable real-client birth receipt missing");
             // 重复/回放 frame 不得产生第二个 birth incarnation。
-            var sameFrame=tracker.observe(player,sensor).orElseThrow();
-            require(context,sameFrame.id().equals(first.id()),
-                    "duplicate coherent frame rebirthed a second incarnation");
+            require(context,tracker.observe(player,sensor).isEmpty(),
+                    "one coherent frame must be processed at most once");
             long births=journal.replay().stream().filter(frame->
                     "real_client_opportunity_birth".equals(frame.fields().get("kind"))).count();
             require(context,births==1L,"duplicate frame appended a second durable birth");

@@ -24,17 +24,17 @@ import java.util.concurrent.atomic.AtomicReference;
 final class RealClientClientTransport implements AutoCloseable {
     private final InetAddress host;
     private final int port;
-    private final String token,bodyId,playerName;
+    private final String token,bodyId,playerName,windowMode;
     private final AtomicBoolean closed=new AtomicBoolean();
     private final AtomicReference<Connection> connection=new AtomicReference<>();
     private final ArrayBlockingQueue<JsonObject> inbound=new ArrayBlockingQueue<>(64);
     private final Thread connector;
-    // 当前 Minecraft 游戏 incarnation(v2 wire):JOIN 时由 runtime 绑定,消息统一注入。
     private volatile String gameSessionEpoch="";
     private volatile int gameSessionSeq=-1;
 
     RealClientClientTransport(
-            String host,int port,String token,String bodyId,String playerName) {
+            String host,int port,String token,String bodyId,String playerName,
+            String windowMode) {
         try {
             this.host=InetAddress.getByName(host);
         } catch(UnknownHostException failure) {
@@ -47,30 +47,24 @@ final class RealClientClientTransport implements AutoCloseable {
         if(token==null || token.length()<32 || token.length()>256
                 || !token.matches("[A-Za-z0-9_-]+"))
             throw new IllegalArgumentException("real_client_control_token_invalid");
+        if(!java.util.Set.of("background","minimized","interactive").contains(windowMode))
+            throw new IllegalArgumentException("real_client_window_mode_invalid");
         this.port=port;this.token=token;
-        this.bodyId=bodyId;this.playerName=playerName;
+        this.bodyId=bodyId;this.playerName=playerName;this.windowMode=windowMode;
         connector=new Thread(this::connectLoop,"aibot-real-client-connector");
         connector.setDaemon(true);
     }
 
-    void start() {
-        connector.start();
-    }
-
-    JsonObject poll() {
-        return inbound.poll();
-    }
-
+    void start() { connector.start(); }
+    JsonObject poll() { return inbound.poll(); }
     String sessionEpoch() {
         Connection current=connection.get();
         return current==null?"":current.sessionEpoch;
     }
-
     boolean connected() {
         Connection current=connection.get();
         return current!=null && current.connected.get();
     }
-
     void bindGameSession(String epoch,int seq) {
         gameSessionEpoch=epoch==null?"":epoch;
         gameSessionSeq=seq;
@@ -106,6 +100,7 @@ final class RealClientClientTransport implements AutoCloseable {
                 hello.addProperty("body_id",bodyId);
                 hello.addProperty("player_name",playerName);
                 hello.addProperty("session_epoch",epoch);
+                hello.addProperty("window_mode",windowMode);
                 RealClientWire.write(output,hello);
                 JsonObject welcome=RealClientWire.read(input);
                 if(!"welcome".equals(RealClientWire.requiredString(welcome,"type",32)))
@@ -122,8 +117,8 @@ final class RealClientClientTransport implements AutoCloseable {
                 if(old!=null)old.close();
                 failures=0;
                 AIBotMod.LOGGER.info(
-                        "AIBot real-client control connected body_id={} session={}",
-                        bodyId,epoch);
+                        "AIBot real-client control connected body_id={} session={} window_mode={}",
+                        bodyId,epoch,windowMode);
                 connected.startWriter();
                 connected.readLoop();
             } catch(Exception failure) {

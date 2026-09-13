@@ -18,7 +18,7 @@ final class RealClientMvpSourceTest {
 
     @Test void realClientBackendSupportsOnlyTheMvpVerticalSlice()throws Exception {
         String driver=main("realclient/RealClientExecutionDriver.java");
-        assertTrue(driver.contains("Set.of(\"say\",\"goto\",\"mine_opportunity\")"));
+        assertTrue(driver.contains("Set.of(\"say\",\"goto\",\"mine_opportunity\",\"deposit\")"));
         assertFalse(driver.contains("ServerFakePlayerExecutionDriver"));
         assertFalse(driver.contains("TaskManager.INSTANCE.assign"));
     }
@@ -85,9 +85,9 @@ final class RealClientMvpSourceTest {
         assertTrue(tracker.contains("\"game_session_missing\""));
     }
 
-    @Test void wireProtocolV2IsExplicitAndMixedBinariesFailClosed()throws Exception {
+    @Test void wireProtocolV3IsExplicitAndMixedBinariesFailClosed()throws Exception {
         String wire=main("realclient/RealClientWire.java");
-        assertTrue(wire.contains("PROTOCOL_VERSION=2"));
+        assertTrue(wire.contains("PROTOCOL_VERSION=3"));
         String server=main("realclient/RealClientServerTransport.java");
         String client=Files.readString(CLIENT.resolve("RealClientClientTransport.java"));
         assertTrue(server.contains("real_client_protocol_mismatch"));
@@ -121,9 +121,9 @@ final class RealClientMvpSourceTest {
 
     @Test void mineCompletionRequiresExactBlockGoneAndInventoryGain()throws Exception {
         String driver=main("realclient/RealClientExecutionDriver.java");
-        assertTrue(driver.contains("if(currentState.isAir() && current>baseline)"));
+        assertTrue(driver.contains("if(currentState.isAir()&&current>baseline)"));
         int stale=driver.indexOf("target_cell_replaced_during_execution");
-        int success=driver.indexOf("if(currentState.isAir() && current>baseline)");
+        int success=driver.indexOf("if(currentState.isAir()&&current>baseline)");
         assertTrue(stale>=0 && success>stale,
                 "a replaced target must terminalize stale before any inventory delta can count");
     }

@@ -27,7 +27,7 @@ public final class RealClientCognitiveViewBuilder {
 
     public static CognitiveSnapshot.Snapshot build(
             String bodyId,ServerPlayerEntity player,RealClientOpportunityTracker tracker,
-            BridgeJournal journal) {
+            BridgeJournal journal,RealClientServerTransport.ScreenSnapshot screen) {
         String worldId=io.github.zoyluo.aibot.external.SemanticWorldRegistry.worldId();
         String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
         long gameTime=player.getServerWorld().getTime();
@@ -35,6 +35,7 @@ public final class RealClientCognitiveViewBuilder {
         scene.put("world",Map.of("world_id",worldId,"dimension",dimension));
         scene.put("self",self(bodyId,player));
         scene.put("environment",environment(player));
+        scene.put("ui",screen(screen));
 
         List<Map<String,Object>> cards=new ArrayList<>();
         Map<String,CognitiveSnapshot.EvidenceDescriptor> index=new LinkedHashMap<>();
@@ -125,6 +126,33 @@ public final class RealClientCognitiveViewBuilder {
                 "availability","UNAVAILABLE_REAL_CLIENT_MVP",
                 "sensor","client_crosshair_only"));
         return environment;
+    }
+
+    private static Map<String,Object> screen(
+            RealClientServerTransport.ScreenSnapshot screen) {
+        if(screen==null || !screen.present())return Map.of("present",false);
+        List<Map<String,Object>> slots=new ArrayList<>();
+        for(var slot:screen.slots()) {
+            if("minecraft:air".equals(slot.itemId()) || slot.count()==0)continue;
+            Map<String,Object> item=CanonicalJson.object();
+            item.put("slot_id",(long)slot.slotId());
+            item.put("inventory_kind",slot.inventoryKind());
+            item.put("inventory_index",(long)slot.inventoryIndex());
+            item.put("item",slot.itemId());
+            item.put("count",(long)slot.count());
+            slots.add(item);
+            if(slots.size()>=64)break;
+        }
+        Map<String,Object> ui=CanonicalJson.object();
+        ui.put("present",true);
+        ui.put("screen_class",screen.screenClass());
+        ui.put("handler_class",screen.handlerClass());
+        ui.put("title",screen.title());
+        ui.put("sync_id",(long)screen.syncId());
+        ui.put("slots",slots);
+        ui.put("slot_count",(long)screen.slotCount());
+        ui.put("truncated",screen.truncated() || screen.slots().size()>64);
+        return ui;
     }
 
     private static Map<String,Object> recentEvents(BridgeJournal journal) {
