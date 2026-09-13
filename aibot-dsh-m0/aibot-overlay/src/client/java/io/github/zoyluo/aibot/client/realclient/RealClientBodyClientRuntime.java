@@ -7,6 +7,12 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.DisconnectedScreen;
+import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
+import net.minecraft.client.gui.screen.AccessibilityOnboardingScreen;
+import net.minecraft.client.gui.screen.option.AccessibilityOptionsScreen;
+import net.minecraft.client.gui.screen.option.LanguageOptionsScreen;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -155,15 +161,14 @@ public final class RealClientBodyClientRuntime {
                     "AIBot real-client auto-join watcher screen={}",
                     screen);
         }
-        boolean idle=screen.endsWith("TitleScreen")
-                || screen.endsWith("MultiplayerScreen")
-                || screen.endsWith("SelectServerScreen")
-                || screen.endsWith("DisconnectedScreen")
-                || screen.endsWith(
-                        "AccessibilityOnboardingScreen")
-                || screen.endsWith(
-                        "AccessibilityOptionsScreen")
-                || screen.endsWith("LanguageOptionsScreen");
+        // Namespace-safe idle-screen matching: remappable class literals, not Yarn
+        // name strings. String suffixes never match in an intermediary runtime.
+        boolean idle=client.currentScreen instanceof TitleScreen
+                || client.currentScreen instanceof MultiplayerScreen
+                || client.currentScreen instanceof DisconnectedScreen
+                || client.currentScreen instanceof AccessibilityOnboardingScreen
+                || client.currentScreen instanceof AccessibilityOptionsScreen
+                || client.currentScreen instanceof LanguageOptionsScreen;
         if(!idle)return;
         long now=System.currentTimeMillis();
         if(now<nextAutoJoinAttemptMs)return;
@@ -179,12 +184,13 @@ public final class RealClientBodyClientRuntime {
                         "aibot-real-client",autoJoinTarget,
                         net.minecraft.client.network.ServerInfo
                                 .ServerType.OTHER);
+        // A non-null CookieStorage makes vanilla 1.21.2+ open the connection with
+        // TRANSFER intent, which servers with accepts-transfers=false refuse. A plain
+        // launcher connect is null + false.
         net.minecraft.client.gui.screen.multiplayer.ConnectScreen
                 .connect(
                         client.currentScreen,client,address,info,
-                        true,
-                        new net.minecraft.client.network.CookieStorage(
-                                java.util.Map.of()));
+                        false,null);
     }
 
     private static void heartbeat(
