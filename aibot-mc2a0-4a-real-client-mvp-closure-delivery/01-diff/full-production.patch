@@ -1,0 +1,1025 @@
+diff --git a/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientActionController.java b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientActionController.java
+index b231bf9..4f12820 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientActionController.java
++++ b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientActionController.java
+@@ -36,7 +36,11 @@ final class RealClientActionController {
+             case "goto" -> new GotoAction(
+                     executionId,args.get("x").getAsDouble(),
+                     args.get("y").getAsDouble(),args.get("z").getAsDouble(),
+-                    args.has("arrival_radius")?args.get("arrival_radius").getAsDouble():2.5D);
++                    args.has("arrival_radius")?args.get("arrival_radius").getAsDouble():2.5D,
++                    args.has("face_x")&&args.has("face_y")&&args.has("face_z")
++                            ?new BlockPos(args.get("face_x").getAsInt(),
++                                    args.get("face_y").getAsInt(),args.get("face_z").getAsInt())
++                            :null);
+             case "mine_opportunity" -> new MineAction(
+                     executionId,
+                     new BlockPos(args.get("x").getAsInt(),args.get("y").getAsInt(),args.get("z").getAsInt()),
+@@ -103,6 +107,14 @@ final class RealClientActionController {
+         active=null;
+     }
+ 
++    /** 新 Minecraft 游戏 incarnation:旧 action 静默丢弃,其状态属于已被围栏的会话。 */
++    void gameSessionStarted(MinecraftClient client) {
++        clearInputs(client);
++        if(client.interactionManager!=null)client.interactionManager.cancelBlockBreaking();
++        if(active!=null && !active.terminal())active.failed=true;
++        active=null;
++    }
++
+     void disconnected(MinecraftClient client) {
+         clearInputs(client);
+         if(active!=null && !active.terminal()) {
+@@ -160,13 +172,29 @@ final class RealClientActionController {
+     private final class GotoAction extends Action {
+         final Vec3d target;
+         final double radius;
+-        GotoAction(String executionId,double x,double y,double z,double radius) {
++        // 可选 final-facing:到达后把 crosshair 稳定压到该格再上报完成,
++        // 让服务器同帧验证能观察到 birth;不新增任何 public operation。
++        final BlockPos faceTarget;
++        int facingTicks;
++        static final int MAX_FACING_TICKS=100;
++        GotoAction(String executionId,double x,double y,double z,double radius,BlockPos faceTarget) {
+             super(executionId);this.target=new Vec3d(x+.5D,y,z+.5D);this.radius=radius;
++            this.faceTarget=faceTarget;
+         }
+         @Override void tick(MinecraftClient client) {
+             double distance=client.player.getPos().distanceTo(target);
+             if(distance<=radius) {
+-                clearInputs(client);complete("client_arrival_reported");return;
++                clearInputs(client);
++                if(faceTarget==null) { complete("client_arrival_reported");return; }
++                lookAt(client,faceTarget.toCenterPos());
++                if(client.crosshairTarget instanceof net.minecraft.util.hit.BlockHitResult hit
++                        && hit.getType()==net.minecraft.util.hit.HitResult.Type.BLOCK
++                        && hit.getBlockPos().equals(faceTarget)) {
++                    complete("client_arrival_and_facing_reported");return;
++                }
++                if(++facingTicks>MAX_FACING_TICKS)complete("client_arrival_reported");
++                else send(executionId,"running",progress,"client_final_facing");
++                return;
+             }
+             clearInputs(client);
+             lookAt(client,target);
+@@ -248,7 +276,10 @@ final class RealClientActionController {
+         double horizontal=Math.sqrt(dx*dx+dz*dz);
+         float yaw=(float)(MathHelper.atan2(dz,dx)*180D/Math.PI)-90F;
+         float pitch=(float)(-(MathHelper.atan2(dy,horizontal)*180D/Math.PI));
++        // crosshair 由 headYaw 计算(getRotationVec(1F)),三处旋转一并同步避免等待追随。
+         client.player.setYaw(yaw);
++        client.player.setHeadYaw(yaw);
++        client.player.setBodyYaw(yaw);
+         client.player.setPitch(MathHelper.clamp(pitch,-90F,90F));
+     }
+ }
+diff --git a/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientBodyClientRuntime.java b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientBodyClientRuntime.java
+index 352f44f..011baea 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientBodyClientRuntime.java
++++ b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientBodyClientRuntime.java
+@@ -18,6 +18,11 @@ public final class RealClientBodyClientRuntime {
+     private static int heartbeatTick;
+     private static boolean controlWasConnected;
+     private static String controlSessionEpoch="";
++    // Minecraft 游戏连接 incarnation:每次实际 JOIN 生成新 epoch 并递增单调计数。
++    // 它与控制 TCP 的 transport epoch 分离,服务端用它做 physical session fencing。
++    private static volatile String gameSessionEpoch="";
++    private static volatile int gameSessionSeq=-1;
++    private static volatile long frameSeq=-1;
+     // 本地 Loom/DLI dev 客户端里 vanilla --quickPlayMultiplayer 不会触发自动连接
+     // (TitleScreen 路径未消费该参数);supervisor 重启闭环需要程序化重连,
+     // 故以显式环境变量 opt-in 直连。普通玩家客户端不设此变量,行为不变。
+@@ -45,6 +50,8 @@ public final class RealClientBodyClientRuntime {
+         transport.start();
+         ClientTickEvents.END_CLIENT_TICK.register(
+                 RealClientBodyClientRuntime::tick);
++        ClientPlayConnectionEvents.JOIN.register((handler,sender,client)->
++                gameSessionStarted(client));
+         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->{
+             if(actions!=null)actions.disconnected(client);
+         });
+@@ -79,6 +86,18 @@ public final class RealClientBodyClientRuntime {
+ 
+     private static String lastAutoJoinScreen="";
+ 
++    /** 每次实际 Minecraft JOIN 开启新游戏 incarnation:旧 action 不跨会话存续,帧序号重置。 */
++    private static void gameSessionStarted(MinecraftClient client) {
++        gameSessionEpoch=java.util.UUID.randomUUID().toString();
++        gameSessionSeq++;
++        frameSeq=-1;
++        if(transport!=null)transport.bindGameSession(gameSessionEpoch,gameSessionSeq);
++        if(actions!=null)actions.gameSessionStarted(client);
++        AIBotMod.LOGGER.info(
++                "AIBot real-client game session incarnation epoch={} seq={}",
++                gameSessionEpoch,gameSessionSeq);
++    }
++
+     /** 显式 opt-in 的游戏服直连:仅空闲界面触发、5 秒节流,避免打断连接/登录流程。 */
+     private static void maybeAutoJoin(MinecraftClient client) {
+         if(autoJoinTarget==null || autoJoinTarget.isBlank())return;
+@@ -89,7 +108,12 @@ public final class RealClientBodyClientRuntime {
+             AIBotMod.LOGGER.info("AIBot real-client auto-join watcher screen={}",screen);
+         }
+         boolean idle=screen.endsWith("TitleScreen") || screen.endsWith("MultiplayerScreen")
+-                || screen.endsWith("SelectServerScreen") || screen.endsWith("DisconnectedScreen");
++                || screen.endsWith("SelectServerScreen") || screen.endsWith("DisconnectedScreen")
++                // DLI dev 客户端偶尔无视 options.txt 的 onboardAccessibility:false 而停在
++                // 首启 onboarding 系列;直接从该屏发起连接即可替换它,无需任何人工输入。
++                || screen.endsWith("AccessibilityOnboardingScreen")
++                || screen.endsWith("AccessibilityOptionsScreen")
++                || screen.endsWith("LanguageOptionsScreen");
+         if(!idle)return;
+         long now=System.currentTimeMillis();
+         if(now<nextAutoJoinAttemptMs)return;
+@@ -108,13 +132,19 @@ public final class RealClientBodyClientRuntime {
+ 
+     private static void heartbeat(MinecraftClient client) {
+         if(!transport.connected() || client.player==null || client.world==null)return;
++        if(gameSessionEpoch.isBlank())return;
+         JsonObject heartbeat=new JsonObject();
+         heartbeat.addProperty("type","heartbeat");
++        heartbeat.addProperty("game_session",gameSessionEpoch);
++        heartbeat.addProperty("game_session_seq",gameSessionSeq);
++        heartbeat.addProperty("frame_seq",++frameSeq);
+         heartbeat.addProperty("player_uuid",client.player.getUuidAsString());
+         heartbeat.addProperty("x",client.player.getX());
+         heartbeat.addProperty("y",client.player.getY());
+         heartbeat.addProperty("z",client.player.getZ());
+-        heartbeat.addProperty("yaw",client.player.getYaw());
++        // 客户端 crosshair 由 getRotationVec(1F)=fromPolar(pitch,headYaw) 计算,
++        // 同帧重建必须报告 crosshair 真正使用的视线,而不是 body yaw 字段。
++        heartbeat.addProperty("yaw",client.player.getHeadYaw());
+         heartbeat.addProperty("pitch",client.player.getPitch());
+         heartbeat.addProperty("selected_slot",client.player.getInventory().selectedSlot);
+         if(client.crosshairTarget instanceof BlockHitResult hit
+diff --git a/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientClientTransport.java b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientClientTransport.java
+index b8560d7..1581dff 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientClientTransport.java
++++ b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientClientTransport.java
+@@ -29,6 +29,9 @@ final class RealClientClientTransport implements AutoCloseable {
+     private final AtomicReference<Connection> connection=new AtomicReference<>();
+     private final ArrayBlockingQueue<JsonObject> inbound=new ArrayBlockingQueue<>(64);
+     private final Thread connector;
++    // 当前 Minecraft 游戏 incarnation(v2 wire):JOIN 时由 runtime 绑定,消息统一注入。
++    private volatile String gameSessionEpoch="";
++    private volatile int gameSessionSeq=-1;
+ 
+     RealClientClientTransport(
+             String host,int port,String token,String bodyId,String playerName) {
+@@ -68,10 +71,19 @@ final class RealClientClientTransport implements AutoCloseable {
+         return current!=null && current.connected.get();
+     }
+ 
++    void bindGameSession(String epoch,int seq) {
++        gameSessionEpoch=epoch==null?"":epoch;
++        gameSessionSeq=seq;
++    }
++
+     boolean send(JsonObject message) {
+         Connection current=connection.get();
+         if(current==null || !current.connected.get())return false;
+         message.addProperty("session_epoch",current.sessionEpoch);
++        if(!gameSessionEpoch.isBlank()) {
++            message.addProperty("game_session",gameSessionEpoch);
++            message.addProperty("game_session_seq",gameSessionSeq);
++        }
+         return current.outbound.offer(message);
+     }
+ 
+diff --git a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A04RealClientTrackerGameTests.java b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A04RealClientTrackerGameTests.java
+index f2327bf..e1ab213 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A04RealClientTrackerGameTests.java
++++ b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A04RealClientTrackerGameTests.java
+@@ -29,31 +29,22 @@ public final class MC2A04RealClientTrackerGameTests implements FabricGameTest {
+             batchId="mc2a04_real_client_tracker",tickLimit=200)
+     public void mc2a04BirthReplayAndTerminalReappearanceUseCorrectIncarnations(
+             TestContext context) {
+-        ServerWorld world=context.getWorld();
+-        BlockPos start=context.getAbsolutePos(new BlockPos(2,2,2));
+-        prepare(world,start);
+-        BlockPos ore=start.east(2);
+-        world.setBlockState(ore,Blocks.IRON_ORE.getDefaultState(),Block.NOTIFY_ALL);
+-        Path path=null;
+-        BridgeJournal journal=null;
+-        try {
+-            AIPlayerManager.INSTANCE.despawn(world.getServer(),BOT);
+-            AIPlayerEntity player=AIPlayerManager.INSTANCE.spawn(
+-                    world.getServer(),BOT,world,Vec3d.ofBottomCenter(start),
+-                    0F,0F,GameMode.SURVIVAL).orElseThrow();
+-            path=Files.createTempFile("mc2a04-real-client-tracker-",".journal");
+-            journal=new BridgeJournal(path,()->1L);
+-            lookAt(player,ore.toCenterPos());
+-            RealClientOpportunityTracker firstTracker=
+-                    new RealClientOpportunityTracker(journal);
+-            var sensor=sensor(player,ore,"minecraft:iron_ore");
+-            var first=firstTracker.observe(player,sensor).orElseThrow();
++        scenario(context,(world,player,ore,journal,tracker)->{
++            var sensor=sensor(player,ore,"minecraft:iron_ore",0L);
++            var first=tracker.observe(player,sensor).orElseThrow();
+             require(context,first.expectedItem().equals("minecraft:raw_iron"),
+                     "iron expected drop not normalized");
+             require(context,journal.replay().stream().anyMatch(frame->
+                             "real_client_opportunity_birth".equals(frame.fields().get("kind"))
+                                     && first.id().equals(frame.fields().get("opportunity_id"))),
+                     "durable real-client birth receipt missing");
++            // 重复/回放 frame 不得产生第二个 birth incarnation。
++            var sameFrame=tracker.observe(player,sensor).orElseThrow();
++            require(context,sameFrame.id().equals(first.id()),
++                    "duplicate coherent frame rebirthed a second incarnation");
++            long births=journal.replay().stream().filter(frame->
++                    "real_client_opportunity_birth".equals(frame.fields().get("kind"))).count();
++            require(context,births==1L,"duplicate frame appended a second durable birth");
+ 
+             RealClientOpportunityTracker replayed=
+                     new RealClientOpportunityTracker(journal);
+@@ -67,11 +58,112 @@ public final class MC2A04RealClientTrackerGameTests implements FabricGameTest {
+ 
+             world.setBlockState(ore,Blocks.AIR.getDefaultState(),Block.NOTIFY_ALL);
+             world.setBlockState(ore,Blocks.IRON_ORE.getDefaultState(),Block.NOTIFY_ALL);
+-            var second=afterTerminal.observe(player,sensor).orElseThrow();
++            var next=sensor(player,ore,"minecraft:iron_ore",1L);
++            var second=afterTerminal.observe(player,next).orElseThrow();
+             require(context,!first.id().equals(second.id()),
+                     "terminal same-cell reappearance reused old incarnation id");
+             afterTerminal.markStale("gt-real-client-cleanup",second,"fixture_cleanup");
++        });
++    }
++
++    @GameTest(templateName=FabricGameTest.EMPTY_STRUCTURE,
++            batchId="mc2a04_real_client_tracker",tickLimit=200)
++    public void mc2a04StaleFrameNeverBirths(TestContext context) {
++        scenario(context,(world,player,ore,journal,tracker)->{
++            var stale=sensor(player,ore,"minecraft:iron_ore",0L,System.currentTimeMillis()
++                    -RealClientOpportunityTracker.FRAME_FRESH_MS-1000L);
++            require(context,tracker.observe(player,stale).isEmpty(),
++                    "stale frame must fail closed");
++            require(context,tracker.opportunities(player).isEmpty(),
++                    "stale frame must not create an opportunity");
++        });
++    }
++
++    @GameTest(templateName=FabricGameTest.EMPTY_STRUCTURE,
++            batchId="mc2a04_real_client_tracker",tickLimit=200)
++    public void mc2a04PositionDriftFrameNeverBirths(TestContext context) {
++        scenario(context,(world,player,ore,journal,tracker)->{
++            var drifted=new RealClientServerTransport.SensorSnapshot(
++                    player.getUuidAsString(),
++                    player.getX()+RealClientOpportunityTracker.POSITION_TOLERANCE+2D,
++                    player.getY(),player.getZ(),
++                    player.getYaw(),player.getPitch(),0,true,
++                    ore.getX(),ore.getY(),ore.getZ(),"minecraft:iron_ore","WEST",
++                    "gt-game-session",0L,System.currentTimeMillis());
++            require(context,tracker.observe(player,drifted).isEmpty(),
++                    "frame sampled from a foreign pose must fail closed");
++            require(context,tracker.opportunities(player).isEmpty(),
++                    "drifted frame must not create an opportunity");
++        });
++    }
++
++    @GameTest(templateName=FabricGameTest.EMPTY_STRUCTURE,
++            batchId="mc2a04_real_client_tracker",tickLimit=200)
++    public void mc2a04LookDirectionMismatchFrameNeverBirths(TestContext context) {
++        scenario(context,(world,player,ore,journal,tracker)->{
++            // 报告格不变,但 frame 视线被旋转:同帧重建 ray 必然命中别处,fail closed。
++            var mislook=sensor(player,ore,"minecraft:iron_ore",0L,
++                    System.currentTimeMillis(),player.getYaw()+45F,player.getPitch());
++            require(context,tracker.observe(player,mislook).isEmpty(),
++                    "rotated look direction must fail the same-frame ray reconstruction");
++            require(context,tracker.opportunities(player).isEmpty(),
++                    "mismatched ray must not create an opportunity");
++        });
++    }
++
++    @GameTest(templateName=FabricGameTest.EMPTY_STRUCTURE,
++            batchId="mc2a04_real_client_tracker",tickLimit=200)
++    public void mc2a04ReportedBlockOrNonOreFrameNeverBirths(TestContext context) {
++        scenario(context,(world,player,ore,journal,tracker)->{
++            var lying=sensor(player,ore,"minecraft:stone",0L);
++            require(context,tracker.observe(player,lying).isEmpty(),
++                    "reported block id must match the authoritative world block");
++            world.setBlockState(ore,Blocks.STONE.getDefaultState(),Block.NOTIFY_ALL);
++            var stone=sensor(player,ore,"minecraft:stone",0L);
++            require(context,tracker.observe(player,stone).isEmpty(),
++                    "non-ore cell must never birth an opportunity");
+             world.setBlockState(ore,Blocks.AIR.getDefaultState(),Block.NOTIFY_ALL);
++        });
++    }
++
++    @GameTest(templateName=FabricGameTest.EMPTY_STRUCTURE,
++            batchId="mc2a04_real_client_tracker",tickLimit=200)
++    public void mc2a04FrameWithoutGameSessionNeverBirths(TestContext context) {
++        scenario(context,(world,player,ore,journal,tracker)->{
++            var unbound=new RealClientServerTransport.SensorSnapshot(
++                    player.getUuidAsString(),player.getX(),player.getY(),player.getZ(),
++                    player.getYaw(),player.getPitch(),0,true,
++                    ore.getX(),ore.getY(),ore.getZ(),"minecraft:iron_ore","WEST",
++                    "",0L,System.currentTimeMillis());
++            require(context,tracker.observe(player,unbound).isEmpty(),
++                    "frame without game-session incarnation must fail closed");
++            require(context,tracker.opportunities(player).isEmpty(),
++                    "unbound frame must not create an opportunity");
++        });
++    }
++
++    private interface ScenarioBody {
++        void run(ServerWorld world,AIPlayerEntity player,BlockPos ore,
++                BridgeJournal journal,RealClientOpportunityTracker tracker)throws Throwable;
++    }
++
++    private static void scenario(TestContext context,ScenarioBody body) {
++        ServerWorld world=context.getWorld();
++        BlockPos start=context.getAbsolutePos(new BlockPos(2,2,2));
++        prepare(world,start);
++        BlockPos ore=start.east(2);
++        world.setBlockState(ore,Blocks.IRON_ORE.getDefaultState(),Block.NOTIFY_ALL);
++        Path path=null;
++        BridgeJournal journal=null;
++        try {
++            AIPlayerManager.INSTANCE.despawn(world.getServer(),BOT);
++            AIPlayerEntity player=AIPlayerManager.INSTANCE.spawn(
++                    world.getServer(),BOT,world,Vec3d.ofBottomCenter(start),
++                    0F,0F,GameMode.SURVIVAL).orElseThrow();
++            path=Files.createTempFile("mc2a04-real-client-tracker-",".journal");
++            journal=new BridgeJournal(path,()->1L);
++            lookAt(player,ore.toCenterPos());
++            body.run(world,player,ore,journal,new RealClientOpportunityTracker(journal));
+             context.complete();
+         } catch(Throwable failure) {
+             StringBuilder where=new StringBuilder();
+@@ -93,7 +185,7 @@ public final class MC2A04RealClientTrackerGameTests implements FabricGameTest {
+         double horizontal=Math.sqrt(dx*dx+dz*dz);
+         float yaw=(float)(MathHelper.atan2(dz,dx)*180D/Math.PI)-90F;
+         float pitch=(float)(-(MathHelper.atan2(dy,horizontal)*180D/Math.PI));
+-        // fake player 不被 tick:raycast 走 LivingEntity.getYaw(1F)=headYaw,必须与 body yaw 手动同步
++        // fake player 不被 tick:视线重建用 frame 报告的 yaw/pitch,须与实体真实朝向同步。
+         player.setYaw(yaw);
+         player.setHeadYaw(yaw);
+         player.setBodyYaw(yaw);
+@@ -101,11 +193,26 @@ public final class MC2A04RealClientTrackerGameTests implements FabricGameTest {
+     }
+ 
+     private static RealClientServerTransport.SensorSnapshot sensor(
+-            AIPlayerEntity player,BlockPos ore,String block) {
++            AIPlayerEntity player,BlockPos ore,String block,long frameSeq) {
++        return sensor(player,ore,block,frameSeq,System.currentTimeMillis(),
++                player.getYaw(),player.getPitch());
++    }
++
++    private static RealClientServerTransport.SensorSnapshot sensor(
++            AIPlayerEntity player,BlockPos ore,String block,long frameSeq,
++            long receivedAtMs) {
++        return sensor(player,ore,block,frameSeq,receivedAtMs,
++                player.getYaw(),player.getPitch());
++    }
++
++    private static RealClientServerTransport.SensorSnapshot sensor(
++            AIPlayerEntity player,BlockPos ore,String block,long frameSeq,
++            long receivedAtMs,float yaw,float pitch) {
+         return new RealClientServerTransport.SensorSnapshot(
+                 player.getUuidAsString(),player.getX(),player.getY(),player.getZ(),
+-                player.getYaw(),player.getPitch(),0,true,
+-                ore.getX(),ore.getY(),ore.getZ(),block,"WEST",System.currentTimeMillis());
++                yaw,pitch,0,true,
++                ore.getX(),ore.getY(),ore.getZ(),block,"WEST",
++                "gt-game-session",frameSeq,receivedAtMs);
+     }
+ 
+     private static void prepare(ServerWorld world,BlockPos start) {
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientBodyBackend.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientBodyBackend.java
+index 1e12514..3774926 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientBodyBackend.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientBodyBackend.java
+@@ -70,12 +70,17 @@ public final class RealClientBodyBackend implements BodyBackend {
+         var sensor=session.sensor();
+         if(sensor==null || !candidate.getUuidAsString().equalsIgnoreCase(sensor.playerUuid()))
+             return unavailable("body_session_changed");
++        // v2 wire:快照必须已绑定一次 Minecraft 游戏 JOIN incarnation 才算身体就绪。
++        if(sensor.gameSession().isBlank())
++            return unavailable("body_session_changed");
+         if(requireOfflineUuid && !candidate.getUuid().equals(offlineUuid(playerName)))
+             return unavailable("body_session_changed");
+         player=candidate;
+         tracker.observe(player,sensor);
+-        if(!preparedSession.equals(session.sessionEpoch())) {
+-            preparedSession=session.sessionEpoch();
++        // Physical identity follows the Minecraft game-session incarnation, not the control
++        // TCP epoch: a same-process game reconnect must still fence the old session.
++        if(!preparedSession.equals(sensor.gameSession())) {
++            preparedSession=sensor.gameSession();
+             binding=new Binding(
+                     logicalBodyId,"real_client",player.getUuidAsString(),preparedSession);
+             driver=new RealClientExecutionDriver(
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientExecutionDriver.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientExecutionDriver.java
+index 484f05a..4d40593 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientExecutionDriver.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientExecutionDriver.java
+@@ -68,7 +68,7 @@ public final class RealClientExecutionDriver implements PhysicalExecutionDriver
+ 
+     private BodyBackend.Handle startGoto(
+             Request request,JsonObject args,ServerPlayerEntity player,long startedAt) {
+-        only(args,Set.of("x","y","z","allow_terrain_changes"));
++        only(args,Set.of("x","y","z","allow_terrain_changes","face_x","face_y","face_z"));
+         if(args.has("allow_terrain_changes")
+                 && args.get("allow_terrain_changes").getAsBoolean())
+             throw new BridgeFault(400,"real_client_goto_mvp_disallows_terrain_changes");
+@@ -80,9 +80,28 @@ public final class RealClientExecutionDriver implements PhysicalExecutionDriver
+         if(player.getBlockPos().getSquaredDistance(target)>
+                 MAX_GOTO_DISTANCE*MAX_GOTO_DISTANCE)
+             throw new BridgeFault(400,"real_client_goto_distance_limit_32");
+-        Map<String,Object> command=Map.of(
+-                "x",target.getX(),"y",target.getY(),"z",target.getZ(),
+-                "arrival_radius",2.5D);
++        boolean hasFace=args.has("face_x")||args.has("face_y")||args.has("face_z");
++        if(hasFace && (!args.has("face_x")||!args.has("face_y")||!args.has("face_z")))
++            throw new BridgeFault(400,"real_client_goto_face_requires_all_axes");
++        BlockPos faceTarget=null;
++        if(hasFace) {
++            faceTarget=new BlockPos(
++                    integer(args,"face_x",-29999984,29999984),
++                    integer(args,"face_y",player.getServerWorld().getBottomY(),
++                            player.getServerWorld().getBottomY()
++                                    +player.getServerWorld().getHeight()-1),
++                    integer(args,"face_z",-29999984,29999984));
++            if(player.getBlockPos().getSquaredDistance(faceTarget)>16D*16D)
++                throw new BridgeFault(400,"real_client_goto_face_distance_limit_16");
++        }
++        Map<String,Object>command=new LinkedHashMap<>();
++        command.put("x",target.getX());command.put("y",target.getY());
++        command.put("z",target.getZ());command.put("arrival_radius",2.5D);
++        if(faceTarget!=null) {
++            command.put("face_x",faceTarget.getX());
++            command.put("face_y",faceTarget.getY());
++            command.put("face_z",faceTarget.getZ());
++        }
+         if(!transport.sendCommand(
+                 request.executionId(),"goto",JsonOutput.encode(command)))
+             throw new BridgeFault(503,"real_client_command_queue_unavailable");
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientOpportunityTracker.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientOpportunityTracker.java
+index dd0667a..ce0a2e9 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientOpportunityTracker.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientOpportunityTracker.java
+@@ -16,6 +16,7 @@ import net.minecraft.util.hit.BlockHitResult;
+ import net.minecraft.util.hit.HitResult;
+ import net.minecraft.util.math.BlockPos;
+ import net.minecraft.util.math.Vec3d;
++import net.minecraft.world.RaycastContext;
+ 
+ import java.nio.charset.StandardCharsets;
+ import java.util.ArrayList;
+@@ -30,6 +31,12 @@ import java.util.UUID;
+ /** Durable incarnation tracker for opportunities actually pointed at by Bob's real client. */
+ public final class RealClientOpportunityTracker {
+     private static final int MAX_ACTIVE=64;
++    /** Coherent frame freshness: a sample older than this is never validated. */
++    public static final long FRAME_FRESH_MS=2000L;
++    /** Sensor position is a coherence hint only: it must stay near the authoritative body. */
++    public static final double POSITION_TOLERANCE=2.0D;
++    /** Server-side ray reconstruction range; client crosshair reach is strictly smaller. */
++    public static final double VALIDATION_RANGE=7D;
+ 
+     public record Opportunity(
+             String id,String worldId,String dimension,BlockPos pos,String blockId,
+@@ -49,12 +56,35 @@ public final class RealClientOpportunityTracker {
+             diagReject(player,sensor,null,null,"sensor_null_or_not_present");
+             return Optional.empty();
+         }
++        if(sensor.gameSession()==null || sensor.gameSession().isBlank()) {
++            diagReject(player,sensor,null,null,"game_session_missing");
++            return Optional.empty();
++        }
++        long now=System.currentTimeMillis();
++        if(now-sensor.receivedAtMs()>FRAME_FRESH_MS) {
++            diagReject(player,sensor,null,null,"frame_stale");
++            return Optional.empty();
++        }
++        // The frame position is only a coherence hint: the authoritative body stays the server
++        // entity. A frame sampled from a stale/foreign pose must fail closed here.
++        Vec3d framePos=new Vec3d(sensor.x(),sensor.y(),sensor.z());
++        if(player.getPos().distanceTo(framePos)>POSITION_TOLERANCE) {
++            diagReject(player,sensor,null,null,"position_drift_exceeded");
++            return Optional.empty();
++        }
+         BlockPos pos=new BlockPos(sensor.crosshairX(),sensor.crosshairY(),sensor.crosshairZ());
+         if(player.squaredDistanceTo(Vec3d.ofCenter(pos))>49D) {
+             diagReject(player,sensor,pos,null,"distance_exceeded");
+             return Optional.empty();
+         }
+-        HitResult serverRay=player.raycast(7D,1F,false);
++        // Reconstruct the world ray from the AUTHORITATIVE server eye using the LOOK DIRECTION
++        // of the very same client frame. Never compare against a later server pose snapshot.
++        Vec3d eye=player.getEyePos();
++        Vec3d direction=Vec3d.fromPolar(sensor.pitch(),sensor.yaw());
++        HitResult serverRay=player.getServerWorld().raycast(new RaycastContext(
++                eye,eye.add(direction.multiply(VALIDATION_RANGE)),
++                RaycastContext.ShapeType.OUTLINE,
++                RaycastContext.FluidHandling.NONE,player));
+         if(!(serverRay instanceof BlockHitResult blockHit)
+                 || !blockHit.getBlockPos().equals(pos)) {
+             diagReject(player,sensor,pos,serverRay,"ray_mismatch");
+@@ -85,8 +115,8 @@ public final class RealClientOpportunityTracker {
+         appendBirth(opportunity);
+         active.put(key(dimension,id),opportunity);
+         io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+-                "AIBot real-client sensor diag birth id={} pos={} active={} block={}",
+-                id,pos,active.size(),actualId);
++                "AIBot real-client sensor diag birth id={} pos={} active={} block={} frameSeq={} gameSession={}",
++                id,pos,active.size(),actualId,sensor.frameSeq(),sensor.gameSession());
+         return Optional.of(opportunity);
+     }
+ 
+@@ -230,13 +260,18 @@ public final class RealClientOpportunityTracker {
+         if(now-lastDiagMs<5000L || reason.equals(lastDiagReason) && now-lastDiagMs<30000L)return;
+         lastDiagMs=now; lastDiagReason=reason;
+         io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+-                "AIBot real-client sensor diag reject={} sensorPresent={} expected={} ray={} yaw={} pitch={} headYaw={} sensorYaw={} sensorPitch={} sensorCross={} dist={}",
++                "AIBot real-client sensor diag reject={} sensorPresent={} expected={} ray={} "
++                        +"serverYaw={} serverPitch={} sensorYaw={} sensorPitch={} sensorCross={} "
++                        +"frameAgeMs={} frameSeq={} gameSession={} dist={}",
+                 reason,sensor==null?"no-sensor":sensor.crosshairPresent(),
+                 expected,
+                 serverRay==null?"n/a":serverRay instanceof BlockHitResult b?b.getBlockPos():serverRay.getType(),
+-                player.getYaw(),player.getPitch(),player.getHeadYaw(),
++                player.getYaw(),player.getPitch(),
+                 sensor==null?"n/a":sensor.yaw(),sensor==null?"n/a":sensor.pitch(),
+                 sensor==null?"n/a":sensor.crosshairX()+","+sensor.crosshairY()+","+sensor.crosshairZ(),
++                sensor==null?"n/a":System.currentTimeMillis()-sensor.receivedAtMs(),
++                sensor==null?"n/a":sensor.frameSeq(),
++                sensor==null?"n/a":sensor.gameSession(),
+                 expected==null?"n/a":String.format("%.2f",Math.sqrt(player.squaredDistanceTo(Vec3d.ofCenter(expected)))));
+     }
+ 
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientServerTransport.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientServerTransport.java
+index 3421744..18ca8e4 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientServerTransport.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientServerTransport.java
+@@ -35,17 +35,19 @@ public final class RealClientServerTransport implements AutoCloseable {
+     private static final int OUTBOUND_CAPACITY=32;
+     private static final int EXECUTION_CAPACITY=1024;
+ 
++    /** One coherent client sample: pose, look and crosshair belong to the same frame. */
+     public record SensorSnapshot(
+             String playerUuid,double x,double y,double z,float yaw,float pitch,int selectedSlot,
+             boolean crosshairPresent,int crosshairX,int crosshairY,int crosshairZ,
+-            String crosshairBlock,String crosshairSide,long receivedAtMs) {}
++            String crosshairBlock,String crosshairSide,
++            String gameSession,long frameSeq,long receivedAtMs) {}
+ 
+     public record RemoteExecution(
+             String executionId,String state,double progress,String reason,long receivedAtMs) {}
+ 
+     public record SessionSnapshot(
+             String bodyId,String playerName,String sessionEpoch,boolean connected,
+-            long lastHeartbeatMs,SensorSnapshot sensor) {
++            long lastHeartbeatMs,String gameSession,SensorSnapshot sensor) {
+         public boolean fresh(long nowMs) {
+             return connected && nowMs-lastHeartbeatMs<=HEARTBEAT_STALE_MS;
+         }
+@@ -89,6 +91,9 @@ public final class RealClientServerTransport implements AutoCloseable {
+         return session==null?Optional.empty():Optional.of(session.snapshot());
+     }
+ 
++    /** Loopback port this transport is bound to (for diagnostics and tests). */
++    public int port() { return port; }
++
+     public Optional<RemoteExecution> execution(String executionId) {
+         Session session=active.get();
+         if(session==null)return Optional.empty();
+@@ -208,6 +213,11 @@ public final class RealClientServerTransport implements AutoCloseable {
+         final ConcurrentHashMap<String,RemoteExecution> executions=new ConcurrentHashMap<>();
+         final ArrayBlockingQueue<JsonObject> outbound=new ArrayBlockingQueue<>(OUTBOUND_CAPACITY);
+         volatile long lastHeartbeatMs=System.currentTimeMillis();
++        // Minecraft 游戏连接 incarnation(与控制 TCP epoch 分离):-1=客户端尚未 JOIN。
++        // 同连接内只允许单调前进;回退或 epoch 漂移一律断连,迟到旧 incarnation 不得污染新会话。
++        volatile int gameSessionSeq=-1;
++        volatile String gameSession="";
++        volatile long lastFrameSeq=-1;
+         Thread reader,writer;
+ 
+         Session(Socket socket,DataInputStream input,DataOutputStream output,
+@@ -225,7 +235,8 @@ public final class RealClientServerTransport implements AutoCloseable {
+ 
+         SessionSnapshot snapshot() {
+             return new SessionSnapshot(
+-                    bodyId,playerName,sessionEpoch,connected.get(),lastHeartbeatMs,sensor.get());
++                    bodyId,playerName,sessionEpoch,connected.get(),lastHeartbeatMs,
++                    gameSession,sensor.get());
+         }
+ 
+         void readLoop() {
+@@ -252,10 +263,42 @@ public final class RealClientServerTransport implements AutoCloseable {
+             }
+         }
+ 
++        /** 校验消息携带的游戏 incarnation:首条固定,前进重置,回退/漂移断连 fail closed。 */
++        private void bindGameIncarnation(String messageGameSession,int messageGameSessionSeq)
++                throws IOException {
++            if(messageGameSessionSeq<0)
++                throw new IOException("real_client_game_session_seq_invalid");
++            if(gameSessionSeq<0) {
++                gameSessionSeq=messageGameSessionSeq;
++                gameSession=messageGameSession;
++                return;
++            }
++            if(messageGameSessionSeq==gameSessionSeq) {
++                if(!gameSession.equals(messageGameSession))
++                    throw new IOException("real_client_game_session_epoch_mismatch");
++                return;
++            }
++            if(messageGameSessionSeq<gameSessionSeq)
++                throw new IOException("real_client_game_session_stale_incarnation");
++            gameSessionSeq=messageGameSessionSeq;
++            gameSession=messageGameSession;
++            lastFrameSeq=-1;
++            sensor.set(null);
++            executions.clear();
++        }
++
+         void receiveHeartbeat(JsonObject message)throws IOException {
++            if(!message.has("game_session_seq") || !message.has("frame_seq"))
++                throw new IOException("real_client_heartbeat_missing_game_incarnation");
+             long now=System.currentTimeMillis();
+-            lastHeartbeatMs=now;
+             String playerUuid=RealClientWire.requiredString(message,"player_uuid",64);
++            String messageGameSession=RealClientWire.requiredString(message,"game_session",160);
++            int messageGameSessionSeq=message.get("game_session_seq").getAsInt();
++            long frameSeq=message.get("frame_seq").getAsLong();
++            bindGameIncarnation(messageGameSession,messageGameSessionSeq);
++            lastHeartbeatMs=now;
++            if(frameSeq<0 || frameSeq<=lastFrameSeq)
++                return; // duplicate/out-of-order frame: never refresh the sensor snapshot
+             double x=message.get("x").getAsDouble();
+             double y=message.get("y").getAsDouble();
+             double z=message.get("z").getAsDouble();
+@@ -276,11 +319,18 @@ public final class RealClientServerTransport implements AutoCloseable {
+                 block=RealClientWire.requiredString(message,"crosshair_block",128);
+                 side=RealClientWire.requiredString(message,"crosshair_side",32);
+             }
++            lastFrameSeq=frameSeq;
+             sensor.set(new SensorSnapshot(
+-                    playerUuid,x,y,z,yaw,pitch,selected,present,cx,cy,cz,block,side,now));
++                    playerUuid,x,y,z,yaw,pitch,selected,present,cx,cy,cz,block,side,
++                    messageGameSession,frameSeq,now));
+         }
+ 
+         void receiveExecution(JsonObject message)throws IOException {
++            if(!message.has("game_session_seq"))
++                throw new IOException("real_client_execution_missing_game_incarnation");
++            String messageGameSession=RealClientWire.requiredString(message,"game_session",160);
++            int messageGameSessionSeq=message.get("game_session_seq").getAsInt();
++            bindGameIncarnation(messageGameSession,messageGameSessionSeq);
+             String executionId=RealClientWire.requiredString(message,"execution_id",160);
+             String state=RealClientWire.requiredString(message,"state",32);
+             if(!java.util.Set.of(
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientWire.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientWire.java
+index e8908b4..ec50932 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientWire.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientWire.java
+@@ -11,7 +11,9 @@ import java.nio.charset.StandardCharsets;
+ 
+ /** Length-prefixed loopback protocol shared by the dedicated server and Bob's Fabric client. */
+ public final class RealClientWire {
+-    public static final int PROTOCOL_VERSION=1;
++    // v2: heartbeat/execution 携带 game_session/game_session_seq/frame_seq,采样与
++    // Minecraft 游戏连接 incarnation 绑定;v1 对端在握手时 fail closed。
++    public static final int PROTOCOL_VERSION=2;
+     public static final int MAX_FRAME_BYTES=64*1024;
+ 
+     private RealClientWire() {}
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientMvpSourceTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientMvpSourceTest.java
+index 98c9b03..25beec9 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientMvpSourceTest.java
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientMvpSourceTest.java
+@@ -50,6 +50,50 @@ final class RealClientMvpSourceTest {
+         assertTrue(runtime.contains("actions.controlSessionLost(client)"));
+     }
+ 
++    @Test void gameSessionIncarnationIsGeneratedPerJoinAndBindsEveryMessage()throws Exception {
++        String runtime=Files.readString(CLIENT.resolve("RealClientBodyClientRuntime.java"));
++        String client=Files.readString(CLIENT.resolve("RealClientClientTransport.java"));
++        String server=main("realclient/RealClientServerTransport.java");
++        String backend=main("realclient/RealClientBodyBackend.java");
++        assertTrue(runtime.contains("ClientPlayConnectionEvents.JOIN"));
++        assertTrue(runtime.contains("gameSessionSeq++"));
++        assertTrue(runtime.contains("bindGameSession(gameSessionEpoch,gameSessionSeq)"));
++        assertTrue(runtime.contains("heartbeat.addProperty(\"frame_seq\",++frameSeq)"));
++        assertTrue(client.contains("void bindGameSession(String epoch,int seq)"));
++        assertTrue(client.contains("message.addProperty(\"game_session\",gameSessionEpoch)"));
++        assertTrue(server.contains("real_client_game_session_stale_incarnation"));
++        assertTrue(server.contains("real_client_game_session_epoch_mismatch"));
++        // frame 单调性:重复/倒序帧永不刷新 sensor 快照。
++        assertTrue(server.contains("frameSeq<=lastFrameSeq"));
++        // binding 跟随 Minecraft 游戏 incarnation,而非控制 TCP epoch。
++        assertTrue(backend.contains("preparedSession.equals(sensor.gameSession())"));
++        assertFalse(backend.contains("preparedSession.equals(session.sessionEpoch())"));
++    }
++
++    @Test void sensorValidationUsesSameFrameLookNotALaterServerPose()throws Exception {
++        String tracker=main("realclient/RealClientOpportunityTracker.java");
++        // 同帧重建:服务器权威眼睛位置 + 该 frame 的 look direction,禁止再用
++        // observe 时刻的 player.raycast() 与旧 crosshair 拼接。
++        assertFalse(tracker.contains("player.raycast("));
++        assertTrue(tracker.contains("Vec3d.fromPolar(sensor.pitch(),sensor.yaw())"));
++        assertTrue(tracker.contains("player.getEyePos()"));
++        assertTrue(tracker.contains("RaycastContext.ShapeType.OUTLINE"));
++        assertTrue(tracker.contains("FRAME_FRESH_MS"));
++        assertTrue(tracker.contains("POSITION_TOLERANCE"));
++        assertTrue(tracker.contains("\"frame_stale\""));
++        assertTrue(tracker.contains("\"position_drift_exceeded\""));
++        assertTrue(tracker.contains("\"game_session_missing\""));
++    }
++
++    @Test void wireProtocolV2IsExplicitAndMixedBinariesFailClosed()throws Exception {
++        String wire=main("realclient/RealClientWire.java");
++        assertTrue(wire.contains("PROTOCOL_VERSION=2"));
++        String server=main("realclient/RealClientServerTransport.java");
++        String client=Files.readString(CLIENT.resolve("RealClientClientTransport.java"));
++        assertTrue(server.contains("real_client_protocol_mismatch"));
++        assertTrue(client.contains("real_client_welcome_protocol_mismatch"));
++    }
++
+     @Test void graphDispatchStillUsesBridgeSubmitAndNoBackendBranch()throws Exception {
+         String kernel=main("BridgeKernel.java");
+         int run=kernel.indexOf("Map<String,Object> graphRunNext");
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientWireSessionTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientWireSessionTest.java
+new file mode 100644
+index 0000000..247542a
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientWireSessionTest.java
+@@ -0,0 +1,277 @@
++package io.github.zoyluo.aibot.external;
++
++import io.github.zoyluo.aibot.external.realclient.RealClientServerTransport;
++import io.github.zoyluo.aibot.external.realclient.RealClientWire;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.Test;
++
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.EOFException;
++import java.net.ServerSocket;
++import java.net.Socket;
++import java.util.UUID;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++/**
++ * Wire-level session contract of the loopback control transport: protocol v2 fail-closed
++ * behaviour, game-session incarnation monotonicity and sensor frame deduplication.
++ * Pure sockets, no Minecraft classes involved.
++ */
++final class RealClientWireSessionTest {
++    private static final String TOKEN="unit-test-real-client-token-0123456789abcdef";
++    private static final String BODY="bob";
++    private static final String PLAYER="Bob";
++
++    private RealClientServerTransport transport;
++
++    @AfterEach void closeTransport() {
++        if(transport!=null)transport.close();
++    }
++
++    private int freePort()throws Exception {
++        try(ServerSocket probe=new ServerSocket(0)) { return probe.getLocalPort(); }
++    }
++
++    private RealClientServerTransport startTransport()throws Exception {
++        transport=new RealClientServerTransport(BODY,PLAYER,TOKEN,freePort());
++        transport.start();
++        return transport;
++    }
++
++    private static final class Client implements AutoCloseable {
++        final Socket socket;
++        final DataInputStream input;
++        final DataOutputStream output;
++        final String epoch=UUID.randomUUID().toString();
++        Client(int port)throws Exception {
++            socket=new Socket("127.0.0.1",port);
++            socket.setTcpNoDelay(true);
++            input=new DataInputStream(socket.getInputStream());
++            output=new DataOutputStream(socket.getOutputStream());
++        }
++        void hello(int protocol)throws Exception {
++            com.google.gson.JsonObject message=new com.google.gson.JsonObject();
++            message.addProperty("type","hello");
++            message.addProperty("protocol",protocol);
++            message.addProperty("token",TOKEN);
++            message.addProperty("body_id",BODY);
++            message.addProperty("player_name",PLAYER);
++            message.addProperty("session_epoch",epoch);
++            RealClientWire.write(output,message);
++        }
++        com.google.gson.JsonObject welcome()throws Exception {
++            return RealClientWire.read(input);
++        }
++        void heartbeat(String gameSession,int gameSessionSeq,long frameSeq,
++                double x)throws Exception {
++            com.google.gson.JsonObject message=new com.google.gson.JsonObject();
++            message.addProperty("type","heartbeat");
++            message.addProperty("session_epoch",epoch);
++            message.addProperty("game_session",gameSession);
++            message.addProperty("game_session_seq",gameSessionSeq);
++            message.addProperty("frame_seq",frameSeq);
++            message.addProperty("player_uuid","00000000-0000-0000-0000-000000000001");
++            message.addProperty("x",x);message.addProperty("y",64D);message.addProperty("z",0D);
++            message.addProperty("yaw",0F);message.addProperty("pitch",0F);
++            message.addProperty("selected_slot",0);
++            message.addProperty("crosshair_present",false);
++            RealClientWire.write(output,message);
++        }
++        void execution(String gameSession,int gameSessionSeq,
++                String executionId,String state)throws Exception {
++            com.google.gson.JsonObject message=new com.google.gson.JsonObject();
++            message.addProperty("type","execution");
++            message.addProperty("session_epoch",epoch);
++            message.addProperty("game_session",gameSession);
++            message.addProperty("game_session_seq",gameSessionSeq);
++            message.addProperty("execution_id",executionId);
++            message.addProperty("state",state);
++            message.addProperty("progress",0D);
++            RealClientWire.write(output,message);
++        }
++        @Override public void close()throws Exception { socket.close(); }
++    }
++
++    private static void awaitClosed(Client client)throws Exception {
++        long deadline=System.currentTimeMillis()+5000L;
++        while(System.currentTimeMillis()<deadline) {
++            try {
++                if(client.input.read()==-1)return;
++            } catch(EOFException closed) { return; }
++            Thread.sleep(20L);
++        }
++        fail("connection was expected to be closed by the server");
++    }
++
++    private static <T> T await(long timeoutMs,java.util.function.Supplier<T> probe)
++            throws Exception {
++        long deadline=System.currentTimeMillis()+timeoutMs;
++        T last;
++        do {
++            last=probe.get();
++            if(last!=null)return last;
++            Thread.sleep(20L);
++        } while(System.currentTimeMillis()<deadline);
++        return last;
++    }
++
++    @Test void protocolV1HelloIsRejectedFailClosed()throws Exception {
++        startTransport();
++        try(Client client=new Client(transportLocalPort())) {
++            client.hello(1);
++            awaitClosed(client);
++        }
++    }
++
++    @Test void heartbeatWithoutGameSessionIsRejectedFailClosed()throws Exception {
++        startTransport();
++        try(Client client=new Client(transportLocalPort())) {
++            client.hello(RealClientWire.PROTOCOL_VERSION);
++            com.google.gson.JsonObject welcome=client.welcome();
++            assertEquals("welcome",welcome.get("type").getAsString());
++            com.google.gson.JsonObject heartbeat=new com.google.gson.JsonObject();
++            heartbeat.addProperty("type","heartbeat");
++            heartbeat.addProperty("session_epoch",client.epoch);
++            heartbeat.addProperty("frame_seq",0L);
++            heartbeat.addProperty("player_uuid","00000000-0000-0000-0000-000000000001");
++            heartbeat.addProperty("x",0D);heartbeat.addProperty("y",64D);heartbeat.addProperty("z",0D);
++            heartbeat.addProperty("yaw",0F);heartbeat.addProperty("pitch",0F);
++            heartbeat.addProperty("selected_slot",0);
++            RealClientWire.write(client.output,heartbeat);
++            awaitClosed(client);
++        }
++    }
++
++    @Test void validHeartbeatBindsGameSessionAndSensor()throws Exception {
++        startTransport();
++        try(Client client=new Client(transportLocalPort())) {
++            client.hello(RealClientWire.PROTOCOL_VERSION);
++            client.welcome();
++            client.heartbeat("game-a",0,0L,10D);
++            var sensor=await(5000L,()->transport.session()
++                    .map(RealClientServerTransport.SessionSnapshot::sensor).orElse(null));
++            assertNotNull(sensor,"heartbeat never produced a sensor snapshot");
++            assertEquals("game-a",sensor.gameSession());
++            assertEquals(0L,sensor.frameSeq());
++            assertEquals(10D,sensor.x());
++            assertEquals("game-a",transport.session().orElseThrow().gameSession());
++        }
++    }
++
++    @Test void duplicateAndOutOfOrderFramesNeverRefreshTheSensor()throws Exception {
++        startTransport();
++        try(Client client=new Client(transportLocalPort())) {
++            client.hello(RealClientWire.PROTOCOL_VERSION);
++            client.welcome();
++            client.heartbeat("game-a",0,0L,10D);
++            var first=await(5000L,()->transport.session()
++                    .map(RealClientServerTransport.SessionSnapshot::sensor).orElse(null));
++            assertNotNull(first);
++            client.heartbeat("game-a",0,0L,20D); // duplicate frame_seq
++            client.heartbeat("game-a",0,0L,30D);
++            Thread.sleep(300L);
++            var after=transport.session().orElseThrow().sensor();
++            assertNotNull(after);
++            assertEquals(0L,after.frameSeq(),"duplicate frame refreshed the snapshot");
++            assertEquals(10D,after.x(),"duplicate frame changed the snapshot position");
++            client.heartbeat("game-a",0,5L,40D); // fresh monotonic frame is accepted
++            var advanced=await(5000L,()->{
++                var s=transport.session().map(
++                        RealClientServerTransport.SessionSnapshot::sensor).orElse(null);
++                return s!=null && s.frameSeq()==5L?s:null;
++            });
++            assertNotNull(advanced,"monotonic frame was dropped");
++            assertEquals(40D,advanced.x());
++        }
++    }
++
++    @Test void gameSessionAdvanceResetsSensorAndExecutions()throws Exception {
++        startTransport();
++        try(Client client=new Client(transportLocalPort())) {
++            client.hello(RealClientWire.PROTOCOL_VERSION);
++            client.welcome();
++            client.heartbeat("game-a",0,0L,10D);
++            client.execution("game-a",0,"exec-1","running");
++            var sensor=await(5000L,()->transport.session()
++                    .map(RealClientServerTransport.SessionSnapshot::sensor).orElse(null));
++            assertNotNull(sensor);
++            await(5000L,()->transport.execution("exec-1").orElse(null));
++            client.heartbeat("game-b",1,0L,11D);
++            var next=await(5000L,()->{
++                var s=transport.session().orElse(null);
++                return s!=null && "game-b".equals(s.gameSession())?s:null;
++            });
++            assertNotNull(next,"game-session advance was not observed");
++            var reset=await(5000L,()->{
++                var s=transport.session().map(
++                        RealClientServerTransport.SessionSnapshot::sensor).orElse(null);
++                return s!=null && s.frameSeq()==0L?s:null;
++            });
++            assertNotNull(reset,"advanced incarnation frame was dropped");
++            assertEquals("game-b",reset.gameSession());
++            assertTrue(transport.execution("exec-1").isEmpty(),
++                    "old incarnation execution statuses survived the game-session advance");
++        }
++    }
++
++    @Test void staleGameSessionIncarnationIsRejectedFailClosed()throws Exception {
++        startTransport();
++        try(Client client=new Client(transportLocalPort())) {
++            client.hello(RealClientWire.PROTOCOL_VERSION);
++            client.welcome();
++            client.heartbeat("game-a",0,0L,10D);
++            client.heartbeat("game-b",1,0L,10D);
++            client.heartbeat("game-a",0,1L,10D); // late frame from a fenced incarnation
++            awaitClosed(client);
++        }
++    }
++
++    @Test void gameSessionEpochDriftAtSameSeqIsRejectedFailClosed()throws Exception {
++        startTransport();
++        try(Client client=new Client(transportLocalPort())) {
++            client.hello(RealClientWire.PROTOCOL_VERSION);
++            client.welcome();
++            client.heartbeat("game-a",0,0L,10D);
++            client.heartbeat("game-c",0,1L,10D); // same seq, different epoch
++            awaitClosed(client);
++        }
++    }
++
++    @Test void executionStatusMustCarryTheCurrentIncarnation()throws Exception {
++        startTransport();
++        try(Client client=new Client(transportLocalPort())) {
++            client.hello(RealClientWire.PROTOCOL_VERSION);
++            client.welcome();
++            client.heartbeat("game-a",0,0L,10D);
++            client.heartbeat("game-b",1,0L,11D);
++            await(5000L,()->{
++                var s=transport.session().orElse(null);
++                return s!=null && "game-b".equals(s.gameSession())?s:null;
++            });
++            client.execution("game-a",0,"exec-stale","failed");
++            awaitClosed(client);
++        }
++    }
++
++    @Test void secondAuthorityWhileConnectedIsRejected()throws Exception {
++        startTransport();
++        try(Client first=new Client(transportLocalPort())) {
++            first.hello(RealClientWire.PROTOCOL_VERSION);
++            first.welcome();
++            try(Client second=new Client(transportLocalPort())) {
++                second.hello(RealClientWire.PROTOCOL_VERSION);
++                awaitClosed(second);
++            }
++            first.heartbeat("game-a",0,0L,10D);
++            var sensor=await(5000L,()->transport.session()
++                    .map(RealClientServerTransport.SessionSnapshot::sensor).orElse(null));
++            assertNotNull(sensor,"first authority lost its session to a duplicate");
++        }
++    }
++
++    private int transportLocalPort() {
++        return transport.port();
++    }
++}
