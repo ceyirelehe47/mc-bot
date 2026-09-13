@@ -68,7 +68,7 @@ public final class RealClientExecutionDriver implements PhysicalExecutionDriver 
 
     private BodyBackend.Handle startGoto(
             Request request,JsonObject args,ServerPlayerEntity player,long startedAt) {
-        only(args,Set.of("x","y","z","allow_terrain_changes"));
+        only(args,Set.of("x","y","z","allow_terrain_changes","face_x","face_y","face_z"));
         if(args.has("allow_terrain_changes")
                 && args.get("allow_terrain_changes").getAsBoolean())
             throw new BridgeFault(400,"real_client_goto_mvp_disallows_terrain_changes");
@@ -80,9 +80,28 @@ public final class RealClientExecutionDriver implements PhysicalExecutionDriver 
         if(player.getBlockPos().getSquaredDistance(target)>
                 MAX_GOTO_DISTANCE*MAX_GOTO_DISTANCE)
             throw new BridgeFault(400,"real_client_goto_distance_limit_32");
-        Map<String,Object> command=Map.of(
-                "x",target.getX(),"y",target.getY(),"z",target.getZ(),
-                "arrival_radius",2.5D);
+        boolean hasFace=args.has("face_x")||args.has("face_y")||args.has("face_z");
+        if(hasFace && (!args.has("face_x")||!args.has("face_y")||!args.has("face_z")))
+            throw new BridgeFault(400,"real_client_goto_face_requires_all_axes");
+        BlockPos faceTarget=null;
+        if(hasFace) {
+            faceTarget=new BlockPos(
+                    integer(args,"face_x",-29999984,29999984),
+                    integer(args,"face_y",player.getServerWorld().getBottomY(),
+                            player.getServerWorld().getBottomY()
+                                    +player.getServerWorld().getHeight()-1),
+                    integer(args,"face_z",-29999984,29999984));
+            if(player.getBlockPos().getSquaredDistance(faceTarget)>16D*16D)
+                throw new BridgeFault(400,"real_client_goto_face_distance_limit_16");
+        }
+        Map<String,Object>command=new LinkedHashMap<>();
+        command.put("x",target.getX());command.put("y",target.getY());
+        command.put("z",target.getZ());command.put("arrival_radius",2.5D);
+        if(faceTarget!=null) {
+            command.put("face_x",faceTarget.getX());
+            command.put("face_y",faceTarget.getY());
+            command.put("face_z",faceTarget.getZ());
+        }
         if(!transport.sendCommand(
                 request.executionId(),"goto",JsonOutput.encode(command)))
             throw new BridgeFault(503,"real_client_command_queue_unavailable");

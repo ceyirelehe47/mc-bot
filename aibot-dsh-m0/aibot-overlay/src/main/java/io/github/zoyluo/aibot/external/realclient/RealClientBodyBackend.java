@@ -70,12 +70,17 @@ public final class RealClientBodyBackend implements BodyBackend {
         var sensor=session.sensor();
         if(sensor==null || !candidate.getUuidAsString().equalsIgnoreCase(sensor.playerUuid()))
             return unavailable("body_session_changed");
+        // v2 wire:快照必须已绑定一次 Minecraft 游戏 JOIN incarnation 才算身体就绪。
+        if(sensor.gameSession().isBlank())
+            return unavailable("body_session_changed");
         if(requireOfflineUuid && !candidate.getUuid().equals(offlineUuid(playerName)))
             return unavailable("body_session_changed");
         player=candidate;
         tracker.observe(player,sensor);
-        if(!preparedSession.equals(session.sessionEpoch())) {
-            preparedSession=session.sessionEpoch();
+        // Physical identity follows the Minecraft game-session incarnation, not the control
+        // TCP epoch: a same-process game reconnect must still fence the old session.
+        if(!preparedSession.equals(sensor.gameSession())) {
+            preparedSession=sensor.gameSession();
             binding=new Binding(
                     logicalBodyId,"real_client",player.getUuidAsString(),preparedSession);
             driver=new RealClientExecutionDriver(

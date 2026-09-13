@@ -50,6 +50,50 @@ final class RealClientMvpSourceTest {
         assertTrue(runtime.contains("actions.controlSessionLost(client)"));
     }
 
+    @Test void gameSessionIncarnationIsGeneratedPerJoinAndBindsEveryMessage()throws Exception {
+        String runtime=Files.readString(CLIENT.resolve("RealClientBodyClientRuntime.java"));
+        String client=Files.readString(CLIENT.resolve("RealClientClientTransport.java"));
+        String server=main("realclient/RealClientServerTransport.java");
+        String backend=main("realclient/RealClientBodyBackend.java");
+        assertTrue(runtime.contains("ClientPlayConnectionEvents.JOIN"));
+        assertTrue(runtime.contains("gameSessionSeq++"));
+        assertTrue(runtime.contains("bindGameSession(gameSessionEpoch,gameSessionSeq)"));
+        assertTrue(runtime.contains("heartbeat.addProperty(\"frame_seq\",++frameSeq)"));
+        assertTrue(client.contains("void bindGameSession(String epoch,int seq)"));
+        assertTrue(client.contains("message.addProperty(\"game_session\",gameSessionEpoch)"));
+        assertTrue(server.contains("real_client_game_session_stale_incarnation"));
+        assertTrue(server.contains("real_client_game_session_epoch_mismatch"));
+        // frame 单调性:重复/倒序帧永不刷新 sensor 快照。
+        assertTrue(server.contains("frameSeq<=lastFrameSeq"));
+        // binding 跟随 Minecraft 游戏 incarnation,而非控制 TCP epoch。
+        assertTrue(backend.contains("preparedSession.equals(sensor.gameSession())"));
+        assertFalse(backend.contains("preparedSession.equals(session.sessionEpoch())"));
+    }
+
+    @Test void sensorValidationUsesSameFrameLookNotALaterServerPose()throws Exception {
+        String tracker=main("realclient/RealClientOpportunityTracker.java");
+        // 同帧重建:服务器权威眼睛位置 + 该 frame 的 look direction,禁止再用
+        // observe 时刻的 player.raycast() 与旧 crosshair 拼接。
+        assertFalse(tracker.contains("player.raycast("));
+        assertTrue(tracker.contains("Vec3d.fromPolar(sensor.pitch(),sensor.yaw())"));
+        assertTrue(tracker.contains("player.getEyePos()"));
+        assertTrue(tracker.contains("RaycastContext.ShapeType.OUTLINE"));
+        assertTrue(tracker.contains("FRAME_FRESH_MS"));
+        assertTrue(tracker.contains("POSITION_TOLERANCE"));
+        assertTrue(tracker.contains("\"frame_stale\""));
+        assertTrue(tracker.contains("\"position_drift_exceeded\""));
+        assertTrue(tracker.contains("\"game_session_missing\""));
+    }
+
+    @Test void wireProtocolV2IsExplicitAndMixedBinariesFailClosed()throws Exception {
+        String wire=main("realclient/RealClientWire.java");
+        assertTrue(wire.contains("PROTOCOL_VERSION=2"));
+        String server=main("realclient/RealClientServerTransport.java");
+        String client=Files.readString(CLIENT.resolve("RealClientClientTransport.java"));
+        assertTrue(server.contains("real_client_protocol_mismatch"));
+        assertTrue(client.contains("real_client_welcome_protocol_mismatch"));
+    }
+
     @Test void graphDispatchStillUsesBridgeSubmitAndNoBackendBranch()throws Exception {
         String kernel=main("BridgeKernel.java");
         int run=kernel.indexOf("Map<String,Object> graphRunNext");

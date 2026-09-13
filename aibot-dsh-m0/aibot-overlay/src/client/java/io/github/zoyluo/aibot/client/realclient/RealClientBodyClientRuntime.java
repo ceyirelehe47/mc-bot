@@ -18,6 +18,11 @@ public final class RealClientBodyClientRuntime {
     private static int heartbeatTick;
     private static boolean controlWasConnected;
     private static String controlSessionEpoch="";
+    // Minecraft 游戏连接 incarnation:每次实际 JOIN 生成新 epoch 并递增单调计数。
+    // 它与控制 TCP 的 transport epoch 分离,服务端用它做 physical session fencing。
+    private static volatile String gameSessionEpoch="";
+    private static volatile int gameSessionSeq=-1;
+    private static volatile long frameSeq=-1;
     // 本地 Loom/DLI dev 客户端里 vanilla --quickPlayMultiplayer 不会触发自动连接
     // (TitleScreen 路径未消费该参数);supervisor 重启闭环需要程序化重连,
     // 故以显式环境变量 opt-in 直连。普通玩家客户端不设此变量,行为不变。
@@ -45,6 +50,8 @@ public final class RealClientBodyClientRuntime {
         transport.start();
         ClientTickEvents.END_CLIENT_TICK.register(
                 RealClientBodyClientRuntime::tick);
+        ClientPlayConnectionEvents.JOIN.register((handler,sender,client)->
+                gameSessionStarted(client));
         ClientPlayConnectionEvents.DISCONNECT.register((handler,client)->{
             if(actions!=null)actions.disconnected(client);
         });
@@ -79,6 +86,18 @@ public final class RealClientBodyClientRuntime {
 
     private static String lastAutoJoinScreen="";
 
+    /** 每次实际 Minecraft JOIN 开启新游戏 incarnation:旧 action 不跨会话存续,帧序号重置。 */
+    private static void gameSessionStarted(MinecraftClient client) {
+        gameSessionEpoch=java.util.UUID.randomUUID().toString();
+        gameSessionSeq++;
+        frameSeq=-1;
+        if(transport!=null)transport.bindGameSession(gameSessionEpoch,gameSessionSeq);
+        if(actions!=null)actions.gameSessionStarted(client);
+        AIBotMod.LOGGER.info(
+                "AIBot real-client game session incarnation epoch={} seq={}",
+                gameSessionEpoch,gameSessionSeq);
+    }
+
     /** 显式 opt-in 的游戏服直连:仅空闲界面触发、5 秒节流,避免打断连接/登录流程。 */
     private static void maybeAutoJoin(MinecraftClient client) {
         if(autoJoinTarget==null || autoJoinTarget.isBlank())return;
@@ -108,13 +127,19 @@ public final class RealClientBodyClientRuntime {
 
     private static void heartbeat(MinecraftClient client) {
         if(!transport.connected() || client.player==null || client.world==null)return;
+        if(gameSessionEpoch.isBlank())return;
         JsonObject heartbeat=new JsonObject();
         heartbeat.addProperty("type","heartbeat");
+        heartbeat.addProperty("game_session",gameSessionEpoch);
+        heartbeat.addProperty("game_session_seq",gameSessionSeq);
+        heartbeat.addProperty("frame_seq",++frameSeq);
         heartbeat.addProperty("player_uuid",client.player.getUuidAsString());
         heartbeat.addProperty("x",client.player.getX());
         heartbeat.addProperty("y",client.player.getY());
         heartbeat.addProperty("z",client.player.getZ());
-        heartbeat.addProperty("yaw",client.player.getYaw());
+        // 客户端 crosshair 由 getRotationVec(1F)=fromPolar(pitch,headYaw) 计算,
+        // 同帧重建必须报告 crosshair 真正使用的视线,而不是 body yaw 字段。
+        heartbeat.addProperty("yaw",client.player.getHeadYaw());
         heartbeat.addProperty("pitch",client.player.getPitch());
         heartbeat.addProperty("selected_slot",client.player.getInventory().selectedSlot);
         if(client.crosshairTarget instanceof BlockHitResult hit

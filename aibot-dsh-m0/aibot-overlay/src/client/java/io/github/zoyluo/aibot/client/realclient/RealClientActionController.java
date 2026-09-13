@@ -36,7 +36,11 @@ final class RealClientActionController {
             case "goto" -> new GotoAction(
                     executionId,args.get("x").getAsDouble(),
                     args.get("y").getAsDouble(),args.get("z").getAsDouble(),
-                    args.has("arrival_radius")?args.get("arrival_radius").getAsDouble():2.5D);
+                    args.has("arrival_radius")?args.get("arrival_radius").getAsDouble():2.5D,
+                    args.has("face_x")&&args.has("face_y")&&args.has("face_z")
+                            ?new BlockPos(args.get("face_x").getAsInt(),
+                                    args.get("face_y").getAsInt(),args.get("face_z").getAsInt())
+                            :null);
             case "mine_opportunity" -> new MineAction(
                     executionId,
                     new BlockPos(args.get("x").getAsInt(),args.get("y").getAsInt(),args.get("z").getAsInt()),
@@ -103,6 +107,14 @@ final class RealClientActionController {
         active=null;
     }
 
+    /** 新 Minecraft 游戏 incarnation:旧 action 静默丢弃,其状态属于已被围栏的会话。 */
+    void gameSessionStarted(MinecraftClient client) {
+        clearInputs(client);
+        if(client.interactionManager!=null)client.interactionManager.cancelBlockBreaking();
+        if(active!=null && !active.terminal())active.failed=true;
+        active=null;
+    }
+
     void disconnected(MinecraftClient client) {
         clearInputs(client);
         if(active!=null && !active.terminal()) {
@@ -160,13 +172,29 @@ final class RealClientActionController {
     private final class GotoAction extends Action {
         final Vec3d target;
         final double radius;
-        GotoAction(String executionId,double x,double y,double z,double radius) {
+        // 可选 final-facing:到达后把 crosshair 稳定压到该格再上报完成,
+        // 让服务器同帧验证能观察到 birth;不新增任何 public operation。
+        final BlockPos faceTarget;
+        int facingTicks;
+        static final int MAX_FACING_TICKS=100;
+        GotoAction(String executionId,double x,double y,double z,double radius,BlockPos faceTarget) {
             super(executionId);this.target=new Vec3d(x+.5D,y,z+.5D);this.radius=radius;
+            this.faceTarget=faceTarget;
         }
         @Override void tick(MinecraftClient client) {
             double distance=client.player.getPos().distanceTo(target);
             if(distance<=radius) {
-                clearInputs(client);complete("client_arrival_reported");return;
+                clearInputs(client);
+                if(faceTarget==null) { complete("client_arrival_reported");return; }
+                lookAt(client,faceTarget.toCenterPos());
+                if(client.crosshairTarget instanceof net.minecraft.util.hit.BlockHitResult hit
+                        && hit.getType()==net.minecraft.util.hit.HitResult.Type.BLOCK
+                        && hit.getBlockPos().equals(faceTarget)) {
+                    complete("client_arrival_and_facing_reported");return;
+                }
+                if(++facingTicks>MAX_FACING_TICKS)complete("client_arrival_reported");
+                else send(executionId,"running",progress,"client_final_facing");
+                return;
             }
             clearInputs(client);
             lookAt(client,target);
@@ -248,7 +276,10 @@ final class RealClientActionController {
         double horizontal=Math.sqrt(dx*dx+dz*dz);
         float yaw=(float)(MathHelper.atan2(dz,dx)*180D/Math.PI)-90F;
         float pitch=(float)(-(MathHelper.atan2(dy,horizontal)*180D/Math.PI));
+        // crosshair 由 headYaw 计算(getRotationVec(1F)),三处旋转一并同步避免等待追随。
         client.player.setYaw(yaw);
+        client.player.setHeadYaw(yaw);
+        client.player.setBodyYaw(yaw);
         client.player.setPitch(MathHelper.clamp(pitch,-90F,90F));
     }
 }

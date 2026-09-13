@@ -16,6 +16,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -30,6 +31,12 @@ import java.util.UUID;
 /** Durable incarnation tracker for opportunities actually pointed at by Bob's real client. */
 public final class RealClientOpportunityTracker {
     private static final int MAX_ACTIVE=64;
+    /** Coherent frame freshness: a sample older than this is never validated. */
+    public static final long FRAME_FRESH_MS=2000L;
+    /** Sensor position is a coherence hint only: it must stay near the authoritative body. */
+    public static final double POSITION_TOLERANCE=2.0D;
+    /** Server-side ray reconstruction range; client crosshair reach is strictly smaller. */
+    public static final double VALIDATION_RANGE=7D;
 
     public record Opportunity(
             String id,String worldId,String dimension,BlockPos pos,String blockId,
@@ -49,12 +56,35 @@ public final class RealClientOpportunityTracker {
             diagReject(player,sensor,null,null,"sensor_null_or_not_present");
             return Optional.empty();
         }
+        if(sensor.gameSession()==null || sensor.gameSession().isBlank()) {
+            diagReject(player,sensor,null,null,"game_session_missing");
+            return Optional.empty();
+        }
+        long now=System.currentTimeMillis();
+        if(now-sensor.receivedAtMs()>FRAME_FRESH_MS) {
+            diagReject(player,sensor,null,null,"frame_stale");
+            return Optional.empty();
+        }
+        // The frame position is only a coherence hint: the authoritative body stays the server
+        // entity. A frame sampled from a stale/foreign pose must fail closed here.
+        Vec3d framePos=new Vec3d(sensor.x(),sensor.y(),sensor.z());
+        if(player.getPos().distanceTo(framePos)>POSITION_TOLERANCE) {
+            diagReject(player,sensor,null,null,"position_drift_exceeded");
+            return Optional.empty();
+        }
         BlockPos pos=new BlockPos(sensor.crosshairX(),sensor.crosshairY(),sensor.crosshairZ());
         if(player.squaredDistanceTo(Vec3d.ofCenter(pos))>49D) {
             diagReject(player,sensor,pos,null,"distance_exceeded");
             return Optional.empty();
         }
-        HitResult serverRay=player.raycast(7D,1F,false);
+        // Reconstruct the world ray from the AUTHORITATIVE server eye using the LOOK DIRECTION
+        // of the very same client frame. Never compare against a later server pose snapshot.
+        Vec3d eye=player.getEyePos();
+        Vec3d direction=Vec3d.fromPolar(sensor.pitch(),sensor.yaw());
+        HitResult serverRay=player.getServerWorld().raycast(new RaycastContext(
+                eye,eye.add(direction.multiply(VALIDATION_RANGE)),
+                RaycastContext.ShapeType.OUTLINE,
+                RaycastContext.FluidHandling.NONE,player));
         if(!(serverRay instanceof BlockHitResult blockHit)
                 || !blockHit.getBlockPos().equals(pos)) {
             diagReject(player,sensor,pos,serverRay,"ray_mismatch");
@@ -85,8 +115,8 @@ public final class RealClientOpportunityTracker {
         appendBirth(opportunity);
         active.put(key(dimension,id),opportunity);
         io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                "AIBot real-client sensor diag birth id={} pos={} active={} block={}",
-                id,pos,active.size(),actualId);
+                "AIBot real-client sensor diag birth id={} pos={} active={} block={} frameSeq={} gameSession={}",
+                id,pos,active.size(),actualId,sensor.frameSeq(),sensor.gameSession());
         return Optional.of(opportunity);
     }
 
@@ -230,13 +260,18 @@ public final class RealClientOpportunityTracker {
         if(now-lastDiagMs<5000L || reason.equals(lastDiagReason) && now-lastDiagMs<30000L)return;
         lastDiagMs=now; lastDiagReason=reason;
         io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                "AIBot real-client sensor diag reject={} sensorPresent={} expected={} ray={} yaw={} pitch={} headYaw={} sensorYaw={} sensorPitch={} sensorCross={} dist={}",
+                "AIBot real-client sensor diag reject={} sensorPresent={} expected={} ray={} "
+                        +"serverYaw={} serverPitch={} sensorYaw={} sensorPitch={} sensorCross={} "
+                        +"frameAgeMs={} frameSeq={} gameSession={} dist={}",
                 reason,sensor==null?"no-sensor":sensor.crosshairPresent(),
                 expected,
                 serverRay==null?"n/a":serverRay instanceof BlockHitResult b?b.getBlockPos():serverRay.getType(),
-                player.getYaw(),player.getPitch(),player.getHeadYaw(),
+                player.getYaw(),player.getPitch(),
                 sensor==null?"n/a":sensor.yaw(),sensor==null?"n/a":sensor.pitch(),
                 sensor==null?"n/a":sensor.crosshairX()+","+sensor.crosshairY()+","+sensor.crosshairZ(),
+                sensor==null?"n/a":System.currentTimeMillis()-sensor.receivedAtMs(),
+                sensor==null?"n/a":sensor.frameSeq(),
+                sensor==null?"n/a":sensor.gameSession(),
                 expected==null?"n/a":String.format("%.2f",Math.sqrt(player.squaredDistanceTo(Vec3d.ofCenter(expected)))));
     }
 

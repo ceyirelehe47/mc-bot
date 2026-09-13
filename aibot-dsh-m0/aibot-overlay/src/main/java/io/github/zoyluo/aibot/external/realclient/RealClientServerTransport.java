@@ -35,17 +35,19 @@ public final class RealClientServerTransport implements AutoCloseable {
     private static final int OUTBOUND_CAPACITY=32;
     private static final int EXECUTION_CAPACITY=1024;
 
+    /** One coherent client sample: pose, look and crosshair belong to the same frame. */
     public record SensorSnapshot(
             String playerUuid,double x,double y,double z,float yaw,float pitch,int selectedSlot,
             boolean crosshairPresent,int crosshairX,int crosshairY,int crosshairZ,
-            String crosshairBlock,String crosshairSide,long receivedAtMs) {}
+            String crosshairBlock,String crosshairSide,
+            String gameSession,long frameSeq,long receivedAtMs) {}
 
     public record RemoteExecution(
             String executionId,String state,double progress,String reason,long receivedAtMs) {}
 
     public record SessionSnapshot(
             String bodyId,String playerName,String sessionEpoch,boolean connected,
-            long lastHeartbeatMs,SensorSnapshot sensor) {
+            long lastHeartbeatMs,String gameSession,SensorSnapshot sensor) {
         public boolean fresh(long nowMs) {
             return connected && nowMs-lastHeartbeatMs<=HEARTBEAT_STALE_MS;
         }
@@ -88,6 +90,9 @@ public final class RealClientServerTransport implements AutoCloseable {
         Session session=active.get();
         return session==null?Optional.empty():Optional.of(session.snapshot());
     }
+
+    /** Loopback port this transport is bound to (for diagnostics and tests). */
+    public int port() { return port; }
 
     public Optional<RemoteExecution> execution(String executionId) {
         Session session=active.get();
@@ -208,6 +213,11 @@ public final class RealClientServerTransport implements AutoCloseable {
         final ConcurrentHashMap<String,RemoteExecution> executions=new ConcurrentHashMap<>();
         final ArrayBlockingQueue<JsonObject> outbound=new ArrayBlockingQueue<>(OUTBOUND_CAPACITY);
         volatile long lastHeartbeatMs=System.currentTimeMillis();
+        // Minecraft 游戏连接 incarnation(与控制 TCP epoch 分离):-1=客户端尚未 JOIN。
+        // 同连接内只允许单调前进;回退或 epoch 漂移一律断连,迟到旧 incarnation 不得污染新会话。
+        volatile int gameSessionSeq=-1;
+        volatile String gameSession="";
+        volatile long lastFrameSeq=-1;
         Thread reader,writer;
 
         Session(Socket socket,DataInputStream input,DataOutputStream output,
@@ -225,7 +235,8 @@ public final class RealClientServerTransport implements AutoCloseable {
 
         SessionSnapshot snapshot() {
             return new SessionSnapshot(
-                    bodyId,playerName,sessionEpoch,connected.get(),lastHeartbeatMs,sensor.get());
+                    bodyId,playerName,sessionEpoch,connected.get(),lastHeartbeatMs,
+                    gameSession,sensor.get());
         }
 
         void readLoop() {
@@ -252,10 +263,42 @@ public final class RealClientServerTransport implements AutoCloseable {
             }
         }
 
+        /** 校验消息携带的游戏 incarnation:首条固定,前进重置,回退/漂移断连 fail closed。 */
+        private void bindGameIncarnation(String messageGameSession,int messageGameSessionSeq)
+                throws IOException {
+            if(messageGameSessionSeq<0)
+                throw new IOException("real_client_game_session_seq_invalid");
+            if(gameSessionSeq<0) {
+                gameSessionSeq=messageGameSessionSeq;
+                gameSession=messageGameSession;
+                return;
+            }
+            if(messageGameSessionSeq==gameSessionSeq) {
+                if(!gameSession.equals(messageGameSession))
+                    throw new IOException("real_client_game_session_epoch_mismatch");
+                return;
+            }
+            if(messageGameSessionSeq<gameSessionSeq)
+                throw new IOException("real_client_game_session_stale_incarnation");
+            gameSessionSeq=messageGameSessionSeq;
+            gameSession=messageGameSession;
+            lastFrameSeq=-1;
+            sensor.set(null);
+            executions.clear();
+        }
+
         void receiveHeartbeat(JsonObject message)throws IOException {
+            if(!message.has("game_session_seq") || !message.has("frame_seq"))
+                throw new IOException("real_client_heartbeat_missing_game_incarnation");
             long now=System.currentTimeMillis();
-            lastHeartbeatMs=now;
             String playerUuid=RealClientWire.requiredString(message,"player_uuid",64);
+            String messageGameSession=RealClientWire.requiredString(message,"game_session",160);
+            int messageGameSessionSeq=message.get("game_session_seq").getAsInt();
+            long frameSeq=message.get("frame_seq").getAsLong();
+            bindGameIncarnation(messageGameSession,messageGameSessionSeq);
+            lastHeartbeatMs=now;
+            if(frameSeq<0 || frameSeq<=lastFrameSeq)
+                return; // duplicate/out-of-order frame: never refresh the sensor snapshot
             double x=message.get("x").getAsDouble();
             double y=message.get("y").getAsDouble();
             double z=message.get("z").getAsDouble();
@@ -276,11 +319,18 @@ public final class RealClientServerTransport implements AutoCloseable {
                 block=RealClientWire.requiredString(message,"crosshair_block",128);
                 side=RealClientWire.requiredString(message,"crosshair_side",32);
             }
+            lastFrameSeq=frameSeq;
             sensor.set(new SensorSnapshot(
-                    playerUuid,x,y,z,yaw,pitch,selected,present,cx,cy,cz,block,side,now));
+                    playerUuid,x,y,z,yaw,pitch,selected,present,cx,cy,cz,block,side,
+                    messageGameSession,frameSeq,now));
         }
 
         void receiveExecution(JsonObject message)throws IOException {
+            if(!message.has("game_session_seq"))
+                throw new IOException("real_client_execution_missing_game_incarnation");
+            String messageGameSession=RealClientWire.requiredString(message,"game_session",160);
+            int messageGameSessionSeq=message.get("game_session_seq").getAsInt();
+            bindGameIncarnation(messageGameSession,messageGameSessionSeq);
             String executionId=RealClientWire.requiredString(message,"execution_id",160);
             String state=RealClientWire.requiredString(message,"state",32);
             if(!java.util.Set.of(

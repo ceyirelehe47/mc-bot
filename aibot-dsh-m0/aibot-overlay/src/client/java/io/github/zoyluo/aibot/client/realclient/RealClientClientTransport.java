@@ -29,6 +29,9 @@ final class RealClientClientTransport implements AutoCloseable {
     private final AtomicReference<Connection> connection=new AtomicReference<>();
     private final ArrayBlockingQueue<JsonObject> inbound=new ArrayBlockingQueue<>(64);
     private final Thread connector;
+    // 当前 Minecraft 游戏 incarnation(v2 wire):JOIN 时由 runtime 绑定,消息统一注入。
+    private volatile String gameSessionEpoch="";
+    private volatile int gameSessionSeq=-1;
 
     RealClientClientTransport(
             String host,int port,String token,String bodyId,String playerName) {
@@ -68,10 +71,19 @@ final class RealClientClientTransport implements AutoCloseable {
         return current!=null && current.connected.get();
     }
 
+    void bindGameSession(String epoch,int seq) {
+        gameSessionEpoch=epoch==null?"":epoch;
+        gameSessionSeq=seq;
+    }
+
     boolean send(JsonObject message) {
         Connection current=connection.get();
         if(current==null || !current.connected.get())return false;
         message.addProperty("session_epoch",current.sessionEpoch);
+        if(!gameSessionEpoch.isBlank()) {
+            message.addProperty("game_session",gameSessionEpoch);
+            message.addProperty("game_session_seq",gameSessionSeq);
+        }
         return current.outbound.offer(message);
     }
 
