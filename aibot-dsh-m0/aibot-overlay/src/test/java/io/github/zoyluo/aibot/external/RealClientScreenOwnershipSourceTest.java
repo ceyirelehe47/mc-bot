@@ -13,154 +13,103 @@ final class RealClientScreenOwnershipSourceTest {
     private static final Path MAIN=Path.of(
             "src/main/java/io/github/zoyluo/aibot/external/realclient");
 
-    @Test void gameStateMessagesAreSuppressedBeforeJoin()
+    @Test void gameStateAndInboundCommandsAreClearedOnDisconnect()
             throws Exception {
         String transport=Files.readString(
-                CLIENT.resolve(
-                        "RealClientClientTransport.java"));
+                CLIENT.resolve("RealClientClientTransport.java"));
         String runtime=Files.readString(
-                CLIENT.resolve(
-                        "RealClientBodyClientRuntime.java"));
-        String screens=Files.readString(
-                CLIENT.resolve(
-                        "RealClientScreenController.java"));
-        assertTrue(transport.contains(
-                "GAME_BOUND_TYPES.contains(type) "
-                        +"&& !gameSessionBound()"));
-        assertTrue(transport.contains(
-                "void clearGameSession()"));
-        assertTrue(runtime.contains(
-                "transport.clearGameSession()"));
-        assertTrue(screens.contains(
-                "!transport.gameSessionBound()"));
+                CLIENT.resolve("RealClientBodyClientRuntime.java"));
+        assertTrue(transport.contains("void clearGameSession()"));
+        assertTrue(transport.contains("inbound.clear()"));
+        assertTrue(transport.contains("lastInboundCommandSeq=-1L"));
+        assertTrue(runtime.indexOf("transport.clearGameSession()")
+                <runtime.indexOf("actions.disconnected(client)"));
     }
 
-    @Test void depositMutationRequiresServerCommit()
+    @Test void clientMutationRequiresServerCommit()
             throws Exception {
         String actions=Files.readString(
-                CLIENT.resolve(
-                        "RealClientActionController.java"));
+                CLIENT.resolve("RealClientActionController.java"));
         int wait=actions.indexOf("if(!authorized)");
         int click=actions.indexOf("clickSlot(");
         assertTrue(wait>=0 && click>wait);
-        assertTrue(actions.contains(
-                "\"commit\".equals("));
-        assertTrue(actions.contains(
-                "client_preexisting_screen_open"));
-        assertTrue(actions.contains(
-                "client_screen_ownership_lost"));
+        assertTrue(actions.contains("\"commit\".equals("));
+        assertTrue(actions.contains("client_preexisting_screen_open"));
+        assertTrue(actions.contains("client_screen_ownership_lost"));
     }
 
-    @Test void serverCommitIsBoundToTargetInventory()
+    @Test void serverCommitIsBoundToStorageTarget()
             throws Exception {
         String driver=Files.readString(
-                MAIN.resolve(
-                        "RealClientExecutionDriver.java"));
-        assertTrue(driver.contains(
-                "handlerOwnsTargetInventory("));
-        assertTrue(driver.contains(
-                "slot.inventory==targetInventory"));
-        assertTrue(driver.contains(
-                "screen.screenSeq()>baselineScreenSeq"));
-        assertTrue(driver.contains(
-                "screen.screenEpoch()"));
-        assertTrue(driver.contains(
-                "screen.capabilities().contains("));
-        assertTrue(driver.contains(
-                "\"phase\",\"commit\""));
+                MAIN.resolve("RealClientExecutionDriver.java"));
+        String target=Files.readString(
+                MAIN.resolve("RealClientStorageTarget.java"));
+        assertTrue(driver.contains("target.handlerOwns(player,screen)"));
+        assertTrue(driver.contains("target.adapterAllowed(screen.adapterId())"));
+        assertTrue(driver.contains("screen.screenSeq()>baselineScreenSeq"));
+        assertTrue(target.contains("slot.inventory==barrel"));
+        assertTrue(target.contains(
+                "RealClientTomsStorageServerCompat.handlerOwns"));
     }
 
-    @Test void screenAdaptersAreExactAllowlists()
+    @Test void adapterRegistryIsNamespaceSafeAndExact()
             throws Exception {
         String adapters=Files.readString(
-                CLIENT.resolve(
-                        "RealClientScreenAdapterRegistry.java"));
+                CLIENT.resolve("RealClientScreenAdapterRegistry.java"));
         assertTrue(adapters.contains(
-                "mc2a_fixture_storage_v1"));
+                "screen.getClass()==GenericContainerScreen.class"));
         assertTrue(adapters.contains(
-                "vanilla_generic_storage_v1"));
-        assertTrue(adapters.contains(
-                "UNRECOGNIZED"));
-        assertFalse(adapters.contains("mouseClicked("));
-        assertFalse(adapters.contains("setMouse("));
-        assertFalse(adapters.contains("x()+"));
+                "instanceof GenericContainerScreenHandler"));
+        assertTrue(adapters.contains("toms_storage_terminal_v1"));
+        assertTrue(adapters.contains("UNRECOGNIZED"));
+        assertFalse(adapters.contains(
+                "\"net.minecraft.client.gui.screen.ingame.GenericContainerScreen\""));
     }
 
-    @Test void readModelExportsWidgetsButCannotActivateThem()
+    @Test void readModelMarksModTextUntrusted()
             throws Exception {
         String controller=Files.readString(
-                CLIENT.resolve(
-                        "RealClientScreenController.java"));
+                CLIENT.resolve("RealClientScreenController.java"));
         String cognitive=Files.readString(
-                MAIN.resolve(
-                        "RealClientCognitiveViewBuilder.java"));
-        assertTrue(controller.contains(
-                "MAX_SLOTS=128"));
-        assertTrue(controller.contains(
-                "\"widgets\""));
-        assertTrue(controller.contains(
-                "\"capabilities\""));
-        assertFalse(controller.contains("clickSlot("));
-        assertFalse(controller.contains("interactBlock("));
-        assertTrue(cognitive.contains(
-                "screen.widgets()"));
-        assertTrue(cognitive.contains(
-                "\"adapter_id\""));
-        assertTrue(cognitive.contains(
-                "\"screen_epoch\""));
+                MAIN.resolve("RealClientCognitiveViewBuilder.java"));
+        assertTrue(controller.contains("\"message_origin\""));
+        assertTrue(controller.contains("\"message_trust\""));
+        assertTrue(controller.contains("\"storage_items\""));
+        assertTrue(cognitive.contains("\"untrusted_data\""));
+        assertTrue(cognitive.contains("\"structured_data\""));
+    }
+
+    @Test void noGenericUiMutationApiExists()
+            throws Exception {
+        String combined=Files.readString(
+                CLIENT.resolve("RealClientActionController.java"))
+                +Files.readString(
+                        CLIENT.resolve("RealClientScreenController.java"))
+                +Files.readString(
+                        CLIENT.resolve("RealClientScreenAdapterRegistry.java"));
+        assertFalse(combined.contains("clickAtCoordinate"));
+        assertFalse(combined.contains("activateWidget"));
+        assertFalse(combined.contains("mouseClicked("));
+        assertEquals(1,count(combined,"clickSlot("));
     }
 
     @Test void movingGotoSettlesBeforeFacingTimeout()
             throws Exception {
         String actions=Files.readString(
-                CLIENT.resolve(
-                        "RealClientActionController.java"));
-        String driver=Files.readString(
-                MAIN.resolve(
-                        "RealClientExecutionDriver.java"));
-        assertTrue(actions.contains(
-                "ARRIVAL_STABLE_TICKS"));
-        assertTrue(actions.contains(
-                "client_arrival_settling"));
-        assertTrue(actions.contains(
-                "horizontalLengthSquared()"));
-        assertTrue(driver.contains(
-                "sensor.receivedAtMs()"));
-        assertTrue(driver.contains(
-                "sensor.gameSession()"));
+                CLIENT.resolve("RealClientActionController.java"));
+        assertTrue(actions.contains("ARRIVAL_STABLE_TICKS"));
+        assertTrue(actions.contains("client_arrival_settling"));
+        assertTrue(actions.contains("horizontalLengthSquared()"));
     }
 
-    @Test void protocolV4IsExplicit()
+    @Test void protocolV5IsExplicit()
             throws Exception {
-        String wire=Files.readString(
-                MAIN.resolve("RealClientWire.java"));
-        assertTrue(wire.contains(
-                "PROTOCOL_VERSION=4"));
+        assertTrue(Files.readString(
+                MAIN.resolve("RealClientWire.java"))
+                .contains("PROTOCOL_VERSION=5"));
     }
 
-    @Test void noGenericWidgetOrCoordinateMutationApiExists()
-            throws Exception {
-        String combined=Files.readString(
-                CLIENT.resolve(
-                        "RealClientActionController.java"))
-                +Files.readString(
-                        CLIENT.resolve(
-                                "RealClientScreenController.java"))
-                +Files.readString(
-                        CLIENT.resolve(
-                                "RealClientScreenAdapterRegistry.java"));
-        assertFalse(combined.contains(
-                "clickAtCoordinate"));
-        assertFalse(combined.contains(
-                "activateWidget"));
-        assertFalse(combined.contains(
-                "mouseClicked("));
-        assertEquals(
-                1,count(combined,"clickSlot("));
-    }
-
-    private static int count(
-            String text,String token) {
+    private static int count(String text,String token) {
         int count=0,from=0;
         while((from=text.indexOf(token,from))>=0) {
             count++;

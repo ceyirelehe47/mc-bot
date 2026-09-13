@@ -8,7 +8,6 @@ import io.github.zoyluo.aibot.external.BridgeFault;
 import io.github.zoyluo.aibot.external.JsonOutput;
 import io.github.zoyluo.aibot.external.PhysicalExecutionDriver;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -35,9 +34,6 @@ public final class RealClientExecutionDriver
     private static final int MAX_GOTO_DISTANCE=32;
     private static final int EXECUTION_TIMEOUT_TICKS=20*120;
     private static final long SCREEN_FRESH_MS=2500L;
-    private static final Set<String> DEPOSIT_ADAPTERS=Set.of(
-            "vanilla_generic_storage_v1",
-            "mc2a_fixture_storage_v1");
 
     private final MinecraftServer server;
     private final RealClientServerTransport transport;
@@ -464,69 +460,56 @@ public final class RealClientExecutionDriver
                 reason);
     }
 
-    private record ContainerTarget(
-            BlockPos pos,String face,Inventory inventory) {}
-
     private BodyBackend.Handle startDeposit(
             Request request,JsonObject args,
             ServerPlayerEntity player,long startedAt) {
         only(args,Set.of());
-        ContainerTarget target=
-                validatedBarrelTarget(player);
+        RealClientStorageTarget target=
+                RealClientStorageTarget.resolve(player,transport);
 
         var session=transport.session().orElse(null);
         if(session==null
-                ||!session.fresh(
-                        System.currentTimeMillis()))
+                ||!session.fresh(System.currentTimeMillis()))
             throw new BridgeFault(
-                    409,
-                    "real_client_sensor_unavailable");
+                    409,"real_client_sensor_unavailable");
         var priorScreen=session.screen();
         if(priorScreen!=null && priorScreen.present())
             throw new BridgeFault(
-                    409,
-                    "real_client_screen_already_open");
+                    409,"real_client_screen_already_open");
         long baselineScreenSeq=
-                priorScreen==null
-                        ?-1L
-                        :priorScreen.screenSeq();
+                priorScreen==null?-1L:priorScreen.screenSeq();
 
-        int playerBaseline=
-                countPlayerInventory(player);
-        int containerBaseline=
-                countInventory(target.inventory());
+        int playerBaseline=countPlayerInventory(player);
+        long targetBaseline=target.count();
 
-        Map<String,Object> command=
-                new LinkedHashMap<>();
+        Map<String,Object> command=new LinkedHashMap<>();
         command.put("phase","open");
+        command.put("target_kind",target.kindWire());
         command.put("x",target.pos().getX());
         command.put("y",target.pos().getY());
         command.put("z",target.pos().getZ());
         command.put("face",target.face());
-        command.put(
-                "baseline_screen_seq",
-                baselineScreenSeq);
+        command.put("baseline_screen_seq",baselineScreenSeq);
 
         if(!transport.sendCommand(
                 request.executionId(),"deposit",
                 JsonOutput.encode(command)))
             throw new BridgeFault(
-                    503,
-                    "real_client_command_queue_unavailable");
+                    503,"real_client_command_queue_unavailable");
 
         return new DepositHandle(
                 request.executionId(),startedAt,
                 target,playerBaseline,
-                containerBaseline,baselineScreenSeq);
+                targetBaseline,baselineScreenSeq);
     }
 
     private final class DepositHandle
             implements BodyBackend.Handle {
         private final String executionId;
         private final long startedAt;
-        private final ContainerTarget target;
+        private final RealClientStorageTarget target;
         private final int playerBaseline;
-        private final int containerBaseline;
+        private final long targetBaseline;
         private final long baselineScreenSeq;
 
         private boolean commitSent;
@@ -538,14 +521,14 @@ public final class RealClientExecutionDriver
 
         DepositHandle(
                 String executionId,long startedAt,
-                ContainerTarget target,
-                int playerBaseline,int containerBaseline,
+                RealClientStorageTarget target,
+                int playerBaseline,long targetBaseline,
                 long baselineScreenSeq) {
             this.executionId=executionId;
             this.startedAt=startedAt;
             this.target=target;
             this.playerBaseline=playerBaseline;
-            this.containerBaseline=containerBaseline;
+            this.targetBaseline=targetBaseline;
             this.baselineScreenSeq=baselineScreenSeq;
         }
 
@@ -557,39 +540,24 @@ public final class RealClientExecutionDriver
                         "outcome_unknown",0D,
                         "real_client_body_unavailable");
 
-            if(!player.getServerWorld()
-                    .getBlockState(target.pos())
-                    .isOf(Blocks.BARREL))
+            if(!target.stillValid(player))
                 return new BodyBackend.Snapshot(
                         "failed",0D,
                         "real_client_deposit_target_changed");
 
-            var blockEntity=player.getServerWorld()
-                    .getBlockEntity(target.pos());
-            if(!(blockEntity instanceof Inventory inventory))
-                return new BodyBackend.Snapshot(
-                        "failed",0D,
-                        "real_client_deposit_inventory_unavailable");
-
-            int playerCurrent=
-                    countPlayerInventory(player);
-            int containerCurrent=
-                    countInventory(inventory);
-            int fromPlayer=
-                    playerBaseline-playerCurrent;
-            int intoContainer=
-                    containerCurrent-containerBaseline;
+            int playerCurrent=countPlayerInventory(player);
+            long targetCurrent=target.count();
+            int fromPlayer=playerBaseline-playerCurrent;
+            long intoTarget=targetCurrent-targetBaseline;
 
             var session=transport.session().orElse(null);
             if(session==null
-                    ||!session.fresh(
-                            System.currentTimeMillis()))
+                    ||!session.fresh(System.currentTimeMillis()))
                 return new BodyBackend.Snapshot(
                         "outcome_unknown",0D,
                         "real_client_session_unavailable");
 
-            var remote=transport.execution(
-                    executionId).orElse(null);
+            var remote=transport.execution(executionId).orElse(null);
             if(commitSent && remote!=null
                     &&("client_owned_screen_quick_move"
                             .equals(remote.reason())
@@ -600,19 +568,16 @@ public final class RealClientExecutionDriver
                     ||"completed".equals(remote.state())))
                 mutationAckSeen=true;
 
-            // A coincidental external inventory change before the ownership commit, or without a
-            // client mutation acknowledgement, can never satisfy this execution.
             if(commitSent && mutationAckSeen
-                    &&fromPlayer>0&&fromPlayer==intoContainer)
+                    &&fromPlayer>0 && intoTarget==fromPlayer)
                 return new BodyBackend.Snapshot(
                         "completed",1D,
                         "server_authoritative_owned_screen_"
-                                +"container_transfer_verified:"
-                                +fromPlayer);
+                                +target.kindWire()
+                                +"_transfer_verified:"+fromPlayer);
 
             if(remote!=null
-                    &&Set.of(
-                            "failed","cancelled","outcome_unknown")
+                    &&Set.of("failed","cancelled","outcome_unknown")
                             .contains(remote.state()))
                 return new BodyBackend.Snapshot(
                         remote.state(),remote.progress(),
@@ -625,40 +590,33 @@ public final class RealClientExecutionDriver
                         "real_client_execution_timeout");
                 return new BodyBackend.Snapshot(
                         "failed",0D,
-                        "real_client_container_transfer_not_proven");
+                        "real_client_storage_transfer_not_proven");
             }
 
             var screen=session.screen();
             if(!commitSent) {
                 if(screen!=null
                         &&screen.present()
-                        &&screen.screenSeq()>baselineScreenSeq) {
-                    authorizeOwnedScreen(
-                            player,inventory,screen);
-                }
+                        &&screen.screenSeq()>baselineScreenSeq)
+                    authorizeOwnedScreen(player,screen);
                 if(!commitSent)
                     return new BodyBackend.Snapshot(
                             "running",
                             remote==null
                                     ?.25D
-                                    :Math.min(
-                                            .49D,
-                                            remote.progress()),
+                                    :Math.min(.49D,remote.progress()),
                             "awaiting_server_owned_target_screen");
             }
 
-            // MC-2A0.6 修正:客户端 completed 后按完成语义关闭 Screen 属正常路径,
-            // 不得判为所有权丢失;此时保持 running 等待服务器库存证明或超时
-            // (PROOF-1: client_completed_awaiting_server_container_inventory_proof)。
+            // A normal completed client action closes the screen before the server observes its
+            // inventory proof. Ownership loss is fatal only while the client still claims RUNNING.
             boolean clientCompleted=remote!=null
                     &&"completed".equals(remote.state());
             if(!clientCompleted
                     &&(screen==null
                     ||!screen.present()
-                    ||!ownedScreenEpoch.equals(
-                            screen.screenEpoch())
-                    ||!ownedAdapterId.equals(
-                            screen.adapterId())
+                    ||!ownedScreenEpoch.equals(screen.screenEpoch())
+                    ||!ownedAdapterId.equals(screen.adapterId())
                     ||ownedSyncId!=screen.syncId()
                     ||screen.screenSeq()<ownedScreenSeq)) {
                 transport.sendControl(
@@ -673,62 +631,47 @@ public final class RealClientExecutionDriver
             String reason=remote!=null
                     &&"completed".equals(remote.state())
                     ?"client_completed_awaiting_server_"
-                            +"container_inventory_proof"
+                            +"storage_inventory_proof"
                     :remote==null
                             ?"awaiting_real_client_ack"
                             :remote.reason();
             return new BodyBackend.Snapshot(
                     "running",
-                    remote==null
-                            ?.5D
-                            :Math.min(.99D,remote.progress()),
+                    remote==null?.5D:Math.min(.99D,remote.progress()),
                     reason);
         }
 
         private void authorizeOwnedScreen(
                 ServerPlayerEntity player,
-                Inventory targetInventory,
                 RealClientServerTransport.ScreenSnapshot screen) {
-            if(System.currentTimeMillis()
-                    -screen.receivedAtMs()>SCREEN_FRESH_MS)
+            if(System.currentTimeMillis()-screen.receivedAtMs()
+                    >SCREEN_FRESH_MS)
                 return;
             if(!sessionMatchesCurrentGame(screen))
                 return;
-            if(!DEPOSIT_ADAPTERS.contains(
-                    screen.adapterId()))
+            if(!target.adapterAllowed(screen.adapterId()))
                 return;
-            if(!screen.capabilities().contains(
-                    "deposit_quick_move"))
+            if(!screen.capabilities().contains("deposit_quick_move"))
                 return;
-            if(player.currentScreenHandler
-                    ==player.playerScreenHandler)
+            if(player.currentScreenHandler==player.playerScreenHandler)
                 return;
-            if(player.currentScreenHandler.syncId
-                    !=screen.syncId())
+            if(player.currentScreenHandler.syncId!=screen.syncId())
                 return;
-            if(!handlerOwnsTargetInventory(
-                    player,targetInventory))
+            if(!target.handlerOwns(player,screen))
                 return;
 
-            Map<String,Object> commit=
-                    new LinkedHashMap<>();
+            Map<String,Object> commit=new LinkedHashMap<>();
             commit.put("phase","commit");
-            commit.put(
-                    "screen_epoch",
-                    screen.screenEpoch());
-            commit.put(
-                    "screen_seq",
-                    screen.screenSeq());
-            commit.put(
-                    "sync_id",screen.syncId());
-            commit.put(
-                    "adapter_id",screen.adapterId());
+            commit.put("target_kind",target.kindWire());
+            commit.put("screen_epoch",screen.screenEpoch());
+            commit.put("screen_seq",screen.screenSeq());
+            commit.put("sync_id",screen.syncId());
+            commit.put("adapter_id",screen.adapterId());
             if(!transport.sendCommand(
                     executionId,"deposit",
                     JsonOutput.encode(commit)))
                 throw new BridgeFault(
-                        503,
-                        "real_client_command_queue_unavailable");
+                        503,"real_client_command_queue_unavailable");
 
             commitSent=true;
             ownedScreenEpoch=screen.screenEpoch();
@@ -741,89 +684,8 @@ public final class RealClientExecutionDriver
                 RealClientServerTransport.ScreenSnapshot screen) {
             var session=transport.session().orElse(null);
             return session!=null
-                    &&screen.gameSession()
-                            .equals(session.gameSession());
+                    &&screen.gameSession().equals(session.gameSession());
         }
-    }
-
-    private static boolean handlerOwnsTargetInventory(
-            ServerPlayerEntity player,
-            Inventory targetInventory) {
-        int ownedSlots=0;
-        for(var slot:player.currentScreenHandler.slots)
-            if(slot.inventory==targetInventory)
-                ownedSlots++;
-        return ownedSlots>0;
-    }
-
-    private ContainerTarget validatedBarrelTarget(
-            ServerPlayerEntity player) {
-        var session=transport.session().orElse(null);
-        if(session==null
-                ||!session.fresh(
-                        System.currentTimeMillis()))
-            throw new BridgeFault(
-                    409,
-                    "real_client_sensor_unavailable");
-
-        var sensor=session.sensor();
-        if(sensor==null
-                ||!sensor.crosshairPresent()
-                ||System.currentTimeMillis()
-                        -sensor.receivedAtMs()
-                        >RealClientOpportunityTracker
-                                .FRAME_FRESH_MS)
-            throw new BridgeFault(
-                    409,
-                    "real_client_container_crosshair_required");
-
-        Vec3d framePos=new Vec3d(
-                sensor.x(),sensor.y(),sensor.z());
-        if(player.getPos().distanceTo(framePos)
-                >RealClientOpportunityTracker
-                        .POSITION_TOLERANCE)
-            throw new BridgeFault(
-                    409,
-                    "real_client_container_sensor_position_drift");
-
-        BlockPos pos=new BlockPos(
-                sensor.crosshairX(),
-                sensor.crosshairY(),
-                sensor.crosshairZ());
-        Vec3d eye=player.getEyePos();
-        Vec3d direction=Vec3d.fromPolar(
-                sensor.pitch(),sensor.yaw());
-        HitResult ray=player.getServerWorld().raycast(
-                new RaycastContext(
-                        eye,
-                        eye.add(direction.multiply(
-                                RealClientOpportunityTracker
-                                        .VALIDATION_RANGE)),
-                        RaycastContext.ShapeType.OUTLINE,
-                        RaycastContext.FluidHandling.NONE,
-                        player));
-        if(!(ray instanceof BlockHitResult hit)
-                ||!hit.getBlockPos().equals(pos))
-            throw new BridgeFault(
-                    409,
-                    "real_client_container_sensor_ray_mismatch");
-
-        BlockState state=player.getServerWorld()
-                .getBlockState(pos);
-        if(!state.isOf(Blocks.BARREL))
-            throw new BridgeFault(
-                    409,
-                    "real_client_deposit_mvp_requires_barrel_crosshair");
-
-        var blockEntity=player.getServerWorld()
-                .getBlockEntity(pos);
-        if(!(blockEntity instanceof Inventory inventory))
-            throw new BridgeFault(
-                    409,
-                    "real_client_deposit_inventory_unavailable");
-
-        return new ContainerTarget(
-                pos,sensor.crosshairSide(),inventory);
     }
 
     private BodyBackend.Snapshot remoteSnapshot(
