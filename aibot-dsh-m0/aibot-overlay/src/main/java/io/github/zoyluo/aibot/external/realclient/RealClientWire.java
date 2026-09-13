@@ -11,9 +11,9 @@ import java.nio.charset.StandardCharsets;
 
 /** Length-prefixed loopback protocol shared by the dedicated server and Bob's Fabric client. */
 public final class RealClientWire {
-    // v3: v2 game/frame identity plus native Screen snapshots and client window-mode binding.
-    // Older clients/servers fail closed during hello/welcome.
-    public static final int PROTOCOL_VERSION=3;
+    // v4: v3 native Screen snapshots plus screen-incarnation/adapter ownership fields.
+    // Older peers fail closed during hello/welcome.
+    public static final int PROTOCOL_VERSION=4;
     public static final int MAX_FRAME_BYTES=64*1024;
 
     private RealClientWire() {}
@@ -51,13 +51,14 @@ public final class RealClientWire {
                 || !object.getAsJsonPrimitive(key).isString())
             throw new IOException("real_client_missing_string:"+key);
         String value=object.get(key).getAsString();
-        if(value.isBlank() || value.length()>max || value.chars().anyMatch(c->c<0x20))
+        if(value.isBlank() || value.length()>max
+                || value.chars().anyMatch(c->c<0x20))
             throw new IOException("real_client_invalid_string:"+key);
         return value;
     }
 
-    public static String optionalString(JsonObject object,String key,String fallback,int max)
-            throws IOException {
+    public static String optionalString(
+            JsonObject object,String key,String fallback,int max)throws IOException {
         if(!object.has(key))return fallback;
         return requiredString(object,key,max);
     }

@@ -70,7 +70,7 @@ public final class RealClientBodyBackend implements BodyBackend {
         var sensor=session.sensor();
         if(sensor==null || !candidate.getUuidAsString().equalsIgnoreCase(sensor.playerUuid()))
             return unavailable("body_session_changed");
-        // v2 wire:快照必须已绑定一次 Minecraft 游戏 JOIN incarnation 才算身体就绪。
+        // v4 wire:快照必须已绑定一次 Minecraft 游戏 JOIN incarnation 才算身体就绪。
         if(sensor.gameSession().isBlank())
             return unavailable("body_session_changed");
         if(requireOfflineUuid && !candidate.getUuid().equals(offlineUuid(playerName)))
@@ -262,15 +262,23 @@ public final class RealClientBodyBackend implements BodyBackend {
 
     private static Map<String,Object> screenWire(
             RealClientServerTransport.ScreenSnapshot screen) {
-        if(screen==null || !screen.present())return Map.of("present",false);
-        return Map.of(
-                "present",true,
-                "screen_class",screen.screenClass(),
-                "handler_class",screen.handlerClass(),
-                "title",screen.title(),
-                "sync_id",screen.syncId(),
-                "slot_count",screen.slotCount(),
-                "truncated",screen.truncated());
+        if(screen==null || !screen.present())
+            return Map.of("present",false);
+        Map<String,Object> out=new LinkedHashMap<>();
+        out.put("present",true);
+        out.put("game_session",screen.gameSession());
+        out.put("screen_seq",screen.screenSeq());
+        out.put("screen_epoch",screen.screenEpoch());
+        out.put("adapter_id",screen.adapterId());
+        out.put("screen_class",screen.screenClass());
+        out.put("handler_class",screen.handlerClass());
+        out.put("title",screen.title());
+        out.put("sync_id",screen.syncId());
+        out.put("capabilities",screen.capabilities());
+        out.put("widget_count",screen.widgets().size());
+        out.put("slot_count",screen.slotCount());
+        out.put("truncated",screen.truncated());
+        return out;
     }
 
     /** Avoids claiming hidden scans in the MVP response while keeping the wrapper shape stable. */

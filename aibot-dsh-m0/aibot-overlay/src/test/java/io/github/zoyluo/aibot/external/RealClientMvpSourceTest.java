@@ -85,9 +85,9 @@ final class RealClientMvpSourceTest {
         assertTrue(tracker.contains("\"game_session_missing\""));
     }
 
-    @Test void wireProtocolV3IsExplicitAndMixedBinariesFailClosed()throws Exception {
+    @Test void wireProtocolV4IsExplicitAndMixedBinariesFailClosed()throws Exception {
         String wire=main("realclient/RealClientWire.java");
-        assertTrue(wire.contains("PROTOCOL_VERSION=3"));
+        assertTrue(wire.contains("PROTOCOL_VERSION=4"));
         String server=main("realclient/RealClientServerTransport.java");
         String client=Files.readString(CLIENT.resolve("RealClientClientTransport.java"));
         assertTrue(server.contains("real_client_protocol_mismatch"));

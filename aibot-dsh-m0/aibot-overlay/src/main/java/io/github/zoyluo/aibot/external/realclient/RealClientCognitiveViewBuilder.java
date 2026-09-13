@@ -130,10 +130,12 @@ public final class RealClientCognitiveViewBuilder {
 
     private static Map<String,Object> screen(
             RealClientServerTransport.ScreenSnapshot screen) {
-        if(screen==null || !screen.present())return Map.of("present",false);
+        if(screen==null || !screen.present())
+            return Map.of("present",false);
         List<Map<String,Object>> slots=new ArrayList<>();
         for(var slot:screen.slots()) {
-            if("minecraft:air".equals(slot.itemId()) || slot.count()==0)continue;
+            if("minecraft:air".equals(slot.itemId())
+                    ||slot.count()==0)continue;
             Map<String,Object> item=CanonicalJson.object();
             item.put("slot_id",(long)slot.slotId());
             item.put("inventory_kind",slot.inventoryKind());
@@ -143,15 +145,34 @@ public final class RealClientCognitiveViewBuilder {
             slots.add(item);
             if(slots.size()>=64)break;
         }
+        List<Map<String,Object>> widgets=new ArrayList<>();
+        for(var widget:screen.widgets()) {
+            Map<String,Object> item=CanonicalJson.object();
+            item.put("widget_index",(long)widget.widgetIndex());
+            item.put("widget_class",widget.widgetClass());
+            item.put("message",widget.message());
+            item.put("active",widget.active());
+            item.put("visible",widget.visible());
+            widgets.add(item);
+            if(widgets.size()>=32)break;
+        }
         Map<String,Object> ui=CanonicalJson.object();
         ui.put("present",true);
+        ui.put("game_session",screen.gameSession());
+        ui.put("screen_seq",screen.screenSeq());
+        ui.put("screen_epoch",screen.screenEpoch());
+        ui.put("adapter_id",screen.adapterId());
+        ui.put("capabilities",screen.capabilities());
         ui.put("screen_class",screen.screenClass());
         ui.put("handler_class",screen.handlerClass());
         ui.put("title",screen.title());
         ui.put("sync_id",(long)screen.syncId());
+        ui.put("widgets",widgets);
         ui.put("slots",slots);
         ui.put("slot_count",(long)screen.slotCount());
-        ui.put("truncated",screen.truncated() || screen.slots().size()>64);
+        ui.put("truncated",screen.truncated()
+                ||screen.slots().size()>64
+                ||screen.widgets().size()>32);
         return ui;
     }
 

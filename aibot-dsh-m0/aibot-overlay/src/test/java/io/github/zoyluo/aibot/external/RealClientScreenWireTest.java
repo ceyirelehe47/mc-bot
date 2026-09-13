@@ -16,7 +16,8 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 final class RealClientScreenWireTest {
-    private static final String TOKEN="unit-test-real-client-token-0123456789abcdef";
+    private static final String TOKEN=
+            "unit-test-real-client-token-0123456789abcdef";
     private RealClientServerTransport transport;
 
     @AfterEach void close() {
@@ -24,67 +25,120 @@ final class RealClientScreenWireTest {
     }
 
     private int freePort()throws Exception {
-        try(ServerSocket socket=new ServerSocket(0)) { return socket.getLocalPort(); }
+        try(ServerSocket socket=new ServerSocket(0)) {
+            return socket.getLocalPort();
+        }
     }
 
     private Client client()throws Exception {
-        transport=new RealClientServerTransport("bob","Bob",TOKEN,freePort());
+        transport=new RealClientServerTransport(
+                "bob","Bob",TOKEN,freePort());
         transport.start();
         return new Client(transport.port());
     }
 
-    private static final class Client implements AutoCloseable {
+    private static final class Client
+            implements AutoCloseable {
         final Socket socket;
         final DataInputStream input;
         final DataOutputStream output;
         final String epoch=UUID.randomUUID().toString();
+
         Client(int port)throws Exception {
             socket=new Socket("127.0.0.1",port);
-            input=new DataInputStream(socket.getInputStream());
-            output=new DataOutputStream(socket.getOutputStream());
+            input=new DataInputStream(
+                    socket.getInputStream());
+            output=new DataOutputStream(
+                    socket.getOutputStream());
             JsonObject hello=new JsonObject();
             hello.addProperty("type","hello");
-            hello.addProperty("protocol",RealClientWire.PROTOCOL_VERSION);
+            hello.addProperty(
+                    "protocol",RealClientWire.PROTOCOL_VERSION);
             hello.addProperty("token",TOKEN);
             hello.addProperty("body_id","bob");
             hello.addProperty("player_name","Bob");
             hello.addProperty("session_epoch",epoch);
             hello.addProperty("window_mode","background");
             RealClientWire.write(output,hello);
-            assertEquals("welcome",RealClientWire.read(input).get("type").getAsString());
+            assertEquals(
+                    "welcome",
+                    RealClientWire.read(input)
+                            .get("type").getAsString());
         }
-        void heartbeat()throws Exception {
+
+        void heartbeat(
+                String gameSession,int gameSeq,
+                long frameSeq)throws Exception {
             JsonObject h=new JsonObject();
             h.addProperty("type","heartbeat");
             h.addProperty("session_epoch",epoch);
-            h.addProperty("game_session","game-a");
-            h.addProperty("game_session_seq",0);
-            h.addProperty("frame_seq",0L);
-            h.addProperty("player_uuid","00000000-0000-0000-0000-000000000001");
-            h.addProperty("x",0D);h.addProperty("y",64D);h.addProperty("z",0D);
-            h.addProperty("yaw",0F);h.addProperty("pitch",0F);
-            h.addProperty("selected_slot",0);h.addProperty("crosshair_present",false);
+            h.addProperty("game_session",gameSession);
+            h.addProperty("game_session_seq",gameSeq);
+            h.addProperty("frame_seq",frameSeq);
+            h.addProperty(
+                    "player_uuid",
+                    "00000000-0000-0000-0000-000000000001");
+            h.addProperty("x",0D);
+            h.addProperty("y",64D);
+            h.addProperty("z",0D);
+            h.addProperty("yaw",0F);
+            h.addProperty("pitch",0F);
+            h.addProperty("selected_slot",0);
+            h.addProperty("crosshair_present",false);
             RealClientWire.write(output,h);
         }
-        void screen(long seq,String item,int count)throws Exception {
+
+        void screen(
+                String gameSession,int gameSeq,
+                long seq,String screenEpoch,
+                String adapter,String item,int count)
+                throws Exception {
             JsonObject s=new JsonObject();
             s.addProperty("type","screen");
             s.addProperty("session_epoch",epoch);
-            s.addProperty("game_session","game-a");
-            s.addProperty("game_session_seq",0);
+            s.addProperty("game_session",gameSession);
+            s.addProperty("game_session_seq",gameSeq);
             s.addProperty("screen_seq",seq);
             s.addProperty("present",true);
-            s.addProperty("screen_class","net.minecraft.client.gui.screen.ingame.GenericContainerScreen");
-            s.addProperty("handler_class","net.minecraft.screen.GenericContainerScreenHandler");
+            s.addProperty("screen_epoch",screenEpoch);
+            s.addProperty("adapter_id",adapter);
+            s.addProperty(
+                    "screen_class",
+                    "io.github.zoyluo.mc2aui.fixture.client."
+                            +"FixtureGenericContainerScreen");
+            s.addProperty(
+                    "handler_class",
+                    "net.minecraft.screen."
+                            +"GenericContainerScreenHandler");
             s.addProperty("title","Barrel");
             s.addProperty("sync_id",4);
             s.addProperty("slot_count",63);
             s.addProperty("truncated",false);
+
+            JsonArray capabilities=new JsonArray();
+            capabilities.add("deposit_quick_move");
+            capabilities.add("widget_introspection");
+            s.add("capabilities",capabilities);
+
+            JsonArray widgets=new JsonArray();
+            JsonObject widget=new JsonObject();
+            widget.addProperty("widget_index",0);
+            widget.addProperty(
+                    "widget_class",
+                    "net.minecraft.client.gui.widget.ButtonWidget");
+            widget.addProperty(
+                    "message","Fixture Inspect");
+            widget.addProperty("active",true);
+            widget.addProperty("visible",true);
+            widgets.add(widget);
+            s.add("widgets",widgets);
+
             JsonArray slots=new JsonArray();
             JsonObject slot=new JsonObject();
             slot.addProperty("slot_id",0);
             slot.addProperty("inventory_index",0);
-            slot.addProperty("inventory_kind","container");
+            slot.addProperty(
+                    "inventory_kind","container");
             slot.addProperty("item",item);
             slot.addProperty("count",count);
             slot.addProperty("can_take",true);
@@ -92,10 +146,15 @@ final class RealClientScreenWireTest {
             s.add("slots",slots);
             RealClientWire.write(output,s);
         }
-        @Override public void close()throws Exception { socket.close(); }
+
+        @Override public void close()throws Exception {
+            socket.close();
+        }
     }
 
-    private static <T> T await(java.util.function.Supplier<T> probe)throws Exception {
+    private static <T> T await(
+            java.util.function.Supplier<T> probe)
+            throws Exception {
         long deadline=System.currentTimeMillis()+5000L;
         T value;
         do {
@@ -106,33 +165,113 @@ final class RealClientScreenWireTest {
         return value;
     }
 
-    @Test void screenSnapshotIsBoundToTheCurrentGameSession()throws Exception {
+    @Test void screenSnapshotCarriesOwnershipAndAdapterFields()
+            throws Exception {
         try(Client client=client()) {
-            client.heartbeat();
-            client.screen(0L,"minecraft:cobblestone",8);
+            client.heartbeat("game-a",0,0L);
+            client.screen(
+                    "game-a",0,0L,
+                    "screen-epoch-a",
+                    "mc2a_fixture_storage_v1",
+                    "minecraft:cobblestone",8);
             var screen=await(()->transport.session()
-                    .map(RealClientServerTransport.SessionSnapshot::screen).orElse(null));
+                    .map(RealClientServerTransport
+                            .SessionSnapshot::screen)
+                    .orElse(null));
             assertNotNull(screen);
             assertTrue(screen.present());
             assertEquals("game-a",screen.gameSession());
-            assertEquals("background",transport.session().orElseThrow().windowMode());
+            assertEquals(
+                    "screen-epoch-a",screen.screenEpoch());
+            assertEquals(
+                    "mc2a_fixture_storage_v1",
+                    screen.adapterId());
+            assertEquals(
+                    "background",
+                    transport.session()
+                            .orElseThrow().windowMode());
+            assertEquals(
+                    java.util.List.of(
+                            "deposit_quick_move",
+                            "widget_introspection"),
+                    screen.capabilities());
+            assertEquals(1,screen.widgets().size());
+            assertEquals(
+                    "Fixture Inspect",
+                    screen.widgets().getFirst().message());
             assertEquals(1,screen.slots().size());
-            assertEquals("minecraft:cobblestone",screen.slots().getFirst().itemId());
         }
     }
 
-    @Test void duplicateScreenSequenceNeverReplacesTheSnapshot()throws Exception {
+    @Test void duplicateScreenSequenceNeverReplacesSnapshot()
+            throws Exception {
         try(Client client=client()) {
-            client.heartbeat();
-            client.screen(2L,"minecraft:cobblestone",8);
+            client.heartbeat("game-a",0,0L);
+            client.screen(
+                    "game-a",0,2L,"epoch-a",
+                    "mc2a_fixture_storage_v1",
+                    "minecraft:cobblestone",8);
             var first=await(()->transport.session()
-                    .map(RealClientServerTransport.SessionSnapshot::screen).orElse(null));
+                    .map(RealClientServerTransport
+                            .SessionSnapshot::screen)
+                    .orElse(null));
             assertNotNull(first);
-            client.screen(2L,"minecraft:dirt",9);
+            client.screen(
+                    "game-a",0,2L,"epoch-b",
+                    "mc2a_fixture_storage_v1",
+                    "minecraft:dirt",9);
             Thread.sleep(200L);
-            var after=transport.session().orElseThrow().screen();
-            assertEquals("minecraft:cobblestone",after.slots().getFirst().itemId());
-            assertEquals(8,after.slots().getFirst().count());
+            var after=transport.session()
+                    .orElseThrow().screen();
+            assertEquals("epoch-a",after.screenEpoch());
+            assertEquals(
+                    "minecraft:cobblestone",
+                    after.slots().getFirst().itemId());
+        }
+    }
+
+    @Test void gameSessionAdvanceClearsOldScreen()
+            throws Exception {
+        try(Client client=client()) {
+            client.heartbeat("game-a",0,0L);
+            client.screen(
+                    "game-a",0,0L,"epoch-a",
+                    "mc2a_fixture_storage_v1",
+                    "minecraft:cobblestone",8);
+            assertNotNull(await(()->transport.session()
+                    .map(RealClientServerTransport
+                            .SessionSnapshot::screen)
+                    .orElse(null)));
+            client.heartbeat("game-b",1,0L);
+            var advanced=await(()->{
+                var session=transport.session()
+                        .orElse(null);
+                return session!=null
+                        &&"game-b".equals(
+                                session.gameSession())
+                        ?session:null;
+            });
+            assertNotNull(advanced);
+            assertNull(advanced.screen());
+        }
+    }
+
+    @Test void unrecognizedAdapterIsStoredReadOnly()
+            throws Exception {
+        try(Client client=client()) {
+            client.heartbeat("game-a",0,0L);
+            client.screen(
+                    "game-a",0,0L,"epoch-a",
+                    "unrecognized",
+                    "minecraft:air",0);
+            var screen=await(()->transport.session()
+                    .map(RealClientServerTransport
+                            .SessionSnapshot::screen)
+                    .orElse(null));
+            assertNotNull(screen);
+            assertEquals(
+                    "unrecognized",screen.adapterId());
+            assertTrue(screen.present());
         }
     }
 }

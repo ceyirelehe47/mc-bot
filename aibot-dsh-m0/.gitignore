@@ -5,3 +5,8 @@ node_modules/
 *.journal.lock
 .env
 !*.example
+
+# MC-2A0.6 fixture build artifacts
+fixtures/mc2a-ui-fixture/.gradle/
+fixtures/mc2a-ui-fixture/build/
+fixtures/mc2a-ui-fixture/run/

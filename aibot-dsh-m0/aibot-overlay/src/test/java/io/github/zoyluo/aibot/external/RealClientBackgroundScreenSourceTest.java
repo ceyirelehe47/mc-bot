@@ -55,7 +55,8 @@ final class RealClientBackgroundScreenSourceTest {
         assertTrue(driver.contains("Set.of(\"say\",\"goto\",\"mine_opportunity\",\"deposit\")"));
         assertTrue(driver.contains("real_client_deposit_mvp_requires_barrel_crosshair"));
         assertTrue(driver.contains("fromPlayer>0&&fromPlayer==intoContainer"));
-        assertTrue(driver.contains("server_authoritative_container_transfer_verified"));
+        assertTrue(driver.contains("server_authoritative_owned_screen_"));
+        assertTrue(driver.contains("commitSent && mutationAckSeen"));
     }
 
     @Test void finalFacingRequiresClientAckAndFreshCrosshair()throws Exception {
@@ -65,12 +66,14 @@ final class RealClientBackgroundScreenSourceTest {
         assertTrue(driver.contains("sensor.crosshairX()==faceTarget.getX()"));
     }
 
-    @Test void protocolV3CarriesWindowAndScreenState()throws Exception {
+    @Test void protocolV4CarriesOwnershipAndAdapterState()throws Exception {
         String wire=Files.readString(MAIN.resolve("RealClientWire.java"));
         String server=Files.readString(MAIN.resolve("RealClientServerTransport.java"));
-        assertTrue(wire.contains("PROTOCOL_VERSION=3"));
+        assertTrue(wire.contains("PROTOCOL_VERSION=4"));
         assertTrue(server.contains("window_mode"));
         assertTrue(server.contains("case \"screen\""));
         assertTrue(server.contains("SCREEN_SLOT_CAPACITY=128"));
+        assertTrue(server.contains("screen_epoch"));
+        assertTrue(server.contains("adapter_id"));
     }
 }

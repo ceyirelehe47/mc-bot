@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "mc2a-ui-fixture",
+  "version": "${version}",
+  "name": "MC-2A UI Fixture",
+  "description": "Client-only custom handled-screen fixture for MC-2A0.6 validation.",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "io.github.zoyluo.mc2aui.fixture.client.Mc2aUiFixtureClient"
+    ]
+  },
+  "mixins": [
+    {
+      "config": "mc2a-ui-fixture.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.3",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
