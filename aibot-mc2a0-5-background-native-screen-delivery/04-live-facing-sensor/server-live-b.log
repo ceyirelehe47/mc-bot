@@ -1,0 +1,698 @@
+Starting net.fabricmc.loader.impl.game.minecraft.BundlerClassPathCapture
+[17:07:24] [main/INFO]: Loading Minecraft 1.21.3 with Fabric Loader 0.19.5
+[17:07:25] [main/INFO]: Loading 43 mods:
+	- aibot 0.0.1
+	- fabric-api 0.114.1+1.21.3
+	   |-- fabric-api-base 0.4.50+119c825640
+	   |-- fabric-api-lookup-api-v1 1.6.81+fd37071f40
+	   |-- fabric-biome-api-v1 14.0.7+add2a48640
+	   |-- fabric-block-api-v1 1.0.28+fd37071f40
+	   |-- fabric-block-view-api-v2 1.0.16+fd37071f40
+	   |-- fabric-command-api-v1 1.2.58+f71b366f40
+	   |-- fabric-command-api-v2 2.2.37+c9d82ab240
+	   |-- fabric-commands-v0 0.2.75+df3654b340
+	   |-- fabric-content-registries-v0 9.1.8+fd37071f40
+	   |-- fabric-convention-tags-v1 2.1.4+7f945d5b40
+	   |-- fabric-convention-tags-v2 2.9.4+129f0c1f40
+	   |-- fabric-crash-report-info-v1 0.3.3+fd37071f40
+	   |-- fabric-data-attachment-api-v1 1.4.0+dbad41f140
+	   |-- fabric-data-generation-api-v1 21.1.2+a730659c40
+	   |-- fabric-dimensions-v1 4.0.7+fd37071f40
+	   |-- fabric-entity-events-v1 2.0.8+825023f840
+	   |-- fabric-events-interaction-v0 2.0.12+c2c3ac4740
+	   |-- fabric-game-rule-api-v1 1.0.59+fd37071f40
+	   |-- fabric-item-api-v1 11.1.7+fd37071f40
+	   |-- fabric-item-group-api-v1 4.1.17+fd37071f40
+	   |-- fabric-lifecycle-events-v1 2.5.1+6da5ef6940
+	   |-- fabric-loot-api-v2 3.0.26+3f89f5a540
+	   |-- fabric-loot-api-v3 1.0.14+fd37071f40
+	   |-- fabric-message-api-v1 6.0.22+5a9b22c640
+	   |-- fabric-networking-api-v1 4.3.5+fd37071f40
+	   |-- fabric-object-builder-api-v1 17.0.9+fd37071f40
+	   |-- fabric-particles-v1 4.0.10+fd37071f40
+	   |-- fabric-recipe-api-v1 7.0.5+8ea69ff840
+	   |-- fabric-registry-sync-v0 5.4.1+3f3c499540
+	   |-- fabric-rendering-data-attachment-v1 0.3.54+73761d2e40
+	   |-- fabric-rendering-fluids-v1 3.1.15+fd37071f40
+	   |-- fabric-resource-conditions-api-v1 5.0.8+fd37071f40
+	   |-- fabric-resource-loader-v0 3.0.6+fd37071f40
+	   |-- fabric-screen-handler-api-v1 1.3.103+fd37071f40
+	   |-- fabric-tag-api-v1 1.0.0+a730659c40
+	   |-- fabric-transfer-api-v1 5.4.3+cb44d14340
+	   \-- fabric-transitive-access-wideners-v1 6.2.0+54a41b1c40
+	- fabricloader 0.19.5
+	   \-- mixinextras 0.5.5
+	- java 21
+	- minecraft 1.21.3
+[17:07:25] [main/INFO]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/D:/code/mc-experiment/mc2a05-live-server/libraries/net/fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/sponge-mixin-0.17.4+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[17:07:26] [main/INFO]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).
+[17:07:37] [main/INFO]: [AIBot] CONFIG event=operating_profile_resolved bot=- {source=FILE_OR_DEFAULT, configured_forced_pickup=true, configured_hidden_block_scan=true, configured_emergency_teleport=true, effective_capabilities=[], configured_manual_teleport=true, profile=strict_survival}
+[17:07:37] [main/WARN]: [AIBot] CONFIG event=deepseek_key_missing bot=- {}
+[17:07:37] [main/INFO]: [AIBot] LIFECYCLE event=mod_loaded bot=- {version=0.0.1}
+[17:07:37] [main/INFO]: [AIBot] CONFIG event=config_loaded bot=- {nav_lookahead=4, logging_enabled=true, configured_operator_capabilities=OperatorCapabilities[hiddenBlockScan=true, emergencyTeleport=true, forcedPickup=true, manualTeleport=true], deepseek_model=deepseek-v4-flash, effective_capabilities=[], perception_radius=16, pickup_force_radius=2.75, profile=strict_survival}
+[17:07:37] [main/INFO]: ================================
+[17:07:37] [main/INFO]:   AIBot v0.0.1 loaded
+[17:07:37] [main/INFO]:   Mode: M6 structured logs over M5 tasks
+[17:07:37] [main/INFO]: ================================
+[17:07:38] [main/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[17:07:41] [main/INFO]: Loaded 1337 recipes
+[17:07:41] [main/INFO]: Loaded 1448 advancements
+[17:07:41] [main/INFO]: Applied 0 biome modifications to 0 of 64 new biomes in 3.397 ms
+[17:07:41] [Server thread/INFO]: Starting minecraft server version 1.21.3
+[17:07:41] [Server thread/INFO]: Loading properties
+[17:07:41] [Server thread/INFO]: Default game type: SURVIVAL
+[17:07:41] [Server thread/INFO]: Generating keypair
+[17:07:41] [Server thread/INFO]: Starting Minecraft server on *:25599
+[17:07:41] [Server thread/INFO]: Using default channel type
+[17:07:41] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[17:07:41] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[17:07:41] [Server thread/WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[17:07:41] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[17:07:41] [Server thread/INFO]: Preparing level "world"
+[17:07:42] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[17:07:42] [Worker-Main-7/INFO]: Preparing spawn area: 0%
+[17:07:42] [Worker-Main-5/INFO]: Preparing spawn area: 89%
+[17:07:42] [Server thread/INFO]: Time elapsed: 515 ms
+[17:07:42] [Server thread/INFO]: Done (0.879s)! For help, type "help"
+[17:07:42] [Server thread/INFO]: Starting remote control listener
+[17:07:42] [Server thread/INFO]: Thread RCON Listener started
+[17:07:42] [Server thread/INFO]: RCON running on 0.0.0.0:25575
+[17:07:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=server_started bot=- {motd=A Minecraft Server}
+[17:07:42] [Server thread/INFO]: [AIBot] TASK event=jobs_cleared bot=- {}
+[17:07:42] [Server thread/INFO]: [AIBot] COMM event=runtime_recipe_index_built bot=- {indexed=756, scanned=1337}
+[17:07:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=server_runtime_ready bot=- {restored_bots=0, runtime_session=b38b6661-7c62-4bb3-acf7-d9eb8119fb04}
+[17:07:42] [Server thread/INFO]: AIBot real-client transport bound to loopback port 8766 body_id=bob player=Bob
+[17:07:42] [Server thread/INFO]: AIBot external-body bridge bound to loopback port 8765 for Bob body_id=bob backend=real_client
+[17:07:43] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=ff2c27a1-452b-4c6f-80d6-03d10e422b9f window_mode=background
+[17:08:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=1200}
+[17:09:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=2400}
+[17:09:47] [aibot-real-client-reader/WARN]: real-client session read ended: java.net.SocketException: Connection reset
+[17:09:47] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=ff2c27a1-452b-4c6f-80d6-03d10e422b9f
+[17:10:05] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=9fb924e0-92cb-4a1d-a0e9-f63f95dc5b94 window_mode=background
+[17:10:12] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:10:12] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=9fb924e0-92cb-4a1d-a0e9-f63f95dc5b94
+[17:10:13] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=7d66c356-90b0-4fa8-9fd4-b0179e626c52 window_mode=background
+[17:10:15] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:10:15] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=7d66c356-90b0-4fa8-9fd4-b0179e626c52
+[17:10:16] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=72ca5487-a728-4257-9a37-f38a3241311f window_mode=background
+[17:10:17] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:10:17] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=72ca5487-a728-4257-9a37-f38a3241311f
+[17:10:18] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=bcb73c91-c086-4468-aae8-7b50f03d198a window_mode=background
+[17:10:20] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:10:20] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=bcb73c91-c086-4468-aae8-7b50f03d198a
+[17:10:21] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=0c267c40-f361-477e-badf-3a4d5e312304 window_mode=background
+[17:10:23] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:10:23] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=0c267c40-f361-477e-badf-3a4d5e312304
+[17:10:23] [Server thread/INFO]: Bob[/127.0.0.1:63958] logged in with entity id 11 at (9.5, -60.0, 7.5)
+[17:10:23] [Server thread/INFO]: Bob joined the game
+[17:10:24] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=5eadcb2e-2e7c-4cc9-a783-2a0d7137d2d6 window_mode=background
+[17:10:25] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=30 frameSeq=0 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:10:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=3600}
+[17:10:55] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=167 frameSeq=60 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:11:25] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=149 frameSeq=120 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:11:25] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:25] [Server thread/INFO]: [Rcon: Gamerule doMobSpawning is now set to: false]
+[17:11:25] [RCON Client /127.0.0.1 #2/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:25] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:25] [Server thread/INFO]: [Rcon: Gamerule keepInventory is now set to: true]
+[17:11:25] [RCON Client /127.0.0.1 #3/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:25] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:25] [Server thread/INFO]: [Rcon: Gamerule doDaylightCycle is now set to: false]
+[17:11:25] [RCON Client /127.0.0.1 #4/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:25] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:25] [Server thread/INFO]: [Rcon: Set the time to 1000]
+[17:11:25] [RCON Client /127.0.0.1 #5/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:25] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:25] [Server thread/INFO]: [Rcon: Applied effect Resistance to Bob]
+[17:11:25] [RCON Client /127.0.0.1 #6/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:25] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:26] [RCON Client /127.0.0.1 #7/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:26] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:26] [RCON Client /127.0.0.1 #8/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:26] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:26] [RCON Client /127.0.0.1 #9/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:29] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:29] [RCON Client /127.0.0.1 #10/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:29] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:29] [RCON Client /127.0.0.1 #11/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:32] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:32] [RCON Client /127.0.0.1 #12/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:32] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:32] [RCON Client /127.0.0.1 #13/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=4800}
+[17:11:55] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=212 frameSeq=180 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:11:58] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:58] [RCON Client /127.0.0.1 #14/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:58] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:58] [RCON Client /127.0.0.1 #15/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:11:58] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:11:58] [RCON Client /127.0.0.1 #16/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:12:04] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:12:04] [RCON Client /127.0.0.1 #17/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:12:04] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:12:04] [RCON Client /127.0.0.1 #18/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:12:04] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:12:04] [RCON Client /127.0.0.1 #19/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:12:25] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=216 frameSeq=240 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:12:36] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:12:36] [RCON Client /127.0.0.1 #20/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:12:36] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:12:36] [RCON Client /127.0.0.1 #21/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:12:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=6000}
+[17:12:42] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:12:42] [RCON Client /127.0.0.1 #22/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:12:42] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:12:42] [RCON Client /127.0.0.1 #23/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:12:42] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:12:42] [RCON Client /127.0.0.1 #24/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:12:43] [AIBotPersistenceWriter/INFO]: [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {atomic_move=true, schema=1, jobs=0, bots=0, path=.\world\.\aibot\runtime.json}
+[17:12:55] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=243 frameSeq=300 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:13:11] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:13:11] [RCON Client /127.0.0.1 #25/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:13:14] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:13:14] [RCON Client /127.0.0.1 #26/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:13:14] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:13:14] [RCON Client /127.0.0.1 #27/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:13:17] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:13:17] [RCON Client /127.0.0.1 #28/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:13:25] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=249 frameSeq=360 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:13:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=7200}
+[17:13:55] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=318 frameSeq=420 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:14:06] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:14:06] [RCON Client /127.0.0.1 #29/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:14:10] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:14:10] [RCON Client /127.0.0.1 #30/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:14:13] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:14:13] [RCON Client /127.0.0.1 #31/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:14:25] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=353 frameSeq=480 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:14:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=8400}
+[17:14:55] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=357 frameSeq=540 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:15:25] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=383 frameSeq=600 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:15:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=9600}
+[17:15:55] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=384 frameSeq=660 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:16:15] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:15] [RCON Client /127.0.0.1 #32/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:15] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:15] [RCON Client /127.0.0.1 #33/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:15] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:15] [RCON Client /127.0.0.1 #34/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:15] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:15] [RCON Client /127.0.0.1 #35/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:15] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:15] [Server thread/INFO]: [Rcon: Teleported Bob to 200.500000, -60.000000, 200.500000]
+[17:16:15] [RCON Client /127.0.0.1 #36/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:19] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:19] [RCON Client /127.0.0.1 #37/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:23] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:23] [RCON Client /127.0.0.1 #38/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:25] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=449 frameSeq=720 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:16:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=10800}
+[17:16:47] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:47] [RCON Client /127.0.0.1 #39/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:47] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:47] [RCON Client /127.0.0.1 #40/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:54] [RCON Client /127.0.0.1 #41/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:16:54] [RCON Client /127.0.0.1 #42/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:16:55] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=459 frameSeq=780 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:17:25] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=498 frameSeq=840 gameSession=4cb6cd48-450b-412b-aa73-037658edb482 dist=n/a
+[17:17:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=12000}
+[17:17:42] [aibot-real-client-reader/WARN]: real-client session read ended: java.net.SocketException: Connection reset
+[17:17:42] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=5eadcb2e-2e7c-4cc9-a783-2a0d7137d2d6
+[17:17:42] [Server thread/INFO]: Bob lost connection: Disconnected
+[17:17:42] [Server thread/INFO]: Bob left the game
+[17:17:43] [AIBotPersistenceWriter/INFO]: [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {atomic_move=true, schema=1, jobs=0, bots=0, path=.\world\.\aibot\runtime.json}
+[17:18:01] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=bf6aa730-e6c2-44b8-97b3-87d90203b283 window_mode=background
+[17:18:04] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:18:04] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=bf6aa730-e6c2-44b8-97b3-87d90203b283
+[17:18:05] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=c583671d-0faa-4873-b412-a36c19d3f345 window_mode=background
+[17:18:07] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:18:07] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=c583671d-0faa-4873-b412-a36c19d3f345
+[17:18:08] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=68da3d82-3e7f-4cbb-a138-29f23be54aae window_mode=background
+[17:18:09] [Server thread/INFO]: Bob[/127.0.0.1:60309] logged in with entity id 120 at (200.5, -60.0, 200.5)
+[17:18:09] [Server thread/INFO]: Bob joined the game
+[17:18:09] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=13 frameSeq=0 gameSession=d0fc7b82-fd9b-446b-8f2d-374108571a8c dist=n/a
+[17:18:39] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=336 frameSeq=60 gameSession=d0fc7b82-fd9b-446b-8f2d-374108571a8c dist=n/a
+[17:18:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=13200}
+[17:19:09] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=332 frameSeq=120 gameSession=d0fc7b82-fd9b-446b-8f2d-374108571a8c dist=n/a
+[17:19:39] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=360 frameSeq=180 gameSession=d0fc7b82-fd9b-446b-8f2d-374108571a8c dist=n/a
+[17:19:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=14400}
+[17:20:10] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=437 frameSeq=240 gameSession=d0fc7b82-fd9b-446b-8f2d-374108571a8c dist=n/a
+[17:20:40] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=425 frameSeq=300 gameSession=d0fc7b82-fd9b-446b-8f2d-374108571a8c dist=n/a
+[17:20:40] [aibot-real-client-reader/WARN]: real-client session read ended: java.net.SocketException: Connection reset
+[17:20:40] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=68da3d82-3e7f-4cbb-a138-29f23be54aae
+[17:20:40] [Server thread/INFO]: Bob lost connection: Disconnected
+[17:20:40] [Server thread/INFO]: Bob left the game
+[17:20:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=15600}
+[17:20:59] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=50418643-a3d9-4235-ba00-d12df2ff477d window_mode=background
+[17:21:03] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:21:03] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=50418643-a3d9-4235-ba00-d12df2ff477d
+[17:21:04] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=4c0edd1d-e75c-4b35-9d4e-63b076e0e395 window_mode=background
+[17:21:05] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:21:05] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=4c0edd1d-e75c-4b35-9d4e-63b076e0e395
+[17:21:06] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=9dbf82ca-6caf-4865-a5b7-4e034b26cd56 window_mode=background
+[17:21:08] [Server thread/INFO]: Bob[/127.0.0.1:63615] logged in with entity id 121 at (200.5, -60.0, 200.5)
+[17:21:08] [Server thread/INFO]: Bob joined the game
+[17:21:10] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=485 frameSeq=1 gameSession=6cab694e-1be0-4c65-b092-987cac90cdea dist=n/a
+[17:21:40] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=30 frameSeq=62 gameSession=6cab694e-1be0-4c65-b092-987cac90cdea dist=n/a
+[17:21:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=16800}
+[17:21:53] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:21:53] [RCON Client /127.0.0.1 #43/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:21:55] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:21:55] [RCON Client /127.0.0.1 #44/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:22:08] [aibot-real-client-reader/WARN]: real-client session read ended: java.net.SocketException: Connection reset
+[17:22:08] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=9dbf82ca-6caf-4865-a5b7-4e034b26cd56
+[17:22:08] [Server thread/INFO]: Bob lost connection: Disconnected
+[17:22:08] [Server thread/INFO]: Bob left the game
+[17:22:29] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=605fd13a-26b7-46d4-b67f-bf13c0327dc2 window_mode=interactive
+[17:22:32] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:22:32] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=605fd13a-26b7-46d4-b67f-bf13c0327dc2
+[17:22:33] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=a4eac629-c4a4-4adc-9147-4d19c1bdc71f window_mode=interactive
+[17:22:35] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:22:35] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=a4eac629-c4a4-4adc-9147-4d19c1bdc71f
+[17:22:36] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=a27f1089-6819-4157-b5d0-230a696c96cf window_mode=interactive
+[17:22:38] [Server thread/INFO]: Bob[/127.0.0.1:60757] logged in with entity id 122 at (200.5, -60.0, 200.5)
+[17:22:38] [Server thread/INFO]: Bob joined the game
+[17:22:39] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=33 frameSeq=0 gameSession=c2fbdb6c-44c7-4276-ba65-76968d3d049e dist=n/a
+[17:22:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=18000}
+[17:22:43] [AIBotPersistenceWriter/INFO]: [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {atomic_move=true, schema=1, jobs=0, bots=0, path=.\world\.\aibot\runtime.json}
+[17:23:09] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=0.0 sensorYaw=0.0 sensorPitch=0.0 sensorCross=0,0,0 frameAgeMs=252 frameSeq=60 gameSession=c2fbdb6c-44c7-4276-ba65-76968d3d049e dist=n/a
+[17:23:30] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:23:30] [RCON Client /127.0.0.1 #45/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:23:31] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:grass_block sensorPresent=true expected=class_2338{x=199, y=-61, z=203} ray=class_2339{x=199, y=-61, z=203} serverYaw=22.500004 serverPitch=30.000004 sensorYaw=22.500004 sensorPitch=30.000004 sensorCross=199,-61,203 frameAgeMs=4 frameSeq=104 gameSession=c2fbdb6c-44c7-4276-ba65-76968d3d049e dist=3.20
+[17:23:32] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:23:32] [RCON Client /127.0.0.1 #46/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:23:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=19200}
+[17:23:49] [aibot-real-client-reader/WARN]: real-client session read ended: java.net.SocketException: Connection reset
+[17:23:49] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=a27f1089-6819-4157-b5d0-230a696c96cf
+[17:23:49] [Server thread/INFO]: Bob lost connection: Disconnected
+[17:23:49] [Server thread/INFO]: Bob left the game
+[17:24:07] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=bfb44685-7bca-4ee4-8f58-dd7fad2c847d window_mode=background
+[17:24:11] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:24:11] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=bfb44685-7bca-4ee4-8f58-dd7fad2c847d
+[17:24:12] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=ceaedc85-b1eb-424f-a5d5-7a251941988c window_mode=background
+[17:24:14] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:24:14] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=ceaedc85-b1eb-424f-a5d5-7a251941988c
+[17:24:15] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=6f62df94-094a-42fa-afe5-cd4f3c6163d9 window_mode=background
+[17:24:17] [Server thread/INFO]: Bob[/127.0.0.1:57623] logged in with entity id 123 at (200.5, -60.0, 200.5)
+[17:24:17] [Server thread/INFO]: Bob joined the game
+[17:24:18] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:grass_block sensorPresent=true expected=class_2338{x=199, y=-61, z=203} ray=class_2339{x=199, y=-61, z=203} serverYaw=22.500004 serverPitch=30.000004 sensorYaw=22.500004 sensorPitch=30.000004 sensorCross=199,-61,203 frameAgeMs=27 frameSeq=0 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.20
+[17:24:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=20400}
+[17:24:48] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:grass_block sensorPresent=true expected=class_2338{x=199, y=-61, z=203} ray=class_2339{x=199, y=-61, z=203} serverYaw=22.500004 serverPitch=30.000004 sensorYaw=22.500004 sensorPitch=30.000004 sensorCross=199,-61,203 frameAgeMs=39 frameSeq=61 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.20
+[17:24:55] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:24:55] [Server thread/INFO]: [Rcon: Successfully filled 256 block(s)]
+[17:24:55] [RCON Client /127.0.0.1 #47/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:24:55] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:24:55] [RCON Client /127.0.0.1 #48/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:24:55] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:24:55] [Server thread/INFO]: [Rcon: Changed the block at 204, -60, 200]
+[17:24:55] [RCON Client /127.0.0.1 #49/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:24:55] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:24:55] [Server thread/INFO]: [Rcon: Changed the block at 200, -60, 196]
+[17:24:55] [RCON Client /127.0.0.1 #50/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:24:55] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:24:55] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:stone sensorPresent=true expected=class_2338{x=199, y=-61, z=203} ray=class_2339{x=199, y=-61, z=203} serverYaw=22.500004 serverPitch=30.000004 sensorYaw=22.500004 sensorPitch=30.000004 sensorCross=199,-61,203 frameAgeMs=5 frameSeq=75 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.20
+[17:24:55] [Server thread/INFO]: [Rcon: Teleported Bob to 200.500000, -60.000000, 200.500000]
+[17:24:55] [RCON Client /127.0.0.1 #51/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:24:55] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:24:55] [RCON Client /127.0.0.1 #52/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:24:55] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:24:55] [Server thread/INFO]: Bob has made the advancement [Isn't It Iron Pick]
+[17:24:55] [Server thread/INFO]: [Rcon: Gave 1 [Iron Pickaxe] to Bob]
+[17:24:55] [RCON Client /127.0.0.1 #53/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:24:55] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:24:55] [Server thread/INFO]: Bob has made the advancement [Stone Age]
+[17:24:55] [Server thread/INFO]: [Rcon: Gave 8 [Cobblestone] to Bob]
+[17:24:55] [RCON Client /127.0.0.1 #54/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:24:56] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:24:56] [RCON Client /127.0.0.1 #55/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:24:56] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:24:56] [RCON Client /127.0.0.1 #56/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:25:16] [Server thread/INFO]: AIBot real-client sensor diag reject=ray_mismatch sensorPresent=true expected=class_2338{x=199, y=-61, z=203} ray=class_2339{x=204, y=-60, z=200} serverYaw=22.500004 serverPitch=30.000004 sensorYaw=-90.0 sensorPitch=15.642244 sensorCross=199,-61,203 frameAgeMs=43 frameSeq=117 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.20
+[17:25:17] [Server thread/INFO]: AIBot real-client sensor diag birth id=rcore_c81931a07cf6_3641a2ef898b4695 pos=class_2338{x=204, y=-60, z=200} active=1 block=minecraft:iron_ore frameSeq=118 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182
+[17:25:33] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:25:33] [Server thread/INFO]: [Rcon: Teleported Bob to 208.500000, -60.000000, 200.500000]
+[17:25:33] [RCON Client /127.0.0.1 #57/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:25:34] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=90.0 serverPitch=16.32637 sensorYaw=90.0 sensorPitch=17.147835 sensorCross=0,0,0 frameAgeMs=15 frameSeq=152 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:25:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=21600}
+[17:26:04] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=90.0 serverPitch=18.64959 sensorYaw=90.0 sensorPitch=18.64959 sensorCross=0,0,0 frameAgeMs=46 frameSeq=212 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:26:15] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:26:15] [RCON Client /127.0.0.1 #58/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:26:15] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:26:15] [RCON Client /127.0.0.1 #59/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:26:34] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=90.0 serverPitch=18.64959 sensorYaw=90.0 sensorPitch=18.64959 sensorCross=0,0,0 frameAgeMs=38 frameSeq=272 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:26:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=22800}
+[17:26:56] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:26:56] [Server thread/INFO]: [Rcon: Teleported Bob to 194.500000, -60.000000, 200.500000]
+[17:26:56] [RCON Client /127.0.0.1 #60/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:27:04] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=90.0 serverPitch=18.64959 sensorYaw=90.0 sensorPitch=18.64959 sensorCross=0,0,0 frameAgeMs=36 frameSeq=332 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:27:22] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:27:22] [Server thread/INFO]: [Rcon: Teleported Bob to 194.500000, -60.000000, 200.500000]
+[17:27:22] [RCON Client /127.0.0.1 #61/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:27:34] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=-90.0 serverPitch=10.373538 sensorYaw=-90.0 sensorPitch=10.373538 sensorCross=0,0,0 frameAgeMs=22 frameSeq=392 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:27:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=24000}
+[17:27:43] [AIBotPersistenceWriter/INFO]: [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {atomic_move=true, schema=1, jobs=0, bots=0, path=.\world\.\aibot\runtime.json}
+[17:28:04] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=-90.0 serverPitch=10.373538 sensorYaw=-90.0 sensorPitch=10.373538 sensorCross=0,0,0 frameAgeMs=87 frameSeq=452 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:28:34] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=-90.0 serverPitch=10.373538 sensorYaw=-90.0 sensorPitch=10.373538 sensorCross=0,0,0 frameAgeMs=93 frameSeq=512 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:28:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=25200}
+[17:28:46] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:28:46] [Server thread/INFO]: [Rcon: Teleported Bob to 194.500000, -60.000000, 200.500000]
+[17:28:46] [RCON Client /127.0.0.1 #62/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:28:59] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:28:59] [Server thread/INFO]: [Rcon: Teleported Bob to 194.500000, -60.000000, 200.500000]
+[17:28:59] [RCON Client /127.0.0.1 #63/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:29:04] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=-90.0 serverPitch=10.373538 sensorYaw=-90.0 sensorPitch=10.373538 sensorCross=0,0,0 frameAgeMs=133 frameSeq=572 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:29:34] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=-90.0 serverPitch=10.373538 sensorYaw=-90.0 sensorPitch=10.373538 sensorCross=0,0,0 frameAgeMs=194 frameSeq=632 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:29:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=26400}
+[17:29:56] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:29:56] [Server thread/INFO]: [Rcon: Teleported Bob to 194.500000, -60.000000, 200.500000]
+[17:29:56] [RCON Client /127.0.0.1 #64/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:29:58] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:29:58] [RCON Client /127.0.0.1 #65/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:29:58] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:29:58] [RCON Client /127.0.0.1 #66/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:29:58] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:stone sensorPresent=true expected=class_2338{x=200, y=-61, z=200} ray=class_2339{x=200, y=-61, z=200} serverYaw=-90.0 serverPitch=26.582613 sensorYaw=-90.0 sensorPitch=28.196863 sensorCross=200,-61,200 frameAgeMs=15 frameSeq=681 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.06
+[17:29:59] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:29:59] [RCON Client /127.0.0.1 #67/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:29:59] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:29:59] [RCON Client /127.0.0.1 #68/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:30:00] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:30:00] [RCON Client /127.0.0.1 #69/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:30:00] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:30:00] [RCON Client /127.0.0.1 #70/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:30:01] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:30:01] [RCON Client /127.0.0.1 #71/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:30:01] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:30:01] [RCON Client /127.0.0.1 #72/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:30:02] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:30:02] [RCON Client /127.0.0.1 #73/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:30:02] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:30:02] [RCON Client /127.0.0.1 #74/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:30:03] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:30:03] [RCON Client /127.0.0.1 #75/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:30:03] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:30:03] [RCON Client /127.0.0.1 #76/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:30:03] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=-90.0 serverPitch=10.373538 sensorYaw=-90.0 sensorPitch=10.373538 sensorCross=0,0,0 frameAgeMs=33 frameSeq=691 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:30:04] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:30:04] [RCON Client /127.0.0.1 #77/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:30:33] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=-90.0 serverPitch=10.373538 sensorYaw=-90.0 sensorPitch=10.373538 sensorCross=0,0,0 frameAgeMs=52 frameSeq=751 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:30:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=27600}
+[17:31:03] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=-90.0 serverPitch=10.373538 sensorYaw=-90.0 sensorPitch=10.373538 sensorCross=0,0,0 frameAgeMs=64 frameSeq=811 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:31:22] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:31:22] [Server thread/INFO]: [Rcon: Teleported Bob to 200.500000, -60.000000, 200.500000]
+[17:31:22] [RCON Client /127.0.0.1 #78/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:31:23] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:31:23] [RCON Client /127.0.0.1 #79/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:31:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=28800}
+[17:32:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=30000}
+[17:32:43] [AIBotPersistenceWriter/INFO]: [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {atomic_move=true, schema=1, jobs=0, bots=0, path=.\world\.\aibot\runtime.json}
+[17:33:09] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:33:09] [Server thread/INFO]: [Rcon: Teleported Bob to 200.500000, -60.000000, 200.500000]
+[17:33:09] [RCON Client /127.0.0.1 #80/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:33:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=31200}
+[17:33:47] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:33:47] [Server thread/INFO]: [Rcon: Teleported Bob to 200.500000, -60.000000, 200.500000]
+[17:33:47] [RCON Client /127.0.0.1 #81/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:33:48] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:33:48] [RCON Client /127.0.0.1 #82/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:33:48] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:33:48] [Server thread/INFO]: [Rcon: Teleported Bob to 200.500000, -60.000000, 200.500000]
+[17:33:48] [RCON Client /127.0.0.1 #83/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:33:50] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=15.642244 sensorYaw=-180.0 sensorPitch=15.642244 sensorCross=200,-60,196 frameAgeMs=35 frameSeq=1144 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=4.03
+[17:33:50] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:33:50] [RCON Client /127.0.0.1 #84/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:33:53] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:33:53] [RCON Client /127.0.0.1 #85/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:33:53] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:33:53] [RCON Client /127.0.0.1 #86/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:33:53] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:33:53] [RCON Client /127.0.0.1 #87/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:33:53] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:33:53] [RCON Client /127.0.0.1 #88/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:34:20] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=15.642244 sensorYaw=-180.0 sensorPitch=15.642244 sensorCross=200,-60,196 frameAgeMs=39 frameSeq=1204 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=4.03
+[17:34:21] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:34:22] [RCON Client /127.0.0.1 #89/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:34:22] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:34:22] [RCON Client /127.0.0.1 #90/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:34:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=32400}
+[17:34:44] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:34:44] [Server thread/INFO]: [Rcon: Gave 6 [Cobblestone] to Bob]
+[17:34:44] [RCON Client /127.0.0.1 #91/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:34:44] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:34:44] [RCON Client /127.0.0.1 #92/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:34:48] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:34:48] [RCON Client /127.0.0.1 #93/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:34:48] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:34:48] [RCON Client /127.0.0.1 #94/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:34:50] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=11 frameSeq=1264 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:35:20] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=34 frameSeq=1325 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:35:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=33600}
+[17:35:50] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:35:50] [Server thread/INFO]: [Rcon: Gave 5 [Cobblestone] to Bob]
+[17:35:50] [RCON Client /127.0.0.1 #95/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:35:50] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=15 frameSeq=1385 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:35:53] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:35:53] [RCON Client /127.0.0.1 #96/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:35:53] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:35:53] [RCON Client /127.0.0.1 #97/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:36:20] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=34 frameSeq=1445 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:36:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=34800}
+[17:36:51] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=14 frameSeq=1506 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:36:52] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:36:52] [Server thread/INFO]: [Rcon: Gave 4 [Dirt] to Bob]
+[17:36:52] [RCON Client /127.0.0.1 #98/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:37:12] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:37:12] [Server thread/INFO]: [Rcon: Gave 4 [Dirt] to Bob]
+[17:37:12] [RCON Client /127.0.0.1 #99/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:37:21] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=37 frameSeq=1567 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:37:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=36000}
+[17:37:43] [AIBotPersistenceWriter/INFO]: [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {atomic_move=true, schema=1, jobs=0, bots=0, path=.\world\.\aibot\runtime.json}
+[17:37:47] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:37:47] [Server thread/INFO]: [Rcon: Gave 4 [Dirt] to Bob]
+[17:37:47] [RCON Client /127.0.0.1 #100/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:37:51] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=20 frameSeq=1627 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:38:21] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=45 frameSeq=1687 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:38:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=37200}
+[17:38:44] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:38:44] [Server thread/INFO]: [Rcon: Gave 4 [Dirt] to Bob]
+[17:38:44] [RCON Client /127.0.0.1 #101/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:38:51] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=31 frameSeq=1747 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:39:13] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:39:13] [Server thread/INFO]: [Rcon: Gave 4 [Dirt] to Bob]
+[17:39:13] [RCON Client /127.0.0.1 #102/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:39:22] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=42 frameSeq=1808 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:39:33] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:39:33] [Server thread/INFO]: [Rcon: Removed 1 item(s) from player Bob]
+[17:39:33] [RCON Client /127.0.0.1 #103/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:39:33] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:39:33] [Server thread/INFO]: [Rcon: Gave 1 [Iron Pickaxe] to Bob]
+[17:39:33] [RCON Client /127.0.0.1 #104/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:39:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=38400}
+[17:39:52] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=15 frameSeq=1868 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:40:15] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:15] [Server thread/INFO]: [Rcon: Gave 3 [Dirt] to Bob]
+[17:40:15] [RCON Client /127.0.0.1 #105/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:18] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:18] [RCON Client /127.0.0.1 #106/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:22] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=47 frameSeq=1928 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:40:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=39600}
+[17:40:52] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=16 frameSeq=1988 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #107/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #108/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #109/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #110/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #111/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #112/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #113/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #114/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #115/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #116/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #117/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #118/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #119/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #120/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #121/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #122/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #123/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #124/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #125/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #126/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #127/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #128/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #129/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #130/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #131/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #132/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:40:54] [RCON Client /127.0.0.1 #133/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [RCON Client /127.0.0.1 #134/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:40:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:40:54] [Server thread/INFO]: [Rcon: Gave 2 [Dirt] to Bob]
+[17:40:54] [RCON Client /127.0.0.1 #135/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:41:22] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=34 frameSeq=2049 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=3.82
+[17:41:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=40800}
+[17:41:50] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:41:50] [Server thread/INFO]: [Rcon: Gave 2 [Dirt] to Bob]
+[17:41:50] [RCON Client /127.0.0.1 #136/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:41:50] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:41:50] [Server thread/INFO]: [Rcon: Teleported Bob to 200.500000, -60.000000, 200.500000]
+[17:41:50] [RCON Client /127.0.0.1 #137/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:41:51] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=-45.0 serverPitch=11.199182 sensorYaw=-45.0 sensorPitch=11.199182 sensorCross=0,0,0 frameAgeMs=3 frameSeq=2107 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:41:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:41:54] [Server thread/INFO]: [Rcon: Changed the block at 196, -60, 200]
+[17:41:54] [RCON Client /127.0.0.1 #138/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:42:15] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:42:15] [Server thread/INFO]: [Rcon: Gave 2 [Dirt] to Bob]
+[17:42:15] [RCON Client /127.0.0.1 #139/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:42:15] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:42:15] [Server thread/INFO]: [Rcon: Teleported Bob to 200.500000, -60.000000, 200.500000]
+[17:42:15] [RCON Client /127.0.0.1 #140/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:42:21] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=-45.0 serverPitch=11.199182 sensorYaw=-45.0 sensorPitch=11.199182 sensorCross=0,0,0 frameAgeMs=475 frameSeq=2166 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=n/a
+[17:42:26] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:chest sensorPresent=true expected=class_2338{x=196, y=-60, z=200} ray=class_2339{x=196, y=-60, z=200} serverYaw=90.0 serverPitch=15.642244 sensorYaw=90.0 sensorPitch=15.642244 sensorCross=196,-60,200 frameAgeMs=20 frameSeq=2177 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=4.03
+[17:42:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=42000}
+[17:42:43] [AIBotPersistenceWriter/INFO]: [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {atomic_move=true, schema=1, jobs=0, bots=0, path=.\world\.\aibot\runtime.json}
+[17:42:51] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:42:51] [Server thread/INFO]: [Rcon: Gave 3 [Dirt] to Bob]
+[17:42:51] [RCON Client /127.0.0.1 #141/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:42:57] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:chest sensorPresent=true expected=class_2338{x=196, y=-60, z=200} ray=class_2339{x=196, y=-60, z=200} serverYaw=90.0 serverPitch=15.642244 sensorYaw=90.0 sensorPitch=15.642244 sensorCross=196,-60,200 frameAgeMs=37 frameSeq=2238 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=4.03
+[17:43:10] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=15.642244 sensorYaw=-180.0 sensorPitch=15.642244 sensorCross=200,-60,196 frameAgeMs=27 frameSeq=2265 gameSession=0c2b83ed-f2f6-4d0b-8414-f8565e1cd182 dist=4.03
+[17:43:14] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:43:14] [Server thread/INFO]: [Rcon: Gave 3 [Dirt] to Bob]
+[17:43:14] [RCON Client /127.0.0.1 #142/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:43:17] [aibot-real-client-reader/WARN]: real-client session read ended: java.net.SocketException: Connection reset
+[17:43:17] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=6f62df94-094a-42fa-afe5-cd4f3c6163d9
+[17:43:17] [Server thread/INFO]: Bob lost connection: Disconnected
+[17:43:17] [Server thread/INFO]: Bob left the game
+[17:43:37] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=af6a9211-877e-4d1c-a9e3-80cdec2c650e window_mode=background
+[17:43:41] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:43:41] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=af6a9211-877e-4d1c-a9e3-80cdec2c650e
+[17:43:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=43200}
+[17:43:42] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=5134f04e-f9c9-4059-9114-009209f115e7 window_mode=background
+[17:43:44] [aibot-real-client-reader/WARN]: real-client session read ended: java.io.IOException: real_client_screen_missing_game_incarnation
+[17:43:44] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=5134f04e-f9c9-4059-9114-009209f115e7
+[17:43:45] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=82602571-28eb-45c7-91d9-69b12b90eb13 window_mode=background
+[17:43:47] [Server thread/INFO]: Bob[/127.0.0.1:54713] logged in with entity id 140 at (200.5, -60.0, 200.2898600153542)
+[17:43:47] [Server thread/INFO]: Bob joined the game
+[17:43:48] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.015282 sensorYaw=-180.0 sensorPitch=16.015282 sensorCross=200,-60,196 frameAgeMs=3 frameSeq=0 gameSession=1856d888-334f-4e25-831f-ae72efe5a4ad dist=3.82
+[17:44:18] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.015282 sensorYaw=-180.0 sensorPitch=16.015282 sensorCross=200,-60,196 frameAgeMs=15 frameSeq=61 gameSession=1856d888-334f-4e25-831f-ae72efe5a4ad dist=3.82
+[17:44:39] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:39] [RCON Client /127.0.0.1 #143/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:44:41] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:41] [RCON Client /127.0.0.1 #144/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:44:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=44400}
+[17:44:43] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:43] [RCON Client /127.0.0.1 #145/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:44:45] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:45] [RCON Client /127.0.0.1 #146/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:44:47] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:47] [RCON Client /127.0.0.1 #147/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:44:48] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.015282 sensorYaw=-180.0 sensorPitch=16.015282 sensorCross=200,-60,196 frameAgeMs=12 frameSeq=121 gameSession=1856d888-334f-4e25-831f-ae72efe5a4ad dist=3.82
+[17:44:49] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:49] [Server thread/INFO]: [Rcon: Modified block data of 200, -60, 196]
+[17:44:49] [RCON Client /127.0.0.1 #148/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:44:53] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:53] [Server thread/INFO]: [Rcon: Gave 7 [Cobblestone] to Bob]
+[17:44:53] [RCON Client /127.0.0.1 #149/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:44:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:54] [RCON Client /127.0.0.1 #150/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:44:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:54] [RCON Client /127.0.0.1 #151/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:44:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:54] [RCON Client /127.0.0.1 #152/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:44:54] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:44:54] [RCON Client /127.0.0.1 #153/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:45:18] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:barrel sensorPresent=true expected=class_2338{x=200, y=-60, z=196} ray=class_2339{x=200, y=-60, z=196} serverYaw=-180.0 serverPitch=16.463533 sensorYaw=-180.0 sensorPitch=16.463533 sensorCross=200,-60,196 frameAgeMs=2 frameSeq=181 gameSession=1856d888-334f-4e25-831f-ae72efe5a4ad dist=3.82
+[17:45:30] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:45:30] [Server thread/INFO]: [Rcon: Applied effect Resistance to Bob]
+[17:45:30] [RCON Client /127.0.0.1 #154/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:45:30] [Server thread/INFO]: [Not Secure] <Bob> mc2a05 live regression say ok
+[17:45:30] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:45:30] [Server thread/INFO]: [Rcon: Teleported Bob to 200.500000, -60.000000, 200.500000]
+[17:45:30] [RCON Client /127.0.0.1 #155/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:45:32] [Server thread/INFO]: AIBot real-client sensor diag reject=sensor_null_or_not_present sensorPresent=false expected=null ray=n/a serverYaw=0.0 serverPitch=12.70596 sensorYaw=0.0 sensorPitch=13.179499 sensorCross=0,0,0 frameAgeMs=1 frameSeq=208 gameSession=1856d888-334f-4e25-831f-ae72efe5a4ad dist=n/a
+[17:45:33] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:45:33] [Server thread/INFO]: [Rcon: Teleported Bob to 200.500000, -60.000000, 200.500000]
+[17:45:33] [RCON Client /127.0.0.1 #156/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:45:39] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:45:39] [RCON Client /127.0.0.1 #157/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:45:39] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:stone sensorPresent=true expected=class_2338{x=205, y=-61, z=200} ray=class_2339{x=205, y=-61, z=200} serverYaw=-90.0 serverPitch=30.647213 sensorYaw=-90.0 sensorPitch=30.647213 sensorCross=205,-61,200 frameAgeMs=8 frameSeq=223 gameSession=1856d888-334f-4e25-831f-ae72efe5a4ad dist=2.48
+[17:45:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=45600}
+[17:46:09] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:stone sensorPresent=true expected=class_2338{x=205, y=-61, z=200} ray=class_2339{x=205, y=-61, z=200} serverYaw=-90.0 serverPitch=30.647213 sensorYaw=-90.0 sensorPitch=30.647213 sensorCross=205,-61,200 frameAgeMs=13 frameSeq=283 gameSession=1856d888-334f-4e25-831f-ae72efe5a4ad dist=2.47
+[17:46:39] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:stone sensorPresent=true expected=class_2338{x=205, y=-61, z=200} ray=class_2339{x=205, y=-61, z=200} serverYaw=-90.0 serverPitch=30.647213 sensorYaw=-90.0 sensorPitch=30.647213 sensorCross=205,-61,200 frameAgeMs=49 frameSeq=343 gameSession=1856d888-334f-4e25-831f-ae72efe5a4ad dist=2.47
+[17:46:42] [Server thread/INFO]: [AIBot] LIFECYCLE event=mixin_alive bot=- {server_tick=46800}
+[17:47:10] [Server thread/INFO]: AIBot real-client sensor diag reject=block_or_ore_mismatch:minecraft:stone sensorPresent=true expected=class_2338{x=205, y=-61, z=200} ray=class_2339{x=205, y=-61, z=200} serverYaw=-90.0 serverPitch=30.647213 sensorYaw=-90.0 sensorPitch=30.647213 sensorCross=205,-61,200 frameAgeMs=9 frameSeq=404 gameSession=1856d888-334f-4e25-831f-ae72efe5a4ad dist=2.47
+[17:47:18] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:47:18] [Server thread/INFO]: [Rcon: Stopping the server]
+[17:47:18] [RCON Client /127.0.0.1 #158/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:47:18] [Server thread/INFO]: AIBot real client disconnected body_id=bob player=Bob session=82602571-28eb-45c7-91d9-69b12b90eb13
+[17:47:18] [Server thread/INFO]: [AIBot] LIFECYCLE event=server_stopping bot=- {}
+[17:47:18] [AIBotPersistenceWriter/INFO]: [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {atomic_move=true, schema=1, jobs=0, bots=0, path=.\world\.\aibot\runtime.json}
+[17:47:18] [Server thread/INFO]: [AIBot] LIFECYCLE event=all_bots_cleared bot=- {count=0}
+[17:47:18] [Server thread/INFO]: [AIBot] TASK event=jobs_cleared bot=- {}
+[17:47:18] [Server thread/INFO]: [AIBot] LIFECYCLE event=server_runtime_stopped bot=- {persisted_bots=0}
+[17:47:18] [Server thread/INFO]: Stopping server
+[17:47:18] [Server thread/INFO]: Saving players
+[17:47:18] [Server thread/INFO]: Saving worlds
+[17:47:19] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[17:47:19] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[17:47:19] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[17:47:19] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[17:47:19] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[17:47:19] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[17:47:19] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[17:47:19] [Server thread/INFO]: Thread RCON Listener stopped

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.task.MiningServicePolicyTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-13T08:56:23.615Z" hostname="FORST" time="0.02">
+  <properties/>
+  <testcase name="rareRetryReleasesOnlyItsSealedChannelStonePool()" classname="io.github.zoyluo.aibot.task.MiningServicePolicyTest" time="0.006"/>
+  <testcase name="obsidianThirtyTwoPoliciesPinEveryRemainingServiceHorizon()" classname="io.github.zoyluo.aibot.task.MiningServicePolicyTest" time="0.001"/>
+  <testcase name="obsidianFactoriesRejectImpossibleTransactionIdentities()" classname="io.github.zoyluo.aibot.task.MiningServicePolicyTest" time="0.005"/>
+  <testcase name="diamond64RareOrePoliciesPinEveryRemainingBatchHorizon()" classname="io.github.zoyluo.aibot.task.MiningServicePolicyTest" time="0.0"/>
+  <testcase name="namedProfilesCannotBeConstructedWithDowngradedThresholds()" classname="io.github.zoyluo.aibot.task.MiningServicePolicyTest" time="0.003"/>
+  <testcase name="diamondStackDescentKitPinsTheFullMissionReserve()" classname="io.github.zoyluo.aibot.task.MiningServicePolicyTest" time="0.001"/>
+  <testcase name="rareChannelPoolCoversTheBoundedBranchGeometry()" classname="io.github.zoyluo.aibot.task.MiningServicePolicyTest" time="0.0"/>
+  <testcase name="defaultOrePoliciesPreserveTheLegacyChannelSwitch()" classname="io.github.zoyluo.aibot.task.MiningServicePolicyTest" time="0.001"/>
+  <testcase name="nonThirtyTwoTargetsFundEveryStrictlyEarlierEightBlockBoundary()" classname="io.github.zoyluo.aibot.task.MiningServicePolicyTest" time="0.001"/>
+  <testcase name="capacityHandoffPreservesTheParentsPhysicalStoneHorizon()" classname="io.github.zoyluo.aibot.task.MiningServicePolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

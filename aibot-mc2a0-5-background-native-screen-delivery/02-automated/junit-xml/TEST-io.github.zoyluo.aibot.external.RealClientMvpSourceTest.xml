@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-13T08:56:20.239Z" hostname="FORST" time="0.164">
+  <properties/>
+  <testcase name="backendSelectionIsSingleAndFailClosed()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.077"/>
+  <testcase name="wireProtocolV3IsExplicitAndMixedBinariesFailClosed()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.007"/>
+  <testcase name="transportIsLoopbackAuthenticatedAndMinecraftThreadAgnostic()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.002"/>
+  <testcase name="graphDispatchStillUsesBridgeSubmitAndNoBackendBranch()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.005"/>
+  <testcase name="clientRuntimeIsExplicitlyOptInAndClearsInputs()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.003"/>
+  <testcase name="realClientUsesNormalPlayerAndNeverAnAiPlayerEntity()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.002"/>
+  <testcase name="sensorValidationUsesSameFrameLookNotALaterServerPose()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.004"/>
+  <testcase name="transportAuthorityAndQueuesAreAtomicallyBounded()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.003"/>
+  <testcase name="realClientBackendSupportsOnlyTheMvpVerticalSlice()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.002"/>
+  <testcase name="gameSessionIncarnationIsGeneratedPerJoinAndBindsEveryMessage()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.004"/>
+  <testcase name="mineCompletionRequiresExactBlockGoneAndInventoryGain()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.002"/>
+  <testcase name="realClientOpportunityBirthIsDurableBeforeExposure()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.003"/>
+  <testcase name="realClientBackendFailsClosedOnSameNamedFakePlayer()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

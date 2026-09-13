@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.task.StripMineStrictSurvivalBoundaryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-13T08:56:23.727Z" hostname="FORST" time="0.005">
+  <properties/>
+  <testcase name="taskGateRunsBeforeAnyLegacyWorldInitialization()" classname="io.github.zoyluo.aibot.task.StripMineStrictSurvivalBoundaryTest" time="0.002"/>
+  <testcase name="strictSurvivalFailsClosedWhileOperatorKeepsLegacyCompatibility()" classname="io.github.zoyluo.aibot.task.StripMineStrictSurvivalBoundaryTest" time="0.0"/>
+  <testcase name="longMiningGoalsDoNotDependOnLegacyStripMine()" classname="io.github.zoyluo.aibot.task.StripMineStrictSurvivalBoundaryTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

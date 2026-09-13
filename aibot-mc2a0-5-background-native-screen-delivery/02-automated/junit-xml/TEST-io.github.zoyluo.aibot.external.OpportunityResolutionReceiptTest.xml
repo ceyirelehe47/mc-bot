@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.OpportunityResolutionReceiptTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-13T08:56:21.430Z" hostname="FORST" time="0.092">
+  <properties/>
+  <testcase name="absenceAloneIsNotAReceipt()" classname="io.github.zoyluo.aibot.external.OpportunityResolutionReceiptTest" time="0.046"/>
+  <testcase name="terminalReceiptNeverCrossesOpportunityIncarnationsAtSameCell()" classname="io.github.zoyluo.aibot.external.OpportunityResolutionReceiptTest" time="0.012"/>
+  <testcase name="durableConsumedReceiptProvesSuccessAndStaleReceiptProvesTerminalLoss()" classname="io.github.zoyluo.aibot.external.OpportunityResolutionReceiptTest" time="0.018"/>
+  <testcase name="receiptIsScopedByWorldDimensionAndObject()" classname="io.github.zoyluo.aibot.external.OpportunityResolutionReceiptTest" time="0.012"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

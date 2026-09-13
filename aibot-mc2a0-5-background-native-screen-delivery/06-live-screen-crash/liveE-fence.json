@@ -1,0 +1,185 @@
+{
+ "kill_rc": 0,
+ "timeline": [
+  {
+   "t": 0.0,
+   "ready": true,
+   "recon": false,
+   "ctrl": true,
+   "epoch": "0c2b83ed",
+   "ex": "running",
+   "_r": "client_container_quick_move"
+  },
+  {
+   "t": 0.71,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 1.41,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 2.14,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 2.85,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 3.55,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 4.25,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 4.96,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 5.69,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 6.39,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 7.1,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 7.82,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 8.54,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 9.27,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  },
+  {
+   "t": 9.98,
+   "ready": false,
+   "recon": true,
+   "ctrl": false,
+   "epoch": "0c2b83ed",
+   "ex": "outcome_unknown",
+   "_r": "body_session_changed"
+  }
+ ],
+ "extras": {
+  "old_lease_renew": {
+   "_http": 409,
+   "_body": "{\"error\":\"control_lease_invalid\",\"ok\":false}"
+  },
+  "view": "{'_http': 503, '_body': '{\"error\":\"body_not_ready_or_server_tick_stale\",\"ok\":false}'}",
+  "inspect_result": {
+   "ok": true,
+   "data": {
+    "schema": "mc.local_view.v0_wrapper",
+    "snapshot": {
+     "schema": "mc.local_view.v0",
+     "detail": "summary",
+     "radius": 4,
+     "body_position": {
+      "z": 200,
+      "y": -60,
+      "x": 200
+     },
+     "opportunities": [
+      {
+       "sensor": "client_crosshair_server_validated",
+       "z": 200,
+       "object_id": "rcore_c81931a07cf6_3641a2ef898b4695",
+       "y": -60,
+       "block": "minecraft:iron_ore",
+       "x": 204
+      }
+     ],
+     "blocks": [],
+     "entities": [],
+     "note": "real_client_mvp_exports_self_and_server_validated_crosshair_only"
+    }
+   }
+  }
+ },
+ "pre": {
+  "pid": 35952,
+  "execution_id": "3011e180-0c15-421f-94d2-51b0852ff46a",
+  "game_session_epoch": "0c2b83ed-f2f6-4d0b-8414-f8565e1cd182",
+  "screen_present": true,
+  "screen_seq": null,
+  "state_at_kill": "running",
+  "ts": 1789292597.0296795
+ }
+}

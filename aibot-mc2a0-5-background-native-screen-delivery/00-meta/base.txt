@@ -1,0 +1,3 @@
+base = 4c0bf8e176fc4052b834a9850814860ad2dd6583 (branch experiment/mc2a0-4a-real-client-mvp-closure)
+new branch = experiment/mc2a0-5-background-native-screen
+applier anchors verified (CHECKED: 14 blobs + 7 new files) after one anchor-disambiguation correction

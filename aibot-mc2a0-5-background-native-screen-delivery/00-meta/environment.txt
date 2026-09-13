@@ -1,0 +1,4 @@
+OS = Windows 10.0.26200 x64; Java 21 (jdk-21.0.12.1+1); MC 1.21.3 / Yarn 1.21.3+build.2 / Fabric API 0.114.1+1.21.3 / Loader 0.18.4
+LIVE world seed = -772509082 (disposable); server 25599; bridge 8765/8766(loopback); fake-mode bridge 8767
+production jar sha256 = 133f0b62ca2ff3234d0f120df40de5bc528812e7d812282f0e2958f6b4511f7d
+tokens: AIBOT_BRIDGE_TOKEN / AIBOT_REAL_CLIENT_TOKEN privately set (mc2a05-tokens.env, never committed)

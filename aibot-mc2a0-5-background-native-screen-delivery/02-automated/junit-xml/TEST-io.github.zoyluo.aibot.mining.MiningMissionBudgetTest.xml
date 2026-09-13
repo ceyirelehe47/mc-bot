@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.mining.MiningMissionBudgetTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-13T08:56:22.979Z" hostname="FORST" time="0.017">
+  <properties/>
+  <testcase name="negativeTimeoutComponentsFailClosed()" classname="io.github.zoyluo.aibot.mining.MiningMissionBudgetTest" time="0.002"/>
+  <testcase name="diamondStackOuterTimeoutCoversEveryBoundedTargetStageAndBootstrap()" classname="io.github.zoyluo.aibot.mining.MiningMissionBudgetTest" time="0.001"/>
+  <testcase name="marginEpochsExtendTheCumulativeWindowOnlyInsideTheMissionCapacity()" classname="io.github.zoyluo.aibot.mining.MiningMissionBudgetTest" time="0.005"/>
+  <testcase name="longRareResourceEpochsOwnIndependentWindowsWithoutRestartRefresh()" classname="io.github.zoyluo.aibot.mining.MiningMissionBudgetTest" time="0.001"/>
+  <testcase name="descendWindowScalesFromFactualDepthWithoutOverflow()" classname="io.github.zoyluo.aibot.mining.MiningMissionBudgetTest" time="0.001"/>
+  <testcase name="auxiliaryWindowsUseRealShortTaskBoundsAndFailClosedOnOverflow()" classname="io.github.zoyluo.aibot.mining.MiningMissionBudgetTest" time="0.003"/>
+  <testcase name="verifierBindsTimeoutToTheLiveNominalPlanInsteadOfAMagicLiteral()" classname="io.github.zoyluo.aibot.mining.MiningMissionBudgetTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,1 @@
+{"backend": "server_fake_player", "ready": true, "say": {"state": "completed", "reason": "sent_to_aibot_panel_and_global_chat"}, "goto": {"state": "completed", "reason": "arrival_within_3_blocks_verified"}}

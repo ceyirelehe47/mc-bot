@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-09-13T08:56:23.659Z" hostname="FORST" time="0.043">
+  <properties/>
+  <testcase name="finiteDropCatchAndBlindBodyFluidChecksCommitBeforeMining()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.002"/>
+  <testcase name="exhaustedPickupDebtKeepsItsOriginalMissionFailure()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.002"/>
+  <testcase name="trappedBlindBranchFailsMissionBeforeReplayingItsCheckpoint()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.001"/>
+  <testcase name="checkpointMatchesOreFamilyAndReturnsToSavedFaceBeforeMining()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.004"/>
+  <testcase name="targetAndVeinMiningLeaveTheCurrentSupportBeforeBreakingIt()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.002"/>
+  <testcase name="primaryAndVeinTargetsShareTheCloseBreakAndApproachPolicy()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.003"/>
+  <testcase name="activeBudgetsAreDurableAndCommittedCursorStartsANewBoundedBatch()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.002"/>
+  <testcase name="rememberedHighWorkPoseIsObservedPersistedAndRoutedWithoutDigging()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.003"/>
+  <testcase name="blockedBodyUsesOnlyItsExactOwnedRearWithoutLineOfSight()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.004"/>
+  <testcase name="everyTargetBreakPausesForDurablePhysicalPickup()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.003"/>
+  <testcase name="lowerTargetStepObservesEverySafetyCellBeforeWorldReads()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.001"/>
+  <testcase name="overheadTargetRequiresARealWorkPoseAndRestoredBreakRechecksTheEnvelope()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.002"/>
+  <testcase name="blindAdvanceRequiresAnExplicitRuntimeOwnerThatIsNotCheckpointed()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.002"/>
+  <testcase name="oreDigOptsIntoChannelToolPolicyWithoutChangingOtherMiners()" classname="io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

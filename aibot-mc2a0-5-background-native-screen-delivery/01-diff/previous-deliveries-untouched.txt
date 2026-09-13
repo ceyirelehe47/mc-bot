@@ -1,0 +1,2 @@
+git diff --stat 4c0bf8e..HEAD -- (all previous delivery dirs) output lines: 0
+(0 = untouched)

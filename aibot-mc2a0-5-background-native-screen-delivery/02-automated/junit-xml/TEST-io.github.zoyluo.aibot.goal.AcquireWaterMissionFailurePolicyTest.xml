@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.goal.AcquireWaterMissionFailurePolicyTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-13T08:56:22.474Z" hostname="FORST" time="0.012">
+  <properties/>
+  <testcase name="completedWaterExpeditionRetiresOnlyClosedOrdinaryMiningCursor()" classname="io.github.zoyluo.aibot.goal.AcquireWaterMissionFailurePolicyTest" time="0.008"/>
+  <testcase name="exhaustedOrInvalidWaterSearchTerminatesTheMissionFailClosed()" classname="io.github.zoyluo.aibot.goal.AcquireWaterMissionFailurePolicyTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,1 @@
+{"inspect_ref_after_fence": "{'_http': 404, '_body': '{\"error\":\"evidence_ref_not_in_current_view:foreign_or_unknown_or_kind_mismatch\",\"ok\":false}'}", "inspect_local_after_fence": "{'ok': True, 'data': {'schema': 'mc.local_view.v0_wrapper', 'snapshot': {'schema': 'mc.local_view.v0', 'detail': 'summary', 'radius': 4, 'body_position': {'z': "}

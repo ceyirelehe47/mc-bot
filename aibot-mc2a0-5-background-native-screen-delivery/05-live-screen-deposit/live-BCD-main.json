@@ -1,0 +1,21 @@
+{
+ "face6": {
+  "state": "completed",
+  "reason": "server_authoritative_arrival_and_facing_verified",
+  "rot_post": "g entity data: [-90.0f, 15.642244f]"
+ },
+ "face_barrel": {
+  "state": "completed",
+  "reason": "server_authoritative_arrival_and_facing_verified",
+  "rot": "g entity data: [-180.0f, 15.642244f]"
+ },
+ "inv_before": "g entity data: [{count: 1, Slot: 0b, id: \"minecraft:iron_pickaxe\"}, {count: 8, Slot: 1b, id: \"minecraft:cobblestone\"}]",
+ "barrel_before": "empty",
+ "deposit": {
+  "state": "failed",
+  "reason": "unknown_argument"
+ },
+ "inv_after": "g entity data: [{count: 1, Slot: 0b, id: \"minecraft:iron_pickaxe\"}, {count: 8, Slot: 1b, id: \"minecraft:cobblestone\"}]",
+ "barrel_after": "60, 196 has the following block data: []",
+ "view_ui": "{\"ok\": true, \"data\": {\"schema\": \"mc.cognitive_view.v0\", \"meta\": {\"generated_server_tick\": 31425, \"generated_game_time\": 34297, \"scene_hash\": \"sha256:bfeffeb8d06433ed665cc4c62f96ffebb0de0a574ae59e4a99d2123c1a213aeb\", \"encoded_bytes\": 2162}, \"scene\": {\"environment\": {\"day_phase\": \"DAY\", \"local_light\": 15, \"nearby\": {\"availability\": \"UNAVAILABLE_REAL_CLIENT_MVP\", \"sensor\": \"client_crosshair_only\"}, \"weather\": \"CLEAR\"}, \"execution\": {\"current_task\": null, \"paused_depth\": 0, \"progress_bucket\": 0, \"safety_active\": false, \"state\": \"BACKEND_MANAGED\", \"user_paused\": false}, \"recent_significant_events\": {\"availability\": \"AVAILABLE\", \"items\": [{\"kind\": \"control_acquired\", \"sequence\": 43}, {\"kind\": \"control_lost\", \"sequence\": 44}, {\"kind\": \"control_acquired\", \"sequence\": 45}, {\"kind\": \"control_lost\", \"sequence\": 46}, {\"kind\": \"control_acquired\", \"sequence\": 47}, {\"kind\": \"control_lost\", \"sequence\": 48}, {\"kind\": \"control_acquired\", \"sequence\": 49}, {\"kind\": \"control_lost\", \"sequence\": 50}, {\"kind\": \"control_acquired\", \"sequence\": 51}, {\"execution_id\": \"5bfb9e6f-5699-4f54-875c-673b89a51261\", \"kind\": \"execution\", \"sequence\": 54}, {\"execution_id\": \"96d77174-75b2-4005-ae75-1bb9454d57c2\", \"kind\": \""
+}

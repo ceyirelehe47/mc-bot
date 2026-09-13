@@ -1,0 +1,19 @@
+TaskGraphStore.java identical=True
+BridgeKernel.java identical=True
+ServerFakePlayerExecutionDriver.java identical=True
+PhysicalExecutionDriver.java identical=True
+BodyBackend.java identical=True
+BridgeHttpServer.java identical=True
+BridgeJournal.java identical=True
+mixins inert unless AIBOT_REAL_CLIENT=1: True
+default mode background: True
+no OS input synthesis (SendInput/mouse_event/keybd_event) in client sources: True
+ScreenController read-only (no clickSlot/interactBlock): True
+only DepositAction GUI-mutates (clickSlot count in ActionController==1): True
+no coordinate click API: True
+operations set say/goto/mine_opportunity/deposit: True
+graph dispatch block backend-branch-free: True
+bounded queues anchors: True
+transport world-free: True
+no BOT_POV/audio/streaming/scheduler in new client files: True
+PROTOCOL_VERSION=3: True

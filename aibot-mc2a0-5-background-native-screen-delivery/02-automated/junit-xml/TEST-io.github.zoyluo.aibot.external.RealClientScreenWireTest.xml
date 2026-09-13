@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.RealClientScreenWireTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-13T08:56:21.537Z" hostname="FORST" time="0.356">
+  <properties/>
+  <testcase name="duplicateScreenSequenceNeverReplacesTheSnapshot()" classname="io.github.zoyluo.aibot.external.RealClientScreenWireTest" time="0.348"/>
+  <testcase name="screenSnapshotIsBoundToTheCurrentGameSession()" classname="io.github.zoyluo.aibot.external.RealClientScreenWireTest" time="0.007"/>
+  <system-out><![CDATA[[16:56:21] [Test worker/INFO]: AIBot real-client transport bound to loopback port 58347 body_id=bob player=Bob
+[16:56:21] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=7ad66fca-2271-4f10-86d7-4afd16cd18f3 window_mode=background
+[16:56:21] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=7ad66fca-2271-4f10-86d7-4afd16cd18f3
+[16:56:21] [Test worker/INFO]: AIBot real-client transport bound to loopback port 58349 body_id=bob player=Bob
+[16:56:21] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=c52203ef-3846-43a7-abb0-71b5219cc344 window_mode=background
+[16:56:21] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=c52203ef-3846-43a7-abb0-71b5219cc344
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

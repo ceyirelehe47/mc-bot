@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-09-13T08:56:22.781Z" hostname="FORST" time="0.058">
+  <properties/>
+  <testcase name="capacityHandoffProtectsTheDirectObsidianBootstrapHorizon()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.002"/>
+  <testcase name="miningParentReserveTracksTheDurableMissionPhase()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.0"/>
+  <testcase name="capacityParentRequiresOneOpenOrdinaryDebit()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.038"/>
+  <testcase name="marginEpochsRestoreOnlyWithTheirExactOpenDurableOwner()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.001"/>
+  <testcase name="prerequisiteCoalOrIronCannotOverwriteDiamondCursor()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.001"/>
+  <testcase name="rareResourceEpochIsOwnedByTheCurrentOpenBatch()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.0"/>
+  <testcase name="plannedCraftCountIsAddedToExistingInventory()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.0"/>
+  <testcase name="rareResourceEpochPersistenceIsStrictAndLegacyMissingMeansZero()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.001"/>
+  <testcase name="waterRelocationRetiresOnlyClosedOrdinaryCursorWithoutPhysicalDebt()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.001"/>
+  <testcase name="diamondReplacesEarlierBootstrapCursorEvenForCompositeGoal()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.0"/>
+  <testcase name="committedCapacityParentRequiresExactClosedOrdinaryTaskWithoutPhysicalDebt()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.0"/>
+  <testcase name="rareEpochMarginPersistenceIsStrictAndLegacyMissingMeansZero()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.0"/>
+  <testcase name="plannedGatherDeltaIsConvertedToAbsoluteFamilyQuota()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.0"/>
+  <testcase name="rareEpochTimeoutConsumesOnlyTheExactPersistedWindow()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.002"/>
+  <testcase name="capacityParentDeliveredPersistenceIsStrictAndLegacyMissingMeansUnbound()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.001"/>
+  <testcase name="exactFamilyAndDirectGoalProgressRemainReplaceable()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.0"/>
+  <testcase name="restoredMarginLedgerMustCoverEveryEpochBeyondThePerBatchRetry()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.001"/>
+  <testcase name="capacityParentServiceCountPersistenceIsStrictAndLegacyMissingMeansZero()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.001"/>
+  <testcase name="activeServicePocketIncludesEveryPhysicalPhaseAndCommittedVerifiedSeal()" classname="io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
