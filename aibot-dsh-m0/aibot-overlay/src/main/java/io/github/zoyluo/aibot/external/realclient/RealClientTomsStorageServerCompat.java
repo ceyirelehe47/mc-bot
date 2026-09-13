@@ -22,7 +22,7 @@ final class RealClientTomsStorageServerCompat {
     static final String BLOCK_ENTITY_CLASS=
             "com.tom.storagemod.block.entity.StorageTerminalBlockEntity";
     static final String STORED_ITEM_CLASS=
-            "com.tom.storagemod.inventory.TerminalItemStack";
+            "com.tom.storagemod.inventory.StoredItemStack";
 
     record Target(BlockEntity blockEntity,BlockPos pos) {}
 

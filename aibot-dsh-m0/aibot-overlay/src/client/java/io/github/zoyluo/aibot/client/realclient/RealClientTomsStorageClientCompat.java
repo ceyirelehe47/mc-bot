@@ -24,7 +24,7 @@ final class RealClientTomsStorageClientCompat {
     static final String HANDLER_CLASS=
             "com.tom.storagemod.menu.StorageTerminalMenu";
     static final String ITEM_CLASS=
-            "com.tom.storagemod.inventory.TerminalItemStack";
+            "com.tom.storagemod.inventory.StoredItemStack";
     private static final int MAX_ITEMS=128;
     private static final AtomicBoolean WARNED=new AtomicBoolean();
 
