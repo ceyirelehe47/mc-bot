@@ -62,4 +62,19 @@ public final class RealClientWire {
         if(!object.has(key))return fallback;
         return requiredString(object,key,max);
     }
+
+    /** UI text (screen titles, widget labels) may legitimately be blank; mod screens
+     *  contain unlabeled widgets. Length and control-character bounds still apply. */
+    public static String uiTextString(
+            JsonObject object,String key,String fallback,int max)throws IOException {
+        if(!object.has(key))return fallback;
+        if(!object.get(key).isJsonPrimitive()
+                || !object.getAsJsonPrimitive(key).isString())
+            throw new IOException("real_client_missing_string:"+key);
+        String value=object.get(key).getAsString();
+        if(value.length()>max
+                ||value.chars().anyMatch(c->c<0x20))
+            throw new IOException("real_client_invalid_string:"+key);
+        return value;
+    }
 }

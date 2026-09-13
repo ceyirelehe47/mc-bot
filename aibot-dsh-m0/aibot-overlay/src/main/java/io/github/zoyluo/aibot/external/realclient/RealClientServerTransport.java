@@ -619,7 +619,7 @@ public final class RealClientServerTransport
                     RealClientWire.requiredString(
                             message,"handler_class",256);
             String title=
-                    RealClientWire.optionalString(
+                    RealClientWire.uiTextString(
                             message,"title","",256);
             String titleOrigin=RealClientWire.requiredString(
                     message,"title_origin",32);
@@ -703,7 +703,7 @@ public final class RealClientServerTransport
                         RealClientWire.requiredString(
                                 widget,"widget_class",256);
                 String widgetMessage=
-                        RealClientWire.optionalString(
+                        RealClientWire.uiTextString(
                                 widget,"message","",256);
                 String messageOrigin=RealClientWire.requiredString(
                         widget,"message_origin",32);

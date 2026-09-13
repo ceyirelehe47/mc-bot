@@ -3,6 +3,7 @@ package io.github.zoyluo.aibot.external.realclient;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.zoyluo.aibot.AIBotMod;
 import io.github.zoyluo.aibot.external.BodyBackend;
 import io.github.zoyluo.aibot.external.BridgeFault;
 import io.github.zoyluo.aibot.external.JsonOutput;
@@ -619,6 +620,11 @@ public final class RealClientExecutionDriver
                     ||!ownedAdapterId.equals(screen.adapterId())
                     ||ownedSyncId!=screen.syncId()
                     ||screen.screenSeq()<ownedScreenSeq)) {
+                io.github.zoyluo.aibot.AIBotMod.LOGGER.warn(
+                        "real-client deposit ownership lost diag:"
+                                +" remote={} screenPresent={}",
+                        remote==null?"null":remote.state(),
+                        screen==null?"null":Boolean.toString(screen.present()));
                 transport.sendControl(
                         executionId,"cancel",
                         "real_client_screen_ownership_lost");
