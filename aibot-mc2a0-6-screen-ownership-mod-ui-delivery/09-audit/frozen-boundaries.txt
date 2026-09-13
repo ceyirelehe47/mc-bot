@@ -3,8 +3,8 @@ ServerFakePlayerExecutionDriver.java identical=True
 PhysicalExecutionDriver.java identical=True
 BodyBackend.java identical=True
 BridgeKernel.java identical=True
-changed files vs base:
-ernal/realclient/RealClientBodyBackend.java |   28 +-
+changed files vs base (git diff --stat 471d88a, overlay 域 14 文件;另有 fixture 9 新文件+.gitignore+SHA256SUMS):
+.../external/realclient/RealClientBodyBackend.java |   28 +-
  .../realclient/RealClientCognitiveViewBuilder.java |   27 +-
  .../realclient/RealClientExecutionDriver.java      | 1031 +++++++++++++++-----
  .../realclient/RealClientServerTransport.java      |  737 ++++++++++----

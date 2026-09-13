@@ -30,7 +30,7 @@
 
 ## 4. 禁忌 pre-JOIN 协议错误计数
 
-冷启动+断连重连全程：`real_client_screen_missing_game_incarnation: 0`、`real_client_heartbeat_missing_game_incarnation: 0`、`real_client_execution_missing_game_incarnation: 0`（timeline.txt 三段计数均 0；0.5 的重连风暴在本轮服务器日志零出现）。
+冷启动+断连重连全程（最终运行，即 timeline.txt 覆盖的 20:15 之后窗口；此前 17:0x 调试会话日志归档 -4.log.gz 含 15 处属 fixture 崩溃循环期、非最终运行产物）：`real_client_screen_missing_game_incarnation: 0`、`real_client_heartbeat_missing_game_incarnation: 0`、`real_client_execution_missing_game_incarnation: 0`（timeline.txt 三段计数均 0；0.5 的重连风暴在本轮服务器日志零出现）。
 
 ## 5. DISCONNECT 队列/绑定清理证明
 
@@ -93,7 +93,7 @@ F4（c1676254）：空背包（仅 selected 一堆）deposit → 采样到 runni
 
 - 生产 remap jar：`d6654743252734dc31d7891f76c4ed6413224697884fa899434c35b9ffe80afa`
 - dev（named）jar（Bob dev 客户端实际加载）：`3347258f3bba02ef8cfe263fb1456dd974b9b695749206faa8ec17a3338ed468`
-- 加载证明：客户端日志 `MC-2A UI fixture enabled`（20:27:05）+ mod 列表含 `mc2a-ui-fixture 0.0.1`；服务器/owner 客户端零加载（mods 目录仅 Bob 客户端 classpath 追加）。
+- 加载证明：客户端日志 `MC-2A UI fixture enabled` + mod 列表含 `mc2a-ui-fixture 0.0.1`（修正版加载后最终运行段可查证记录见 mc2a06-client-direct.log 与 aibot/logs 归档）；服务器/owner 客户端零加载（mods 目录仅 Bob 客户端 classpath 追加）。
 
 ## 19. fixture 自定义 Screen 类与 adapter id
 
@@ -125,7 +125,7 @@ G1（048c90c0）：waiting_authorization 中 kill → `outcome_unknown:body_sess
 
 ## 26. QUICK_MOVE 中崩溃终态/零重放
 
-G2（liveG2e）：release 后 20ms os.kill 直杀 → `outcome_unknown:body_session_changed`+503+reconcile；冷启动 fresh deposit completed。早期两轮 powershell/taskkill 链路慢于完成判定（如实披露：g2-quickmove-kill.json 记录三轮装置演进，前两轮 completed+围栏仍生效）。
+G2（liveG2e）：release 后 20ms os.kill 直杀 → `outcome_unknown:body_session_changed`+503+reconcile；冷启动 fresh deposit completed。装置说明（口头披露，未随档）：早期两轮用 powershell/taskkill 杀链（>1s）慢于服务器完成判定，轮次结果为 completed 且围栏（503+reconcile）同样生效；最终轮改 os.kill 直杀（20ms）后扑进转移窗口，g2-quickmove-kill.json 仅归档最终轮。
 
 ## 27. kill 前入队 read query 的异常完成
 
