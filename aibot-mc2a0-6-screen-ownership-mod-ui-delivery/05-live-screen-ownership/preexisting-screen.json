@@ -1,0 +1,32 @@
+{
+ "ex1": {
+  "execution_id": "b6cee7d5-cde5-441c-914f-8de47234288b",
+  "request_id": "mc2a06-liveC-open-full-barrel-4751757",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "19624448-408b-4aa7-9e69-160e16816b7f",
+  "operation": "deposit",
+  "state": "failed",
+  "progress": 1.0,
+  "reason": "real_client_screen_ownership_lost",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "ex2": {
+  "execution_id": "5fe3f93f-7b74-4402-b0e4-4d3f4b6c30ee",
+  "request_id": "mc2a06-liveC-preexisting-4752779",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "19624448-408b-4aa7-9e69-160e16816b7f",
+  "operation": "deposit",
+  "state": "failed",
+  "progress": 1.0,
+  "reason": "real_client_screen_ownership_lost",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "ui_while_open": {},
+ "invA_same": true
+}

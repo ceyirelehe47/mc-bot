@@ -1,0 +1,57 @@
+{
+ "execution_id": "682ff175-3037-40dc-a89d-94f9995889d4",
+ "hold_state": {
+  "execution_id": "682ff175-3037-40dc-a89d-94f9995889d4",
+  "request_id": "mc2a06-liveD-window3-6333442",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "b6868d5f-13e2-4d78-bf6a-81de2b3ddfdd",
+  "operation": "deposit",
+  "state": "running",
+  "progress": 0.45,
+  "reason": "client_target_screen_open_waiting_authorization",
+  "terminal": false,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "hold_screen": {
+  "present": true,
+  "game_session": "b6868d5f-13e2-4d78-bf6a-81de2b3ddfdd",
+  "screen_seq": 131,
+  "screen_epoch": "c261512c-4869-4b4c-a04a-7c85ce104ad4",
+  "adapter_id": "mc2a_fixture_storage_v1",
+  "screen_class": "io.github.zoyluo.mc2aui.fixture.client.FixtureGenericContainerScreen",
+  "handler_class": "net.minecraft.screen.GenericContainerScreenHandler",
+  "title": "Barrel",
+  "sync_id": 2,
+  "capabilities": [
+   "deposit_quick_move",
+   "widget_introspection"
+  ],
+  "widget_count": 1,
+  "slot_count": 63,
+  "truncated": false
+ },
+ "final": {
+  "execution_id": "682ff175-3037-40dc-a89d-94f9995889d4",
+  "request_id": "mc2a06-liveD-window3-6333442",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "b6868d5f-13e2-4d78-bf6a-81de2b3ddfdd",
+  "operation": "deposit",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "server_authoritative_owned_screen_container_transfer_verified:1",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "hold_zero_delta": {
+  "barrel_empty": true,
+  "bob_piles": 2
+ },
+ "after": {
+  "barrel_1": true,
+  "bob_piles": 1
+ }
+}

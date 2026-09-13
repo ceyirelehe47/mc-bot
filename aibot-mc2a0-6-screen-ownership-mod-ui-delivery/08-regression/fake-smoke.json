@@ -1,0 +1,44 @@
+{
+ "say": {
+  "execution_id": "c4592974-629f-4ecd-b9e8-39556108fe18",
+  "request_id": "mc2a06-fake6-say",
+  "body_id": "bob",
+  "backend_kind": "server_fake_player",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "03afdb35-09bc-4496-8810-682a748821b4",
+  "operation": "say",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "sent_to_aibot_panel_and_global_chat",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "goto": {
+  "execution_id": "7b9e5c42-9422-4333-a3e3-7184edc0e342",
+  "request_id": "mc2a06-fake-goto3",
+  "body_id": "bob",
+  "backend_kind": "server_fake_player",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "03afdb35-09bc-4496-8810-682a748821b4",
+  "operation": "goto",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "arrival_within_3_blocks_verified",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "deposit": {
+  "execution_id": "3c570ae8-e030-4ef0-a9a7-babfafa1cb22",
+  "request_id": "mc2a06-fake6-deposit",
+  "body_id": "bob",
+  "backend_kind": "server_fake_player",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "03afdb35-09bc-4496-8810-682a748821b4",
+  "operation": "deposit",
+  "state": "failed",
+  "progress": 0.0,
+  "reason": "no_base",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ }
+}

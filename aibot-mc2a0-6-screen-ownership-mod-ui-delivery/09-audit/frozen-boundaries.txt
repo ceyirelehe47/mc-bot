@@ -1,0 +1,17 @@
+TaskGraphStore.java identical=True
+ServerFakePlayerExecutionDriver.java identical=True
+PhysicalExecutionDriver.java identical=True
+BodyBackend.java identical=True
+BridgeKernel.java identical=True
+changed files vs base:
+ernal/realclient/RealClientBodyBackend.java |   28 +-
+ .../realclient/RealClientCognitiveViewBuilder.java |   27 +-
+ .../realclient/RealClientExecutionDriver.java      | 1031 +++++++++++++++-----
+ .../realclient/RealClientServerTransport.java      |  737 ++++++++++----
+ .../aibot/external/realclient/RealClientWire.java  |   13 +-
+ .../RealClientBackgroundScreenSourceTest.java      |    9 +-
+ .../aibot/external/RealClientMvpSourceTest.java    |    4 +-
+ .../aibot/external/RealClientScreenWireTest.java   |  215 +++-
+ .../aibot/external/RealClientWireSessionTest.java  |   25 +-
+ aibot-dsh-m0/dsh-plugin/src/plugin.mjs             |    2 +-
+ 14 files changed, 2403 insertions(+), 758 deletions(-)

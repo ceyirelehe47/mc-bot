@@ -1,0 +1,22 @@
+{
+ "F4": {
+  "exec": "c1676254-bce8-4d6a-8c33-f977ba84c67b",
+  "sampled_running": true,
+  "snap_reason": "client_completed_awaiting_server_container_inventory_proof",
+  "final": "running",
+  "final_reason": "client_completed_awaiting_server_container_inventory_proof"
+ },
+ "F1": {
+  "exec": "18552cb2-2cd6-4fd8-bd65-483e7855cdc1",
+  "final": "failed",
+  "reason": "real_client_deposit_target_changed",
+  "bob_piles": 2
+ },
+ "F2": {
+  "exec": "6f021f41-941b-4e20-a8b8-0a0e1f3c4aa3",
+  "final": "failed",
+  "reason": "real_client_deposit_target_changed",
+  "bob_piles": 2,
+  "chest_empty": true
+ }
+}

@@ -1,0 +1,49 @@
+=== LIVE-A 全程时间线(截至 20:42:23) ===
+[20:19:02] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=24d8502b-89a4-4c44-b47c-ec9f4088e008 window_mode=background
+[20:19:03] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=24d8502b-89a4-4c44-b47c-ec9f4088e008
+[20:19:44] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=3760726d-1dd1-4106-a67f-7858d7fd3e51 window_mode=background
+[20:19:46] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=3760726d-1dd1-4106-a67f-7858d7fd3e51
+[20:21:02] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=419084f6-a296-4200-aaa3-b3fcaee56442 window_mode=background
+[20:21:04] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=419084f6-a296-4200-aaa3-b3fcaee56442
+[20:27:06] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=a62c1493-1cf5-4d2e-bf7b-84540175e962 window_mode=background
+[20:34:07] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=4c7fab28-098f-44e5-ba21-bb4db99d772b
+[20:34:08] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=15547432-c0b2-4df0-a525-a3fb024a92f4
+[20:34:10] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=7906ff61-7600-4839-9955-ced578741001
+[20:34:14] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=40b48e6d-1178-4029-a099-ef721cc18180
+[20:34:17] [Server thread/INFO]: Bob joined the game
+[20:34:22] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=2ced1b78-13e7-4f59-82b4-844d71cdd2ab
+[20:34:30] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=01213d48-08d6-4b11-a65a-d8e7128bd98a
+[20:34:38] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=0e69ac0c-8da7-4593-9d24-2975714b604e
+[20:34:46] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=e3fb4880-77e4-42d0-b88f-6cd2a28cf18b
+[20:34:54] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=e1d2a4c1-0109-4070-b1c1-f21858be4c15
+[20:35:02] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=ffa2ce08-3bd3-4f51-8579-381a365e056f
+[20:35:10] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=40fa4d23-9c1f-4a85-a4d0-6952000feedf
+[20:35:18] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=1ba34a17-aa4f-4757-912c-50607191ff9c
+[20:35:26] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=0f754fa3-6d39-4c35-98da-79add3278a1e
+[20:35:34] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=e77f1243-213d-446f-b646-4d9f5d66fcd2
+[20:35:42] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=c489dfc1-6661-4a8c-86bb-c75dba806e70
+[20:35:50] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=6a020002-461c-4934-ba40-2ab4ceb20a7a
+[20:35:58] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=2c3a51bc-cdab-4bd6-b3fc-e1612f0d7f05
+[20:36:06] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=acacfbca-ad48-41a8-bcae-d1af66d1cd87
+[20:36:14] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=c7cee5c0-e984-4445-b9aa-35ab74783696
+[20:36:22] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=b200809c-e571-4ca0-adb2-afa4054941cb
+[20:36:30] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=5255d42d-0c52-4ac6-a165-0310b042bd3f
+[20:36:38] [aibot-real-client-handshake/INFO]: AIBot real client disconnected body_id=bob player=Bob session=34f4b42c-64a5-45d2-b606-1864b0b2aec1
+[20:36:41] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=a62c1493-1cf5-4d2e-bf7b-84540175e962
+[20:36:41] [Server thread/INFO]: Bob left the game
+[20:36:57] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=78228909-0241-48a5-8c03-9d98ffa49256 window_mode=background
+[20:37:06] [Server thread/INFO]: Bob joined the game
+[20:39:09] [Server thread/INFO]: Bob left the game
+[20:40:06] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=78228909-0241-48a5-8c03-9d98ffa49256
+[20:40:22] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=bb60a2fe-c07c-4dda-b137-f219a1736df6 window_mode=background
+[20:40:30] [Server thread/INFO]: Bob joined the game
+
+=== 协议错误最终计数 ===
+real_client_heartbeat_missing_game_incarnation: 0
+real_client_screen_missing_game_incarnation: 0
+real_client_execution_missing_game_incarnation: 0
+其他 real_client 错误: 0
+
+=== epoch 代际 ===
+gate 窗口: transport a62c1493 connected 20:27:06, JOIN 未发生 170+s(窗口证据 window-scan.txt), 放行后新进程 JOIN
+JOIN1: e2d12a57(20:37) / kick 20:39:09 → 冷重启 JOIN2: 808fbf2c(20:40:30)

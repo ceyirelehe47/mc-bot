@@ -1,0 +1,13 @@
+{
+ "samples": 50,
+ "bob_foreground": 0,
+ "cursor_hidden": 50,
+ "clips": [
+  [
+   0,
+   0,
+   2048,
+   1280
+  ]
+ ]
+}

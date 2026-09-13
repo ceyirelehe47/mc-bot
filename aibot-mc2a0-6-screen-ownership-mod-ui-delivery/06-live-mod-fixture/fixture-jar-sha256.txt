@@ -1,0 +1,2 @@
+d6654743252734dc31d7891f76c4ed6413224697884fa899434c35b9ffe80afa */d/code/mc-bot/aibot-dsh-m0/fixtures/mc2a-ui-fixture/build/libs/mc2a-ui-fixture-0.0.1.jar
+3347258f3bba02ef8cfe263fb1456dd974b9b695749206faa8ec17a3338ed468 */d/code/mc-bot/aibot-dsh-m0/fixtures/mc2a-ui-fixture/build/devlibs/mc2a-ui-fixture-0.0.1-dev.jar

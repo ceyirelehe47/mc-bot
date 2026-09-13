@@ -1,0 +1,11 @@
+{
+ "exec": "aefb7a10-f86d-43e3-932e-bcc7bc97a876",
+ "method": "os.kill-sigterm-20ms-after-release",
+ "execution_after": {
+  "state": "outcome_unknown",
+  "reason": "body_session_changed"
+ },
+ "query_after_kill_http": 503,
+ "needs_reconcile": true,
+ "epoch_after": "edc9b3e2-ef61-47a2-87b4-f8bcbeabd7e6"
+}

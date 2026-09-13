@@ -1,0 +1,11 @@
+ScreenController read-only (no clickSlot/interactBlock): True
+only DepositAction GUI-mutates (clickSlot count==1): True
+no coordinate click API: True
+no reflection invocation: True
+no custom payload send: True
+adapter registry exact allowlist: True
+registry no click API: True
+PROTOCOL_VERSION=4: True
+no new DSH tool registration (12 static registers via multiline regex): True
+no BOT_POV/audio/streaming/scheduler in new client files: True
+no OS input synthesis: True

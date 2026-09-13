@@ -1,0 +1,29 @@
+{
+ "execution_id": "3ff769f1-7e50-48d4-9308-790be173f0e7",
+ "timeline": [
+  [
+   0.01,
+   "running",
+   "awaiting_server_owned_target_screen"
+  ],
+  [
+   0.35,
+   "completed",
+   "server_authoritative_owned_screen_container_transfer_verified:1"
+  ]
+ ],
+ "final": {
+  "execution_id": "3ff769f1-7e50-48d4-9308-790be173f0e7",
+  "request_id": "mc2a06-liveD-normal3-5464430",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "0cb9d76b-2f43-4b12-ab7d-06231a0696b8",
+  "operation": "deposit",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "server_authoritative_owned_screen_container_transfer_verified:1",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ }
+}

@@ -1,0 +1,36 @@
+{
+ "graph_states": [
+  null
+ ],
+ "exec": {},
+ "raw_iron": true,
+ "opp_consumed": true,
+ "plan": {
+  "graph_id": "graph-6502ee9aa23c2ef9c59f6181",
+  "producer_kind": "OPPORTUNITY_EXPLICIT",
+  "producer_key": "opportunity|mc2a06-live-mine-6|afb5942d-252f-45ae-abea-00b22b84b93d|minecraft:overworld|rcore_12e92291970f_2aeedbd1902d450b",
+  "plan_key": "mc2a06-live-mine-6",
+  "state": "READY",
+  "created_at_ms": 1789308296173,
+  "updated_at_ms": 1789308296173,
+  "nodes": [
+   {
+    "node_id": "n-mine-aa03e6338534",
+    "state": "READY",
+    "dependencies": [],
+    "operation": "mine_opportunity",
+    "subject_ref": {
+     "dimension_id": "minecraft:overworld",
+     "object_id": "rcore_12e92291970f_2aeedbd1902d450b",
+     "world_id": "afb5942d-252f-45ae-abea-00b22b84b93d"
+    },
+    "postcondition": "OPPORTUNITY_RESOLVED",
+    "resource_claim": "opportunity|afb5942d-252f-45ae-abea-00b22b84b93d|minecraft:overworld|rcore_12e92291970f_2aeedbd1902d450b",
+    "execution_id": "",
+    "dispatch_request_id": "",
+    "attempt": 0,
+    "reason": "dependencies_satisfied"
+   }
+  ]
+ }
+}

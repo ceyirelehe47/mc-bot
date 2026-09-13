@@ -1,0 +1,18 @@
+{
+ "execution_id": "8532397e-a585-4cb3-8ea2-86ce3e01b6a8",
+ "final": {
+  "execution_id": "8532397e-a585-4cb3-8ea2-86ce3e01b6a8",
+  "request_id": "mc2a06-liveB-blocked-face2-4686648",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "19624448-408b-4aa7-9e69-160e16816b7f",
+  "operation": "goto",
+  "state": "failed",
+  "progress": 0.0,
+  "reason": "client_final_facing_timeout",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "blocked": "glass 200 -60/-59 197"
+}

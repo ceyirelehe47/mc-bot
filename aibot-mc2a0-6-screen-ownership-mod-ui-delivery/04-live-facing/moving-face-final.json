@@ -1,0 +1,73 @@
+{
+ "execution_id": "f9269cde-ba7c-42c1-b831-7bcefe3a4f0d",
+ "final": {
+  "execution_id": "f9269cde-ba7c-42c1-b831-7bcefe3a4f0d",
+  "request_id": "mc2a06-liveB-moving-face-final-4642078",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "19624448-408b-4aa7-9e69-160e16816b7f",
+  "operation": "goto",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "server_authoritative_arrival_and_facing_verified",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "phases": [
+  "walking_to_target",
+  "client_arrival_settling",
+  "awaiting_client_final_facing_ack",
+  "server_authoritative_arrival_and_facing_verified"
+ ],
+ "trail": [
+  [
+   0.0,
+   "accepted",
+   "",
+   0.0
+  ],
+  [
+   0.35,
+   "running",
+   "walking_to_target",
+   0.7213118217108097
+  ],
+  [
+   0.71,
+   "running",
+   "walking_to_target",
+   0.7821923939237294
+  ],
+  [
+   1.09,
+   "running",
+   "walking_to_target",
+   0.852339250963901
+  ],
+  [
+   1.47,
+   "running",
+   "client_arrival_settling",
+   0.9137241197853756
+  ],
+  [
+   1.84,
+   "running",
+   "awaiting_client_final_facing_ack",
+   0.9137241197853756
+  ],
+  [
+   2.21,
+   "running",
+   "awaiting_client_final_facing_ack",
+   0.99
+  ],
+  [
+   2.61,
+   "completed",
+   "server_authoritative_arrival_and_facing_verified",
+   1.0
+  ]
+ ]
+}

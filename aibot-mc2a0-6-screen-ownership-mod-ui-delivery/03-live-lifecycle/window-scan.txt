@@ -1,0 +1,22 @@
+=== LIVE-A 窗口采样 20:30:00 ===
+-- control 连接事件(全部) --
+[20:19:02] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=24d8502b-89a4-4c44-b47c-ec9f4088e008 window_mode=background
+[20:19:03] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=24d8502b-89a4-4c44-b47c-ec9f4088e008
+[20:19:44] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=3760726d-1dd1-4106-a67f-7858d7fd3e51 window_mode=background
+[20:19:46] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=3760726d-1dd1-4106-a67f-7858d7fd3e51
+[20:21:02] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=419084f6-a296-4200-aaa3-b3fcaee56442 window_mode=background
+[20:21:04] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=419084f6-a296-4200-aaa3-b3fcaee56442
+[20:27:06] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=a62c1493-1cf5-4d2e-bf7b-84540175e962 window_mode=background
+-- 协议错误计数 --
+real_client_heartbeat_missing_game_incarnation: 0
+real_client_screen_missing_game_incarnation: 0
+real_client_execution_missing_game_incarnation: 0
+-- 其他 real_client 拒绝/错误 --
+0
+-- 客户端 auto-join 循环(gate 拒绝) --
+[20:29:34] [Render thread/INFO] (aibot) AIBot real-client auto-join 127.0.0.1:25598 (attempt 29)
+[20:29:39] [Render thread/INFO] (aibot) AIBot real-client auto-join 127.0.0.1:25598 (attempt 30)
+[20:29:44] [Render thread/INFO] (aibot) AIBot real-client auto-join 127.0.0.1:25598 (attempt 31)
+[20:29:50] [Render thread/INFO] (aibot) AIBot real-client auto-join 127.0.0.1:25598 (attempt 32)
+[20:29:55] [Render thread/INFO] (aibot) AIBot real-client auto-join 127.0.0.1:25598 (attempt 33)
+[20:30:00] [Render thread/INFO] (aibot) AIBot real-client auto-join 127.0.0.1:25598 (attempt 34)

@@ -1,0 +1,19 @@
+{
+ "exec": "37329094-ded6-4264-b247-be87a084718e",
+ "final": {
+  "execution_id": "37329094-ded6-4264-b247-be87a084718e",
+  "request_id": "mc2a06-liveF3-forge-6586810",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "381271fa-f773-4be5-b8b2-1a2a3dff4f7f",
+  "operation": "deposit",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "server_authoritative_owned_screen_container_transfer_verified:1",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "bob_piles": 1,
+ "barrel_empty": false
+}

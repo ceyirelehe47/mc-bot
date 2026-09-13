@@ -1,0 +1,28 @@
+{
+ "say_retry": {
+  "execution_id": "fb740356-8af7-4ed8-8cf1-bd146717bd5e",
+  "request_id": "mc2a06-liveH-say2-8132988",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "fe3b08e4-f17a-4973-9c91-a2b5b4231251",
+  "operation": "say",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "client_chat_packet_sent",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "single_authority_second_v4": {
+  "err": "unpack requires a buffer of 4 bytes"
+ },
+ "hello_v1": {
+  "err": "unpack requires a buffer of 4 bytes"
+ },
+ "hello_v2": {
+  "err": "unpack requires a buffer of 4 bytes"
+ },
+ "hello_v3": {
+  "err": "unpack requires a buffer of 4 bytes"
+ }
+}

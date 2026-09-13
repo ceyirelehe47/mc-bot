@@ -1,0 +1,555 @@
+{
+ "execution_id": "7a8a3beb-b43b-4630-a62e-225b38535354",
+ "final": {
+  "execution_id": "7a8a3beb-b43b-4630-a62e-225b38535354",
+  "request_id": "mc2a06-liveB-moving-face4-3553509",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "808fbf2c-af5e-483b-a7f6-b8bd697ac135",
+  "operation": "goto",
+  "state": "failed",
+  "progress": 0.9175512198423847,
+  "reason": "client_final_facing_timeout",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "trail": [
+  [
+   0.0,
+   "accepted",
+   ""
+  ],
+  [
+   0.44,
+   "running",
+   "walking_to_target"
+  ],
+  [
+   0.86,
+   "running",
+   "walking_to_target"
+  ],
+  [
+   1.28,
+   "running",
+   "walking_to_target"
+  ],
+  [
+   1.71,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   2.13,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   2.55,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   2.98,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   3.4,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   3.82,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   4.26,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   4.67,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   5.09,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   5.51,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   5.94,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   6.36,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   6.78,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   7.2,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   7.62,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   8.04,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   8.46,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   8.9,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   9.31,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   9.73,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   10.15,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   10.57,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   10.99,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   11.43,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   11.85,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   12.25,
+   "failed",
+   "client_final_facing_timeout"
+  ]
+ ],
+ "sensor_samples": [
+  [
+   553.6,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   554.1,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   554.6,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   555.1,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   555.6,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   556.1,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   556.6,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   557.1,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   557.6,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   558.1,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   558.7,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   559.2,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   559.7,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   560.2,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   560.7,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   561.2,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   561.8,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   562.3,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   562.8,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   563.3,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   563.8,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   564.4,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   564.9,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ],
+  [
+   565.4,
+   {
+    "x": null,
+    "y": null,
+    "z": null
+   },
+   {
+    "crosshair_present": null,
+    "crosshair_x": null,
+    "crosshair_y": null,
+    "crosshair_z": null,
+    "yaw": null,
+    "pitch": null
+   }
+  ]
+ ]
+}

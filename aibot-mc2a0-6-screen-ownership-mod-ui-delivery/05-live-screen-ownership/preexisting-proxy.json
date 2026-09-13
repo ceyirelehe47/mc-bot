@@ -1,0 +1,45 @@
+{
+ "ex1_running": {
+  "execution_id": "dc70554f-b406-464e-827b-8a66fb0644f2",
+  "request_id": "mc2a06-liveC-proxy-A-5976696",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "2dac96a6-f5ed-4a57-80c1-07f2904dcb3b",
+  "operation": "deposit",
+  "state": "running",
+  "progress": 0.7,
+  "reason": "client_owned_screen_quick_move",
+  "terminal": false,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "ex1_after_cancel": {
+  "execution_id": "dc70554f-b406-464e-827b-8a66fb0644f2",
+  "request_id": "mc2a06-liveC-proxy-A-5976696",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "2dac96a6-f5ed-4a57-80c1-07f2904dcb3b",
+  "operation": "deposit",
+  "state": "cancelled",
+  "progress": 0.7,
+  "reason": "external_cancel",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "ex2": {
+  "execution_id": "34dade0f-d55c-474b-a5f6-0d083ba48d1c",
+  "request_id": "mc2a06-liveC-proxy-B-5978214",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "2dac96a6-f5ed-4a57-80c1-07f2904dcb3b",
+  "operation": "deposit",
+  "state": "failed",
+  "progress": 0.0,
+  "reason": "real_client_screen_already_open",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "invA_unchanged": true
+}

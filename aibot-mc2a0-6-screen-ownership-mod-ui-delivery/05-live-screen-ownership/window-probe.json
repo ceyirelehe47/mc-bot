@@ -1,0 +1,30 @@
+[
+ [
+  0.05,
+  "accepted",
+  "",
+  null,
+  null
+ ],
+ [
+  0.32,
+  "running",
+  "client_owned_screen_settling",
+  null,
+  null
+ ],
+ [
+  0.59,
+  "running",
+  "client_owned_screen_settling",
+  null,
+  null
+ ],
+ [
+  0.89,
+  "failed",
+  "real_client_screen_ownership_lost",
+  null,
+  null
+ ]
+]

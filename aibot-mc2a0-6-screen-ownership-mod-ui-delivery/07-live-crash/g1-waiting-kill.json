@@ -1,0 +1,18 @@
+{
+ "exec": "048c90c0-a290-4cac-889f-eb0bad4ca227",
+ "kill_ts": "21:47:41",
+ "q_before_ok": true,
+ "execution_after_kill": {
+  "state": "outcome_unknown",
+  "reason": "body_session_changed",
+  "latency_s": 3.9
+ },
+ "query_after_kill": {
+  "http": 503,
+  "ok": null,
+  "error": ""
+ },
+ "needs_reconcile": true,
+ "epoch_after": "da97f8a7-8aa6-415e-a61c-62f69a431c5f",
+ "zero_mutation": false
+}

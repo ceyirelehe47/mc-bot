@@ -1,0 +1,18 @@
+{
+ "execution_id": "16ddac56-af91-4fbe-bbd9-df35eecc4881",
+ "final": {
+  "execution_id": "16ddac56-af91-4fbe-bbd9-df35eecc4881",
+  "request_id": "mc2a06-liveB-blocked-face-4665513",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "19624448-408b-4aa7-9e69-160e16816b7f",
+  "operation": "goto",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "server_authoritative_arrival_and_facing_verified",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "blocked": "glass at 200 -59 197"
+}

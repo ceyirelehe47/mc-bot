@@ -1,0 +1,18 @@
+{
+ "present": true,
+ "game_session": "b6868d5f-13e2-4d78-bf6a-81de2b3ddfdd",
+ "screen_seq": 182,
+ "screen_epoch": "2c9b2e53-741b-44ff-9ad7-e513267c327e",
+ "adapter_id": "mc2a_fixture_storage_v1",
+ "screen_class": "io.github.zoyluo.mc2aui.fixture.client.FixtureGenericContainerScreen",
+ "handler_class": "net.minecraft.screen.GenericContainerScreenHandler",
+ "title": "Barrel",
+ "sync_id": 4,
+ "capabilities": [
+  "deposit_quick_move",
+  "widget_introspection"
+ ],
+ "widget_count": 1,
+ "slot_count": 63,
+ "truncated": false
+}

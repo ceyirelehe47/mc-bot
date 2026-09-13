@@ -1,0 +1,32 @@
+{
+ "exec": "5cf93ac5-eb4e-47f6-9974-3e29eb663164",
+ "hold": {
+  "execution_id": "5cf93ac5-eb4e-47f6-9974-3e29eb663164",
+  "request_id": "mc2a06-liveF3c-7100819",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "4e6f9870-0be0-48b8-9ff6-ebdd2f963e4a",
+  "operation": "deposit",
+  "state": "running",
+  "progress": 0.45,
+  "reason": "client_target_screen_open_waiting_authorization",
+  "terminal": false,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "final": {
+  "execution_id": "5cf93ac5-eb4e-47f6-9974-3e29eb663164",
+  "request_id": "mc2a06-liveF3c-7100819",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "4e6f9870-0be0-48b8-9ff6-ebdd2f963e4a",
+  "operation": "deposit",
+  "state": "failed",
+  "progress": 0.1,
+  "reason": "client_deposit_authorization_invalid",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "zero_mutation": true
+}

@@ -1,0 +1,34 @@
+{
+ "execution_id": "a21a3e23-3da5-432e-aca1-fe58c4b3de3a",
+ "final": {
+  "execution_id": "a21a3e23-3da5-432e-aca1-fe58c4b3de3a",
+  "request_id": "mc2a06-liveB-standstill-face-3499193",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "808fbf2c-af5e-483b-a7f6-b8bd697ac135",
+  "operation": "goto",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "server_authoritative_arrival_and_facing_verified",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "trail": [
+  [
+   0.01,
+   "accepted",
+   ""
+  ],
+  [
+   0.4,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   0.79,
+   "completed",
+   "server_authoritative_arrival_and_facing_verified"
+  ]
+ ]
+}

@@ -1,0 +1,34 @@
+{
+ "execution_id": "e77b27cb-3150-4263-8580-4f8767b05610",
+ "timeline": [
+  [
+   0.0,
+   "accepted",
+   ""
+  ],
+  [
+   0.32,
+   "running",
+   "client_owned_screen_settling"
+  ],
+  [
+   0.97,
+   "failed",
+   "real_client_screen_ownership_lost"
+  ]
+ ],
+ "final": {
+  "execution_id": "e77b27cb-3150-4263-8580-4f8767b05610",
+  "request_id": "mc2a06-liveD-normal-deposit-4836947",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "19624448-408b-4aa7-9e69-160e16816b7f",
+  "operation": "deposit",
+  "state": "failed",
+  "progress": 1.0,
+  "reason": "real_client_screen_ownership_lost",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ }
+}

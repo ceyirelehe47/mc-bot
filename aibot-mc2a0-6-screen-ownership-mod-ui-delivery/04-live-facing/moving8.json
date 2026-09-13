@@ -1,0 +1,164 @@
+{
+ "execution_id": "dc9107bd-ef7b-43be-bd80-0fcd90cf7d8b",
+ "final": {
+  "execution_id": "dc9107bd-ef7b-43be-bd80-0fcd90cf7d8b",
+  "request_id": "mc2a06-liveB-moving8-3687514",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "808fbf2c-af5e-483b-a7f6-b8bd697ac135",
+  "operation": "goto",
+  "state": "failed",
+  "progress": 0.914839250963901,
+  "reason": "client_final_facing_timeout",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "trail": [
+  [
+   0.0,
+   "accepted",
+   ""
+  ],
+  [
+   0.45,
+   "running",
+   "walking_to_target"
+  ],
+  [
+   0.85,
+   "running",
+   "walking_to_target"
+  ],
+  [
+   1.26,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   1.68,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   2.1,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   2.5,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   2.94,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   3.36,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   3.78,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   4.21,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   4.61,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   5.04,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   5.44,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   5.85,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   6.27,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   6.7,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   7.1,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   7.51,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   7.91,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   8.32,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   8.73,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   9.15,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   9.55,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   10.0,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   10.4,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   10.81,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   11.26,
+   "running",
+   "awaiting_client_final_facing_ack"
+  ],
+  [
+   11.68,
+   "failed",
+   "client_final_facing_timeout"
+  ]
+ ]
+}

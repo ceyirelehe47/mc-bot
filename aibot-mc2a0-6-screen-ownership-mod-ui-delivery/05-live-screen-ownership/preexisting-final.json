@@ -1,0 +1,18 @@
+{
+ "ex1": {
+  "execution_id": "1a7e2ac0-a780-47a6-8b31-3158c6b017c1",
+  "request_id": "mc2a06-liveC-full-A-5485861",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "0cb9d76b-2f43-4b12-ab7d-06231a0696b8",
+  "operation": "deposit",
+  "state": "running",
+  "progress": 0.7,
+  "reason": "client_owned_screen_quick_move",
+  "terminal": false,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "ex2": null,
+ "invA_unchanged": true
+}

@@ -1,0 +1,17 @@
+{
+ "fresh_exec": "3fb9bc25-113d-4a72-8f19-fd9f57f3bc9f",
+ "final": {
+  "execution_id": "3fb9bc25-113d-4a72-8f19-fd9f57f3bc9f",
+  "request_id": "mc2a06-liveG2-fresh-7918467",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "15e24877-a20d-45d3-9077-f0c7517e0ecd",
+  "operation": "deposit",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "server_authoritative_owned_screen_container_transfer_verified:1",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ }
+}
