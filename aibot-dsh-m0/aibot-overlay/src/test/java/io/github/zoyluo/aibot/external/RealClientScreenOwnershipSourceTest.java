@@ -75,7 +75,7 @@ final class RealClientScreenOwnershipSourceTest {
         assertTrue(controller.contains("\"message_origin\""));
         assertTrue(controller.contains("\"message_trust\""));
         assertTrue(controller.contains("\"storage_items\""));
-        assertTrue(cognitive.contains("\"untrusted_data\""));
+        assertTrue(controller.contains("\"untrusted_data\""));
         assertTrue(cognitive.contains("\"structured_data\""));
     }
 

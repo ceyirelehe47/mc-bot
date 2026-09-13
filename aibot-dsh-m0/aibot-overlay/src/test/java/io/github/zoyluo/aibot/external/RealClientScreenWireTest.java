@@ -140,7 +140,7 @@ final class RealClientScreenWireTest {
             slot.addProperty("inventory_index",0);
             slot.addProperty("inventory_kind","player");
             slot.addProperty("item",item);
-            slot.addProperty("count",count);
+            slot.addProperty("count",Math.min(count,999));
             slot.addProperty("can_take",true);
             slots.add(slot);
             s.add("slots",slots);

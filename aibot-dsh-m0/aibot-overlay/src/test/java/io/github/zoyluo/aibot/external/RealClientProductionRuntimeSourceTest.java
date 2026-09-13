@@ -76,8 +76,8 @@ final class RealClientProductionRuntimeSourceTest {
         assertTrue(controller.contains("\"message_origin\""));
         assertTrue(server.contains(
                 "real_client_screen_text_provenance_invalid"));
+        assertTrue(cognitive.contains("\"origin\""));
         assertTrue(cognitive.contains("\"trust\""));
-        assertTrue(cognitive.contains("\"untrusted_data\""));
     }
 
     @Test void tomsStorageCompatIsExactAndBounded()
