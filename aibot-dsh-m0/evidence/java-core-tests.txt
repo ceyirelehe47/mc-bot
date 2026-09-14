@@ -30,6 +30,7 @@ PASS idempotent duplicate returns original receipt
 PASS idempotency_conflict
 PASS execution_in_progress
 PASS one physical dispatch
+PASS backend receives exact bridge execution id
 PASS running state
 PASS controls are queued not run in HTTP thread
 PASS pause preserves execution
@@ -57,6 +58,33 @@ PASS resume after early pause dispatches once
 PASS same owner reacquire does not revive old-lease accepted command
 PASS shutdown records unknown before unloading external work
 PASS shutdown pauses and cancels external work before upstream snapshot
+PASS stable logical body id exposed
+PASS backend kind exposed
+PASS physical instance exposed
+PASS physical session exposed
+PASS view is bound to the admitting physical session
+PASS execution captures admitting body session
+PASS body session change interrupts execution as unknown
+PASS body session change revokes controller
+PASS body session change requires reconciliation
+PASS session change preserves logical body id
+PASS new body session is published
+PASS body session change never replays mutation
+PASS old-session inspect query is cancelled
+PASS old-session local query is cancelled
+PASS cancelled old-session queries never execute on the replacement body
+PASS view is rebuilt for the replacement physical session
+PASS status exposes the selected backend capability set
+PASS status updates when the physical backend capability set changes
+PASS operation_not_supported_by_backend
+PASS physical body loss interrupts execution as unknown
+PASS physical body loss uses session-boundary reason
+PASS physical body loss revokes lease
+PASS physical body loss requires observe
+PASS physical body loss cancels queued read queries
+PASS physical body loss never replays mutation
+PASS reconnected physical body publishes a new session
+PASS reconnect still never replays mutation
 PASS body identity change interrupts execution as unknown
 PASS body identity change revokes controller
 PASS queued old-token control rejected after same owner reacquires
@@ -75,4 +103,4 @@ PASS incomplete crash tail truncated to last verified frame
 PASS corrupt complete frame fails closed
 PASS second writer rejected
 PASS body_not_ready
-TOTAL 77 checks passed
+TOTAL 105 checks passed
