@@ -32,6 +32,7 @@ public final class RealClientBodyBackend implements BodyBackend {
     private final RealClientServerTransport transport;
     private final RealClientOpportunityTracker tracker;
     private final BridgeJournal journal;
+    private final RealClientOmnidirectionalPerception perception;
     private final boolean requireOfflineUuid;
 
     private ServerPlayerEntity player;
@@ -49,6 +50,7 @@ public final class RealClientBodyBackend implements BodyBackend {
         this.transport=transport;
         this.tracker=tracker;
         this.journal=journal;
+        this.perception=new RealClientOmnidirectionalPerception();
         this.requireOfflineUuid=requireOfflineUuid;
     }
 
@@ -81,11 +83,13 @@ public final class RealClientBodyBackend implements BodyBackend {
         // TCP epoch: a same-process game reconnect must still fence the old session.
         if(!preparedSession.equals(sensor.gameSession())) {
             preparedSession=sensor.gameSession();
+            perception.clear();
             binding=new Binding(
                     logicalBodyId,"real_client",player.getUuidAsString(),preparedSession);
             driver=new RealClientExecutionDriver(
                     server,transport,tracker,()->this.player);
         }
+        perception.tick(player,sensor.gameSession());
         return true;
     }
 
@@ -123,6 +127,7 @@ public final class RealClientBodyBackend implements BodyBackend {
         var session=transport.session().orElse(null);
         out.put("client_window_mode",session==null?"unknown":session.windowMode());
         out.put("screen",screenWire(session==null?null:session.screen()));
+        out.put("perception",perception.snapshot(current).summaryWire());
         out.put("supported_operations",supportedOperations().stream().sorted().toList());
         out.put("safety_active",false);
         out.put("user_paused",false);
@@ -133,10 +138,12 @@ public final class RealClientBodyBackend implements BodyBackend {
 
     @Override public CognitiveSnapshot.Snapshot cognitiveSnapshot(BridgeJournal ignored) {
         onThread();
+        ServerPlayerEntity current=requirePlayer();
         var screen=transport.session()
                 .map(RealClientServerTransport.SessionSnapshot::screen).orElse(null);
         return RealClientCognitiveViewBuilder.build(
-                logicalBodyId,requirePlayer(),tracker,journal,screen);
+                logicalBodyId,current,tracker,journal,screen,
+                perception.snapshot(current));
     }
 
     @Override public String inspectLocalJson(int radius,String detail) {
@@ -153,9 +160,14 @@ public final class RealClientBodyBackend implements BodyBackend {
                 "object_id",o.id(),"block",o.blockId(),
                 "x",o.pos().getX(),"y",o.pos().getY(),"z",o.pos().getZ(),
                 "sensor","client_crosshair_server_validated")).toList());
-        out.put("blocks",ListSupport.emptyIfUnsupported(detail,"blocks"));
-        out.put("entities",ListSupport.emptyIfUnsupported(detail,"entities"));
-        out.put("note","real_client_mvp_exports_self_and_server_validated_crosshair_only");
+        Map<String,Object> local=perception.snapshot(current)
+                .localWire(radius,detail==null?"summary":detail);
+        out.put("perception",local.get("perception"));
+        out.put("blocks",local.get("blocks"));
+        out.put("entities",local.get("entities"));
+        out.put("note",
+                "omnidirectional_semantic_awareness_is_read_only;"
+                        +"precise_mutation_requires_directional_crosshair");
         return JsonOutput.encode(out);
     }
 
@@ -229,6 +241,7 @@ public final class RealClientBodyBackend implements BodyBackend {
         driver=null;
         preparedSession="";
         player=null;
+        perception.clear();
         if(previous!=null) {
             try { previous.cancel(reason); } catch(RuntimeException ignored) {}
         }

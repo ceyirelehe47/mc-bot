@@ -27,14 +27,15 @@ public final class RealClientCognitiveViewBuilder {
 
     public static CognitiveSnapshot.Snapshot build(
             String bodyId,ServerPlayerEntity player,RealClientOpportunityTracker tracker,
-            BridgeJournal journal,RealClientServerTransport.ScreenSnapshot screen) {
+            BridgeJournal journal,RealClientServerTransport.ScreenSnapshot screen,
+            RealClientOmnidirectionalPerception.Snapshot perception) {
         String worldId=io.github.zoyluo.aibot.external.SemanticWorldRegistry.worldId();
         String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
         long gameTime=player.getServerWorld().getTime();
         Map<String,Object> scene=CanonicalJson.object();
         scene.put("world",Map.of("world_id",worldId,"dimension",dimension));
         scene.put("self",self(bodyId,player));
-        scene.put("environment",environment(player));
+        scene.put("environment",environment(player,perception));
         scene.put("ui",screen(screen));
 
         List<Map<String,Object>> cards=new ArrayList<>();
@@ -82,10 +83,8 @@ public final class RealClientCognitiveViewBuilder {
         execution.put("paused_depth",0L);
         scene.put("execution",execution);
         scene.put("recent_significant_events",recentEvents(journal));
-        scene.put("uncertainty",List.of(Map.of(
-                "scope_ref","mc://"+worldId+"/"+dimension,
-                "field","nearby_entities",
-                "reason","real_client_mvp_does_not_export_visual_entity_list")));
+        scene.put("uncertainty",uncertainty(
+                worldId,dimension,perception));
         String sceneJson=CanonicalJson.write(scene);
         if(sceneJson.getBytes(StandardCharsets.UTF_8).length>CognitiveSnapshot.VIEW_MAX_BYTES)
             throw new BridgeFault(500,"cognitive_view_exceeds_hard_limit");
@@ -112,20 +111,48 @@ public final class RealClientCognitiveViewBuilder {
         self.put("health",(double)player.getHealth());
         self.put("food",(long)player.getHungerManager().getFoodLevel());
         self.put("inventory",inventory);
+        self.put("facing",Map.of(
+                "body_yaw_degrees",(double)player.getYaw(),
+                "head_yaw_degrees",(double)player.getHeadYaw(),
+                "pitch_degrees",(double)player.getPitch(),
+                "precise_interaction_requires_crosshair",true));
         return self;
     }
 
-    private static Map<String,Object> environment(ServerPlayerEntity player) {
+    private static Map<String,Object> environment(
+            ServerPlayerEntity player,
+            RealClientOmnidirectionalPerception.Snapshot perception) {
         long day=player.getServerWorld().getTimeOfDay()%24000L;
         Map<String,Object> environment=CanonicalJson.object();
         environment.put("day_phase",day<1000?"MORNING":day<11000?"DAY":day<13000?"DUSK":day<23000?"NIGHT":"DAWN");
         environment.put("weather",player.getServerWorld().isThundering()
                 ?"THUNDER":player.getServerWorld().isRaining()?"RAIN":"CLEAR");
         environment.put("local_light",(long)player.getServerWorld().getLightLevel(player.getBlockPos()));
-        environment.put("nearby",Map.of(
-                "availability","UNAVAILABLE_REAL_CLIENT_MVP",
-                "sensor","client_crosshair_only"));
+        environment.put("nearby",perception.summaryWire());
+        environment.put("spatial_awareness",perception.sceneWire());
         return environment;
+    }
+
+    private static List<Map<String,Object>> uncertainty(
+            String worldId,String dimension,
+            RealClientOmnidirectionalPerception.Snapshot perception) {
+        List<Map<String,Object>> uncertainty=new ArrayList<>();
+        String scope="mc://"+worldId+"/"+dimension;
+        if(perception.entityTruncated())uncertainty.add(Map.of(
+                "scope_ref",scope,
+                "field","spatial_awareness.entities",
+                "reason","bounded_entity_perception_truncated"));
+        if(perception.blockTruncated())uncertainty.add(Map.of(
+                "scope_ref",scope,
+                "field","spatial_awareness.visible_blocks",
+                "reason","bounded_block_perception_truncated"));
+        if(perception.config().mode()
+                ==RealClientOmnidirectionalPerception.Mode.STRICT_PLAYER_FOV)
+            uncertainty.add(Map.of(
+                    "scope_ref",scope,
+                    "field","spatial_awareness.coverage_degrees",
+                    "reason","strict_player_fov_mode"));
+        return uncertainty;
     }
 
     private static Map<String,Object> screen(
