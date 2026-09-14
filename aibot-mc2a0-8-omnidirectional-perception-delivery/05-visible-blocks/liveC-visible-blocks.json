@@ -1,0 +1,33 @@
+{
+ "barrel": {
+  "category": "INTERACTABLE",
+  "knowledge": "CURRENT_VISIBLE",
+  "line_of_sight": true,
+  "actionability": "awareness_only"
+ },
+ "hazard": {
+  "category": "HAZARD",
+  "knowledge": "CURRENT_VISIBLE",
+  "line_of_sight": true,
+  "actionability": "awareness_only"
+ },
+ "ore": {
+  "category": "RESOURCE_SURFACE",
+  "knowledge": "CURRENT_VISIBLE",
+  "line_of_sight": true,
+  "actionability": "awareness_only",
+  "position": {
+   "x": 699,
+   "y": 70,
+   "z": -25
+  }
+ },
+ "hidden_diamond_present": false,
+ "pose_after": {
+  "x": 705.5,
+  "y": 70.0,
+  "z": -24.5,
+  "yaw": -90.0,
+  "pitch": 0.0
+ }
+}

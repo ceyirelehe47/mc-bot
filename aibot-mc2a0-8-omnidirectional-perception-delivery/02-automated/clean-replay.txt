@@ -1,0 +1,3 @@
+mc-bot: worktree@090cd8b5+cherry-pick A+B -> overlay tree byte-identical
+aibot: fresh worktree a029fa6+installer(with MC2A08 registration) -> src diff -rq 0 differ
+replay JUnit 462/0; replay GameTest 649/0

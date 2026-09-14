@@ -1,0 +1,12 @@
+{
+ "opportunities_before": 0,
+ "awareness_present_before": true,
+ "yaw_after_face": 63.436752,
+ "opportunities_after": 1,
+ "opportunity_id": "mc://0878b2d0-7017-4e86-9400-dc46e1731eaf/minecraft%3Aoverworld/opportunity/rcore_bb323cbe1345_568e187a9eb04042",
+ "graph_state": "DONE",
+ "graph_id": "graph-b7b103a4bbf849e72c6d4937",
+ "block_gone": true,
+ "pickup": true,
+ "inv_snippet": "\u0000\u0000\u0000\u0000Bob has the following entity data: [{count: 1, Slot: 0b, components: {\"minecraft:damage\": 1}, id: \"minecraft:iron_pickaxe\"}, {count: 1, Slot: 1b, id: \"minecraft:cobblestone\"}, {count: 1, Slot: 2b,"
+}

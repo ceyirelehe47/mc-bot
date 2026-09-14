@@ -1,0 +1,75 @@
+{
+ "say": {
+  "state": "completed",
+  "reason": "sent_to_aibot_panel_and_global_chat"
+ },
+ "goto_pause_resume": {
+  "state": "completed",
+  "note": "same execution pause->resume"
+ },
+ "moving_final_facing": {
+  "state": "completed",
+  "reason": "server_authoritative_arrival_and_facing_verified"
+ },
+ "graph_mine": {
+  "state": "DONE",
+  "note": "liveD: opp 0->1, block gone, pickup"
+ },
+ "vanilla_barrel_deposit": {
+  "state": "completed",
+  "reason": "vanilla_barrel_transfer_verified:1",
+  "barrel_total": 1
+ },
+ "toms_deposit": {
+  "state": "completed",
+  "reason": "toms_storage_terminal_transfer_verified",
+  "note": "冷重启后(连续第二次会卡屏,见 RESULT)",
+  "net_chest_total": 2
+ },
+ "selected_tool_retained": {
+  "before": [
+   1,
+   "minecraft:diamond_pickaxe",
+   1
+  ],
+  "after": [
+   1,
+   "minecraft:diamond_pickaxe",
+   1
+  ]
+ },
+ "gather_typed_rejection": {
+  "submit_http": 409,
+  "error": "operation_not_supported_by_backend:gather"
+ },
+ "background_input_isolation": {
+  "drift": 0.0,
+  "before": [
+   676.5,
+   70.0,
+   -6.5
+  ],
+  "after": [
+   676.5,
+   70.0,
+   -6.5
+  ],
+  "inject": "physical A key 3s foreground"
+ },
+ "single_authority": {
+  "probe_rc": 0,
+  "expect": "rejected"
+ },
+ "screen_crash_no_replay": {
+  "server_alive": true,
+  "post_restart_state": "completed",
+  "replay_events": 0
+ },
+ "fakeplayer": {
+  "say": "completed",
+  "goto": "completed",
+  "set_base": "completed",
+  "deposit": "completed",
+  "note": "fake backend restart 3/3"
+ }
+}

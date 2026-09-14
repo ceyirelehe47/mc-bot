@@ -1,0 +1,3 @@
+round1: 649/0 (BUILD SUCCESSFUL; 643 legacy + 6 mc2a08; env AIBOT_EXTERNAL_BOT=Mc1caBot + 48-char placeholder AIBOT_BRIDGE_TOKEN)
+round2: 649/0
+replay: 649/0

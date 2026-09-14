@@ -1,0 +1,6 @@
+BridgeCore: TOTAL 105 checks passed
+Node: # tests 43 pass 43 fail 0
+Installer: 11 OK
+Supervisor: 11 OK
+evidence hygiene: 10 OK
+acceptance repair python: 17 OK

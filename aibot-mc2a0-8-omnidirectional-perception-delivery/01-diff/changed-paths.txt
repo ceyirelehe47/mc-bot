@@ -1,0 +1,10 @@
+aibot-dsh-m0/SHA256SUMS
+aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A08OmnidirectionalPerceptionGameTests.java
+aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientBodyBackend.java
+aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientCognitiveViewBuilder.java
+aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientOmnidirectionalPerception.java
+aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientOmnidirectionalPerceptionSourceTest.java
+aibot-dsh-m0/evidence/installer-tests.txt
+aibot-dsh-m0/evidence/node-tests.txt
+aibot-dsh-m0/scripts/apply_to_aibot.py
+aibot-dsh-m0/scripts/check_mc2a08_evidence.py

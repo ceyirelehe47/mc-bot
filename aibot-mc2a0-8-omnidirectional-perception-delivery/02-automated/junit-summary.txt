@@ -1,0 +1,3 @@
+round1: tests=462 failures=0 errors=0 skipped=0
+round2: 462/0
+replay: 462/0 (fresh worktree a029fa6+installer)

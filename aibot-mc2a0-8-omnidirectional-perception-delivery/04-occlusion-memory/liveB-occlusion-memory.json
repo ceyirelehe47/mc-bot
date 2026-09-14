@@ -1,0 +1,21 @@
+{
+ "visible_pos": {
+  "x": 710,
+  "y": 70,
+  "z": -25
+ },
+ "last_known": {
+  "knowledge": "LAST_KNOWN",
+  "line_of_sight": false,
+  "position": {
+   "x": 710,
+   "y": 70,
+   "z": -25
+  },
+  "source": "memory",
+  "freshness": "RECENT"
+ },
+ "expired_after_s": 7.1,
+ "memory_ticks_config": null,
+ "hidden_ore_present": false
+}

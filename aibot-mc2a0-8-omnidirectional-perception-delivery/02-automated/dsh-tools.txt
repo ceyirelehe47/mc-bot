@@ -1,0 +1,4 @@
+register mc_*: 12
+operations array: 14
+execution controls: 3
+TOTAL=29 (exactly, zero add/remove)

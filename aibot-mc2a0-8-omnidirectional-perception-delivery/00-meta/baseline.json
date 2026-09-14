@@ -1,0 +1,16 @@
+{
+ "task_package": "MC-2A0.8_Omnidirectional_Semantic_Perception_Task_Package.zip",
+ "package_verify": "checked=23 failures=0; supplied logic 6/0",
+ "frozen_source_branch": "experiment/mc2a0-7ar2-final-closure",
+ "frozen_head": "090cd8b5de2bdaeddd1096f64e5238b92faacec5",
+ "attestation": "D:/mc2a07ar2-final-attestation.json (v2 pass, outside git)",
+ "implementation_branch": "experiment/mc2a0-8-omnidirectional-perception",
+ "commits": {
+  "A": "e478aa9",
+  "B": "6f51b50",
+  "C": "b7b06ed"
+ },
+ "applier": "check->apply; attestation gate + 2 exact blobs + 3 new files; 13/13 anchors (subagent verified)",
+ "reviewed_patch_sha256": "339d40eeb42d3f594ae3275ca9f1a2def7fbeefe22d8975350e525faecd38327",
+ "remapjar_sha256_16": "5a7766fd9b804ac4"
+}

@@ -1,0 +1,360 @@
+{
+ "summary_keys": [
+  "block_radius",
+  "coverage_degrees",
+  "entity_radius",
+  "mode",
+  "remembered_block_count",
+  "remembered_entity_count",
+  "scan_server_tick",
+  "visible_block_count",
+  "visible_entity_count"
+ ],
+ "summary_has_entities": false,
+ "entities_n": 3,
+ "blocks_empty_in_entities_mode": 0,
+ "blocks_n": 1,
+ "entities_empty_in_blocks_mode": 0,
+ "all_entities_n": 3,
+ "all_blocks_n": 1,
+ "radius3_max_distance": 0,
+ "captures": {
+  "summary": {
+   "schema": "mc.local_view.v0",
+   "detail": "summary",
+   "radius": 16,
+   "body_position": {
+    "z": -25,
+    "x": 705,
+    "y": 70
+   },
+   "opportunities": [],
+   "perception": {
+    "mode": "omni_semantic",
+    "coverage_degrees": 360,
+    "entity_radius": 16,
+    "block_radius": 8,
+    "scan_server_tick": 1844,
+    "visible_entity_count": 1,
+    "remembered_entity_count": 2,
+    "visible_block_count": 1,
+    "remembered_block_count": 0
+   },
+   "blocks": [],
+   "entities": [],
+   "note": "omnidirectional_semantic_awareness_is_read_only;precise_mutation_requires_directional_crosshair"
+  },
+  "entities": {
+   "schema": "mc.local_view.v0",
+   "detail": "entities",
+   "radius": 16,
+   "body_position": {
+    "z": -25,
+    "x": 705,
+    "y": 70
+   },
+   "opportunities": [],
+   "perception": {
+    "mode": "omni_semantic",
+    "coverage_degrees": 360,
+    "entity_radius": 16,
+    "block_radius": 8,
+    "scan_server_tick": 1845,
+    "visible_entity_count": 1,
+    "remembered_entity_count": 2,
+    "visible_block_count": 1,
+    "remembered_block_count": 0
+   },
+   "blocks": [],
+   "entities": [
+    {
+     "object_id": "98f9e4c1-b706-4afd-9067-a6851fd59c13",
+     "entity_type": "minecraft:zombified_piglin",
+     "category": "HOSTILE",
+     "name": {
+      "origin": "entity_name",
+      "text": "Zombified Piglin",
+      "trust": "untrusted_data"
+     },
+     "knowledge": "CURRENT_VISIBLE",
+     "freshness": "LIVE",
+     "source": "vision_360",
+     "line_of_sight": true,
+     "last_seen_ticks_ago": 4,
+     "position": {
+      "z": -30,
+      "x": 701,
+      "y": 70
+     },
+     "relative": {
+      "bearing_degrees": -129,
+      "sector": "BACK_LEFT",
+      "distance_blocks": 6.5,
+      "vertical": "LEVEL"
+     }
+    },
+    {
+     "object_id": "8a09016f-ceaf-4e4d-9a0e-cd14edb0866c",
+     "entity_type": "minecraft:zombified_piglin",
+     "category": "HOSTILE",
+     "name": {
+      "origin": "entity_name",
+      "text": "Zombified Piglin",
+      "trust": "untrusted_data"
+     },
+     "knowledge": "LAST_KNOWN",
+     "freshness": "RECENT",
+     "source": "memory",
+     "line_of_sight": false,
+     "last_seen_ticks_ago": 54,
+     "position": {
+      "z": -30,
+      "x": 701,
+      "y": 70
+     },
+     "relative": {
+      "bearing_degrees": -129,
+      "sector": "BACK_LEFT",
+      "distance_blocks": 6.5,
+      "vertical": "LEVEL"
+     }
+    },
+    {
+     "object_id": "282a0e0a-c7b6-4699-a5e7-36c780e9d694",
+     "entity_type": "minecraft:item",
+     "category": "ITEM",
+     "name": {
+      "origin": "entity_name",
+      "text": "Cactus",
+      "trust": "untrusted_data"
+     },
+     "knowledge": "LAST_KNOWN",
+     "freshness": "RECENT",
+     "source": "memory",
+     "line_of_sight": false,
+     "last_seen_ticks_ago": 54,
+     "position": {
+      "z": -21,
+      "x": 701,
+      "y": 70
+     },
+     "relative": {
+      "bearing_degrees": 133,
+      "sector": "BACK_RIGHT",
+      "distance_blocks": 5.3,
+      "vertical": "LEVEL"
+     },
+     "item": {
+      "id": "minecraft:cactus",
+      "count": 1
+     }
+    }
+   ],
+   "note": "omnidirectional_semantic_awareness_is_read_only;precise_mutation_requires_directional_crosshair"
+  },
+  "blocks": {
+   "schema": "mc.local_view.v0",
+   "detail": "blocks",
+   "radius": 16,
+   "body_position": {
+    "z": -25,
+    "x": 705,
+    "y": 70
+   },
+   "opportunities": [],
+   "perception": {
+    "mode": "omni_semantic",
+    "coverage_degrees": 360,
+    "entity_radius": 16,
+    "block_radius": 8,
+    "scan_server_tick": 1846,
+    "visible_entity_count": 1,
+    "remembered_entity_count": 2,
+    "visible_block_count": 1,
+    "remembered_block_count": 0
+   },
+   "blocks": [
+    {
+     "object_id": "701,70,-21",
+     "block": "minecraft:magma_block",
+     "category": "HAZARD",
+     "knowledge": "CURRENT_VISIBLE",
+     "freshness": "LIVE",
+     "source": "vision_360",
+     "line_of_sight": true,
+     "last_seen_ticks_ago": 5,
+     "actionability": "awareness_only",
+     "position": {
+      "z": -21,
+      "x": 701,
+      "y": 70
+     },
+     "relative": {
+      "bearing_degrees": 135,
+      "sector": "BACK_RIGHT",
+      "distance_blocks": 5.7,
+      "vertical": "LEVEL"
+     }
+    }
+   ],
+   "entities": [],
+   "note": "omnidirectional_semantic_awareness_is_read_only;precise_mutation_requires_directional_crosshair"
+  },
+  "all": {
+   "schema": "mc.local_view.v0",
+   "detail": "all",
+   "radius": 16,
+   "body_position": {
+    "z": -25,
+    "x": 705,
+    "y": 70
+   },
+   "opportunities": [],
+   "perception": {
+    "mode": "omni_semantic",
+    "coverage_degrees": 360,
+    "entity_radius": 16,
+    "block_radius": 8,
+    "scan_server_tick": 1847,
+    "visible_entity_count": 1,
+    "remembered_entity_count": 2,
+    "visible_block_count": 1,
+    "remembered_block_count": 0
+   },
+   "blocks": [
+    {
+     "object_id": "701,70,-21",
+     "block": "minecraft:magma_block",
+     "category": "HAZARD",
+     "knowledge": "CURRENT_VISIBLE",
+     "freshness": "LIVE",
+     "source": "vision_360",
+     "line_of_sight": true,
+     "last_seen_ticks_ago": 6,
+     "actionability": "awareness_only",
+     "position": {
+      "z": -21,
+      "x": 701,
+      "y": 70
+     },
+     "relative": {
+      "bearing_degrees": 135,
+      "sector": "BACK_RIGHT",
+      "distance_blocks": 5.7,
+      "vertical": "LEVEL"
+     }
+    }
+   ],
+   "entities": [
+    {
+     "object_id": "98f9e4c1-b706-4afd-9067-a6851fd59c13",
+     "entity_type": "minecraft:zombified_piglin",
+     "category": "HOSTILE",
+     "name": {
+      "origin": "entity_name",
+      "text": "Zombified Piglin",
+      "trust": "untrusted_data"
+     },
+     "knowledge": "CURRENT_VISIBLE",
+     "freshness": "LIVE",
+     "source": "vision_360",
+     "line_of_sight": true,
+     "last_seen_ticks_ago": 6,
+     "position": {
+      "z": -30,
+      "x": 701,
+      "y": 70
+     },
+     "relative": {
+      "bearing_degrees": -129,
+      "sector": "BACK_LEFT",
+      "distance_blocks": 6.5,
+      "vertical": "LEVEL"
+     }
+    },
+    {
+     "object_id": "8a09016f-ceaf-4e4d-9a0e-cd14edb0866c",
+     "entity_type": "minecraft:zombified_piglin",
+     "category": "HOSTILE",
+     "name": {
+      "origin": "entity_name",
+      "text": "Zombified Piglin",
+      "trust": "untrusted_data"
+     },
+     "knowledge": "LAST_KNOWN",
+     "freshness": "RECENT",
+     "source": "memory",
+     "line_of_sight": false,
+     "last_seen_ticks_ago": 56,
+     "position": {
+      "z": -30,
+      "x": 701,
+      "y": 70
+     },
+     "relative": {
+      "bearing_degrees": -129,
+      "sector": "BACK_LEFT",
+      "distance_blocks": 6.5,
+      "vertical": "LEVEL"
+     }
+    },
+    {
+     "object_id": "282a0e0a-c7b6-4699-a5e7-36c780e9d694",
+     "entity_type": "minecraft:item",
+     "category": "ITEM",
+     "name": {
+      "origin": "entity_name",
+      "text": "Cactus",
+      "trust": "untrusted_data"
+     },
+     "knowledge": "LAST_KNOWN",
+     "freshness": "RECENT",
+     "source": "memory",
+     "line_of_sight": false,
+     "last_seen_ticks_ago": 56,
+     "position": {
+      "z": -21,
+      "x": 701,
+      "y": 70
+     },
+     "relative": {
+      "bearing_degrees": 133,
+      "sector": "BACK_RIGHT",
+      "distance_blocks": 5.3,
+      "vertical": "LEVEL"
+     },
+     "item": {
+      "id": "minecraft:cactus",
+      "count": 1
+     }
+    }
+   ],
+   "note": "omnidirectional_semantic_awareness_is_read_only;precise_mutation_requires_directional_crosshair"
+  },
+  "radius3": {
+   "schema": "mc.local_view.v0",
+   "detail": "entities",
+   "radius": 3,
+   "body_position": {
+    "z": -25,
+    "x": 705,
+    "y": 70
+   },
+   "opportunities": [],
+   "perception": {
+    "mode": "omni_semantic",
+    "coverage_degrees": 360,
+    "entity_radius": 16,
+    "block_radius": 8,
+    "scan_server_tick": 1848,
+    "visible_entity_count": 1,
+    "remembered_entity_count": 2,
+    "visible_block_count": 1,
+    "remembered_block_count": 0
+   },
+   "blocks": [],
+   "entities": [],
+   "note": "omnidirectional_semantic_awareness_is_read_only;precise_mutation_requires_directional_crosshair"
+  }
+ }
+}
