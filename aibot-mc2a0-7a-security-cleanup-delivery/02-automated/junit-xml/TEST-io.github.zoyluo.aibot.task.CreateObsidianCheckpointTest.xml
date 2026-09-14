@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-14T03:06:27.852Z" hostname="FORST" time="0.021">
+  <properties/>
+  <testcase name="pickupProtectionWindowSurvivesRestartBeforeWaterRecovery()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.009"/>
+  <testcase name="missionMetadataRetainsOriginalTargetAndOpenTransaction()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.001"/>
+  <testcase name="legacyCheckpointCannotInventCompletedService()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.001"/>
+  <testcase name="timeoutCheckpointSelfDecodesAndRestoreRetainsTheSameTerminalFailure()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.003"/>
+  <testcase name="lavaFormationAndPendingPickupLedgersRoundTrip()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.001"/>
+  <testcase name="serviceBoundariesAreEightSixteenTwentyFourButNeverTheFinalThirtyTwo()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.0"/>
+  <testcase name="serviceBoundaryAcknowledgementIsDurableAndIdempotent()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.001"/>
+  <testcase name="liveSourceAndActiveBreakRoundTripAndResumeWithRecoveryFirst()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.001"/>
+  <testcase name="previousSchemaMigratesScanResumeToItsFactualCursorFace()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.001"/>
+  <testcase name="serviceBoundaryRejectsEveryOpenTransactionDebt()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.0"/>
+  <testcase name="damagedTransactionShapesFailClosed()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.001"/>
+  <testcase name="crossedBoundaryMayPersistPickupDebtButCannotPublishServiceYet()" classname="io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

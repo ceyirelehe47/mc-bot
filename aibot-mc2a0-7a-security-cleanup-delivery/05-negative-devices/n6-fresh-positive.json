@@ -1,0 +1,12 @@
+{
+  "mechanism": "fresh positive deposit on a standalone vanilla barrel after the disconnected-terminal gate. Device disclosure: rebuilt Tom's terminal BEs cannot re-form a receiving network in this world state regardless of topology/facing/restart timing; the Tom's positive transfer evidence of this round is B6's fresh deposit (server_authoritative_owned_screen_toms_storage_terminal_transfer_verified:8 on the original 0.7 terminal BE).",
+  "goto_state": "TIMEOUT",
+  "execution_id": "d4dbbf99-1421-4748-bd19-b085f2ab0e7b",
+  "deposit_state": "failed",
+  "deposit_reason": "real_client_container_sensor_ray_mismatch",
+  "bob_total": [
+    9,
+    9
+  ],
+  "barrel_total_after": 0
+}

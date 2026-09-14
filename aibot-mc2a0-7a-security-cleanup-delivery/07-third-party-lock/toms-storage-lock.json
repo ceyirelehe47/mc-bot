@@ -1,0 +1,24 @@
+{
+  "mod": "Tom's Storage (Fabric)",
+  "file": "toms_storage_fabric-1.21.3-2.1.2.jar",
+  "modrinth_project_id": "XZNI4Cpy",
+  "modrinth_version_id": "h9IMZ6BE",
+  "version_number": "1.21.3-2.1.2-fabric",
+  "loader": "fabric",
+  "game_versions": [
+    "1.21.2",
+    "1.21.3"
+  ],
+  "download_url": "https://cdn.modrinth.com/data/XZNI4Cpy/versions/h9IMZ6BE/toms_storage_fabric-1.21.3-2.1.2.jar",
+  "size_bytes": 1837305,
+  "sha512": "c32942bc8ad058318d94db70e41735b6e40a8da35faf4f8d23f38fd4c2b1c8c359a4db9506aaaff762caa6f29153a80b80379b15238719d3283e0e1bb85428af",
+  "sha256": "25cbec98102fe166a4ecd7e60ec8e31fcc7fe648309df16e1189590d77c82c03",
+  "sha1": "d756c4fcda044e6dcb8186fd3ca72eb8c41c8aef",
+  "source": "local server/client mods copy, verified against Modrinth API hashes",
+  "jar_entries": 525,
+  "artifact_texts": [
+    "jar-tf.txt",
+    "javap-terminal.txt"
+  ],
+  "note": "JAR itself stays local under .local-third-party/ (git-ignored); only this lock plus jar-tf/javap texts may enter the clean delivery."
+}

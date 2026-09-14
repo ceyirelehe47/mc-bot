@@ -1,0 +1,25 @@
+{
+  "data": {
+    "protocol_version": 1,
+    "runtime_epoch": "bbe7450c-863e-4767-9465-6d54f35c8f3f",
+    "event_epoch": "59041cef-f422-486c-b9f8-bcafed3c6f37",
+    "event_sequence": 980,
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "b1e243e7-34b9-4baa-905b-d81ba7e72522",
+    "body_ready": false,
+    "needs_reconcile": false,
+    "control_active": false,
+    "fault": "",
+    "stopped": false,
+    "active_execution": null,
+    "operations": [
+      "deposit",
+      "goto",
+      "mine_opportunity",
+      "say"
+    ]
+  },
+  "ok": true
+}

@@ -1,0 +1,151 @@
+{
+  "execution_id": "1ee61283-aa6d-4e28-ad6c-362dec9b8e6f",
+  "typed_reason": "real_client_command_invalid:NullPointerException",
+  "screen_open_snapshots": 1,
+  "screen_last": {
+    "adapter_id": "toms_storage_terminal_v1",
+    "capabilities": [
+      "deposit_quick_move",
+      "network_storage_read",
+      "widget_introspection"
+    ],
+    "game_session": "b6bc84a2-405e-40c3-8741-7955755e6aa5",
+    "handler_class": "com.tom.storagemod.menu.StorageTerminalMenu",
+    "present": true,
+    "screen_class": "com.tom.storagemod.screen.StorageTerminalScreen",
+    "screen_epoch": "c35f08d1-0ed4-48fa-8352-5a494e1359fb",
+    "screen_seq": 5,
+    "slot_count": 37,
+    "slots": [
+      {
+        "count": 1,
+        "inventory_index": 0,
+        "inventory_kind": "player",
+        "item": "minecraft:stone_axe",
+        "slot_id": 27
+      },
+      {
+        "count": 8,
+        "inventory_index": 1,
+        "inventory_kind": "player",
+        "item": "minecraft:cobblestone",
+        "slot_id": 28
+      }
+    ],
+    "storage_items": [
+      {
+        "count": 144,
+        "item": "minecraft:cobblestone",
+        "origin": "mod_state",
+        "trust": "structured_data"
+      },
+      {
+        "count": 32,
+        "item": "minecraft:iron_ingot",
+        "origin": "mod_state",
+        "trust": "structured_data"
+      },
+      {
+        "count": 16,
+        "item": "minecraft:gold_ingot",
+        "origin": "mod_state",
+        "trust": "structured_data"
+      }
+    ],
+    "sync_id": 1,
+    "title": {
+      "origin": "mod_ui",
+      "text": "S. Terminal",
+      "trust": "untrusted_data"
+    },
+    "truncated": false,
+    "widgets": [
+      {
+        "active": true,
+        "message": {
+          "origin": "mod_ui",
+          "text": "Terminal Search Field",
+          "trust": "untrusted_data"
+        },
+        "visible": true,
+        "widget_class": "net.minecraft.class_342",
+        "widget_index": 0
+      },
+      {
+        "active": true,
+        "message": {
+          "origin": "mod_ui",
+          "text": "",
+          "trust": "untrusted_data"
+        },
+        "visible": true,
+        "widget_class": "com.tom.storagemod.screen.widget.EnumCycleButton",
+        "widget_index": 1
+      },
+      {
+        "active": true,
+        "message": {
+          "origin": "mod_ui",
+          "text": "",
+          "trust": "untrusted_data"
+        },
+        "visible": true,
+        "widget_class": "com.tom.storagemod.screen.widget.ToggleButton",
+        "widget_index": 2
+      },
+      {
+        "active": true,
+        "message": {
+          "origin": "mod_ui",
+          "text": "",
+          "trust": "untrusted_data"
+        },
+        "visible": true,
+        "widget_class": "com.tom.storagemod.screen.widget.TerminalSearchModeButton",
+        "widget_index": 3
+      },
+      {
+        "active": true,
+        "message": {
+          "origin": "mod_ui",
+          "text": "",
+          "trust": "untrusted_data"
+        },
+        "visible": true,
+        "widget_class": "com.tom.storagemod.screen.widget.EnumCycleButton",
+        "widget_index": 4
+      },
+      {
+        "active": true,
+        "message": {
+          "origin": "mod_ui",
+          "text": "",
+          "trust": "untrusted_data"
+        },
+        "visible": true,
+        "widget_class": "com.tom.storagemod.screen.widget.ToggleButton",
+        "widget_index": 5
+      },
+      {
+        "active": true,
+        "message": {
+          "origin": "mod_ui",
+          "text": "",
+          "trust": "untrusted_data"
+        },
+        "visible": true,
+        "widget_class": "com.tom.storagemod.screen.widget.ToggleButton",
+        "widget_index": 6
+      }
+    ]
+  },
+  "post_ui_present": false,
+  "player_delta": 0,
+  "target_delta": 0,
+  "player_before_total": 9,
+  "player_after_total": 9,
+  "target_before_total": 0,
+  "target_after_total": 0,
+  "terminal_receipt_count": 1,
+  "failure_epoch_ms": 1789360392204
+}

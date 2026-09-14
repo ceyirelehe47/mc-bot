@@ -1,0 +1,21 @@
+{
+  "round1": {
+    "junit": "453/0",
+    "gametest": "643/0",
+    "bridge_core": 105,
+    "node": "43/0",
+    "installer": 11,
+    "supervisor": "11/0",
+    "hygiene": "10/0"
+  },
+  "round2": {
+    "junit": "453/0",
+    "gametest": "643/0",
+    "bridge_core": 105,
+    "node": "43/0",
+    "installer": 11,
+    "supervisor": "11/0",
+    "hygiene": "10/0"
+  },
+  "notes": "GameTest requires AIBOT_EXTERNAL_BOT=Mc1caBot + 32+ char AIBOT_BRIDGE_TOKEN and a daemon started with that env (daemon env reuse pitfall documented)"
+}

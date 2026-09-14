@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.task.HuntPickupCheckpointTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-14T03:06:27.940Z" hostname="FORST" time="0.007">
+  <properties/>
+  <testcase name="strictOpenCheckpointDecodesBoundUnits()" classname="io.github.zoyluo.aibot.task.HuntPickupCheckpointTest" time="0.002"/>
+  <testcase name="closedNoRawRequiresAbsenceOfBoundUnits()" classname="io.github.zoyluo.aibot.task.HuntPickupCheckpointTest" time="0.001"/>
+  <testcase name="boundUnitsRequireInventoryOrPickupStatCoverage()" classname="io.github.zoyluo.aibot.task.HuntPickupCheckpointTest" time="0.0"/>
+  <testcase name="worldTimeAgeCannotRollbackOrRefreshBindWindow()" classname="io.github.zoyluo.aibot.task.HuntPickupCheckpointTest" time="0.0"/>
+  <testcase name="codecRejectsMissingUnknownAndNonCanonicalFields()" classname="io.github.zoyluo.aibot.task.HuntPickupCheckpointTest" time="0.0"/>
+  <testcase name="settlementRestoreAcceptsOnlyOpenTransactions()" classname="io.github.zoyluo.aibot.task.HuntPickupCheckpointTest" time="0.002"/>
+  <testcase name="codecRejectsDuplicateOrOverCapacityBoundUnits()" classname="io.github.zoyluo.aibot.task.HuntPickupCheckpointTest" time="0.001"/>
+  <testcase name="checkpointOnlyFailsClosedOnStructuralCorruption()" classname="io.github.zoyluo.aibot.task.HuntPickupCheckpointTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

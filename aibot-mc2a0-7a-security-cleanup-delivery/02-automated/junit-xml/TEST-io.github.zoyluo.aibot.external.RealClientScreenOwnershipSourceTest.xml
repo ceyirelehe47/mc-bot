@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.RealClientScreenOwnershipSourceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-14T03:06:26.111Z" hostname="FORST" time="0.01">
+  <properties/>
+  <testcase name="serverCommitIsBoundToStorageTarget()" classname="io.github.zoyluo.aibot.external.RealClientScreenOwnershipSourceTest" time="0.001"/>
+  <testcase name="readModelMarksModTextUntrusted()" classname="io.github.zoyluo.aibot.external.RealClientScreenOwnershipSourceTest" time="0.001"/>
+  <testcase name="adapterRegistryIsNamespaceSafeAndExact()" classname="io.github.zoyluo.aibot.external.RealClientScreenOwnershipSourceTest" time="0.001"/>
+  <testcase name="noGenericUiMutationApiExists()" classname="io.github.zoyluo.aibot.external.RealClientScreenOwnershipSourceTest" time="0.001"/>
+  <testcase name="clientMutationRequiresServerCommit()" classname="io.github.zoyluo.aibot.external.RealClientScreenOwnershipSourceTest" time="0.0"/>
+  <testcase name="gameStateAndInboundCommandsAreClearedOnDisconnect()" classname="io.github.zoyluo.aibot.external.RealClientScreenOwnershipSourceTest" time="0.001"/>
+  <testcase name="protocolV5IsExplicit()" classname="io.github.zoyluo.aibot.external.RealClientScreenOwnershipSourceTest" time="0.001"/>
+  <testcase name="movingGotoSettlesBeforeFacingTimeout()" classname="io.github.zoyluo.aibot.external.RealClientScreenOwnershipSourceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

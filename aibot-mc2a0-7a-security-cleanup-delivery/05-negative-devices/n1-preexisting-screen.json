@@ -1,0 +1,34 @@
+{
+  "wrong_container": "657 70 -11",
+  "target": "659 70 -11",
+  "screen_class_when_open": "net.minecraft.class_476",
+  "execution_id": "2a132659-9fc4-4313-898b-05642a5a9859",
+  "state": "failed",
+  "typed_reason": "real_client_screen_already_open",
+  "bob_delta": 0,
+  "wrong_wall_probe": [
+    {
+      "pos": "656 69 -12",
+      "empty": true
+    },
+    {
+      "pos": "658 69 -12",
+      "empty": true
+    },
+    {
+      "pos": "657 70 -11",
+      "empty": true
+    },
+    {
+      "pos": "656 71 -10",
+      "empty": true
+    },
+    {
+      "pos": "658 71 -10",
+      "empty": true
+    }
+  ],
+  "target_delta": 0,
+  "ui_present_after_esc": false,
+  "automated_input": "ctypes mouse_event right-click open / keybd_event Esc close"
+}

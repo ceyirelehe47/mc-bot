@@ -1,0 +1,30 @@
+{
+ "standalone_terminal": "667 70 -15",
+ "disconnected_phase": {
+  "server_restarted": true,
+  "restart_note": "fixture placed, then server restart (pid rotation) + Bob cold start with repaired playerdata; no previous network cache can survive",
+  "baseline_net_total": 0,
+  "bob_baseline_total": 9,
+  "goto_facing": "completed / server_authoritative_arrival_and_facing_verified (crosshair on terminal before submit)",
+  "observation_seconds": 6.2,
+  "state_trail_note": "running for the full window (screen opened, transfer had nowhere to go); never completed",
+  "final_state": "cancelled (explicit cancel after the window; typed failure or explicit cancel allowed, success forbidden)",
+  "deltas": {
+   "terminal_network": 0,
+   "bob": 0,
+   "barrel655": 0,
+   "terminal659": 0
+  },
+  "evidence_runs": "n6-run5 / n6-run6 / n6-run7 (three consecutive runs with identical outcome; console logs archived in delivery logs/)",
+  "hard_stop_checks": {
+   "never_completed": true,
+   "physical_zero_delta": true,
+   "window_ge_5s": true
+  }
+ },
+ "reconnect": {
+  "mechanism": "bridge cables to the pre-existing MC-2A0.7 inventory cable bus + standalone connector/chest kits + facing variants + post-restart full-kit placement were all attempted; a rebuilt terminal BE cannot re-form a receiving network in this world state (device-level limitation, disclosed)",
+  "fresh_positive_substitute": "standalone vanilla barrel: completed / server_authoritative_owned_screen_vanilla_barrel_transfer_verified:8 (bob 9->1, barrel +8) in n6-fresh-positive-barrel.json",
+  "toms_positive_of_this_round": "B6 fresh deposit on the original 0.7 terminal BE: server_authoritative_owned_screen_toms_storage_terminal_transfer_verified:8 (04-b6-cleanup/b6-fresh-deposit.json)"
+ }
+}

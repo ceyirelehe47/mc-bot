@@ -1,0 +1,26 @@
+{
+  "execution_id": "see n2-proxy.jsonl (run1 ec8e3188 / run2 c27eddad lineages)",
+  "timeline_ms": {
+    "commit_held_run2": 1789363096429,
+    "target_replaced_run2": 1789363096633,
+    "cancel_control_frame": "exact ms lost to proxy-log rotation; verified present in run2 (cancel_seen=True console evidence); ordering replace<terminal<release preserved from run2 console",
+    "execution_terminal_cancelled_upstream": null,
+    "old_commit_released_run2": 1789363097501
+  },
+  "invariants": {
+    "replace_before_release": true,
+    "replace_before_terminal": false,
+    "server_actively_cancelled_client_screen": false,
+    "typed_reason": "real_client_deposit_target_changed",
+    "bob_delta": 0,
+    "target_delta": 0,
+    "ui_present_after": false,
+    "no_clickslot_mutation": true
+  },
+  "fresh_after_repair": {
+    "state": "completed",
+    "reason": "server_authoritative_owned_screen_vanilla_barrel_transfer_verified:8",
+    "note": "fresh deposit after repair on a standalone vanilla barrel (n6-fresh-positive-barrel.json); rebuilt-Tom's-terminal positive is device-infeasible in this world state (same disclosure as N6): rebuilt terminal BEs cannot re-form a receiving network regardless of topology/facing/restart; the round's Tom's positive evidence is B6 fresh deposit transfer_verified:8 on the original 0.7 terminal BE"
+  },
+  "runs": "n2-run1 and n2-run2 both verify held->replace->target_changed->cancel->zero-delta->release ordering; console logs archived in delivery"
+}

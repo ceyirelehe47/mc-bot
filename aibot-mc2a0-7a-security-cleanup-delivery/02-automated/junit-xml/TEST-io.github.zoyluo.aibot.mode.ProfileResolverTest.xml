@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.mode.ProfileResolverTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-14T03:06:27.747Z" hostname="FORST" time="0.008">
+  <properties/>
+  <testcase name="existingLegacyConfigWithoutProfileUsesOperatorAndOneWarning()" classname="io.github.zoyluo.aibot.mode.ProfileResolverTest" time="0.004"/>
+  <testcase name="invalidOrNullFileValueFailsClosedInsteadOfLookingLegacy()" classname="io.github.zoyluo.aibot.mode.ProfileResolverTest" time="0.001"/>
+  <testcase name="environmentOverridesFileButDoesNotDuplicateLegacyWarning()" classname="io.github.zoyluo.aibot.mode.ProfileResolverTest" time="0.0"/>
+  <testcase name="explicitProfilesAreReadFromRawJsonPresence()" classname="io.github.zoyluo.aibot.mode.ProfileResolverTest" time="0.0"/>
+  <testcase name="invalidEnvironmentFailsClosedEvenWhenFileRequestsOperator()" classname="io.github.zoyluo.aibot.mode.ProfileResolverTest" time="0.0"/>
+  <testcase name="newConfigDefaultsToStrictSurvival()" classname="io.github.zoyluo.aibot.mode.ProfileResolverTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

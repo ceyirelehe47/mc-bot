@@ -1,0 +1,53 @@
+Compiled from "StorageTerminalBlockEntity.java"
+public class com.tom.storagemod.block.entity.StorageTerminalBlockEntity extends com.tom.storagemod.platform.PlatformBlockEntity implements net.minecraft.class_3908,com.tom.storagemod.util.TickerUtil$TickableServer {
+  private com.tom.storagemod.inventory.NetworkInventory itemCache;
+  private java.util.Map<com.tom.storagemod.inventory.StoredItemStack, com.tom.storagemod.inventory.StoredItemStack> items;
+  private int sort;
+  private int searchType;
+  private int modes;
+  private java.lang.String lastSearch;
+  private boolean updateItems;
+  private int changeCount;
+  private int beaconLevel;
+  private long changeTracker;
+  public com.tom.storagemod.block.entity.StorageTerminalBlockEntity(net.minecraft.class_2338, net.minecraft.class_2680);
+  public com.tom.storagemod.block.entity.StorageTerminalBlockEntity(net.minecraft.class_2591<?>, net.minecraft.class_2338, net.minecraft.class_2680);
+  public void onLoad();
+  public net.minecraft.class_1703 createMenu(int, net.minecraft.class_1661, net.minecraft.class_1657);
+  public net.minecraft.class_2561 method_5476();
+  public java.util.Map<com.tom.storagemod.inventory.StoredItemStack, com.tom.storagemod.inventory.StoredItemStack> getStacks();
+  public com.tom.storagemod.inventory.StoredItemStack pullStack(com.tom.storagemod.inventory.StoredItemStack, long);
+  public com.tom.storagemod.inventory.StoredItemStack pushStack(com.tom.storagemod.inventory.StoredItemStack);
+  public net.minecraft.class_1799 pushStack(net.minecraft.class_1799);
+  public void pushOrDrop(net.minecraft.class_1799);
+  public void updateServer();
+  public boolean canInteractWith(net.minecraft.class_1657, boolean);
+  public int getSorting();
+  public int getModes();
+  public int getSearchType();
+  public void setSorting(int);
+  public void setModes(int);
+  public void setSearchType(int);
+  public void method_11007(net.minecraft.class_2487, net.minecraft.class_7225$class_7874);
+  public void method_11014(net.minecraft.class_2487, net.minecraft.class_7225$class_7874);
+  public java.lang.String getLastSearch();
+  public void setLastSearch(java.lang.String);
+  public int getBeaconLevel();
+  public int getChangeCount();
+  private static java.lang.Integer lambda$canInteractWith$4(net.minecraft.class_1657, net.minecraft.class_1799);
+  private static boolean lambda$canInteractWith$3(net.minecraft.class_1799);
+  private int lambda$updateServer$2(net.minecraft.class_2338);
+  private static com.tom.storagemod.inventory.StoredItemStack lambda$updateServer$1(com.tom.storagemod.inventory.StoredItemStack, com.tom.storagemod.inventory.StoredItemStack);
+  private void lambda$updateServer$0(com.tom.storagemod.inventory.StoredItemStack);
+}
+
+==== StorageTerminalBlock ====
+Compiled from "StorageTerminalBlock.java"
+public class com.tom.storagemod.block.StorageTerminalBlock extends com.tom.storagemod.block.AbstractStorageTerminalBlock {
+  public static final com.mojang.serialization.MapCodec<com.tom.storagemod.block.StorageTerminalBlock> CODEC;
+  public com.tom.storagemod.block.StorageTerminalBlock(net.minecraft.class_4970$class_2251);
+  public net.minecraft.class_2586 method_10123(net.minecraft.class_2338, net.minecraft.class_2680);
+  public void method_9568(net.minecraft.class_1799, net.minecraft.class_1792$class_9635, java.util.List<net.minecraft.class_2561>, net.minecraft.class_1836);
+  protected com.mojang.serialization.MapCodec<? extends net.minecraft.class_2237> method_53969();
+  static {};
+}

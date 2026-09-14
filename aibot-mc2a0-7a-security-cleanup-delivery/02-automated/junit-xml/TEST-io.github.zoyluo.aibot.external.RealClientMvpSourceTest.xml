@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-14T03:06:26.085Z" hostname="FORST" time="0.014">
+  <properties/>
+  <testcase name="clientRuntimeRemainsExplicitlyOptInAndClearsInputs()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="realClientBackendSupportsOnlyTheBoundedVerticalSlice()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="transportIsLoopbackAuthenticatedAndBounded()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="clientParsingFailuresAreTypedNotTickCrashes()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.0"/>
+  <testcase name="sensorValidationUsesOneCoherentFrame()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.0"/>
+  <testcase name="backendSelectionIsSingleAndFailClosed()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="gameSessionIncarnationBindsBothDirections()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="wireProtocolV5IsExplicitAndMixedBinariesFailClosed()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="graphDispatchStillUsesBridgeSubmit()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="realClientOpportunityBirthRemainsDurableBeforeExposure()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="mineCompletionStillRequiresCellGoneAndInventoryGain()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="realClientUsesNormalPlayerAndSingleAuthority()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <testcase name="storageAdaptersDoNotAddASecondGraphMutationPath()" classname="io.github.zoyluo.aibot.external.RealClientMvpSourceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

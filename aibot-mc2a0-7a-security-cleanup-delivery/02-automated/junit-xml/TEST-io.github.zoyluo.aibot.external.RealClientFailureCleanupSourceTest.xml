@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.RealClientFailureCleanupSourceTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-14T03:06:24.944Z" hostname="FORST" time="0.068">
+  <properties/>
+  <testcase name="matchingFailureEmitsExactlyOneTerminalReceipt()" classname="io.github.zoyluo.aibot.external.RealClientFailureCleanupSourceTest" time="0.032"/>
+  <testcase name="staleNonMatchingFailureCannotDestroyCurrentAction()" classname="io.github.zoyluo.aibot.external.RealClientFailureCleanupSourceTest" time="0.006"/>
+  <testcase name="commandAndControlParsingUseOneCleanupBoundary()" classname="io.github.zoyluo.aibot.external.RealClientFailureCleanupSourceTest" time="0.002"/>
+  <testcase name="matchingFailureClosesScreenBeforeClearingAction()" classname="io.github.zoyluo.aibot.external.RealClientFailureCleanupSourceTest" time="0.001"/>
+  <testcase name="runtimePassesMinecraftClientIntoCommandBoundary()" classname="io.github.zoyluo.aibot.external.RealClientFailureCleanupSourceTest" time="0.001"/>
+  <testcase name="serverTargetChangeActivelyCancelsClientScreen()" classname="io.github.zoyluo.aibot.external.RealClientFailureCleanupSourceTest" time="0.001"/>
+  <testcase name="cleanupStillProtectsTheHandledScreenPath()" classname="io.github.zoyluo.aibot.external.RealClientFailureCleanupSourceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

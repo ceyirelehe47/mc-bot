@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-14T03:06:27.473Z" hostname="FORST" time="0.274">
+  <properties/>
+  <testcase name="automaticObservationUsesBoundedSemanticSnapshot()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.001"/>
+  <testcase name="cognitiveLocalScanProvesObservabilityBeforeBlockRead()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.001"/>
+  <testcase name="structureKnowledgeCacheKeyIncludesWorldId()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.001"/>
+  <testcase name="directMutationFallbacksKeepReachAndVisibilityGuards()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.138"/>
+  <testcase name="digDownRelocationUsesObservedFailureInsteadOfHiddenColumnScan()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.001"/>
+  <testcase name="cognitiveViewStaysAReadModel()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.003"/>
+  <testcase name="directTeleportsStayInsideReviewedAdapters()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.107"/>
+  <testcase name="miningServiceDefersRememberedDepotReadsUntilObservableReach()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.001"/>
+  <testcase name="productionSourceSetDoesNotContainVerificationHarness()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.001"/>
+  <testcase name="resourceAndEntityDiscoveryUsesObservableBoundary()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.011"/>
+  <testcase name="cognitiveInspectIsLazyAndStaysInsideEvidenceScope()" classname="io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,19 @@
+{
+  "goto_pause_resume": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "pause_ok": true,
+    "resume_ok": true,
+    "same_execution": "6c1d370d-3c36-4b9d-99c7-bbc64d22772f"
+  },
+  "gather_typed_rejection": {
+    "submit_http": 409,
+    "submit_error": "{\"error\":\"operation_not_supported_by_backend:gather\",\"ok\":false}"
+  },
+  "graph_mine": {
+    "plan_ok": true,
+    "graph_id": "graph-bf7205a32beb70273833adee",
+    "run_next_ok": null,
+    "final_state": "READY"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "goto_execution_id": "2cf1abbb-572e-452f-af7a-4f82de01f0fd",
+  "goto_terminal_server": {
+    "execution_id": "2cf1abbb-572e-452f-af7a-4f82de01f0fd",
+    "request_id": "mc2a07a-b6goto-60399594",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "b6bc84a2-405e-40c3-8741-7955755e6aa5",
+    "operation": "goto",
+    "state": "cancelled",
+    "progress": 0.912499999627471,
+    "reason": "external_cancel",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+  },
+  "client_cleanup_receipt": {
+    "epoch_ms": 1789360400716,
+    "direction": "client_to_server",
+    "action": "forwarded",
+    "message": {
+      "type": "execution",
+      "execution_id": "2cf1abbb-572e-452f-af7a-4f82de01f0fd",
+      "state": "failed",
+      "progress": 0.912499999627471,
+      "reason": "real_client_control_invalid:NullPointerException",
+      "session_epoch": "dd960af2-72d5-4b90-bba2-5ab63c582df2",
+      "game_session": "b6bc84a2-405e-40c3-8741-7955755e6aa5",
+      "game_session_seq": 0
+    }
+  },
+  "say_after": {
+    "execution_id": "c69f7e31-3f85-4827-a5d7-3c1c45bcf5ba",
+    "request_id": "mc2a07a-b6say-60401004",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "b6bc84a2-405e-40c3-8741-7955755e6aa5",
+    "operation": "say",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "client_chat_packet_sent",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+  },
+  "mechanism": "real server cancel control frame with action field dropped by redacting proxy variant; server-authoritative cancel may reach terminal first, cleanup boundary proven by the client-side failed/real_client_control_invalid receipt on the wire"
+}

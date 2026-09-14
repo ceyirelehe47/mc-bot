@@ -1,0 +1,12 @@
+{
+  "graph_id": "graph-bf7205a32beb70273833adee",
+  "run_next_ok": true,
+  "run_next_execution": "f4d7f095-cfaa-4116-a5fe-48c7303f3fc4",
+  "final_state": "DONE",
+  "trail_tail": [
+    "RUNNING",
+    "DONE"
+  ],
+  "bob_inventory_total": 3,
+  "fixture": "iron_ore 652,70,-17, iron_pickaxe given, Bob faced ore before plan"
+}

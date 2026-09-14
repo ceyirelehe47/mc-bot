@@ -1,0 +1,16 @@
+{
+  "clean_base": "a86ce3b7ca1f9259de3e4ae7bb27629d9278f5a9",
+  "branch": "experiment/mc2a0-7a-security-cleanup",
+  "commit_a": "8fb96e3 (runtime GUI cleanup + target-change cancel + source tests)",
+  "commit_b": "0cd687b (evidence-hygiene scripts + .gitignore)",
+  "head_at_live_time": "0cd687be4d2b9770e77d5582875a7a9b4db8fedd",
+  "forbidden_ancestor": "57b534d16d5c4d7c05e47a18d78aa552359b6666",
+  "remapped_jar": {
+    "sha256_prefix": "71a7260bee569d6a",
+    "bytes": 1950170,
+    "deployed": [
+      "mc-server-mc1ca/mods",
+      "mc2a07-prod-client/mods"
+    ]
+  }
+}

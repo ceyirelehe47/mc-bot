@@ -1,0 +1,6 @@
+{
+  "method": "git worktree at a86ce3b + cherry-pick commit A (8fb96e3) + commit B (0cd687b)",
+  "replay_head": "4e379d4ab048ce06056929aea877a900b3388422",
+  "tree_diff_vs_0cd687b": "0 bytes (git diff 0cd687b 4e379d4 empty)",
+  "result": "byte-for-byte identical"
+}

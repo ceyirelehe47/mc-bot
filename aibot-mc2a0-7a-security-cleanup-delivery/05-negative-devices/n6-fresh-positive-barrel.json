@@ -1,0 +1,12 @@
+{
+  "goto": "completed",
+  "execution_id": "227e8087-3207-4fb1-bfbe-f2b53a38989e",
+  "deposit_state": "completed",
+  "deposit_reason": "server_authoritative_owned_screen_vanilla_barrel_transfer_verified:8",
+  "bob_total": [
+    9,
+    1
+  ],
+  "barrel_total_after": 8,
+  "mechanism": "standalone vanilla barrel at 653,70,-8 with full standing platform; fresh positive after disconnected-terminal gate; Tom's positive covered by B6 fresh deposit transfer_verified:8 (original BE)"
+}

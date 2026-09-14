@@ -1,0 +1,1440 @@
+diff --git a/.gitignore b/.gitignore
+index e05546a..7fd409e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -8,3 +8,12 @@ aibot-dsh-m0/.build/
+ __pycache__/
+ Thumbs.db
+ neoforge-installer.jar.log
++# MC-2A evidence hygiene: credentials and third-party binaries stay local
++.secrets/
++.local-third-party/
++*.secret
++*.token
++aibot-mc2a0-*-delivery/**/jar/
++aibot-mc2a0-*-delivery/**/*.jar
++aibot-mc2a0-*-delivery/**/*stdout*.log
++aibot-mc2a0-*-delivery/**/*-pid.txt
+diff --git a/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientActionController.java b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientActionController.java
+index cb5723e..3a3e1c7 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientActionController.java
++++ b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientActionController.java
+@@ -32,18 +32,15 @@ final class RealClientActionController {
+         this.screens=screens;
+     }
+ 
+-    void command(JsonObject message) {
++    void command(JsonObject message,MinecraftClient client) {
+         String executionId=safeExecutionId(message);
+         try {
+             commandChecked(message);
+         } catch(RuntimeException failure) {
+-            if(active!=null && executionId.equals(active.executionId)) {
+-                active.failed=true;
+-                active=null;
+-            }
+-            send(executionId,"failed",0D,
+-                    "real_client_command_invalid:"
+-                            +failure.getClass().getSimpleName());
++            failMalformedCurrent(
++                client,executionId,
++                "real_client_command_invalid:"
++                        +failure.getClass().getSimpleName());
+         }
+     }
+ 
+@@ -143,9 +140,9 @@ final class RealClientActionController {
+         try {
+             controlChecked(message,client);
+         } catch(RuntimeException failure) {
+-            send(executionId,"failed",0D,
+-                    "real_client_control_invalid:"
+-                            +failure.getClass().getSimpleName());
++            String reason="real_client_control_invalid:"
++                    +failure.getClass().getSimpleName();
++            failMalformedCurrent(client,executionId,reason);
+         }
+     }
+ 
+@@ -245,6 +242,25 @@ final class RealClientActionController {
+         active=null;
+     }
+ 
++    private void failMalformedCurrent(
++            MinecraftClient client,String executionId,String reason) {
++        boolean ownsCurrent=active!=null
++                &&executionId.equals(active.executionId)
++                &&!active.terminal();
++        if(!ownsCurrent) {
++            send(executionId,"failed",0D,reason);
++            return;
++        }
++        clearInputs(client);
++        if(client.interactionManager!=null)
++            client.interactionManager.cancelBlockBreaking();
++        closeHandled(client);
++        double progress=active.progress;
++        active.failed=true;
++        active=null;
++        send(executionId,"failed",progress,reason);
++    }
++
+     private static String safeExecutionId(JsonObject message) {
+         try {
+             if(message!=null && message.has("execution_id")
+diff --git a/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientBodyClientRuntime.java b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientBodyClientRuntime.java
+index dccf222..2364bd8 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientBodyClientRuntime.java
++++ b/aibot-dsh-m0/aibot-overlay/src/client/java/io/github/zoyluo/aibot/client/realclient/RealClientBodyClientRuntime.java
+@@ -119,7 +119,7 @@ public final class RealClientBodyClientRuntime {
+             String type=message.has("type")
+                     ?message.get("type").getAsString():"";
+             if("command".equals(type))
+-                actions.command(message);
++                actions.command(message,client);
+             else if("control".equals(type))
+                 actions.control(message,client);
+         }
+diff --git a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientExecutionDriver.java b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientExecutionDriver.java
+index 0f5b59e..e7981d7 100644
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientExecutionDriver.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientExecutionDriver.java
+@@ -541,10 +541,14 @@ public final class RealClientExecutionDriver
+                         "outcome_unknown",0D,
+                         "real_client_body_unavailable");
+ 
+-            if(!target.stillValid(player))
++            if(!target.stillValid(player)) {
++                transport.sendControl(
++                        executionId,"cancel",
++                        "real_client_deposit_target_changed");
+                 return new BodyBackend.Snapshot(
+                         "failed",0D,
+                         "real_client_deposit_target_changed");
++            }
+ 
+             int playerCurrent=countPlayerInventory(player);
+             long targetCurrent=target.count();
+diff --git a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientFailureCleanupSourceTest.java b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientFailureCleanupSourceTest.java
+new file mode 100644
+index 0000000..36d2cab
+--- /dev/null
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientFailureCleanupSourceTest.java
+@@ -0,0 +1,130 @@
++package io.github.zoyluo.aibot.external;
++
++import org.junit.jupiter.api.Test;
++
++import java.nio.file.Files;
++import java.nio.file.Path;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++final class RealClientFailureCleanupSourceTest {
++    private static final Path CLIENT=Path.of(
++            "src/client/java/io/github/zoyluo/aibot/client/realclient");
++    private static final Path MAIN=Path.of(
++            "src/main/java/io/github/zoyluo/aibot/external/realclient");
++
++    private static String read(String name)throws Exception {
++        return Files.readString(CLIENT.resolve(name));
++    }
++
++    @Test void runtimePassesMinecraftClientIntoCommandBoundary()
++            throws Exception {
++        String runtime=read("RealClientBodyClientRuntime.java");
++        assertTrue(runtime.contains(
++                "actions.command(message,client)"));
++        assertFalse(runtime.contains(
++                "actions.command(message);"));
++    }
++
++    @Test void commandAndControlParsingUseOneCleanupBoundary()
++            throws Exception {
++        String source=read("RealClientActionController.java");
++        assertTrue(source.contains(
++                "void command(JsonObject message,MinecraftClient client)"));
++        assertTrue(source.contains(
++                "failMalformedCurrent(\n"
++                        +"                client,executionId,\n"
++                        +"                \"real_client_command_invalid:\""));
++        assertTrue(source.contains(
++                "\"real_client_control_invalid:\""));
++        assertTrue(source.contains(
++                "failMalformedCurrent(client,executionId,reason)"));
++    }
++
++    @Test void matchingFailureClosesScreenBeforeClearingAction()
++            throws Exception {
++        String source=read("RealClientActionController.java");
++        int method=source.indexOf(
++                "private void failMalformedCurrent(");
++        int next=source.indexOf(
++                "private static String safeExecutionId",method);
++        assertTrue(method>=0 && next>method);
++        String block=source.substring(method,next);
++        int clear=block.indexOf("clearInputs(client)");
++        int breakCancel=block.indexOf("cancelBlockBreaking()");
++        int close=block.indexOf("closeHandled(client)");
++        int activeNull=block.indexOf("active=null");
++        int terminal=block.lastIndexOf("send(");
++        assertTrue(clear>=0);
++        assertTrue(breakCancel>clear);
++        assertTrue(close>breakCancel);
++        assertTrue(activeNull>close);
++        assertTrue(terminal>activeNull);
++    }
++
++    @Test void staleNonMatchingFailureCannotDestroyCurrentAction()
++            throws Exception {
++        String source=read("RealClientActionController.java");
++        int method=source.indexOf(
++                "private void failMalformedCurrent(");
++        int next=source.indexOf(
++                "private static String safeExecutionId",method);
++        String block=source.substring(method,next);
++        assertTrue(block.contains(
++                "boolean ownsCurrent=active!=null"));
++        assertTrue(block.contains(
++                "if(!ownsCurrent) {\n"
++                        +"            send(executionId,\"failed\",0D,reason);\n"
++                        +"            return;\n"
++                        +"        }"));
++    }
++
++    @Test void matchingFailureEmitsExactlyOneTerminalReceipt()
++            throws Exception {
++        String source=read("RealClientActionController.java");
++        int method=source.indexOf(
++                "private void failMalformedCurrent(");
++        int next=source.indexOf(
++                "private static String safeExecutionId",method);
++        String block=source.substring(method,next);
++        assertEquals(2,count(block,"send("),
++                "one non-owner receipt plus one owner receipt");
++        assertFalse(block.contains("active.fail("));
++    }
++
++    @Test void cleanupStillProtectsTheHandledScreenPath()
++            throws Exception {
++        String source=read("RealClientActionController.java");
++        assertTrue(source.contains(
++                "client_preexisting_screen_open"));
++        assertTrue(source.contains(
++                "client_screen_ownership_lost"));
++        assertTrue(source.contains(
++                "closeHandled(client)"));
++    }
++
++
++    @Test void serverTargetChangeActivelyCancelsClientScreen()
++            throws Exception {
++        String source=Files.readString(
++                MAIN.resolve("RealClientExecutionDriver.java"));
++        int invalid=source.indexOf(
++                "if(!target.stillValid(player))");
++        int cancel=source.indexOf(
++                "transport.sendControl(",invalid);
++        int terminal=source.indexOf(
++                "\"real_client_deposit_target_changed\"",cancel);
++        assertTrue(invalid>=0);
++        assertTrue(cancel>invalid);
++        assertTrue(terminal>cancel);
++    }
++
++    private static int count(String text,String token) {
++        int total=0,from=0;
++        while((from=text.indexOf(token,from))>=0) {
++            total++;
++            from+=token.length();
++        }
++        return total;
++    }
++}
+diff --git a/aibot-dsh-m0/scripts/evidence_hygiene.py b/aibot-dsh-m0/scripts/evidence_hygiene.py
+new file mode 100644
+index 0000000..4c10f2b
+--- /dev/null
++++ b/aibot-dsh-m0/scripts/evidence_hygiene.py
+@@ -0,0 +1,626 @@
++#!/usr/bin/env python3
++"""Generate, sanitize, and audit MC-bot evidence without exposing runtime credentials.
++
++This module deliberately never prints secret values. It supports four subcommands:
++
++  generate-token  Create a new URL-safe control token in a local file.
++  sanitize-tree   Copy a raw evidence tree into a text-only, recursively redacted tree.
++  audit-tree      Fail if a tree contains credentials or prohibited binaries.
++  audit-git       Scan every changed blob in a Git range, including intermediate commits.
++"""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import os
++import re
++import secrets as secrets_module
++import stat
++import subprocess
++from dataclasses import dataclass
++from pathlib import Path
++from typing import Any, Iterable
++
++REDACTED = "<REDACTED>"
++MAX_TEXT_BYTES = 25 * 1024 * 1024
++
++BINARY_SUFFIXES = {
++    ".7z", ".bin", ".class", ".dll", ".dylib", ".exe", ".gif", ".gz",
++    ".ico", ".jar", ".jpeg", ".jpg", ".mp3", ".mp4", ".pdb", ".png",
++    ".pyc", ".rar", ".so", ".tar", ".webm", ".webp", ".zip",
++}
++SENSITIVE_EXACT_KEYS = {
++    "authorization", "client_secret", "cookie", "credential", "credentials",
++    "password", "refresh_token", "secret", "token", "xsts_token",
++}
++SAFE_TOKENISH_KEYS = {
++    "body_session_epoch", "command_seq", "game_session",
++    "game_session_seq", "screen_epoch", "session_epoch",
++}
++ASSIGNMENT_SCAN_SUFFIXES = {
++    ".bat", ".cmd", ".env", ".json", ".jsonl", ".log", ".md",
++    ".properties", ".ps1", ".toml", ".txt", ".yaml", ".yml",
++}
++
++ENV_TOKEN_RE = re.compile(
++    r"(?i)(\bAIBOT_REAL_CLIENT_TOKEN\s*[=:]\s*)([A-Za-z0-9_-]{16,})"
++)
++JSON_TOKEN_RE = re.compile(
++    r'''(?ix)
++    (
++      ["']?
++      (?:access_token|refresh_token|client_secret|authorization|password|secret|token)
++      ["']?
++      \s*[:=]\s*
++      ["']
++    )
++    ([^"'\r\n]+)
++    (["'])
++    '''
++)
++BEARER_RE = re.compile(r"(?i)(\bAuthorization\s*:\s*(?:Bearer\s+)?)(\S+)")
++QUERY_TOKEN_RE = re.compile(
++    r"(?i)([?&](?:access_token|refresh_token|token|secret)=)([^&#\s]+)"
++)
++
++
++@dataclass(frozen=True)
++class Finding:
++    location: str
++    kind: str
++    detail: str
++
++
++def secret_fingerprint(value: str) -> str:
++    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
++
++
++def is_sensitive_key(key: str) -> bool:
++    normalized = key.strip().lower().replace("-", "_")
++    if normalized in SAFE_TOKENISH_KEYS:
++        return False
++    if normalized in SENSITIVE_EXACT_KEYS:
++        return True
++    return (
++        normalized.endswith("_token")
++        or normalized.endswith("_secret")
++        or normalized.endswith("_password")
++        or normalized.endswith("_credential")
++    )
++
++
++def redact_string(value: str, known_secrets: Iterable[str]) -> str:
++    result = value
++    for secret in known_secrets:
++        if secret:
++            result = result.replace(secret, REDACTED)
++    result = ENV_TOKEN_RE.sub(lambda match: match.group(1) + REDACTED, result)
++    result = JSON_TOKEN_RE.sub(
++        lambda match: match.group(1) + REDACTED + match.group(3), result
++    )
++    result = BEARER_RE.sub(lambda match: match.group(1) + REDACTED, result)
++    result = QUERY_TOKEN_RE.sub(lambda match: match.group(1) + REDACTED, result)
++    return result
++
++
++def redact_json(value: Any, known_secrets: Iterable[str] = ()) -> Any:
++    if isinstance(value, dict):
++        redacted: dict[str, Any] = {}
++        for key, item in value.items():
++            if is_sensitive_key(str(key)):
++                redacted[str(key)] = REDACTED
++            else:
++                redacted[str(key)] = redact_json(item, known_secrets)
++        return redacted
++    if isinstance(value, list):
++        return [redact_json(item, known_secrets) for item in value]
++    if isinstance(value, str):
++        stripped = value.strip()
++        if stripped.startswith(("{", "[")):
++            try:
++                nested = json.loads(value)
++            except json.JSONDecodeError:
++                pass
++            else:
++                return json.dumps(
++                    redact_json(nested, known_secrets),
++                    ensure_ascii=False,
++                    separators=(",", ":"),
++                )
++        return redact_string(value, known_secrets)
++    return value
++
++
++def load_known_secrets(
++    env_names: Iterable[str], files: Iterable[Path]
++) -> list[str]:
++    values: list[str] = []
++    for name in env_names:
++        value = os.environ.get(name, "").strip()
++        if value:
++            values.append(value)
++    for path in files:
++        value = path.read_text(encoding="utf-8").strip()
++        if value:
++            values.append(value)
++    return sorted(set(values), key=len, reverse=True)
++
++
++def generate_token(out: Path, byte_count: int = 48) -> dict[str, Any]:
++    if byte_count < 32 or byte_count > 96:
++        raise ValueError("byte_count_must_be_32_to_96")
++    if out.exists():
++        raise FileExistsError(f"refusing_to_overwrite:{out}")
++    out.parent.mkdir(parents=True, exist_ok=True)
++    token = secrets_module.token_urlsafe(byte_count)
++    if not re.fullmatch(r"[A-Za-z0-9_-]{32,256}", token):
++        raise AssertionError("generated_token_format_invalid")
++    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
++    descriptor = os.open(out, flags, 0o600)
++    try:
++        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
++            handle.write(token + "\n")
++    except Exception:
++        out.unlink(missing_ok=True)
++        raise
++    try:
++        os.chmod(out, stat.S_IRUSR | stat.S_IWUSR)
++    except OSError:
++        pass
++    return {
++        "path": str(out),
++        "length": len(token),
++        "sha256_fingerprint": secret_fingerprint(token),
++    }
++
++
++def _is_binary_path(path: Path) -> bool:
++    return path.suffix.lower() in BINARY_SUFFIXES
++
++
++def _sanitize_text_file(
++    source: Path, destination: Path, known_secrets: list[str]
++) -> tuple[int, str]:
++    raw = source.read_bytes()
++    if len(raw) > MAX_TEXT_BYTES:
++        raise ValueError("text_file_too_large")
++    text = raw.decode("utf-8-sig")
++    suffix = source.suffix.lower()
++    original = text
++
++    if suffix == ".json":
++        value = json.loads(text)
++        sanitized = json.dumps(
++            redact_json(value, known_secrets),
++            ensure_ascii=False,
++            indent=2,
++        ) + "\n"
++        mode = "json"
++    elif suffix == ".jsonl":
++        lines: list[str] = []
++        for line in text.splitlines():
++            if not line.strip():
++                lines.append("")
++                continue
++            try:
++                value = json.loads(line)
++            except json.JSONDecodeError:
++                lines.append(redact_string(line, known_secrets))
++            else:
++                lines.append(json.dumps(
++                    redact_json(value, known_secrets),
++                    ensure_ascii=False,
++                    separators=(",", ":"),
++                ))
++        sanitized = "\n".join(lines) + ("\n" if text.endswith("\n") else "")
++        mode = "jsonl"
++    else:
++        sanitized = redact_string(text, known_secrets)
++        mode = "text"
++
++    destination.parent.mkdir(parents=True, exist_ok=True)
++    destination.write_text(sanitized, encoding="utf-8", newline="\n")
++    count = sanitized.count(REDACTED) if sanitized != original else 0
++    return count, mode
++
++
++def sanitize_tree(
++    source: Path,
++    destination: Path,
++    known_secrets: list[str],
++) -> dict[str, Any]:
++    source = source.resolve()
++    destination = destination.resolve()
++    if not source.is_dir():
++        raise ValueError("source_must_be_directory")
++    if destination.exists():
++        raise FileExistsError("destination_must_not_exist")
++    try:
++        destination.relative_to(source)
++    except ValueError:
++        pass
++    else:
++        raise ValueError("destination_must_not_be_inside_source")
++
++    copied: list[dict[str, Any]] = []
++    skipped: list[dict[str, str]] = []
++    destination.mkdir(parents=True)
++
++    for path in sorted(source.rglob("*")):
++        relative = path.relative_to(source)
++        if ".git" in relative.parts:
++            continue
++        if path.is_symlink():
++            skipped.append({"path": relative.as_posix(), "reason": "symlink"})
++            continue
++        if path.is_dir():
++            continue
++        if _is_binary_path(path):
++            skipped.append({
++                "path": relative.as_posix(),
++                "reason": "prohibited_binary",
++            })
++            continue
++        target = destination / relative
++        try:
++            redaction_count, mode = _sanitize_text_file(
++                path, target, known_secrets
++            )
++        except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
++            skipped.append({
++                "path": relative.as_posix(),
++                "reason": f"non_text_or_invalid:{type(error).__name__}",
++            })
++            continue
++        copied.append({
++            "path": relative.as_posix(),
++            "mode": mode,
++            "redaction_markers": redaction_count,
++        })
++
++    report = {
++        "source": str(source),
++        "destination": str(destination),
++        "copied_files": len(copied),
++        "skipped_files": len(skipped),
++        "copied": copied,
++        "skipped": skipped,
++    }
++    (destination / "SANITIZATION_REPORT.json").write_text(
++        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
++        encoding="utf-8",
++    )
++    return report
++
++
++def _find_sensitive_json(
++    value: Any, location: str, findings: list[Finding]
++) -> None:
++    if isinstance(value, dict):
++        for key, item in value.items():
++            child = f"{location}.{key}"
++            if is_sensitive_key(str(key)):
++                if item != REDACTED:
++                    findings.append(Finding(
++                        child,
++                        "unredacted_sensitive_key",
++                        "sensitive value is not <REDACTED>",
++                    ))
++            else:
++                _find_sensitive_json(item, child, findings)
++    elif isinstance(value, list):
++        for index, item in enumerate(value):
++            _find_sensitive_json(item, f"{location}[{index}]", findings)
++
++
++def _text_findings(
++    text: str,
++    location: str,
++    known_secrets: list[str],
++    scan_assignments: bool = True,
++) -> list[Finding]:
++    findings: list[Finding] = []
++    for secret in known_secrets:
++        if secret and secret in text:
++            findings.append(Finding(
++                location,
++                "known_secret",
++                f"sha256_fingerprint={secret_fingerprint(secret)}",
++            ))
++    if scan_assignments:
++        for regex, kind in (
++            (ENV_TOKEN_RE, "runtime_token_assignment"),
++            (JSON_TOKEN_RE, "token_like_assignment"),
++            (BEARER_RE, "authorization_header"),
++            (QUERY_TOKEN_RE, "token_query_parameter"),
++        ):
++            for match in regex.finditer(text):
++                if REDACTED not in match.group(0):
++                    findings.append(Finding(
++                        location,
++                        kind,
++                        f"offset={match.start()}",
++                    ))
++    return findings
++
++
++def audit_tree(
++    root: Path,
++    known_secrets: list[str],
++) -> dict[str, Any]:
++    root = root.resolve()
++    findings: list[Finding] = []
++    scanned = 0
++    if not root.is_dir():
++        raise ValueError("audit_root_must_be_directory")
++
++    for path in sorted(root.rglob("*")):
++        if path.is_dir():
++            continue
++        relative = path.relative_to(root).as_posix()
++        if path.is_symlink():
++            findings.append(Finding(relative, "symlink", "symlinks forbidden"))
++            continue
++        if _is_binary_path(path):
++            findings.append(Finding(
++                relative,
++                "prohibited_binary",
++                f"suffix={path.suffix.lower()}",
++            ))
++            continue
++        raw = path.read_bytes()
++        if len(raw) > MAX_TEXT_BYTES:
++            findings.append(Finding(
++                relative,
++                "oversized_text",
++                f"bytes={len(raw)}",
++            ))
++            continue
++        try:
++            text = raw.decode("utf-8-sig")
++        except UnicodeDecodeError:
++            findings.append(Finding(
++                relative,
++                "non_utf8_blob",
++                "evidence must be UTF-8 text",
++            ))
++            continue
++        scanned += 1
++        suffix = path.suffix.lower()
++        findings.extend(_text_findings(
++            text, relative, known_secrets,
++            scan_assignments=suffix in ASSIGNMENT_SCAN_SUFFIXES,
++        ))
++
++        if suffix == ".json":
++            try:
++                value = json.loads(text)
++            except json.JSONDecodeError as error:
++                findings.append(Finding(
++                    relative,
++                    "invalid_json",
++                    f"line={error.lineno}",
++                ))
++            else:
++                _find_sensitive_json(value, relative, findings)
++        elif suffix == ".jsonl":
++            for line_number, line in enumerate(text.splitlines(), 1):
++                if not line.strip():
++                    continue
++                try:
++                    value = json.loads(line)
++                except json.JSONDecodeError:
++                    continue
++                _find_sensitive_json(
++                    value, f"{relative}:{line_number}", findings
++                )
++
++    return {
++        "root": str(root),
++        "scanned_text_files": scanned,
++        "finding_count": len(findings),
++        "findings": [finding.__dict__ for finding in findings],
++        "pass": not findings,
++    }
++
++
++def _git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess:
++    return subprocess.run(
++        ["git", "-C", str(repo), *args],
++        check=check,
++        stdout=subprocess.PIPE,
++        stderr=subprocess.PIPE,
++    )
++
++
++def _decode_git_blob(data: bytes) -> str | None:
++    if len(data) > MAX_TEXT_BYTES:
++        return None
++    try:
++        return data.decode("utf-8-sig")
++    except UnicodeDecodeError:
++        return None
++
++
++def audit_git_range(
++    repo: Path,
++    base: str,
++    head: str,
++    known_secrets: list[str],
++    forbidden_ancestors: list[str],
++) -> dict[str, Any]:
++    repo = repo.resolve()
++    findings: list[Finding] = []
++
++    if _git(repo, "merge-base", "--is-ancestor", base, head, check=False).returncode != 0:
++        findings.append(Finding(
++            f"{base}..{head}",
++            "base_not_ancestor",
++            "clean branch does not descend from required base",
++        ))
++
++    for forbidden in forbidden_ancestors:
++        if _git(
++            repo, "merge-base", "--is-ancestor", forbidden, head, check=False
++        ).returncode == 0:
++            findings.append(Finding(
++                head,
++                "forbidden_ancestor",
++                f"contains_compromised_commit={forbidden}",
++            ))
++
++    commits_output = _git(
++        repo, "rev-list", "--reverse", f"{base}..{head}"
++    ).stdout.decode("ascii").splitlines()
++
++    scanned_blobs = 0
++    for commit in commits_output:
++        paths = _git(
++            repo, "diff-tree", "--root", "--no-commit-id",
++            "--name-only", "-r", commit
++        ).stdout.decode("utf-8", errors="replace").splitlines()
++        for path_text in paths:
++            path = Path(path_text)
++            location = f"{commit}:{path_text}"
++            if _is_binary_path(path):
++                findings.append(Finding(
++                    location,
++                    "prohibited_binary_in_history",
++                    f"suffix={path.suffix.lower()}",
++                ))
++                continue
++            show = _git(
++                repo, "show", f"{commit}:{path_text}", check=False
++            )
++            if show.returncode != 0:
++                continue
++            text = _decode_git_blob(show.stdout)
++            if text is None:
++                findings.append(Finding(
++                    location,
++                    "non_utf8_or_oversized_blob",
++                    "clean evidence history must be bounded UTF-8 text",
++                ))
++                continue
++            scanned_blobs += 1
++            suffix = path.suffix.lower()
++            findings.extend(_text_findings(
++                text, location, known_secrets,
++                scan_assignments=suffix in ASSIGNMENT_SCAN_SUFFIXES,
++            ))
++            if suffix == ".json":
++                try:
++                    value = json.loads(text)
++                except json.JSONDecodeError:
++                    pass
++                else:
++                    _find_sensitive_json(value, location, findings)
++            elif suffix == ".jsonl":
++                for line_number, line in enumerate(text.splitlines(), 1):
++                    if not line.strip():
++                        continue
++                    try:
++                        value = json.loads(line)
++                    except json.JSONDecodeError:
++                        continue
++                    _find_sensitive_json(
++                        value, f"{location}:{line_number}", findings
++                    )
++
++    return {
++        "repo": str(repo),
++        "base": base,
++        "head": head,
++        "commit_count": len(commits_output),
++        "scanned_text_blobs": scanned_blobs,
++        "finding_count": len(findings),
++        "findings": [finding.__dict__ for finding in findings],
++        "pass": not findings,
++    }
++
++
++def _write_report(report: dict[str, Any], output: Path | None) -> None:
++    encoded = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
++    if output:
++        output.parent.mkdir(parents=True, exist_ok=True)
++        output.write_text(encoded, encoding="utf-8")
++    print(encoded, end="")
++
++
++def _secret_arguments(parser: argparse.ArgumentParser) -> None:
++    parser.add_argument(
++        "--secret-env",
++        action="append",
++        default=[],
++        help="Environment variable containing a secret to redact/audit.",
++    )
++    parser.add_argument(
++        "--secret-file",
++        action="append",
++        default=[],
++        type=Path,
++        help="Local untracked file containing a secret. Its value is never printed.",
++    )
++
++
++def main() -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    subparsers = parser.add_subparsers(dest="command", required=True)
++
++    generate = subparsers.add_parser("generate-token")
++    generate.add_argument("--out", required=True, type=Path)
++    generate.add_argument("--bytes", type=int, default=48)
++    generate.add_argument("--report", type=Path)
++
++    sanitize = subparsers.add_parser("sanitize-tree")
++    sanitize.add_argument("--source", required=True, type=Path)
++    sanitize.add_argument("--destination", required=True, type=Path)
++    sanitize.add_argument("--report", type=Path)
++    _secret_arguments(sanitize)
++
++    audit = subparsers.add_parser("audit-tree")
++    audit.add_argument("--root", required=True, type=Path)
++    audit.add_argument("--report", type=Path)
++    _secret_arguments(audit)
++
++    git_audit = subparsers.add_parser("audit-git")
++    git_audit.add_argument("--repo", required=True, type=Path)
++    git_audit.add_argument("--base", required=True)
++    git_audit.add_argument("--head", default="HEAD")
++    git_audit.add_argument("--forbid-ancestor", action="append", default=[])
++    git_audit.add_argument("--report", type=Path)
++    _secret_arguments(git_audit)
++
++    args = parser.parse_args()
++
++    if args.command == "generate-token":
++        report = generate_token(args.out, args.bytes)
++        _write_report(report, args.report)
++        return 0
++
++    known = load_known_secrets(
++        args.secret_env, args.secret_file
++    )
++    if args.command == "sanitize-tree":
++        report = sanitize_tree(
++            args.source, args.destination, known
++        )
++        _write_report(report, args.report)
++        return 0
++    if args.command == "audit-tree":
++        report = audit_tree(args.root, known)
++        _write_report(report, args.report)
++        return 0 if report["pass"] else 1
++    if args.command == "audit-git":
++        report = audit_git_range(
++            args.repo, args.base, args.head,
++            known, args.forbid_ancestor
++        )
++        _write_report(report, args.report)
++        return 0 if report["pass"] else 1
++    raise AssertionError(args.command)
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/aibot-dsh-m0/scripts/probe_control_token.py b/aibot-dsh-m0/scripts/probe_control_token.py
+new file mode 100644
+index 0000000..cf4d896
+--- /dev/null
++++ b/aibot-dsh-m0/scripts/probe_control_token.py
+@@ -0,0 +1,108 @@
++#!/usr/bin/env python3
++"""Probe Real Client control-token acceptance without printing the token."""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import socket
++import struct
++import uuid
++from pathlib import Path
++
++PROTOCOL = 5
++MAX_FRAME = 64 * 1024
++
++
++def write_frame(sock: socket.socket, message: dict) -> None:
++    body = json.dumps(
++        message, separators=(",", ":")
++    ).encode("utf-8")
++    sock.sendall(struct.pack(">I", len(body)) + body)
++
++
++def read_exact(sock: socket.socket, length: int) -> bytes:
++    chunks: list[bytes] = []
++    while length:
++        chunk = sock.recv(length)
++        if not chunk:
++            raise EOFError
++        chunks.append(chunk)
++        length -= len(chunk)
++    return b"".join(chunks)
++
++
++def read_frame(sock: socket.socket) -> dict:
++    length = struct.unpack(">I", read_exact(sock, 4))[0]
++    if length < 2 or length > MAX_FRAME:
++        raise ValueError("invalid_frame_length")
++    return json.loads(read_exact(sock, length).decode("utf-8"))
++
++
++def fingerprint(value: str) -> str:
++    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
++
++
++def main() -> None:
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--host", default="127.0.0.1")
++    parser.add_argument("--port", required=True, type=int)
++    parser.add_argument("--token-file", required=True, type=Path)
++    parser.add_argument("--expect", choices=("accepted", "rejected"), required=True)
++    parser.add_argument("--body-id", default="bob")
++    parser.add_argument("--player-name", default="Bob")
++    parser.add_argument("--timeout", type=float, default=3.0)
++    parser.add_argument("--out", type=Path)
++    args = parser.parse_args()
++
++    token = args.token_file.read_text(encoding="utf-8").strip()
++    result = {
++        "token_sha256_fingerprint": fingerprint(token),
++        "expected": args.expect,
++        "accepted": False,
++        "reason": "",
++        "pass": False,
++    }
++
++    session = str(uuid.uuid4())
++    try:
++        with socket.create_connection(
++            (args.host, args.port), timeout=args.timeout
++        ) as sock:
++            sock.settimeout(args.timeout)
++            write_frame(sock, {
++                "type": "hello",
++                "protocol": PROTOCOL,
++                "token": token,
++                "body_id": args.body_id,
++                "player_name": args.player_name,
++                "session_epoch": session,
++                "window_mode": "background",
++            })
++            response = read_frame(sock)
++            result["accepted"] = (
++                response.get("type") == "welcome"
++                and response.get("protocol") == PROTOCOL
++                and response.get("session_epoch") == session
++            )
++            result["reason"] = (
++                "welcome" if result["accepted"] else "unexpected_response"
++            )
++    except (OSError, EOFError, ValueError, json.JSONDecodeError) as failure:
++        result["reason"] = type(failure).__name__
++
++    result["pass"] = (
++        result["accepted"] if args.expect == "accepted"
++        else not result["accepted"]
++    )
++    encoded = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
++    if args.out:
++        args.out.parent.mkdir(parents=True, exist_ok=True)
++        args.out.write_text(encoded, encoding="utf-8")
++    print(encoded, end="")
++    if not result["pass"]:
++        raise SystemExit(1)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/aibot-dsh-m0/scripts/redacting_wire_proxy.py b/aibot-dsh-m0/scripts/redacting_wire_proxy.py
+new file mode 100644
+index 0000000..6889003
+--- /dev/null
++++ b/aibot-dsh-m0/scripts/redacting_wire_proxy.py
+@@ -0,0 +1,191 @@
++#!/usr/bin/env python3
++"""Length-prefixed JSON proxy that never writes credentials to its evidence log."""
++from __future__ import annotations
++
++import argparse
++import copy
++import json
++import socket
++import struct
++import sys
++import threading
++import time
++from pathlib import Path
++
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++from evidence_hygiene import redact_json
++
++MAX_FRAME = 64 * 1024
++
++
++def recv_exact(sock: socket.socket, length: int) -> bytes:
++    chunks: list[bytes] = []
++    remaining = length
++    while remaining:
++        chunk = sock.recv(remaining)
++        if not chunk:
++            raise EOFError
++        chunks.append(chunk)
++        remaining -= len(chunk)
++    return b"".join(chunks)
++
++
++def read_frame(sock: socket.socket) -> bytes:
++    header = recv_exact(sock, 4)
++    length = struct.unpack(">I", header)[0]
++    if length < 2 or length > MAX_FRAME:
++        raise ValueError(f"invalid_frame_length:{length}")
++    return recv_exact(sock, length)
++
++
++def write_frame(sock: socket.socket, body: bytes) -> None:
++    sock.sendall(struct.pack(">I", len(body)) + body)
++
++
++def message_phase(message: dict) -> str:
++    try:
++        return json.loads(message.get("arguments_json", "{}")).get("phase", "")
++    except (TypeError, json.JSONDecodeError):
++        return ""
++
++
++def main() -> None:
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--listen-port", required=True, type=int)
++    parser.add_argument("--backend-port", required=True, type=int)
++    parser.add_argument("--log", required=True, type=Path)
++    parser.add_argument("--release-file", required=True, type=Path)
++    parser.add_argument("--hold-operation", default="deposit")
++    parser.add_argument("--hold-phase", default="commit")
++    parser.add_argument("--duplicate-count", type=int, default=1)
++    parser.add_argument("--command-seq-delta", type=int, default=0)
++    parser.add_argument("--drop-inner-field", default="")
++    args = parser.parse_args()
++
++    if args.duplicate_count < 1 or args.duplicate_count > 8:
++        raise SystemExit("duplicate-count must be 1..8")
++    args.log.parent.mkdir(parents=True, exist_ok=True)
++    lock = threading.Lock()
++
++    def record(direction: str, message: dict, action: str) -> None:
++        sanitized = redact_json(copy.deepcopy(message))
++        row = {
++            "epoch_ms": int(time.time() * 1000),
++            "direction": direction,
++            "action": action,
++            "message": sanitized,
++        }
++        with lock, args.log.open("a", encoding="utf-8") as handle:
++            handle.write(json.dumps(
++                row, ensure_ascii=False, separators=(",", ":")
++            ) + "\n")
++
++    listener = socket.socket()
++    listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
++    listener.bind(("127.0.0.1", args.listen_port))
++    listener.listen(1)
++    client, _ = listener.accept()
++    backend = socket.create_connection(
++        ("127.0.0.1", args.backend_port), timeout=10
++    )
++    client.settimeout(None)
++    backend.settimeout(None)
++    stop = threading.Event()
++
++    def pipe(
++        source: socket.socket,
++        target: socket.socket,
++        direction: str,
++    ) -> None:
++        try:
++            while not stop.is_set():
++                body = read_frame(source)
++                message = json.loads(body.decode("utf-8"))
++                should_hold = (
++                    direction == "server_to_client"
++                    and message.get("type") == "command"
++                    and message.get("operation") == args.hold_operation
++                    and message_phase(message) == args.hold_phase
++                )
++                if should_hold and not args.release_file.exists():
++                    record(direction, message, "held")
++                    while (
++                        not stop.is_set()
++                        and not args.release_file.exists()
++                    ):
++                        time.sleep(0.02)
++                    if stop.is_set():
++                        return
++                    record(direction, message, "released")
++                else:
++                    record(direction, message, "forwarded")
++
++                outgoing = copy.deepcopy(message)
++                if should_hold:
++                    if args.command_seq_delta:
++                        outgoing["command_seq"] = int(
++                            outgoing.get("command_seq", 0)
++                        ) + args.command_seq_delta
++                    if args.drop_inner_field:
++                        try:
++                            inner = json.loads(
++                                outgoing.get("arguments_json", "{}")
++                            )
++                            inner.pop(args.drop_inner_field, None)
++                            outgoing["arguments_json"] = json.dumps(
++                                inner, separators=(",", ":")
++                            )
++                        except (TypeError, json.JSONDecodeError):
++                            pass
++
++                encoded = json.dumps(
++                    outgoing, separators=(",", ":"), ensure_ascii=False
++                ).encode("utf-8")
++                copies = args.duplicate_count if should_hold else 1
++                for index in range(copies):
++                    if copies > 1:
++                        record(
++                            direction,
++                            outgoing,
++                            f"replayed_{index + 1}_of_{copies}",
++                        )
++                    write_frame(target, encoded)
++        except (
++            EOFError, OSError, ValueError, json.JSONDecodeError
++        ) as failure:
++            record(
++                direction,
++                {"error": type(failure).__name__},
++                "closed",
++            )
++        finally:
++            stop.set()
++            for sock in (source, target):
++                try:
++                    sock.shutdown(socket.SHUT_RDWR)
++                except OSError:
++                    pass
++
++    threads = [
++        threading.Thread(
++            target=pipe,
++            args=(client, backend, "client_to_server"),
++            daemon=True,
++        ),
++        threading.Thread(
++            target=pipe,
++            args=(backend, client, "server_to_client"),
++            daemon=True,
++        ),
++    ]
++    for thread in threads:
++        thread.start()
++    for thread in threads:
++        thread.join()
++    client.close()
++    backend.close()
++    listener.close()
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/aibot-dsh-m0/scripts/test_evidence_hygiene.py b/aibot-dsh-m0/scripts/test_evidence_hygiene.py
+new file mode 100644
+index 0000000..a25c239
+--- /dev/null
++++ b/aibot-dsh-m0/scripts/test_evidence_hygiene.py
+@@ -0,0 +1,238 @@
++#!/usr/bin/env python3
++from __future__ import annotations
++
++import json
++import pathlib
++import sys
++import shutil
++import subprocess
++import tempfile
++import unittest
++
++HERE = pathlib.Path(__file__).resolve().parent
++sys.path.insert(0, str(HERE))
++import evidence_hygiene as MODULE
++
++
++class EvidenceHygieneTest(unittest.TestCase):
++    def test_nested_token_is_redacted(self):
++        value = {
++            "hello": {
++                "token": "<REDACTED>",
++                "session_epoch": "keep-me",
++            }
++        }
++        result = MODULE.redact_json(value)
++        self.assertEqual(
++            result["hello"]["token"], MODULE.REDACTED
++        )
++        self.assertEqual(
++            result["hello"]["session_epoch"], "keep-me"
++        )
++
++    def test_nested_arguments_json_is_redacted(self):
++        value = {
++            "arguments_json": json.dumps({
++                "access_token": "<REDACTED>"
++            })
++        }
++        result = MODULE.redact_json(value)
++        nested = json.loads(result["arguments_json"])
++        self.assertEqual(
++            nested["access_token"], MODULE.REDACTED
++        )
++
++    def test_text_runtime_token_is_redacted(self):
++        text = (
++            "AIBOT_REAL_CLIENT_TOKEN="
++            "abcdefghijklmnopqrstuvwxyz012345"
++        )
++        result = MODULE.redact_string(text, [])
++        self.assertNotIn(
++            "abcdefghijklmnopqrstuvwxyz012345", result
++        )
++        self.assertIn(MODULE.REDACTED, result)
++
++    def test_sanitize_tree_skips_jar_and_redacts_jsonl(self):
++        with tempfile.TemporaryDirectory() as directory:
++            base = pathlib.Path(directory)
++            source = base / "raw"
++            destination = base / "clean"
++            source.mkdir()
++            (source / "third-party.jar").write_bytes(b"PK\x03\x04")
++            (source / "wire.jsonl").write_text(
++                json.dumps({
++                    "message": {
++                        "token": "<REDACTED>",
++                        "session_epoch": "epoch-a",
++                    }
++                }) + "\n",
++                encoding="utf-8",
++            )
++            report = MODULE.sanitize_tree(
++                source, destination, []
++            )
++            self.assertFalse(
++                (destination / "third-party.jar").exists()
++            )
++            line = json.loads(
++                (destination / "wire.jsonl")
++                .read_text(encoding="utf-8")
++            )
++            self.assertEqual(
++                line["message"]["token"], MODULE.REDACTED
++            )
++            self.assertEqual(
++                line["message"]["session_epoch"], "epoch-a"
++            )
++            self.assertEqual(report["skipped_files"], 1)
++
++    def test_audit_tree_rejects_unredacted_token(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root = pathlib.Path(directory)
++            (root / "bad.json").write_text(
++                json.dumps({"token": "<REDACTED>"}),
++                encoding="utf-8",
++            )
++            report = MODULE.audit_tree(root, [])
++            self.assertFalse(report["pass"])
++            self.assertTrue(any(
++                finding["kind"] == "unredacted_sensitive_key"
++                for finding in report["findings"]
++            ))
++
++    def test_audit_tree_accepts_redacted_token(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root = pathlib.Path(directory)
++            (root / "good.json").write_text(
++                json.dumps({"token": MODULE.REDACTED}),
++                encoding="utf-8",
++            )
++            report = MODULE.audit_tree(root, [])
++            self.assertTrue(report["pass"], report)
++
++    def test_known_secret_fingerprint_only(self):
++        secret = "<REDACTED>"
++        findings = MODULE._text_findings(
++            secret, "file.txt", [secret]
++        )
++        self.assertEqual(len(findings), 1)
++        self.assertNotIn(secret, findings[0].detail)
++        self.assertIn(
++            MODULE.secret_fingerprint(secret),
++            findings[0].detail,
++        )
++
++    def test_generate_token_refuses_overwrite(self):
++        with tempfile.TemporaryDirectory() as directory:
++            path = pathlib.Path(directory) / "token.secret"
++            report = MODULE.generate_token(path, 32)
++            self.assertTrue(path.exists())
++            self.assertGreaterEqual(report["length"], 32)
++            with self.assertRaises(FileExistsError):
++                MODULE.generate_token(path, 32)
++
++    @unittest.skipUnless(
++        shutil.which("git"), "git is required"
++    )
++    def test_git_audit_finds_binary_in_intermediate_commit(self):
++        with tempfile.TemporaryDirectory() as directory:
++            repo = pathlib.Path(directory)
++            subprocess.run(
++                ["git", "init"], cwd=repo, check=True,
++                stdout=subprocess.DEVNULL,
++            )
++            subprocess.run(
++                ["git", "config", "user.email", "test@example.invalid"],
++                cwd=repo, check=True,
++            )
++            subprocess.run(
++                ["git", "config", "user.name", "Test"],
++                cwd=repo, check=True,
++            )
++            (repo / "base.txt").write_text("base\n")
++            subprocess.run(["git", "add", "."], cwd=repo, check=True)
++            subprocess.run(
++                ["git", "commit", "-m", "base"],
++                cwd=repo, check=True,
++                stdout=subprocess.DEVNULL,
++            )
++            base = subprocess.check_output(
++                ["git", "rev-parse", "HEAD"],
++                cwd=repo, text=True,
++            ).strip()
++            (repo / "bad.jar").write_bytes(b"PK\x03\x04")
++            subprocess.run(["git", "add", "."], cwd=repo, check=True)
++            subprocess.run(
++                ["git", "commit", "-m", "bad"],
++                cwd=repo, check=True,
++                stdout=subprocess.DEVNULL,
++            )
++            (repo / "bad.jar").unlink()
++            subprocess.run(["git", "add", "-u"], cwd=repo, check=True)
++            subprocess.run(
++                ["git", "commit", "-m", "remove"],
++                cwd=repo, check=True,
++                stdout=subprocess.DEVNULL,
++            )
++            report = MODULE.audit_git_range(
++                repo, base, "HEAD", [], []
++            )
++            self.assertFalse(report["pass"])
++            self.assertTrue(any(
++                finding["kind"] == "prohibited_binary_in_history"
++                for finding in report["findings"]
++            ))
++
++    @unittest.skipUnless(
++        shutil.which("git"), "git is required"
++    )
++    def test_git_audit_rejects_forbidden_ancestor(self):
++        with tempfile.TemporaryDirectory() as directory:
++            repo = pathlib.Path(directory)
++            subprocess.run(
++                ["git", "init"], cwd=repo, check=True,
++                stdout=subprocess.DEVNULL,
++            )
++            subprocess.run(
++                ["git", "config", "user.email", "test@example.invalid"],
++                cwd=repo, check=True,
++            )
++            subprocess.run(
++                ["git", "config", "user.name", "Test"],
++                cwd=repo, check=True,
++            )
++            (repo / "base.txt").write_text("base\n")
++            subprocess.run(["git", "add", "."], cwd=repo, check=True)
++            subprocess.run(
++                ["git", "commit", "-m", "base"],
++                cwd=repo, check=True,
++                stdout=subprocess.DEVNULL,
++            )
++            base = subprocess.check_output(
++                ["git", "rev-parse", "HEAD"],
++                cwd=repo, text=True,
++            ).strip()
++            (repo / "next.txt").write_text("next\n")
++            subprocess.run(["git", "add", "."], cwd=repo, check=True)
++            subprocess.run(
++                ["git", "commit", "-m", "next"],
++                cwd=repo, check=True,
++                stdout=subprocess.DEVNULL,
++            )
++            forbidden = subprocess.check_output(
++                ["git", "rev-parse", "HEAD"],
++                cwd=repo, text=True,
++            ).strip()
++            report = MODULE.audit_git_range(
++                repo, base, "HEAD", [], [forbidden]
++            )
++            self.assertFalse(report["pass"])
++            self.assertTrue(any(
++                finding["kind"] == "forbidden_ancestor"
++                for finding in report["findings"]
++            ))
++
++
++if __name__ == "__main__":
++    unittest.main()
