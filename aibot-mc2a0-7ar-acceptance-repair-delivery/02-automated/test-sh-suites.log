@@ -1,0 +1,414 @@
+java version "23.0.2" 2025-01-21
+Java(TM) SE Runtime Environment (build 23.0.2+7-58)
+Java HotSpot(TM) 64-Bit Server VM (build 23.0.2+7-58, mixed mode, sharing)
+v22.19.0
+Python 3.13.7
+PASS view schema
+PASS view hash format
+PASS body change requires reconciliation
+PASS view must not clear needs_reconcile
+PASS observe_required
+PASS invalid_evidence_ref
+PASS evidence_ref_not_in_current_view
+PASS inspect summary materializes on demand
+PASS unsupported_detail_level
+PASS radius_out_of_range
+PASS local query waits for the server thread
+PASS local query completes on tick thread
+PASS only observe unlocks new work
+PASS one expensive local query per tick (got 1)
+PASS queued queries drain across ticks
+PASS expired query fails the waiter
+PASS expired query never executes on the server thread (inspectLocals=4)
+PASS view refresh materializes zero inspect details
+PASS a single inspect materializes exactly one detail
+PASS baseline detail content
+PASS JSON escaping
+PASS lease active
+PASS body_controlled
+PASS only existing token holder may repeat claim for same owner
+PASS body_controlled
+PASS control_lease_invalid
+PASS HTTP admission cannot run world action
+PASS accepted distinct from completed
+PASS idempotent duplicate returns original receipt
+PASS idempotency_conflict
+PASS execution_in_progress
+PASS one physical dispatch
+PASS backend receives exact bridge execution id
+PASS running state
+PASS controls are queued not run in HTTP thread
+PASS pause preserves execution
+PASS resume existing task
+PASS terminal completion
+PASS terminal state monotonic
+PASS retry after completion does not repeat world action
+PASS completed retry no re-execution
+PASS old cancel cannot cancel replacement execution
+PASS release pauses body without enabling internal brain
+PASS control_lease_invalid
+PASS expired queued command never runs
+PASS expired accepted receipt settles cancelled
+PASS lease expiry pauses normal work
+PASS control_lease_invalid
+PASS new controller does not automatically restart work
+PASS death attributed to current execution
+PASS observe_required
+PASS fresh observe enables deliberate replan after death
+PASS start exception not silently retried
+PASS partial start cleanup attempted
+PASS observe_required
+PASS pause before dispatch never starts or cancels work
+PASS resume after early pause dispatches once
+PASS same owner reacquire does not revive old-lease accepted command
+PASS shutdown records unknown before unloading external work
+PASS shutdown pauses and cancels external work before upstream snapshot
+PASS stable logical body id exposed
+PASS backend kind exposed
+PASS physical instance exposed
+PASS physical session exposed
+PASS view is bound to the admitting physical session
+PASS execution captures admitting body session
+PASS body session change interrupts execution as unknown
+PASS body session change revokes controller
+PASS body session change requires reconciliation
+PASS session change preserves logical body id
+PASS new body session is published
+PASS body session change never replays mutation
+PASS old-session inspect query is cancelled
+PASS old-session local query is cancelled
+PASS cancelled old-session queries never execute on the replacement body
+PASS view is rebuilt for the replacement physical session
+PASS status exposes the selected backend capability set
+PASS status updates when the physical backend capability set changes
+PASS operation_not_supported_by_backend
+PASS physical body loss interrupts execution as unknown
+PASS physical body loss uses session-boundary reason
+PASS physical body loss revokes lease
+PASS physical body loss requires observe
+PASS physical body loss cancels queued read queries
+PASS physical body loss never replays mutation
+PASS reconnected physical body publishes a new session
+PASS reconnect still never replays mutation
+PASS body identity change interrupts execution as unknown
+PASS body identity change revokes controller
+PASS queued old-token control rejected after same owner reacquires
+PASS rejected stale resume leaves physical task paused
+PASS concurrent admission converges to one durable receipt
+PASS concurrent duplicate admission dispatches exactly one action
+PASS restart invalidates in-flight execution
+PASS idempotency survives process restart
+PASS restart never replays physical actions
+PASS observe_required
+PASS cursor event read
+PASS epoch mismatch signals gap
+PASS future cursor signals gap
+PASS long polling awakened without model loop
+PASS incomplete crash tail truncated to last verified frame
+PASS corrupt complete frame fails closed
+PASS second writer rejected
+PASS body_not_ready
+TOTAL 105 checks passed
+TAP version 13
+# Subtest: restricts bridge to explicit IPv4 loopback with no credentials or path
+ok 1 - restricts bridge to explicit IPv4 loopback with no credentials or path
+  ---
+  duration_ms: 1.9902
+  type: 'test'
+  ...
+# Subtest: stable request identity scopes same tool-call id to one session
+ok 2 - stable request identity scopes same tool-call id to one session
+  ---
+  duration_ms: 0.9729
+  type: 'test'
+  ...
+# Subtest: canonical argument encoding and rejects lossy JSON
+ok 3 - canonical argument encoding and rejects lossy JSON
+  ---
+  duration_ms: 0.5824
+  type: 'test'
+  ...
+# Subtest: lease token stays out of model-facing connect return and enumerable client state
+ok 4 - lease token stays out of model-facing connect return and enumerable client state
+  ---
+  duration_ms: 28.7307
+  type: 'test'
+  ...
+# Subtest: lost acceptance is unknown, no blind retry, query unlocks next action
+ok 5 - lost acceptance is unknown, no blind retry, query unlocks next action
+  ---
+  duration_ms: 2.791
+  type: 'test'
+  ...
+# Subtest: aborted call before admission does not perform mutation
+ok 6 - aborted call before admission does not perform mutation
+  ---
+  duration_ms: 1.0051
+  type: 'test'
+  ...
+# Subtest: explicit 4xx rejection is not represented as success or unknown
+ok 7 - explicit 4xx rejection is not represented as success or unknown
+  ---
+  duration_ms: 0.9987
+  type: 'test'
+  ...
+# Subtest: 5xx mutation remains unknown and lease rejection clears local ownership
+ok 8 - 5xx mutation remains unknown and lease rejection clears local ownership
+  ---
+  duration_ms: 3.302
+  type: 'test'
+  ...
+# Subtest: mutations carry actual lease and stable JSON, release drops lease even on network failure
+ok 9 - mutations carry actual lease and stable JSON, release drops lease even on network failure
+  ---
+  duration_ms: 1.5526
+  type: 'test'
+  ...
+# Subtest: oversized or malformed successful transport response is not trusted
+ok 10 - oversized or malformed successful transport response is not trusted
+  ---
+  duration_ms: 1.7346
+  type: 'test'
+  ...
+# Subtest: cognitive queries use POST query semantics and propagate 4xx/5xx bridge errors
+ok 11 - cognitive queries use POST query semantics and propagate 4xx/5xx bridge errors
+  ---
+  duration_ms: 2.0702
+  type: 'test'
+  ...
+# Subtest: only important or terminal events wake models, not action progress
+ok 12 - only important or terminal events wake models, not action progress
+  ---
+  duration_ms: 1.9316
+  type: 'test'
+  ...
+# Subtest: ingress matrix: idle terminal steer, running urgent steer, running routine inject, autoWake false inject
+ok 13 - ingress matrix: idle terminal steer, running urgent steer, running routine inject, autoWake false inject
+  ---
+  duration_ms: 0.7193
+  type: 'test'
+  ...
+# Subtest: running routine event injects and never followups
+ok 14 - running routine event injects and never followups
+  ---
+  duration_ms: 1.015
+  type: 'test'
+  ...
+# Subtest: running urgent event steers
+ok 15 - running urgent event steers
+  ---
+  duration_ms: 0.4359
+  type: 'test'
+  ...
+# Subtest: idle wake-worthy event steers instead of followup
+ok 16 - idle wake-worthy event steers instead of followup
+  ---
+  duration_ms: 0.4137
+  type: 'test'
+  ...
+# Subtest: autoWake false injects without waking
+ok 17 - autoWake false injects without waking
+  ---
+  duration_ms: 0.4466
+  type: 'test'
+  ...
+# Subtest: body event transport source contains no followup call
+ok 18 - body event transport source contains no followup call
+  ---
+  duration_ms: 2.6331
+  type: 'test'
+  ...
+# Subtest: game chat is plugin-attributed data, not human/system instructions
+ok 19 - game chat is plugin-attributed data, not human/system instructions
+  ---
+  duration_ms: 0.3948
+  type: 'test'
+  ...
+# Subtest: cursor persists atomically, preserves version and rejects malformed state
+ok 20 - cursor persists atomically, preserves version and rejects malformed state
+  ---
+  duration_ms: 49.8699
+  type: 'test'
+  ...
+# Subtest: pump checkpoints only after delivery and batches without dropping payloads
+ok 21 - pump checkpoints only after delivery and batches without dropping payloads
+  ---
+  duration_ms: 1.1903
+  type: 'test'
+  ...
+# Subtest: delivery failure never advances acknowledgement past failed event
+ok 22 - delivery failure never advances acknowledgement past failed event
+  ---
+  duration_ms: 0.5321
+  type: 'test'
+  ...
+# Subtest: gap produces explicit resync notice before replacing cursor
+ok 23 - gap produces explicit resync notice before replacing cursor
+  ---
+  duration_ms: 0.4908
+  type: 'test'
+  ...
+# Subtest: unannounced event gaps are rejected rather than silently skipped
+ok 24 - unannounced event gaps are rejected rather than silently skipped
+  ---
+  duration_ms: 0.4194
+  type: 'test'
+  ...
+# Subtest: successful say does not self-wake; failure and significant damage still deliver
+ok 25 - successful say does not self-wake; failure and significant damage still deliver
+  ---
+  duration_ms: 0.2391
+  type: 'test'
+  ...
+# Subtest: production Java HTTP + kernel + journal interoperates with real Node client (FAKE world)
+    # Subtest: rejects missing auth, wrong auth and browser Origin without changing the body
+    ok 1 - rejects missing auth, wrong auth and browser Origin without changing the body
+      ---
+      duration_ms: 118.7551
+      type: 'test'
+      ...
+    # Subtest: rejects duplicate query parameters, non-JSON mutation and oversized body
+    ok 2 - rejects duplicate query parameters, non-JSON mutation and oversized body
+      ---
+      duration_ms: 12.4928
+      type: 'test'
+      ...
+    # Subtest: a second session cannot acquire the body; credentials are not returned by status
+    ok 3 - a second session cannot acquire the body; credentials are not returned by status
+      ---
+      duration_ms: 15.0262
+      type: 'test'
+      ...
+    # Subtest: concurrent duplicate submissions run exactly one fake physical start
+    ok 4 - concurrent duplicate submissions run exactly one fake physical start
+      ---
+      duration_ms: 35.1301
+      type: 'test'
+      ...
+    # Subtest: pause/resume control receipts settle on game thread and hold the same execution
+    ok 5 - pause/resume control receipts settle on game thread and hold the same execution
+      ---
+      duration_ms: 131.9021
+      type: 'test'
+      ...
+    # Subtest: journal returns terminal event, replay is non-consuming and duplicate completed call does not rerun
+    ok 6 - journal returns terminal event, replay is non-consuming and duplicate completed call does not rerun
+      ---
+      duration_ms: 11.5524
+      type: 'test'
+      ...
+    # Subtest: MC-2A0 cognitive queries: stable hash, fail-closed refs, bounded local, busy-safe
+    ok 7 - MC-2A0 cognitive queries: stable hash, fail-closed refs, bounded local, busy-safe
+      ---
+      duration_ms: 148.865
+      type: 'test'
+      ...
+    # Subtest: actual plugin transport worker enqueues a terminal wake into its fake DSH owner
+    ok 8 - actual plugin transport worker enqueues a terminal wake into its fake DSH owner
+      ---
+      duration_ms: 203.1436
+      type: 'test'
+      ...
+    1..8
+ok 26 - production Java HTTP + kernel + journal interoperates with real Node client (FAKE world)
+  ---
+  duration_ms: 1617.5454
+  type: 'test'
+  ...
+# Subtest: native tools return canonical output values and expose bounded operations only
+ok 27 - native tools return canonical output values and expose bounded operations only
+  ---
+  duration_ms: 6.3009
+  type: 'test'
+  ...
+# Subtest: graph tools separate durable planning/read from explicit physical dispatch
+ok 28 - graph tools separate durable planning/read from explicit physical dispatch
+  ---
+  duration_ms: 2.4508
+  type: 'test'
+  ...
+# Subtest: cognitive query tools are read-only: no turn conclusion, no execution slot, no lease mutation
+ok 29 - cognitive query tools are read-only: no turn conclusion, no execution slot, no lease mutation
+  ---
+  duration_ms: 1.3515
+  type: 'test'
+  ...
+# Subtest: one DSH session owns the body and other sessions cannot submit or detach it
+ok 30 - one DSH session owns the body and other sessions cannot submit or detach it
+  ---
+  duration_ms: 2.1112
+  type: 'test'
+  ...
+# Subtest: concurrent attach calls cannot give ownership to two sessions
+ok 31 - concurrent attach calls cannot give ownership to two sessions
+  ---
+  duration_ms: 0.6526
+  type: 'test'
+  ...
+# Subtest: plugin disposal releases once and prevents new calls
+ok 32 - plugin disposal releases once and prevents new calls
+  ---
+  duration_ms: 0.5263
+  type: 'test'
+  ...
+# Subtest: malformed cursor prevents acquiring a lease
+ok 33 - malformed cursor prevents acquiring a lease
+  ---
+  duration_ms: 0.5556
+  type: 'test'
+  ...
+# Subtest: an ephemeral host without a persistence barrier is rejected
+ok 34 - an ephemeral host without a persistence barrier is rejected
+  ---
+  duration_ms: 0.4258
+  type: 'test'
+  ...
+# Subtest: DSH flush failure keeps the incoming event cursor before the uncommitted message
+ok 35 - DSH flush failure keeps the incoming event cursor before the uncommitted message
+  ---
+  duration_ms: 10.189
+  type: 'test'
+  ...
+1..35
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3300.2511
+test_all_modification_manifests_have_valid_blob_ids_and_counts (__main__.InstallerTest.test_all_modification_manifests_have_valid_blob_ids_and_counts) ... ok
+test_ambiguous_anchor_fails (__main__.InstallerTest.test_ambiguous_anchor_fails) ... ok
+test_blob_drift_fails_before_writes (__main__.InstallerTest.test_blob_drift_fails_before_writes) ... ok
+test_dirty_tracked_checkout_refused_even_matching_head (__main__.InstallerTest.test_dirty_tracked_checkout_refused_even_matching_head) ... ok
+test_dsh_wrong_head_does_not_create_scratch_dir (__main__.InstallerTest.test_dsh_wrong_head_does_not_create_scratch_dir) ... ok
+test_exact_anchor_replacement (__main__.InstallerTest.test_exact_anchor_replacement) ... ok
+test_existing_overlay_file_not_overwritten (__main__.InstallerTest.test_existing_overlay_file_not_overwritten) ... ok
+test_git_blob_algorithm_matches_git (__main__.InstallerTest.test_git_blob_algorithm_matches_git) ... ok
+test_missing_anchor_fails (__main__.InstallerTest.test_missing_anchor_fails) ... ok
+test_planning_never_writes_original (__main__.InstallerTest.test_planning_never_writes_original) ... ok
+test_wrong_head_refuses_without_touching_worktree (__main__.InstallerTest.test_wrong_head_refuses_without_touching_worktree) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 1.449s
+
+OK
+test_config_accepts_offline_argument_array (__main__.SupervisorTest.test_config_accepts_offline_argument_array) ... ok
+test_config_rejects_non_loopback_control_host (__main__.SupervisorTest.test_config_rejects_non_loopback_control_host) ... ok
+test_config_rejects_non_offline_access_token (__main__.SupervisorTest.test_config_rejects_non_offline_access_token) ... ok
+test_config_rejects_sensitive_account_environment (__main__.SupervisorTest.test_config_rejects_sensitive_account_environment) ... ok
+test_config_rejects_shell_string (__main__.SupervisorTest.test_config_rejects_shell_string) ... ok
+test_config_requires_offline_identity_placeholders (__main__.SupervisorTest.test_config_requires_offline_identity_placeholders) ... ok
+test_expand_is_deterministic (__main__.SupervisorTest.test_expand_is_deterministic) ... ok
+test_invalid_window_mode_is_rejected (__main__.SupervisorTest.test_invalid_window_mode_is_rejected) ... ok
+test_offline_uuid_is_case_sensitive_like_minecraft (__main__.SupervisorTest.test_offline_uuid_is_case_sensitive_like_minecraft) ... ok
+test_offline_uuid_matches_known_bob_value (__main__.SupervisorTest.test_offline_uuid_matches_known_bob_value) ... ok
+test_window_mode_defaults_to_background (__main__.SupervisorTest.test_window_mode_defaults_to_background) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.091s
+
+OK
+
+Offline suites passed. NOT a real Minecraft GameTest or actual DSH loading result.

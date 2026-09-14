@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.mode.CapabilityPolicyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-14T03:06:27.468Z" hostname="FORST" time="0.001">
+  <properties/>
+  <testcase name="strictSurvivalRejectsEveryPrivilegeEvenWhenOperatorFlagsAreEnabled()" classname="io.github.zoyluo.aibot.mode.CapabilityPolicyTest" time="0.0"/>
+  <testcase name="missingProfileOrOperatorConfigurationFailsClosed()" classname="io.github.zoyluo.aibot.mode.CapabilityPolicyTest" time="0.0"/>
+  <testcase name="operatorHonorsEachCapabilityFlagIndependently()" classname="io.github.zoyluo.aibot.mode.CapabilityPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

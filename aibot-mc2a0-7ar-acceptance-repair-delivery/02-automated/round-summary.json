@@ -1,0 +1,31 @@
+{
+  "junit": {
+    "tests": 453,
+    "failures": 0,
+    "errors": 0
+  },
+  "gametest": {
+    "total": 643,
+    "fails": 0
+  },
+  "bridgecore": "TOTAL 105 checks passed",
+  "node": {
+    "pass": 43,
+    "fail": 0
+  },
+  "installer": 11,
+  "supervisor": {
+    "ran": 11,
+    "ok": true
+  },
+  "evidence_hygiene": {
+    "ran": 10,
+    "ok": true
+  },
+  "dsh_tools": 29,
+  "remapjar": "PASS (build/libs/aibot-0.0.1.jar)",
+  "acceptance_repair_python": {
+    "ran": 10,
+    "ok": true
+  }
+}

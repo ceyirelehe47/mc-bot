@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.RealClientScreenWireTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-14T03:06:26.122Z" hostname="FORST" time="0.334">
+  <properties/>
+  <testcase name="duplicateScreenSequenceNeverReplacesSnapshot()" classname="io.github.zoyluo.aibot.external.RealClientScreenWireTest" time="0.241"/>
+  <testcase name="gameSessionAdvanceClearsOldScreen()" classname="io.github.zoyluo.aibot.external.RealClientScreenWireTest" time="0.031"/>
+  <testcase name="screenSnapshotCarriesProvenanceAndStorageItems()" classname="io.github.zoyluo.aibot.external.RealClientScreenWireTest" time="0.029"/>
+  <testcase name="unrecognizedAdapterRemainsReadOnlyData()" classname="io.github.zoyluo.aibot.external.RealClientScreenWireTest" time="0.032"/>
+  <system-out><![CDATA[[11:06:26] [Test worker/INFO]: AIBot real-client transport bound to loopback port 62060 body_id=bob player=Bob
+[11:06:26] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=07b842ea-5402-448a-bc0c-9b5e824c8eaf window_mode=background
+[11:06:26] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=07b842ea-5402-448a-bc0c-9b5e824c8eaf
+[11:06:26] [Test worker/INFO]: AIBot real-client transport bound to loopback port 62062 body_id=bob player=Bob
+[11:06:26] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=d90f5250-4489-4db9-849b-ab0dcc6f281e window_mode=background
+[11:06:26] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=d90f5250-4489-4db9-849b-ab0dcc6f281e
+[11:06:26] [Test worker/INFO]: AIBot real-client transport bound to loopback port 62064 body_id=bob player=Bob
+[11:06:26] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=1b65da50-47fb-4925-8142-01aba0888d4b window_mode=background
+[11:06:26] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=1b65da50-47fb-4925-8142-01aba0888d4b
+[11:06:26] [Test worker/INFO]: AIBot real-client transport bound to loopback port 62066 body_id=bob player=Bob
+[11:06:26] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=bc6667a0-bd9e-45bc-a92c-3b8290fe042b window_mode=background
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

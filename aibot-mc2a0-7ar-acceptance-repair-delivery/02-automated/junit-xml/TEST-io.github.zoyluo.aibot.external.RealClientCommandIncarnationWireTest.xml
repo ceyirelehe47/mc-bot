@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.zoyluo.aibot.external.RealClientCommandIncarnationWireTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-14T03:06:25.941Z" hostname="FORST" time="0.143">
+  <properties/>
+  <testcase name="commandsCarryCurrentGameIncarnationAndMonotonicSequence()" classname="io.github.zoyluo.aibot.external.RealClientCommandIncarnationWireTest" time="0.143"/>
+  <system-out><![CDATA[[11:06:26] [Test worker/INFO]: AIBot real-client transport bound to loopback port 62058 body_id=bob player=Bob
+[11:06:26] [aibot-real-client-handshake/INFO]: AIBot real client connected body_id=bob player=Bob session=20c2ac21-41d4-4124-9512-d4b18b1a4979 window_mode=background
+[11:06:26] [aibot-real-client-reader/INFO]: AIBot real client disconnected body_id=bob player=Bob session=20c2ac21-41d4-4124-9512-d4b18b1a4979
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

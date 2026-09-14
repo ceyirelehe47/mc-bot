@@ -1,0 +1,19 @@
+{
+ "task": "MC-2A0.7A-R Acceptance Repair / Final Freeze",
+ "base_branch": "experiment/mc2a0-7a-security-cleanup",
+ "base_head": "cb958908a494bf46b00bb24d32cd38f7b98438c7",
+ "branch": "experiment/mc2a0-7ar-acceptance-repair",
+ "forbidden_ancestor": "57b534d16d5c4d7c05e47a18d78aa552359b6666",
+ "commit_a": "a2b2b77638724d2ad6a6a9c4bb3b33480c919cc2",
+ "proxy_replacement_sha256": "2e0fed60974a81a81a054b6010684a14699339d4c975ce8eec7320ae84c87e5a",
+ "world_lineage_id": "w07ar-4167799982467607063",
+ "clone_source": "mc-server-mc1ca/world_play (robocopy, logs/crash-reports excluded)",
+ "fixture": "terminal 680 70 -11 facing=east / link cable 681 / inventory_connector 682 / chest 683",
+ "fixture_discoveries": {
+  "connector_no_facing": "inventory_connector 无方向属性,[facing=east] 非法导致 setblock 静默失败(上一轮 N2/N6 重建失败的共同根因之一)",
+  "cable_autofaces": "inventory_cable 裸放依赖邻接自动开面(terminal/connector 就位时自动 [east=true,west=true])",
+  "empty_chest_required": "verified 的 terminal items 缓存增量==chest 实际增量,仅当 chest 为空时成立;LIVE-C 各相重启天然清缓存,LIVE-D 用 terminal+chest 双重放",
+  "single_accept_8766": "8766 单 accept:客户端断开后必须连服务器一起冷启动",
+  "runtime_bots_conflict": "real_client 后端启动要求 runtime.json bots 为空(上轮 fake 后端遗留记录会 authority_conflict 崩服)"
+ }
+}

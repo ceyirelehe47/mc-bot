@@ -1,0 +1,7 @@
+{
+ "method": "git worktree @cb95890 -> cherry-pick a2b2b77 -> tree hash compare",
+ "replay_tree": "d1da4325ddc07904bf395553add11a7a42693d3a",
+ "branch_tree": "d1da4325ddc07904bf395553add11a7a42693d3a",
+ "diff_bytes": 0,
+ "worktree_clean": true
+}
