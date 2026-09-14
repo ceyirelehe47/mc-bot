@@ -14,6 +14,36 @@ def integer(value: Any) -> int:
     return int(value)
 
 
+def selected_tool_retained(phase: dict[str, Any]) -> bool:
+    """Require an explicit before/after snapshot of the selected hotbar tool.
+
+    A prose or boolean claim is deliberately insufficient.  The evidence must
+    show that the same non-air item, count, and selected slot survived the
+    deposit unchanged.
+    """
+    snapshot = phase.get("selected_tool")
+    if not isinstance(snapshot, dict):
+        return False
+    try:
+        slot_before = integer(snapshot["slot_before"])
+        slot_after = integer(snapshot["slot_after"])
+        count_before = integer(snapshot["count_before"])
+        count_after = integer(snapshot["count_after"])
+    except (KeyError, TypeError, ValueError):
+        return False
+
+    item_before = str(snapshot.get("item_before", "")).strip()
+    item_after = str(snapshot.get("item_after", "")).strip()
+    return (
+        0 <= slot_before <= 8
+        and slot_before == slot_after
+        and item_before not in {"", "minecraft:air"}
+        and item_before == item_after
+        and count_before > 0
+        and count_before == count_after
+    )
+
+
 def validate(data: dict[str, Any]) -> dict[str, Any]:
     baseline = data["baseline_connected"]
     disconnected = data["disconnected"]
@@ -54,6 +84,7 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
             and integer(baseline["player_delta"]) == -base_n
             and integer(baseline["network_delta"]) == base_n
         ),
+        "baseline_selected_tool_retained": selected_tool_retained(baseline),
         "disconnect_after_new_server_start": (
             baseline["server_start_id"]
             != disconnected["server_start_id"]
@@ -89,6 +120,7 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
             and integer(reconnected["player_delta"]) == -reconnect_n
             and integer(reconnected["network_delta"]) == reconnect_n
         ),
+        "reconnect_selected_tool_retained": selected_tool_retained(reconnected),
         "same_world_lineage": (
             baseline["world_lineage_id"]
             == disconnected["world_lineage_id"]

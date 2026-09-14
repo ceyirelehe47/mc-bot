@@ -243,6 +243,17 @@ class AcceptanceRepairTest(unittest.TestCase):
             n2.validate(rows, summary, execution)["pass"]
         )
 
+    @staticmethod
+    def selected_tool() -> dict:
+        return {
+            "slot_before": 0,
+            "slot_after": 0,
+            "item_before": "minecraft:diamond_pickaxe",
+            "item_after": "minecraft:diamond_pickaxe",
+            "count_before": 1,
+            "count_after": 1,
+        }
+
     def reconnect_evidence(self) -> dict:
         common = {
             "terminal_pos": "10 64 10",
@@ -268,6 +279,7 @@ class AcceptanceRepairTest(unittest.TestCase):
                 "transfer_count": 8,
                 "player_delta": -8,
                 "network_delta": 8,
+                "selected_tool": self.selected_tool(),
             },
             "disconnected": {
                 **common,
@@ -291,6 +303,7 @@ class AcceptanceRepairTest(unittest.TestCase):
                 "transfer_count": 8,
                 "player_delta": -8,
                 "network_delta": 8,
+                "selected_tool": self.selected_tool(),
             },
         }
 
@@ -312,6 +325,27 @@ class AcceptanceRepairTest(unittest.TestCase):
         data["terminal_replaced"] = True
         self.assertFalse(reconnect.validate(data)["pass"])
 
+    def test_reconnect_validator_rejects_missing_selected_tool_snapshot(self):
+        data = self.reconnect_evidence()
+        del data["reconnected"]["selected_tool"]
+        result = reconnect.validate(data)
+        self.assertFalse(result["pass"])
+        self.assertIn("reconnect_selected_tool_retained", result["failed"])
+
+    def test_reconnect_validator_rejects_changed_selected_tool_item(self):
+        data = self.reconnect_evidence()
+        data["baseline_connected"]["selected_tool"]["item_after"] = (
+            "minecraft:iron_pickaxe"
+        )
+        result = reconnect.validate(data)
+        self.assertFalse(result["pass"])
+        self.assertIn("baseline_selected_tool_retained", result["failed"])
+
+    def test_reconnect_validator_rejects_selected_slot_change(self):
+        data = self.reconnect_evidence()
+        data["reconnected"]["selected_tool"]["slot_after"] = 1
+        self.assertFalse(reconnect.validate(data)["pass"])
+
     def test_external_attestation_must_be_outside_repo(self):
         with tempfile.TemporaryDirectory() as directory:
             repo = pathlib.Path(directory)
@@ -323,6 +357,69 @@ class AcceptanceRepairTest(unittest.TestCase):
                     repo.parent / "audit.json", repo
                 )
             )
+
+    def test_external_secret_files_require_exactly_two(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = pathlib.Path(directory)
+            with self.assertRaisesRegex(
+                ValueError, "exactly_two_secret_files_required"
+            ):
+                final_audit.resolve_secret_files(repo, [])
+
+    def test_external_secret_files_resolve_relative_and_fingerprint(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = pathlib.Path(directory)
+            secrets_dir = repo / ".secrets"
+            secrets_dir.mkdir()
+            old = secrets_dir / "old.token"
+            new = secrets_dir / "new.token"
+            old.write_text("old-secret-value\n", encoding="utf-8")
+            new.write_text("new-secret-value\n", encoding="utf-8")
+            paths, fingerprints = final_audit.resolve_secret_files(
+                repo,
+                [pathlib.Path(".secrets/old.token"), pathlib.Path(".secrets/new.token")],
+            )
+            self.assertEqual(paths, [old.resolve(), new.resolve()])
+            self.assertEqual(len(fingerprints), 2)
+            self.assertEqual(len(set(fingerprints)), 2)
+
+    def test_external_secret_files_reject_duplicate_values(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = pathlib.Path(directory)
+            first = repo / "first.token"
+            second = repo / "second.token"
+            first.write_text("same-value\n", encoding="utf-8")
+            second.write_text("same-value\n", encoding="utf-8")
+            with self.assertRaisesRegex(
+                ValueError, "secret_file_values_must_be_distinct"
+            ):
+                final_audit.resolve_secret_files(repo, [first, second])
+
+    def test_external_attestation_checks_require_stable_exact_audit(self):
+        audit = {
+            "pass": True,
+            "finding_count": 0,
+            "base": "base-a",
+            "head": "head-a",
+            "commit_count": 4,
+        }
+        checks = final_audit.attestation_checks(
+            audit=audit,
+            base="base-a",
+            head_before="head-a",
+            head_after="head-a",
+            remote_before="head-a",
+            remote_after="head-a",
+            status_before="",
+            status_after="",
+            secret_file_count=2,
+            secret_fingerprints=["fingerprint-a", "fingerprint-b"],
+            forbidden_ancestors=["bad-a"],
+            expected_commit_count=4,
+        )
+        self.assertTrue(all(checks.values()))
+        checks["remote_head_stable"] = False
+        self.assertFalse(all(checks.values()))
 
     def test_proxy_duplicate_bound_is_enforced(self):
         with tempfile.TemporaryDirectory() as directory:
