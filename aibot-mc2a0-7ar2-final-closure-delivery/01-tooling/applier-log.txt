@@ -1,0 +1,8 @@
+CHECKED: exact HEAD, clean tracked worktree, 3 exact blobs, 3 replacement hashes. No changes.
+PATCH: D:/code/mc-experiment/mc2a0-7ar2-reviewed.patch
+APPLIED: 3 acceptance files + regenerated aibot-dsh-m0/SHA256SUMS
+CHANGED:
+  aibot-dsh-m0/SHA256SUMS
+  aibot-dsh-m0/scripts/mc2a07ar_external_final_audit.py
+  aibot-dsh-m0/scripts/mc2a07ar_toms_reconnect.py
+  aibot-dsh-m0/scripts/test_mc2a07ar_acceptance_repair.py

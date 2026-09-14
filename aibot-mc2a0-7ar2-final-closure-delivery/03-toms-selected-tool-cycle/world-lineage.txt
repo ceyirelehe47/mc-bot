@@ -1,0 +1,6 @@
+world_lineage_id: w07ar-4167799982467607063
+terminal: 680 70 -11
+link: 681 70 -11
+connector: 682 70 -11
+network chest: 683 70 -11
+original link state: toms_storage:inventory_cable[east=true,west=true]

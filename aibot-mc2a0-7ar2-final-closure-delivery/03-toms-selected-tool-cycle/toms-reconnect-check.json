@@ -1,0 +1,33 @@
+{
+  "fixture_id": "toms-r2-live-20260914",
+  "terminal_pos": "680 70 -11",
+  "link_pos": "681 70 -11",
+  "checks": {
+    "fixture_id_nonempty": true,
+    "terminal_stable_all_phases": true,
+    "link_stable_all_phases": true,
+    "only_link_changed": true,
+    "terminal_never_replaced": true,
+    "baseline_link_connected": true,
+    "baseline_completed": true,
+    "baseline_toms_reason": true,
+    "baseline_positive_transfer": true,
+    "baseline_selected_tool_retained": true,
+    "disconnect_after_new_server_start": true,
+    "disconnect_link_air": true,
+    "disconnect_observed_5s": true,
+    "disconnect_not_completed": true,
+    "disconnect_player_zero": true,
+    "disconnect_network_zero": true,
+    "disconnect_other_storage_zero": true,
+    "reconnect_after_another_server_start": true,
+    "reconnect_link_restored": true,
+    "reconnect_completed": true,
+    "reconnect_toms_reason": true,
+    "reconnect_positive_transfer": true,
+    "reconnect_selected_tool_retained": true,
+    "same_world_lineage": true
+  },
+  "failed": [],
+  "pass": true
+}

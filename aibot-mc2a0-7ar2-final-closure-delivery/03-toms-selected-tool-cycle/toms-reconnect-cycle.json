@@ -1,0 +1,72 @@
+{
+  "fixture_id": "toms-r2-live-20260914",
+  "terminal_pos": "680 70 -11",
+  "link_pos": "681 70 -11",
+  "original_link_state": "toms_storage:inventory_cable[east=true,west=true]",
+  "only_link_changed": true,
+  "terminal_replaced": false,
+  "baseline_connected": {
+    "terminal_pos": "680 70 -11",
+    "link_pos": "681 70 -11",
+    "world_lineage_id": "w07ar-4167799982467607063",
+    "server_start_id": "start-1789394955638",
+    "link_state": "toms_storage:inventory_cable[east=true,west=true]",
+    "execution_id": "55fe1bb5-1be2-454a-8d9f-f4d9cea7dd0e",
+    "state": "completed",
+    "reason": "server_authoritative_owned_screen_toms_storage_terminal_transfer_verified:2",
+    "bob_before": 3,
+    "bob_after": 1,
+    "net_total_before": 0,
+    "net_total_after": 2,
+    "transfer_count": 2,
+    "player_delta": -2,
+    "network_delta": 2,
+    "selected_tool": {
+      "slot_before": 1,
+      "slot_after": 1,
+      "item_before": "minecraft:diamond_pickaxe",
+      "item_after": "minecraft:diamond_pickaxe",
+      "count_before": 1,
+      "count_after": 1
+    }
+  },
+  "disconnected": {
+    "terminal_pos": "680 70 -11",
+    "link_pos": "681 70 -11",
+    "world_lineage_id": "w07ar-4167799982467607063",
+    "server_start_id": "start-1789395020894",
+    "link_state": "minecraft:air",
+    "observation_ms": 7132,
+    "execution_id": "6dbdadf8-9eff-4cb6-8443-4787a08bab7f",
+    "state": "cancelled",
+    "state_trail_note": "running@1.03; running@2.03; running@3.05; running@4.07; running@5.09; running@6.12",
+    "player_delta": 0,
+    "network_delta": 0,
+    "other_storage_delta": 0
+  },
+  "reconnected": {
+    "terminal_pos": "680 70 -11",
+    "link_pos": "681 70 -11",
+    "world_lineage_id": "w07ar-4167799982467607063",
+    "server_start_id": "start-1789395095539",
+    "link_state": "toms_storage:inventory_cable[east=true,west=true]",
+    "execution_id": "21ffda2c-319b-4cd0-9e0c-c7bd52a3e282",
+    "state": "completed",
+    "reason": "server_authoritative_owned_screen_toms_storage_terminal_transfer_verified:2",
+    "bob_before": 3,
+    "bob_after": 1,
+    "net_total_before": 0,
+    "net_total_after": 2,
+    "transfer_count": 2,
+    "player_delta": -2,
+    "network_delta": 2,
+    "selected_tool": {
+      "slot_before": 1,
+      "slot_after": 1,
+      "item_before": "minecraft:diamond_pickaxe",
+      "item_after": "minecraft:diamond_pickaxe",
+      "count_before": 1,
+      "count_after": 1
+    }
+  }
+}

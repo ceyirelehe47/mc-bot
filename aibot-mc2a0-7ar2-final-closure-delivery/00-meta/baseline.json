@@ -1,0 +1,28 @@
+{
+  "task": "MC-2A0.7A-R2 Final Closure",
+  "base_branch": "experiment/mc2a0-7ar-acceptance-repair",
+  "base_head": "d7b89c919eecee7b489993c3e48607d886117b4a",
+  "branch": "experiment/mc2a0-7ar2-final-closure",
+  "commit_a": "d4ecdf5",
+  "original_safe_audit_base": "cb958908a494bf46b00bb24d32cd38f7b98438c7",
+  "forbidden_ancestor": "57b534d16d5c4d7c05e47a18d78aa552359b6666",
+  "task_package_zip_sha256": "dd96006f715ba481f11c201802d780c0fe872604c31e80723bb8fddc16936353",
+  "reviewed_patch_sha256": "3b0830200b5caebf16f63d926c6ebfa60700fb4c9d58c2618c9a63bb943c4bfc",
+  "replaced_files": [
+    {
+      "path": "aibot-dsh-m0/scripts/mc2a07ar_toms_reconnect.py",
+      "old_blob": "5f37e349f4b84897105a71ae1b65b826f038db54",
+      "new_sha256": "bedb2a469d9831702327e8c8ba6e226f049ee7ea83e19c1d43057f86ab07208a"
+    },
+    {
+      "path": "aibot-dsh-m0/scripts/mc2a07ar_external_final_audit.py",
+      "old_blob": "377eec1f8a78eacefd605667a96b0c9613689fc5",
+      "new_sha256": "3d6217ef4f14de1747f70c9ad4424805cd0d4fbc1872c8445ee37cb78aa01dbd"
+    },
+    {
+      "path": "aibot-dsh-m0/scripts/test_mc2a07ar_acceptance_repair.py",
+      "old_blob": "7966f207cb1c5308cedb133a4b5696a14fcf8128",
+      "new_sha256": "39e500b00accbd700e8f24ca48740c42bc32d75d54680d9656b2598abbdfdeaa"
+    }
+  ]
+}

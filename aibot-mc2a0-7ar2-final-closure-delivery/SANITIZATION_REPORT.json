@@ -1,0 +1,69 @@
+{
+  "source": "D:\\mc2a07ar2-raw\\stage",
+  "destination": "D:\\code\\mc-bot\\aibot-mc2a0-7ar2-final-closure-delivery",
+  "copied_files": 12,
+  "skipped_files": 0,
+  "copied": [
+    {
+      "path": "00-meta/baseline.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "01-tooling/applier-log.txt",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "01-tooling/mc2a0-7ar2-reviewed.patch",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/acceptance-repair-python.txt",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/diff-check.txt",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/evidence-hygiene-python.txt",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/gen-sums.txt",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/production-java-diff.txt",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "03-toms-selected-tool-cycle/toms-reconnect-check.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "03-toms-selected-tool-cycle/toms-reconnect-cycle.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "03-toms-selected-tool-cycle/world-lineage.txt",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "RESULT.zh-CN.md",
+      "mode": "text",
+      "redaction_markers": 0
+    }
+  ],
+  "skipped": []
+}
