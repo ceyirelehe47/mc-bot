@@ -157,4 +157,4 @@ runtime_namespace=intermediary(客户端日志);`aibot-0.0.1.jar` sha256 前缀 
 
 ## 附注:审计报告快照说明
 
-`09-audit/git-range-audit.json` 的快照对象为 amend 前提交(3c687f9);amend(cfaca72)仅将该报告与 n6-disconnected-network.json 并入交付树,生产/脚本/其余证据树字节不变,审计结论(4 commits、126 blobs、0 findings)对最终 HEAD 同样成立(树一致,仅提交对象 SHA 不同)。
+`09-audit/git-range-audit.json` 为区间审计的最终快照(对象 cfaca72:4 commits、126 blobs、0 findings;最终 HEAD 089f0d0 相对快照仅多出本附注与报告字节本身,生产/脚本/证据树不变)。
