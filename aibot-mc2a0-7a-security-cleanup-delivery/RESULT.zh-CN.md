@@ -152,3 +152,9 @@ runtime_namespace=intermediary(客户端日志);`aibot-0.0.1.jar` sha256 前缀 
 ## 32. 干净 HEAD 是否可冻结
 
 **可冻结**。凭证轮换+干净历史+四负向门禁+净化交付全部成立;三项披露(N2/N6 Tom's 重建正向装置学限制、fixture Screen 冒烟无生产装置、驱动侧 proxy 变体)均为装置层,不影响生产语义与仓库字节。
+
+---
+
+## 附注:审计报告快照说明
+
+`09-audit/git-range-audit.json` 的快照对象为 amend 前提交(3c687f9);amend(cfaca72)仅将该报告与 n6-disconnected-network.json 并入交付树,生产/脚本/其余证据树字节不变,审计结论(4 commits、126 blobs、0 findings)对最终 HEAD 同样成立(树一致,仅提交对象 SHA 不同)。
