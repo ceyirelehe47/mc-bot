@@ -541,10 +541,14 @@ public final class RealClientExecutionDriver
                         "outcome_unknown",0D,
                         "real_client_body_unavailable");
 
-            if(!target.stillValid(player))
+            if(!target.stillValid(player)) {
+                transport.sendControl(
+                        executionId,"cancel",
+                        "real_client_deposit_target_changed");
                 return new BodyBackend.Snapshot(
                         "failed",0D,
                         "real_client_deposit_target_changed");
+            }
 
             int playerCurrent=countPlayerInventory(player);
             long targetCurrent=target.count();

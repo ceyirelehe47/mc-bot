@@ -119,7 +119,7 @@ public final class RealClientBodyClientRuntime {
             String type=message.has("type")
                     ?message.get("type").getAsString():"";
             if("command".equals(type))
-                actions.command(message);
+                actions.command(message,client);
             else if("control".equals(type))
                 actions.control(message,client);
         }

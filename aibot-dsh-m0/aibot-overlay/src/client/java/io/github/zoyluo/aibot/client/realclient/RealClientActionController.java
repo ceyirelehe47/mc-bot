@@ -32,18 +32,15 @@ final class RealClientActionController {
         this.screens=screens;
     }
 
-    void command(JsonObject message) {
+    void command(JsonObject message,MinecraftClient client) {
         String executionId=safeExecutionId(message);
         try {
             commandChecked(message);
         } catch(RuntimeException failure) {
-            if(active!=null && executionId.equals(active.executionId)) {
-                active.failed=true;
-                active=null;
-            }
-            send(executionId,"failed",0D,
-                    "real_client_command_invalid:"
-                            +failure.getClass().getSimpleName());
+            failMalformedCurrent(
+                client,executionId,
+                "real_client_command_invalid:"
+                        +failure.getClass().getSimpleName());
         }
     }
 
@@ -143,9 +140,9 @@ final class RealClientActionController {
         try {
             controlChecked(message,client);
         } catch(RuntimeException failure) {
-            send(executionId,"failed",0D,
-                    "real_client_control_invalid:"
-                            +failure.getClass().getSimpleName());
+            String reason="real_client_control_invalid:"
+                    +failure.getClass().getSimpleName();
+            failMalformedCurrent(client,executionId,reason);
         }
     }
 
@@ -243,6 +240,25 @@ final class RealClientActionController {
                     "minecraft_connection_lost");
         }
         active=null;
+    }
+
+    private void failMalformedCurrent(
+            MinecraftClient client,String executionId,String reason) {
+        boolean ownsCurrent=active!=null
+                &&executionId.equals(active.executionId)
+                &&!active.terminal();
+        if(!ownsCurrent) {
+            send(executionId,"failed",0D,reason);
+            return;
+        }
+        clearInputs(client);
+        if(client.interactionManager!=null)
+            client.interactionManager.cancelBlockBreaking();
+        closeHandled(client);
+        double progress=active.progress;
+        active.failed=true;
+        active=null;
+        send(executionId,"failed",progress,reason);
     }
 
     private static String safeExecutionId(JsonObject message) {
