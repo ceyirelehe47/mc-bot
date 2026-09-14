@@ -1,0 +1,53 @@
+{
+  "background_input_isolation": {
+    "before": [
+      678.5,
+      70.0,
+      -10.5
+    ],
+    "after": [
+      678.5,
+      70.0,
+      -10.5
+    ],
+    "drift": 0.0
+  },
+  "single_authority": {
+    "probe_rc": 0,
+    "out": "single-authority-probe.json"
+  },
+  "say": {
+    "state": "completed",
+    "reason": "client_chat_packet_sent"
+  },
+  "goto_pause_resume": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "pause_ok": true,
+    "resume_ok": true
+  },
+  "moving_final_facing": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  "graph_mine": {
+    "gid": "graph-3fc86b771413df787df1b337",
+    "final_state": "DONE",
+    "run_next_ok": true,
+    "pickup_raw_iron": true
+  },
+  "vanilla_barrel_deposit": {
+    "state": "completed",
+    "reason": "server_authoritative_owned_screen_vanilla_barrel_transfer_verified:1",
+    "barrel_total": 1
+  },
+  "toms_positive_deposit": {
+    "state": "completed",
+    "reason": "server_authoritative_owned_screen_toms_storage_terminal_transfer_verified:1",
+    "net_total": 1
+  },
+  "gather_typed_rejection": {
+    "submit_http": 409,
+    "submit_error": "{\"error\":\"operation_not_supported_by_backend:gather\",\"ok\":false}"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "fixture_id": "toms-07ar-680",
+  "world_lineage_id": "w07ar-4167799982467607063",
+  "server_start_id": "start-existing-39732",
+  "terminal_pos": "680 70 -11",
+  "link_pos": "681 70 -11",
+  "net_chest_pos": "683 70 -11",
+  "terminal_state_at_start": "toms_storage:storage_terminal[facing=east]",
+  "link_state": "toms_storage:inventory_cable[east=true,west=true]",
+  "original_link_state": "toms_storage:inventory_cable[east=true,west=true]",
+  "execution_id": "0efe9f47-3d9f-40fd-9621-4441859d5df0",
+  "state": "completed",
+  "reason": "server_authoritative_owned_screen_toms_storage_terminal_transfer_verified:1",
+  "bob_before": 2,
+  "bob_after": 1,
+  "net_total_before": 0,
+  "net_total_after": 1,
+  "transfer_count": 1,
+  "player_delta": -1,
+  "network_delta": 1,
+  "selected_tool_retained": false,
+  "goto_execution": "1b9e4604-a211-4cf3-962c-56ece28575d3"
+}

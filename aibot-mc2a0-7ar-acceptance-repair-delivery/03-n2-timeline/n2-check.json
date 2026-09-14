@@ -1,0 +1,33 @@
+{
+  "execution_id": "1f702786-3c52-4f5e-b941-3fc031e6f80e",
+  "frame_id": "held-000047",
+  "timeline": {
+    "commit_held_epoch_ms": 1789386026481,
+    "target_replacement_epoch_ms": 1789386026651,
+    "cancel_control_epoch_ms": 1789386026723,
+    "screen_closed_epoch_ms": 1789386027237,
+    "execution_terminal_epoch_ms": 1789386026933,
+    "old_commit_release_epoch_ms": 1789386027268
+  },
+  "mutation_ack_rows": 0,
+  "checks": {
+    "same_execution": true,
+    "held_before_replacement": true,
+    "replacement_before_cancel": true,
+    "replacement_before_terminal": true,
+    "cancel_before_or_at_screen_close": true,
+    "screen_closed_before_release": true,
+    "terminal_before_release": true,
+    "terminal_state_failed": true,
+    "terminal_reason_target_changed": true,
+    "ui_absent": true,
+    "player_zero_delta": true,
+    "old_target_zero_delta": true,
+    "new_target_zero_delta": true,
+    "summary_click_ack_zero": true,
+    "proxy_mutation_ack_zero": true,
+    "cancel_was_not_blocked_by_held_commit": true
+  },
+  "failed": [],
+  "pass": true
+}

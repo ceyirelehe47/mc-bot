@@ -1,0 +1,53 @@
+{
+  "fixture_id": "toms-07ar-680",
+  "terminal_pos": "680 70 -11",
+  "link_pos": "681 70 -11",
+  "original_link_state": "toms_storage:inventory_cable[east=true,west=true]",
+  "only_link_changed": true,
+  "terminal_replaced": false,
+  "baseline_connected": {
+    "terminal_pos": "680 70 -11",
+    "link_pos": "681 70 -11",
+    "world_lineage_id": "w07ar-4167799982467607063",
+    "server_start_id": "start-existing-39732",
+    "link_state": "toms_storage:inventory_cable[east=true,west=true]",
+    "execution_id": "0efe9f47-3d9f-40fd-9621-4441859d5df0",
+    "state": "completed",
+    "reason": "server_authoritative_owned_screen_toms_storage_terminal_transfer_verified:1",
+    "transfer_count": 1,
+    "player_delta": -1,
+    "network_delta": 1
+  },
+  "disconnected": {
+    "terminal_pos": "680 70 -11",
+    "link_pos": "681 70 -11",
+    "world_lineage_id": "w07ar-4167799982467607063",
+    "server_start_id": "start-1789382850026",
+    "link_state": "minecraft:air",
+    "observation_ms": 7198,
+    "execution_id": "c630d2ec-302b-406a-a471-739e2b2aadcb",
+    "state": "cancelled",
+    "state_trail_note": "running@1.04; running@2.06; running@3.1; running@4.14; running@5.17; running@6.2",
+    "player_delta": 0,
+    "network_delta": 0,
+    "other_storage_delta": 0
+  },
+  "reconnected": {
+    "terminal_pos": "680 70 -11",
+    "link_pos": "681 70 -11",
+    "world_lineage_id": "w07ar-4167799982467607063",
+    "server_start_id": "start-1789382917989",
+    "link_state": "toms_storage:inventory_cable[east=true,west=true]",
+    "execution_id": "bc09dd6c-e061-4ad0-aacd-34418f18ff59",
+    "state": "completed",
+    "reason": "server_authoritative_owned_screen_toms_storage_terminal_transfer_verified:1",
+    "bob_before": 2,
+    "bob_after": 1,
+    "net_total_before": 0,
+    "net_total_after": 1,
+    "transfer_count": 1,
+    "player_delta": -1,
+    "network_delta": 1,
+    "selected_tool_retained": false
+  }
+}

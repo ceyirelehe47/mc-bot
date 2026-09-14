@@ -1,0 +1,584 @@
+{
+  "source": "D:\\mc2a07ar-raw",
+  "destination": "D:\\code\\mc-bot\\aibot-mc2a0-7ar-acceptance-repair-delivery\\00-raw-sanitized",
+  "copied_files": 115,
+  "skipped_files": 0,
+  "copied": [
+    {
+      "path": "02-automated/hygiene.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.action.BuildActionVisibilitySourceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.action.ToolSelectorPolicyTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.auth.BotAuthorizationPolicyTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.auth.BotTargetSelectorTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.brain.BrainCoordinatorControlContinuationTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.brain.DecisionSessionTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.brain.ToolRegistryStrictMiningBoundaryTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.coordination.JobScopeTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.DeepSeekThinkingConfigTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.BodyBackendSeamSourceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.cognition.CognitiveCanonicalizationTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.OpportunityBirthDurabilitySourceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.OpportunityResolutionReceiptTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.RealClientBackgroundScreenSourceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.RealClientCommandIncarnationWireTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.RealClientFailureCleanupSourceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.RealClientMvpSourceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.RealClientProductionRuntimeSourceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.RealClientScreenOwnershipSourceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.RealClientScreenWireTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.RealClientWireSessionTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.TaskGraphBridgeSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.TaskGraphStoreTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.external.TreeHarvestSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.AcquireWaterMissionFailurePolicyTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.GoalExecutorHuntCursorPersistenceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.GoalExecutorHuntPickupCheckpointTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.GoalExecutorMiningCheckpointPolicyTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.GoalExecutorObsidianResumeReconcileTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.GoalExecutorPostconditionRepairPersistenceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.GoalExecutorReplanPolicyTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.GoalExecutorSkippedTargetReceiptTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.GoalPredicateTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.GoalResultTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.goal.MiningPlanningSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.memory.BotMemoryGoalCancellationTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mining.MiningBudgetTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mining.MiningCursorTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mining.MiningEvidenceAuditTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mining.MiningFoodReserveTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mining.MiningMissionBudgetTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mining.ObsidianFoodBudgetTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mode.AIBotConfigModeDefaultsTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mode.CapabilityGateTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mode.CapabilityPolicyTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mode.ObservableWorldQueryInsetFaceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mode.PrivilegedBoundarySourceTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.mode.ProfileResolverTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.pathfinding.PathExecutorArrivalTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.pathfinding.PathExecutorReplanGateTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.pathfinding.PathExecutorRouteContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.pathfinding.PathSupportMaterialSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.persist.AtomicSnapshotFileTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.persist.MissionSpecTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.persist.RuntimeSnapshotCodecTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.runtime.ExecutionStackTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.runtime.IntentControlTransactionTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.AbstractTaskCancellationTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.AcquireWaterSurvivalBoundaryTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.CreateObsidianCheckpointTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.CreateObsidianSurvivalBoundaryTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.CreeperDefenseSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.DigDownCheckpointTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.DigDownReturnSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.DropRecoveryPolicyTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.EmergencyShelterEatingPolicyTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.EpisodeMemoryTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.GatherAtomicPhaseSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.HuntConstrainedRouteSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.HuntPickupCheckpointTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.HuntSearchCursorTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.MiningServiceDisposalSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.MiningServicePolicyTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.MiningTorchReserveSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.ObsidianSearchCursorTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.OreDigCheckpointSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.OreDigObservationSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.OreDigReservePolicyTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.StripMineStrictSurvivalBoundaryTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.SurfaceExpeditionWaterRecoverySourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/junit-xml/TEST-io.github.zoyluo.aibot.task.TreeAccessContinuationSourceContractTest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/round-summary.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/shout2.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/TEST-aibot-gametest.xml",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "02-automated/test-sh-suites.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "03-n2-timeline/n2-check.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "03-n2-timeline/n2-proxy.jsonl",
+      "mode": "jsonl",
+      "redaction_markers": 1
+    },
+    {
+      "path": "03-n2-timeline/n2-release.flag",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "03-n2-timeline/n2-summary.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "04-toms-reconnect/liveA-baseline-connected.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "04-toms-reconnect/toms-reconnect-check.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "04-toms-reconnect/toms-reconnect-cycle.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "04-toms-reconnect/world-lineage.txt",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "05-regression/liveD-regression.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "05-regression/liveD8-fakeplayer-smoke.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "05-regression/single-authority-probe.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "diag-probe.json",
+      "mode": "json",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/bob-expC-stdout.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/bob-livea-stdout.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/bob-lived2-stdout.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/bob-n2-stdout.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/bob-phase2-disc-stdout.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/bob-phase3-recon-stdout.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/bob-resurrect-stdout.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/bob-resurrect2-stdout.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/server-expC.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/server-fake-backend.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/server-lived2.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/server-mc2a07ar.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/server-n2.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/server-phase2-disc.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/server-phase3-recon.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/server-resurrect.log",
+      "mode": "text",
+      "redaction_markers": 0
+    },
+    {
+      "path": "logs/server-resurrect2.log",
+      "mode": "text",
+      "redaction_markers": 0
+    }
+  ],
+  "skipped": []
+}

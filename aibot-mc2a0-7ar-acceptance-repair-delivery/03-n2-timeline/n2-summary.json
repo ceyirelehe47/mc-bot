@@ -1,0 +1,23 @@
+{
+  "execution_id": "1f702786-3c52-4f5e-b941-3fc031e6f80e",
+  "held_epoch_ms": 1789386026481,
+  "frame_id": "held-000047",
+  "target_replacement_epoch_ms": 1789386026651,
+  "cancel_control_epoch_ms": 1789386026723,
+  "screen_closed_epoch_ms": 1789386027237,
+  "execution_terminal_epoch_ms": 1789386026933,
+  "old_commit_release_epoch_ms": 1789386027268,
+  "terminal_state": "failed",
+  "terminal_reason": "real_client_deposit_target_changed",
+  "ui_present_after": false,
+  "ui_present_while_held": false,
+  "click_ack_count": 0,
+  "inventory": {
+    "player_before": 2,
+    "player_after": 2,
+    "old_target_before": 0,
+    "old_target_after": 0,
+    "new_target_before": 0,
+    "new_target_after": 0
+  }
+}

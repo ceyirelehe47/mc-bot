@@ -1,0 +1,7 @@
+{
+  "token_sha256_fingerprint": "886b3a095a61f67e",
+  "expected": "rejected",
+  "accepted": false,
+  "reason": "EOFError",
+  "pass": true
+}

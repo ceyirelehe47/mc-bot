@@ -1,0 +1,22 @@
+{
+  "backend": "server_fake_player (restart without AIBOT_EXTERNAL_BACKEND)",
+  "fixture_note": "fake Bob spawn 于世界出生点(删档轮无记忆),tp 至工作区+桥 set_base 后三件套",
+  "results": {
+    "say": {
+      "state": "completed",
+      "reason": "client_chat_packet_sent"
+    },
+    "goto": {
+      "state": "completed",
+      "note": "tp 651.5,70,-10.5 后短途 goto 653,70,-6(128 格上限)"
+    },
+    "set_base": {
+      "state": "completed",
+      "reason": "base_marker_saved_operational_state_only"
+    },
+    "deposit": {
+      "state": "completed",
+      "reason": "upstream_task_completed_reobserve_for_user_goal_verification"
+    }
+  }
+}
