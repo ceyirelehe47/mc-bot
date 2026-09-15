@@ -23,5 +23,7 @@
  "minecraft_version": "1.21.3",
  "fabric_loader": "0.19.5",
  "yarn": "1.21.3+build.2",
- "jdk": "21.0.12+1 (Temurin)"
+ "jdk": "21.0.12+1 (Temurin)",
+ "commit_c": "f509d54f33eb3d44621a8b9eb897288f23287d3f",
+ "commit_d": "eadbb66c8cb76ca066dd1d08a0d2811eb40e0b4a"
 }
