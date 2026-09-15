@@ -144,6 +144,29 @@ public final class MC2A08OmnidirectionalPerceptionGameTests
 
     @GameTest(templateName=FabricGameTest.EMPTY_STRUCTURE,
             batchId="mc2a08_omnidirectional",tickLimit=200)
+    public void mc2a08EntityRadiusUsesEuclideanSphere(TestContext context) {
+        scenario(context,(world,player,start,spawned)->{
+            ItemEntity inside=spawnItem(world,start.east(3),spawned);
+            ItemEntity diagonalOutside=spawnItem(
+                    world,start.add(3,0,3),spawned);
+            var perception=perception(
+                    RealClientOmnidirectionalPerception.Mode.OMNI_SEMANTIC,
+                    20,4,2);
+            perception.tickAt(player,"session-a",0L);
+            var observations=perception.snapshot(player).entities();
+            require(context,observations.stream().anyMatch(entity->
+                            entity.objectId().equals(inside.getUuidAsString())),
+                    "entity inside the Euclidean radius must be visible");
+            require(context,observations.stream().noneMatch(entity->
+                            entity.objectId().equals(
+                                    diagonalOutside.getUuidAsString())),
+                    "diagonal entity inside expanded AABB but outside "
+                            +"Euclidean radius must be absent");
+        });
+    }
+
+    @GameTest(templateName=FabricGameTest.EMPTY_STRUCTURE,
+            batchId="mc2a08_omnidirectional",tickLimit=200)
     public void mc2a08GameSessionRotationClearsLastKnownMemory(TestContext context) {
         scenario(context,(world,player,start,spawned)->{
             ItemEntity item=spawnItem(world,start.south(4),spawned);
@@ -196,9 +219,15 @@ public final class MC2A08OmnidirectionalPerceptionGameTests
 
     private static RealClientOmnidirectionalPerception perception(
             RealClientOmnidirectionalPerception.Mode mode,int memoryTicks) {
+        return perception(mode,memoryTicks,12,8);
+    }
+
+    private static RealClientOmnidirectionalPerception perception(
+            RealClientOmnidirectionalPerception.Mode mode,int memoryTicks,
+            int entityRadius,int blockRadius) {
         return new RealClientOmnidirectionalPerception(
                 new RealClientOmnidirectionalPerception.Config(
-                        mode,12,8,memoryTicks,1,1));
+                        mode,entityRadius,blockRadius,memoryTicks,1,1));
     }
 
     private static ItemEntity spawnItem(

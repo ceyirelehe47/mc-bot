@@ -25,6 +25,22 @@ final class RealClientOmnidirectionalPerceptionSourceTest {
                 "STRICT_PLAYER_FOV(\"strict_player_fov\",110)"));
     }
 
+    @Test void entityRadiusIsEuclideanAndAppliedBeforeCandidateBudget()
+            throws Exception {
+        String source=read("RealClientOmnidirectionalPerception.java");
+        int radiusGate=source.indexOf(
+                "withinEntityRadius(player,entity,radius)");
+        int candidateBudget=source.indexOf(
+                "if(evaluated++>=ENTITY_CANDIDATE_LIMIT)");
+        assertTrue(radiusGate>=0,
+                "entity scan must apply the exact-radius predicate");
+        assertTrue(candidateBudget>radiusGate,
+                "out-of-radius AABB candidates must be removed before "
+                        +"consuming the bounded candidate budget");
+        assertTrue(source.contains(
+                "target.squaredDistanceTo(player.getPos())<=radius*radius"));
+    }
+
     @Test void currentEntityStateRequiresServerLineOfSight()
             throws Exception {
         String source=read("RealClientOmnidirectionalPerception.java");
