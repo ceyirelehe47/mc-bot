@@ -1,0 +1,2 @@
+remapJar: BUILD SUCCESSFUL
+server jar == client jar: sha256 bf1e48447e5508100a6ad2ce2c82e17722b27f14681ac50c69643ba97386bf33

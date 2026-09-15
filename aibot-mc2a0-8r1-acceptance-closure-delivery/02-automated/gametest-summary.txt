@@ -1,0 +1,3 @@
+round1: 650/0 (BUILD SUCCESSFUL; 643 legacy + 7 mc2a08 incl. mc2a08EntityRadiusUsesEuclideanSphere; env AIBOT_EXTERNAL_BOT=Mc1caBot + 48-char placeholder AIBOT_BRIDGE_TOKEN)
+round2: 650/0 (--rerun-tasks)
+replay: see clean-replay.txt

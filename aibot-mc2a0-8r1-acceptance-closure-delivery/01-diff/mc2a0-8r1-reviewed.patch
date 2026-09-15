@@ -1,0 +1,492 @@
+--- a/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A08OmnidirectionalPerceptionGameTests.java
++++ b/aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A08OmnidirectionalPerceptionGameTests.java
+@@ -139,6 +139,29 @@
+             require(context,blocks.stream().noneMatch(block->
+                             "minecraft:diamond_ore".equals(block.blockId())),
+                     "wall-hidden ore must never leak through omni perception");
++        });
++    }
++
++    @GameTest(templateName=FabricGameTest.EMPTY_STRUCTURE,
++            batchId="mc2a08_omnidirectional",tickLimit=200)
++    public void mc2a08EntityRadiusUsesEuclideanSphere(TestContext context) {
++        scenario(context,(world,player,start,spawned)->{
++            ItemEntity inside=spawnItem(world,start.east(3),spawned);
++            ItemEntity diagonalOutside=spawnItem(
++                    world,start.add(3,0,3),spawned);
++            var perception=perception(
++                    RealClientOmnidirectionalPerception.Mode.OMNI_SEMANTIC,
++                    20,4,2);
++            perception.tickAt(player,"session-a",0L);
++            var observations=perception.snapshot(player).entities();
++            require(context,observations.stream().anyMatch(entity->
++                            entity.objectId().equals(inside.getUuidAsString())),
++                    "entity inside the Euclidean radius must be visible");
++            require(context,observations.stream().noneMatch(entity->
++                            entity.objectId().equals(
++                                    diagonalOutside.getUuidAsString())),
++                    "diagonal entity inside expanded AABB but outside "
++                            +"Euclidean radius must be absent");
+         });
+     }
+ 
+@@ -196,9 +219,15 @@
+ 
+     private static RealClientOmnidirectionalPerception perception(
+             RealClientOmnidirectionalPerception.Mode mode,int memoryTicks) {
++        return perception(mode,memoryTicks,12,8);
++    }
++
++    private static RealClientOmnidirectionalPerception perception(
++            RealClientOmnidirectionalPerception.Mode mode,int memoryTicks,
++            int entityRadius,int blockRadius) {
+         return new RealClientOmnidirectionalPerception(
+                 new RealClientOmnidirectionalPerception.Config(
+-                        mode,12,8,memoryTicks,1,1));
++                        mode,entityRadius,blockRadius,memoryTicks,1,1));
+     }
+ 
+     private static ItemEntity spawnItem(
+--- a/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientOmnidirectionalPerception.java
++++ b/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientOmnidirectionalPerception.java
+@@ -347,7 +347,8 @@
+                 player,player.getBoundingBox().expand(radius),
+                 entity->entity.isAlive()
+                         && !(entity instanceof ServerPlayerEntity other
+-                        && other.isSpectator())));
++                        && other.isSpectator())
++                        && withinEntityRadius(player,entity,radius)));
+         candidates.sort(Comparator
+                 .comparingDouble((Entity entity)->entity.squaredDistanceTo(player))
+                 .thenComparing(entity->entity.getUuid().toString()));
+@@ -441,6 +442,12 @@
+                 .thenComparing(memory->memory.objectId));
+         int remove=blockMemory.size()-BLOCK_MEMORY_CAPACITY;
+         for(int i=0;i<remove;i++)blockMemory.remove(ordered.get(i).objectId);
++    }
++
++    private static boolean withinEntityRadius(
++            ServerPlayerEntity player,Entity entity,double radius) {
++        Vec3d target=entityCenter(entity);
++        return target.squaredDistanceTo(player.getPos())<=radius*radius;
+     }
+ 
+     private boolean visibleEntity(ServerPlayerEntity player,Entity entity) {
+--- a/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientOmnidirectionalPerceptionSourceTest.java
++++ b/aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientOmnidirectionalPerceptionSourceTest.java
+@@ -23,6 +23,22 @@
+         assertTrue(source.contains("OMNI_SEMANTIC(\"omni_semantic\",360)"));
+         assertTrue(source.contains(
+                 "STRICT_PLAYER_FOV(\"strict_player_fov\",110)"));
++    }
++
++    @Test void entityRadiusIsEuclideanAndAppliedBeforeCandidateBudget()
++            throws Exception {
++        String source=read("RealClientOmnidirectionalPerception.java");
++        int radiusGate=source.indexOf(
++                "withinEntityRadius(player,entity,radius)");
++        int candidateBudget=source.indexOf(
++                "if(evaluated++>=ENTITY_CANDIDATE_LIMIT)");
++        assertTrue(radiusGate>=0,
++                "entity scan must apply the exact-radius predicate");
++        assertTrue(candidateBudget>radiusGate,
++                "out-of-radius AABB candidates must be removed before "
++                        +"consuming the bounded candidate budget");
++        assertTrue(source.contains(
++                "target.squaredDistanceTo(player.getPos())<=radius*radius"));
+     }
+ 
+     @Test void currentEntityStateRequiresServerLineOfSight()
+--- /dev/null
++++ b/aibot-dsh-m0/scripts/check_mc2a08r1_evidence.py
+@@ -0,0 +1,390 @@
++#!/usr/bin/env python3
++"""Validate MC-2A0.8-R1 acceptance-closure evidence and the real external R2 attestation."""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++from pathlib import Path
++from typing import Any
++
++PREVIOUS_BRANCH = "experiment/mc2a0-7ar2-final-closure"
++PREVIOUS_HEAD = "090cd8b5de2bdaeddd1096f64e5238b92faacec5"
++PREVIOUS_AUDIT_BASE = "cb958908a494bf46b00bb24d32cd38f7b98438c7"
++R1_BASE_HEAD = "95f52157ac35db5f700a4e394b7ff699d047dcf6"
++COMPROMISED_HEAD = "57b534d16d5c4d7c05e47a18d78aa552359b6666"
++
++
++def sha256_file(path: Path) -> str:
++    digest = hashlib.sha256()
++    with path.open("rb") as handle:
++        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
++            digest.update(chunk)
++    return digest.hexdigest()
++
++
++def close(a: Any, b: Any, tolerance: float = 0.01) -> bool:
++    try:
++        return abs(float(a) - float(b)) <= tolerance
++    except (TypeError, ValueError):
++        return False
++
++
++def nonnegative_int(value: Any) -> int:
++    if isinstance(value, bool):
++        raise ValueError("boolean_is_not_an_integer")
++    return int(value)
++
++
++def previous_attestation_checks(
++    attestation: dict[str, Any],
++    expected_sha256: str,
++    actual_sha256: str,
++) -> dict[str, bool]:
++    audit = attestation.get("audit")
++    checks_map = attestation.get("checks")
++    forbidden = attestation.get("forbidden_ancestors")
++    failed = attestation.get("failed")
++    return {
++        "previous_attestation_sha256_matches":
++            expected_sha256 == actual_sha256,
++        "previous_attestation_version_2":
++            attestation.get("attestation_version") == 2,
++        "previous_attestation_pass":
++            attestation.get("pass") is True,
++        "previous_attestation_branch":
++            attestation.get("branch") == PREVIOUS_BRANCH,
++        "previous_attestation_audited_head":
++            attestation.get("audited_head") == PREVIOUS_HEAD,
++        "previous_attestation_head_after_audit":
++            attestation.get("head_after_audit") == PREVIOUS_HEAD,
++        "previous_attestation_remote_before":
++            attestation.get("remote_head_before") == PREVIOUS_HEAD,
++        "previous_attestation_remote_after":
++            attestation.get("remote_head_after") == PREVIOUS_HEAD,
++        "previous_attestation_worktree_clean_before":
++            attestation.get("worktree_clean_before") is True,
++        "previous_attestation_worktree_clean_after":
++            attestation.get("worktree_clean_after") is True,
++        "previous_attestation_exact_two_secret_files":
++            attestation.get("secret_file_count") == 2,
++        "previous_attestation_forbids_compromised_ancestor":
++            isinstance(forbidden, list) and COMPROMISED_HEAD in forbidden,
++        "previous_attestation_audit_object":
++            isinstance(audit, dict),
++        "previous_attestation_audit_pass":
++            isinstance(audit, dict) and audit.get("pass") is True,
++        "previous_attestation_audit_zero_findings":
++            isinstance(audit, dict) and audit.get("finding_count") == 0,
++        "previous_attestation_audit_head":
++            isinstance(audit, dict) and audit.get("head") == PREVIOUS_HEAD,
++        "previous_attestation_audit_base":
++            isinstance(audit, dict)
++            and audit.get("base") == PREVIOUS_AUDIT_BASE,
++        "previous_attestation_failed_empty":
++            isinstance(failed, list) and failed == [],
++        "previous_attestation_all_internal_checks_true":
++            isinstance(checks_map, dict)
++            and bool(checks_map)
++            and all(value is True for value in checks_map.values()),
++    }
++
++
++def suite_ok(
++    suite: dict[str, Any],
++    *,
++    minimum_tests: int,
++    require_errors: bool = False,
++) -> bool:
++    try:
++        tests = nonnegative_int(suite.get("tests"))
++        failures = nonnegative_int(suite.get("failures"))
++        skipped = nonnegative_int(suite.get("skipped", 0))
++        errors = nonnegative_int(suite.get("errors", 0))
++    except (TypeError, ValueError):
++        return False
++    return (
++        tests >= minimum_tests
++        and failures == 0
++        and errors == 0
++        and (not require_errors or "errors" in suite)
++        and skipped == 0
++    )
++
++
++def count_ok(suite: dict[str, Any], minimum_tests: int) -> bool:
++    try:
++        return (
++            nonnegative_int(suite.get("tests")) >= minimum_tests
++            and nonnegative_int(suite.get("failures")) == 0
++        )
++    except (TypeError, ValueError):
++        return False
++
++
++def main() -> None:
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--evidence", required=True, type=Path)
++    parser.add_argument("--previous-attestation", required=True, type=Path)
++    parser.add_argument("--out", type=Path)
++    args = parser.parse_args()
++
++    evidence = json.loads(args.evidence.read_text(encoding="utf-8"))
++    attestation = json.loads(
++        args.previous_attestation.read_text(encoding="utf-8")
++    )
++    actual_attestation_sha256 = sha256_file(args.previous_attestation)
++
++    r1_base = evidence["r1_base"]
++    omni = evidence["omni_behind"]
++    occlusion = evidence["occlusion"]
++    strict = evidence["strict_fov"]
++    blocks = evidence["visible_blocks"]
++    authority = evidence["crosshair_authority"]
++    session = evidence["session_reset"]
++    entity_radius = evidence["entity_radius"]
++    memory = evidence["memory_timing"]
++    bounds = evidence["bounds"]
++    radius_filter = evidence["radius_filter"]
++    regression = evidence["regression"]
++    audit = evidence["audit"]
++
++    checks: dict[str, bool] = {}
++    checks.update(previous_attestation_checks(
++        attestation,
++        str(r1_base["previous_attestation_sha256"]),
++        actual_attestation_sha256,
++    ))
++
++    checks.update({
++        "r1_base_exact":
++            r1_base["base_head"] == R1_BASE_HEAD,
++        "r1_base_remote_exact":
++            r1_base["remote_base_head"] == R1_BASE_HEAD,
++        "r1_base_is_ancestor":
++            r1_base["base_is_ancestor"] is True,
++        "compromised_head_not_ancestor":
++            r1_base["compromised_head_is_ancestor"] is False,
++        "r1_started_clean":
++            r1_base["worktree_clean_before"] is True,
++
++        "omni_mode":
++            omni["mode"] == "omni_semantic",
++        "omni_coverage_360":
++            int(omni["coverage_degrees"]) == 360,
++        "behind_current_visible":
++            omni["knowledge"] == "CURRENT_VISIBLE"
++            and omni["line_of_sight"] is True,
++        "behind_sector":
++            omni["sector"] in {"BACK", "BACK_LEFT", "BACK_RIGHT"},
++        "hostile_or_item_detected":
++            omni["category"] in {"HOSTILE", "ITEM", "PLAYER", "PASSIVE"},
++        "observe_did_not_turn_body":
++            close(omni["yaw_before"], omni["yaw_after"])
++            and close(omni["pitch_before"], omni["pitch_after"])
++            and close(omni["x_before"], omni["x_after"])
++            and close(omni["y_before"], omni["y_after"])
++            and close(omni["z_before"], omni["z_after"]),
++
++        "wall_hides_current_state":
++            occlusion["current_visible_behind_wall"] is False,
++        "memory_is_explicit":
++            occlusion["last_known_present"] is True
++            and occlusion["last_known_line_of_sight"] is False
++            and occlusion["last_known_knowledge"] == "LAST_KNOWN",
++        "hidden_move_does_not_update_last_known":
++            occlusion["hidden_move_did_not_update_position"] is True,
++        "hidden_ore_not_leaked":
++            occlusion["hidden_ore_present"] is False,
++
++        "strict_mode":
++            strict["mode"] == "strict_player_fov",
++        "strict_excludes_behind":
++            strict["behind_present"] is False,
++        "strict_front_still_visible":
++            strict["front_present"] is True
++            and strict["front_knowledge"] == "CURRENT_VISIBLE",
++
++        "barrel_visible":
++            blocks["barrel_category"] == "INTERACTABLE",
++        "hazard_visible":
++            blocks["hazard_category"] == "HAZARD",
++        "visible_ore_awareness_only":
++            blocks["ore_category"] == "RESOURCE_SURFACE"
++            and blocks["ore_actionability"] == "awareness_only",
++        "hidden_diamond_absent":
++            blocks["hidden_diamond_present"] is False,
++
++        "awareness_before_action":
++            authority["awareness_present_before"] is True,
++        "no_opportunity_before_crosshair":
++            int(authority["resource_opportunities_before"]) == 0,
++        "opportunity_after_crosshair":
++            int(authority["resource_opportunities_after"]) >= 1,
++        "physical_action_completed":
++            authority["mine_execution_state"] == "completed",
++        "physical_block_gone":
++            authority["block_gone"] is True,
++        "physical_pickup_proved":
++            authority["pickup"] is True,
++
++        "session_reset":
++            session["old_memory_after_new_game_session"] is False,
++        "dimension_reset":
++            session["old_memory_after_dimension_change"] is False,
++
++        "entity_radius_config_4":
++            int(entity_radius["configured_radius"]) == 4,
++        "entity_radius_inside_present":
++            entity_radius["inside_present"] is True,
++        "entity_radius_inside_distance_within":
++            float(entity_radius["inside_distance_blocks"]) <= 4.0,
++        "entity_radius_diagonal_outside_absent":
++            entity_radius["diagonal_outside_present"] is False,
++        "entity_radius_diagonal_distance_outside":
++            float(entity_radius["diagonal_outside_distance_blocks"]) > 4.0,
++        "entity_radius_diagonal_inside_broadphase_aabb":
++            entity_radius["diagonal_outside_inside_expanded_aabb"] is True,
++        "entity_radius_two_candidate_fixture":
++            int(entity_radius["fixture_entity_count"]) == 2,
++
++        "memory_config_exact":
++            int(memory["memory_ticks_config"]) == 200,
++        "memory_last_known_present":
++            memory["last_known_present"] is True
++            and memory["last_known_knowledge"] == "LAST_KNOWN"
++            and memory["last_known_line_of_sight"] is False,
++        "memory_position_frozen":
++            memory["position_frozen"] is True,
++        "memory_hidden_move_no_update":
++            memory["hidden_move_did_not_update_position"] is True,
++        "memory_last_present_near_bound":
++            180 <= int(memory["last_present_age_ticks"]) <= 200,
++        "memory_first_absent_after_bound":
++            int(memory["first_absent_age_ticks"]) > 200,
++        "memory_first_absent_poll_bounded":
++            int(memory["first_absent_age_ticks"]) <= 240,
++        "memory_tick_arithmetic":
++            int(memory["first_absent_tick"])
++            - int(memory["last_seen_tick"])
++            == int(memory["first_absent_age_ticks"]),
++        "memory_not_expired_early":
++            int(memory["last_present_tick"])
++            - int(memory["last_seen_tick"])
++            == int(memory["last_present_age_ticks"]),
++        "memory_expired_after_bound":
++            memory["expired_after_bound"] is True,
++
++        "crowded_entity_fixture_gt_candidate_limit":
++            int(bounds["entity_fixture_count"]) > 96,
++        "crowded_block_fixture_gt_candidate_limit":
++            int(bounds["block_fixture_count"]) > 128,
++        "scene_under_hard_limit":
++            int(bounds["scene_bytes"]) <= 32768,
++        "entity_view_bound":
++            0 < int(bounds["entity_items"]) <= 20,
++        "entity_total_exercises_truncation":
++            20 < int(bounds["entity_total"]) <= 128,
++        "entity_truncation_required":
++            bounds["entity_truncated"] is True,
++        "entity_omitted_positive":
++            int(bounds["entity_omitted_count"]) > 0,
++        "block_view_bound":
++            0 < int(bounds["block_items"]) <= 16,
++        "block_total_exercises_view_and_local_caps":
++            48 < int(bounds["block_total"]) <= 128,
++        "block_truncation_required":
++            bounds["block_truncated"] is True,
++        "block_omitted_positive":
++            int(bounds["block_omitted_count"]) > 0,
++        "local_entity_cap_exercised":
++            int(bounds["local_entity_items"]) == 48,
++        "local_block_cap_exercised":
++            int(bounds["local_block_items"]) == 48,
++        "ordering_stable":
++            bounds["ordering_stable"] is True,
++
++        "inspect_radius_requested_3":
++            int(radius_filter["requested_radius"]) == 3,
++        "inspect_radius_entities_nonempty":
++            int(radius_filter["entity_items"]) > 0,
++        "inspect_radius_blocks_nonempty":
++            int(radius_filter["block_items"]) > 0,
++        "inspect_radius_inside_entity_present":
++            radius_filter["inside_entity_present"] is True,
++        "inspect_radius_outside_entity_absent":
++            radius_filter["outside_entity_present"] is False,
++        "inspect_radius_inside_block_present":
++            radius_filter["inside_block_present"] is True,
++        "inspect_radius_outside_block_absent":
++            radius_filter["outside_block_present"] is False,
++        "inspect_radius_entity_max":
++            float(radius_filter["max_entity_distance_blocks"]) <= 3.0,
++        "inspect_radius_block_max":
++            float(radius_filter["max_block_distance_blocks"]) <= 3.0,
++
++        "junit_round1":
++            suite_ok(regression["junit"]["round1"], minimum_tests=463),
++        "junit_round2":
++            suite_ok(regression["junit"]["round2"], minimum_tests=463),
++        "junit_clean_replay":
++            suite_ok(regression["junit"]["clean_replay"], minimum_tests=463),
++        "gametest_round1":
++            count_ok(regression["gametest"]["round1"], 650),
++        "gametest_round2":
++            count_ok(regression["gametest"]["round2"], 650),
++        "gametest_clean_replay":
++            count_ok(regression["gametest"]["clean_replay"], 650),
++        "bridge_core":
++            int(regression["bridge_core_passed"]) >= 105,
++        "node":
++            count_ok(regression["node"], 43),
++        "installer":
++            count_ok(regression["installer"], 11),
++        "supervisor":
++            count_ok(regression["supervisor"], 11),
++        "evidence_hygiene":
++            count_ok(regression["evidence_hygiene"], 10),
++        "acceptance_repair":
++            count_ok(regression["acceptance_repair"], 17),
++        "remapjar_pass":
++            regression["remapjar_pass"] is True,
++        "server_client_jar_same":
++            regression["server_client_jar_same"] is True,
++        "clean_replay_zero_diff":
++            regression["clean_replay_zero_diff"] is True,
++
++        "dsh_tool_count_29":
++            int(audit["dsh_tool_count"]) == 29,
++        "frozen_boundaries_13":
++            int(audit["frozen_boundaries_identical"]) == 13,
++        "scope_audit_pass":
++            audit["scope_audit_pass"] is True,
++        "sanitization_pass":
++            audit["sanitization_pass"] is True,
++        "sanitization_zero_findings":
++            int(audit["sanitization_findings"]) == 0,
++        "third_party_binary_count_zero":
++            int(audit["third_party_binary_count"]) == 0,
++        "secret_value_findings_zero":
++            int(audit["exact_secret_findings"]) == 0,
++    })
++
++    result = {
++        "checker": "MC-2A0.8-R1",
++        "previous_attestation_sha256": actual_attestation_sha256,
++        "checks": checks,
++        "failed": [key for key, value in checks.items() if not value],
++        "pass": all(checks.values()),
++    }
++    encoded = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
++    if args.out:
++        args.out.parent.mkdir(parents=True, exist_ok=True)
++        args.out.write_text(encoded, encoding="utf-8")
++    print(encoded, end="")
++    if not result["pass"]:
++        raise SystemExit(1)
++
++
++if __name__ == "__main__":
++    main()

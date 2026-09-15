@@ -1,0 +1,7 @@
+level-1 mc-bot worktree @ 95f52157 + cherry-pick a03a38c,123dc44 -> replay head f7cf7a0036d3a5bb8bf339acc85a72c6ad4e5701
+overlay diff -rq vs dev tree: ZERO differences (exit 0)
+level-2 aibot fresh worktree @ a029fa6a3760fd0f83834c104051b041d986da60 + apply_to_aibot.py (replay copy)
+src diff -rq vs dev tree: ZERO differences (exit 0)
+replay JUnit: 463/0/0/0 BUILD SUCCESSFUL
+replay GameTest: 211 batches / 650 tests / 0 failed BUILD SUCCESSFUL (env AIBOT_EXTERNAL_BOT=Mc1caBot + placeholder token)
+manifest second-run stability: covered by SHA256SUMS regeneration in commit stage

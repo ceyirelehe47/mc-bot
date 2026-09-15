@@ -1,0 +1,7 @@
+bridge-core: 105 checks passed
+node: 43 tests / 0 failed
+installer: 11 tests / 0 failed
+supervisor: 11 tests / 0 failed
+evidence-hygiene: 10 tests / 0 failed
+acceptance-repair: 17 tests / 0 failed
+dsh-tools: 29 (12 explicit register + 14 operations + 3 controls pause/resume/cancel)

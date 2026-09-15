@@ -1,0 +1,4 @@
+M	aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A08OmnidirectionalPerceptionGameTests.java
+M	aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientOmnidirectionalPerception.java
+M	aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientOmnidirectionalPerceptionSourceTest.java
+A	aibot-dsh-m0/scripts/check_mc2a08r1_evidence.py

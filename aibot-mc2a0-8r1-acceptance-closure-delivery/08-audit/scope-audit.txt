@@ -1,0 +1,7 @@
+git diff --name-status 95f52157ac35db5f700a4e394b7ff699d047dcf6..HEAD
+M	aibot-dsh-m0/aibot-overlay/src/gametest/java/io/github/zoyluo/aibot/gametest/MC2A08OmnidirectionalPerceptionGameTests.java
+M	aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientOmnidirectionalPerception.java
+M	aibot-dsh-m0/aibot-overlay/src/test/java/io/github/zoyluo/aibot/external/RealClientOmnidirectionalPerceptionSourceTest.java
+A	aibot-dsh-m0/scripts/check_mc2a08r1_evidence.py
+
+scope: exactly 4 paths (3 M + 1 A) as declared in SOURCE_MAP; no Graph/FakePlayer/Protocol/Screen/Tom's/RealClientExecutionDriver/DSH-registration changes
