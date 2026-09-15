@@ -347,7 +347,8 @@ public final class RealClientOmnidirectionalPerception {
                 player,player.getBoundingBox().expand(radius),
                 entity->entity.isAlive()
                         && !(entity instanceof ServerPlayerEntity other
-                        && other.isSpectator())));
+                        && other.isSpectator())
+                        && withinEntityRadius(player,entity,radius)));
         candidates.sort(Comparator
                 .comparingDouble((Entity entity)->entity.squaredDistanceTo(player))
                 .thenComparing(entity->entity.getUuid().toString()));
@@ -441,6 +442,12 @@ public final class RealClientOmnidirectionalPerception {
                 .thenComparing(memory->memory.objectId));
         int remove=blockMemory.size()-BLOCK_MEMORY_CAPACITY;
         for(int i=0;i<remove;i++)blockMemory.remove(ordered.get(i).objectId);
+    }
+
+    private static boolean withinEntityRadius(
+            ServerPlayerEntity player,Entity entity,double radius) {
+        Vec3d target=entityCenter(entity);
+        return target.squaredDistanceTo(player.getPos())<=radius*radius;
     }
 
     private boolean visibleEntity(ServerPlayerEntity player,Entity entity) {
