@@ -1,0 +1,180 @@
+{
+ "r1_base": {
+  "base_head": "95f52157ac35db5f700a4e394b7ff699d047dcf6",
+  "remote_base_head": "95f52157ac35db5f700a4e394b7ff699d047dcf6",
+  "base_is_ancestor": true,
+  "compromised_head_is_ancestor": false,
+  "worktree_clean_before": true,
+  "previous_attestation_sha256": "18b25d3cc8ac31f85620f56a8e9c5325984c1032b97f25df33e2dd950a68b4be"
+ },
+ "omni_behind": {
+  "mode": "omni_semantic",
+  "coverage_degrees": 360,
+  "knowledge": "CURRENT_VISIBLE",
+  "line_of_sight": true,
+  "sector": "BACK",
+  "category": "HOSTILE",
+  "x_before": 705.5,
+  "x_after": 705.5,
+  "y_before": 70.0,
+  "y_after": 70.0,
+  "z_before": -24.5,
+  "z_after": -24.5,
+  "yaw_before": -90.0,
+  "yaw_after": -90.0,
+  "pitch_before": 0.0,
+  "pitch_after": 0.0
+ },
+ "occlusion": {
+  "current_visible_behind_wall": false,
+  "last_known_present": true,
+  "last_known_line_of_sight": false,
+  "last_known_knowledge": "LAST_KNOWN",
+  "hidden_move_did_not_update_position": true,
+  "hidden_ore_present": false
+ },
+ "strict_fov": {
+  "mode": "strict_player_fov",
+  "behind_present": false,
+  "front_present": true,
+  "front_knowledge": "CURRENT_VISIBLE"
+ },
+ "visible_blocks": {
+  "barrel_category": "INTERACTABLE",
+  "hazard_category": "HAZARD",
+  "ore_category": "RESOURCE_SURFACE",
+  "ore_actionability": "awareness_only",
+  "hidden_diamond_present": false
+ },
+ "crosshair_authority": {
+  "awareness_present_before": true,
+  "resource_opportunities_before": 0,
+  "resource_opportunities_after": 1,
+  "mine_execution_state": "completed",
+  "block_gone": true,
+  "pickup": true
+ },
+ "session_reset": {
+  "old_memory_after_new_game_session": false,
+  "old_memory_after_dimension_change": false
+ },
+ "entity_radius": {
+  "configured_radius": 4,
+  "fixture_entity_count": 2,
+  "inside_distance_blocks": 3.0,
+  "inside_present": true,
+  "diagonal_outside_distance_blocks": 4.243,
+  "diagonal_outside_present": false,
+  "diagonal_outside_inside_expanded_aabb": true
+ },
+ "memory_timing": {
+  "memory_ticks_config": 200,
+  "last_seen_tick": 3642,
+  "last_present_tick": 3842,
+  "last_present_age_ticks": 200,
+  "first_absent_tick": 3847,
+  "first_absent_age_ticks": 205,
+  "last_known_present": true,
+  "last_known_knowledge": "LAST_KNOWN",
+  "last_known_line_of_sight": false,
+  "position_frozen": true,
+  "hidden_move_did_not_update_position": true,
+  "expired_after_bound": true
+ },
+ "bounds": {
+  "entity_fixture_count": 110,
+  "block_fixture_count": 184,
+  "scene_bytes": 17639,
+  "entity_items": 20,
+  "entity_total": 108,
+  "entity_truncated": true,
+  "entity_omitted_count": 88,
+  "block_items": 16,
+  "block_total": 128,
+  "block_truncated": true,
+  "block_omitted_count": 112,
+  "local_entity_items": 48,
+  "local_block_items": 48,
+  "ordering_stable": true
+ },
+ "radius_filter": {
+  "requested_radius": 3,
+  "entity_items": 1,
+  "block_items": 1,
+  "inside_entity_present": true,
+  "outside_entity_present": false,
+  "inside_block_present": true,
+  "outside_block_present": false,
+  "max_entity_distance_blocks": 2.2,
+  "max_block_distance_blocks": 2.1
+ },
+ "regression": {
+  "junit": {
+   "round1": {
+    "tests": 463,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+   },
+   "round2": {
+    "tests": 463,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+   },
+   "clean_replay": {
+    "tests": 463,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+   }
+  },
+  "gametest": {
+   "round1": {
+    "tests": 650,
+    "failures": 0
+   },
+   "round2": {
+    "tests": 650,
+    "failures": 0
+   },
+   "clean_replay": {
+    "tests": 650,
+    "failures": 0
+   }
+  },
+  "bridge_core_passed": 105,
+  "node": {
+   "tests": 43,
+   "failures": 0
+  },
+  "installer": {
+   "tests": 11,
+   "failures": 0
+  },
+  "supervisor": {
+   "tests": 11,
+   "failures": 0
+  },
+  "evidence_hygiene": {
+   "tests": 10,
+   "failures": 0
+  },
+  "acceptance_repair": {
+   "tests": 17,
+   "failures": 0
+  },
+  "remapjar_pass": true,
+  "server_client_jar_same": true,
+  "clean_replay_zero_diff": true
+ },
+ "audit": {
+  "dsh_tool_count": 29,
+  "frozen_boundaries_identical": 13,
+  "scope_audit_pass": true,
+  "sanitization_pass": true,
+  "sanitization_findings": 0,
+  "third_party_binary_count": 0,
+  "exact_secret_findings": 0
+ }
+}

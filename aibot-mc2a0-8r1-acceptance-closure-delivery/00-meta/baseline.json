@@ -1,0 +1,27 @@
+{
+ "task": "MC-2A0.8-R1 Acceptance Closure",
+ "branch": "experiment/mc2a0-8r1-acceptance-closure",
+ "base_branch": "experiment/mc2a0-8-omnidirectional-perception",
+ "base_head": "95f52157ac35db5f700a4e394b7ff699d047dcf6",
+ "commit_a": "a03a38c1c58afdc09207d1a1f19dae3baa306e63",
+ "commit_b": "123dc449b6737dab7919830686d48e37cd3a6897",
+ "applier_sha256": "5176ca691ddbc50bc23f7c5fc0bf1fe683bedb8cf53eb9957bbf4cbad5f57ca5",
+ "task_package_zip_sha256": "e28c824be1d15a391b4121419a8c7c1cc07d991d723fa8df2f75579584436f01",
+ "reviewed_patch_sha256": "182080b5b0aa09aa0e2694baab791708fba9685344d86769187fd73ad0e02da5",
+ "previous_attestation_sha256": "18b25d3cc8ac31f85620f56a8e9c5325984c1032b97f25df33e2dd950a68b4be",
+ "changed_source_blobs": {
+  "RealClientOmnidirectionalPerception.java": "79607602f78051f0ff669beb16e66894a45932a4",
+  "RealClientOmnidirectionalPerceptionSourceTest.java": "96f932b48b8e4dd2f83d6c1b7f3dc0e921ea76f2",
+  "MC2A08OmnidirectionalPerceptionGameTests.java": "fd1b5dc69c294c07d7751c7fe3a52dccd6836c33",
+  "check_mc2a08r1_evidence.py": "62660f4dcd2fb05acf5d8bd2a517c9784455238d"
+ },
+ "remapjar_sha256": "bf1e48447e5508100a6ad2ce2c82e17722b27f14681ac50c69643ba97386bf33",
+ "clean_replay_base": {
+  "mc_bot": "95f52157ac35db5f700a4e394b7ff699d047dcf6",
+  "aibot_upstream": "a029fa6a3760fd0f83834c104051b041d986da60"
+ },
+ "minecraft_version": "1.21.3",
+ "fabric_loader": "0.19.5",
+ "yarn": "1.21.3+build.2",
+ "jdk": "21.0.12+1 (Temurin)"
+}

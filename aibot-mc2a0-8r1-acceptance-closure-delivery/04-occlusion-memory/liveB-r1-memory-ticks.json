@@ -1,0 +1,79 @@
+{
+ "start_id": null,
+ "memory_ticks_config": 200,
+ "object_uuid": "92ba2496-038c-423c-a089-b19483e0fb90",
+ "visible_pos": {
+  "x": 710,
+  "y": 70,
+  "z": -25
+ },
+ "hidden_real_pos": "\u0000\u0000\u0000\u0000Diamond has the following entity data: [713.5d, 70.0d, -24.5d]",
+ "current_visible_behind_wall": false,
+ "last_known_present": true,
+ "last_known_knowledge": "LAST_KNOWN",
+ "last_known_line_of_sight": false,
+ "position_frozen": true,
+ "hidden_move_did_not_update_position": true,
+ "last_seen_tick": 3642,
+ "last_present_tick": 3842,
+ "last_present_age_ticks": 200,
+ "first_absent_tick": 3847,
+ "first_absent_age_ticks": 205,
+ "expired_after_bound": true,
+ "hidden_ore_present": false,
+ "poll_samples": 35,
+ "poll_series_trimmed": [
+  {
+   "tick": 3702,
+   "tick_query_numeric": 20,
+   "wire_scan_tick": 3702,
+   "present": true,
+   "age": 60
+  },
+  {
+   "tick": 3707,
+   "tick_query_numeric": 20,
+   "wire_scan_tick": 3707,
+   "present": true,
+   "age": 65
+  },
+  {
+   "tick": 3712,
+   "tick_query_numeric": 20,
+   "wire_scan_tick": 3712,
+   "present": true,
+   "age": 70
+  },
+  {
+   "...": "..."
+  },
+  {
+   "tick": 3842,
+   "tick_query_numeric": 20,
+   "wire_scan_tick": 3842,
+   "present": true,
+   "age": 200
+  },
+  {
+   "tick": 3847,
+   "tick_query_numeric": 20,
+   "wire_scan_tick": 3847,
+   "present": false,
+   "age": null
+  },
+  {
+   "tick": 3852,
+   "tick_query_numeric": 20,
+   "wire_scan_tick": 3852,
+   "present": false,
+   "age": null
+  },
+  {
+   "tick": 3857,
+   "tick_query_numeric": 20,
+   "wire_scan_tick": 3857,
+   "present": false,
+   "age": null
+  }
+ ]
+}

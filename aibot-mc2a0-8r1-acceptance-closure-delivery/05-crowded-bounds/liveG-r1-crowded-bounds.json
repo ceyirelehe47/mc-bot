@@ -1,0 +1,16 @@
+{
+ "entity_fixture_count": 110,
+ "block_fixture_count": 184,
+ "scene_bytes": 17639,
+ "entity_items": 20,
+ "entity_total": 108,
+ "entity_truncated": true,
+ "entity_omitted_count": 88,
+ "block_items": 16,
+ "block_total": 128,
+ "block_truncated": true,
+ "block_omitted_count": 112,
+ "local_entity_items": 48,
+ "local_block_items": 48,
+ "ordering_stable": true
+}

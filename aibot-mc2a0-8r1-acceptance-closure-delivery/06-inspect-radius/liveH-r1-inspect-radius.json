@@ -1,0 +1,36 @@
+{
+ "start_id": "start-1789440195981",
+ "summary_has_entity_list": false,
+ "entities_mode_blocks_len": 0,
+ "entities_mode_entities_len": 2,
+ "blocks_mode_entities_len": 0,
+ "blocks_mode_blocks_len": 20,
+ "all_entities_len": 2,
+ "all_blocks_len": 20,
+ "requested_radius": 3,
+ "entity_items": 1,
+ "block_items": 1,
+ "inside_entity_uuid": "30f14a7e-0f6b-4086-a231-653df8e32d6f",
+ "outside_entity_uuid": "c955ca72-0737-4848-9add-db9bd8a0c0da",
+ "inside_entity_present": true,
+ "outside_entity_present": false,
+ "inside_block_present": true,
+ "outside_block_present": false,
+ "max_entity_distance_blocks": 2.2,
+ "max_block_distance_blocks": 2.1,
+ "radius3_block_detail": [
+  {
+   "block": "minecraft:magma_block",
+   "position": {
+    "z": -25,
+    "x": 707,
+    "y": 70
+   },
+   "category": "HAZARD",
+   "distance": 2.1
+  }
+ ],
+ "radius3_entity_count_by_category": {
+  "HOSTILE": 1
+ }
+}

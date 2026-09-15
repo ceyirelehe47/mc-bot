@@ -1,0 +1,18 @@
+{
+ "start_id": "start-1789438705521",
+ "mode": "strict_player_fov",
+ "coverage_degrees": 110,
+ "behind_present": false,
+ "front": {
+  "knowledge": "CURRENT_VISIBLE",
+  "line_of_sight": true,
+  "sector": "FRONT_LEFT"
+ },
+ "uncertainty": [
+  {
+   "field": "spatial_awareness.coverage_degrees",
+   "reason": "strict_player_fov_mode",
+   "scope_ref": "mc://0878b2d0-7017-4e86-9400-dc46e1731eaf/minecraft:overworld"
+  }
+ ]
+}

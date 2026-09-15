@@ -1,0 +1,14 @@
+{
+ "source": "D:\\mc2a08r1-raw\\stage",
+ "destination": "D:\\code\\mc-bot\\aibot-mc2a0-8r1-acceptance-closure-delivery",
+ "secret_count": 3,
+ "secret_fingerprints": [
+  "886b3a095a61f67e",
+  "fb7a43c52235b005",
+  "fcf75b5d57ea8157"
+ ],
+ "copied_files": 23,
+ "skipped_files": [],
+ "findings": [],
+ "pass": true
+}

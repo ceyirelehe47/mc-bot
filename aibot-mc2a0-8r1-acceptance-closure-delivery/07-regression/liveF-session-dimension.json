@@ -1,0 +1,16 @@
+{
+ "start_ids": [
+  "start-1789438774337",
+  "start-1789438846717"
+ ],
+ "body_lost_view": {
+  "http": 503,
+  "ok": null,
+  "fault": "{\"ok\":false,\"error\":\"body_not_ready_or_server_tick_stale\"}"
+ },
+ "old_memory_after_new_game_session": false,
+ "rediscovered_after_return": true,
+ "old_uuid": "97f79991-204b-4df7-98c4-7a67d4cb3aa6",
+ "dim_uuid": "bc96285e-7e9e-47ff-9a0a-9a1852dc7e44",
+ "old_memory_after_dimension_change": false
+}

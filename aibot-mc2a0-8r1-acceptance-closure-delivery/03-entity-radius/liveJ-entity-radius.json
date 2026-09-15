@@ -1,0 +1,28 @@
+{
+ "start_id": "start-1789439122056",
+ "mode": "omni_semantic",
+ "configured_radius": 4,
+ "fixture_entity_count": 2,
+ "inside_uuid": "db4556d3-cff7-4230-a177-ed5fbeb1ca7a",
+ "diagonal_uuid": "e5d21176-51ef-446b-bcc7-0e2aaaa03ccf",
+ "inside_position": {
+  "x": 708,
+  "y": 70,
+  "z": -25
+ },
+ "diagonal_position": null,
+ "inside_distance_blocks": 3.0,
+ "inside_present": true,
+ "diagonal_outside_distance_blocks": 4.243,
+ "diagonal_outside_present": false,
+ "diagonal_outside_inside_expanded_aabb": true,
+ "diagonal_dx_abs": 3.0,
+ "diagonal_dz_abs": 3.0,
+ "diagonal_pos_raw": "\u0000\u0000\u0000\u0000Emerald has the following entity data: [708.5d, 70.0d, -21.5d]",
+ "entity_total_view": 2,
+ "bob_feet": [
+  705.5,
+  70.0,
+  -24.5
+ ]
+}
