@@ -1,0 +1,41 @@
+{"t": 1789305743.343, "evt": "proxy_listening", "listen": ["127.0.0.1", 8768], "upstream": ["127.0.0.1", 8766]}
+{"t": 1789305841.329, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789305979.425, "evt": "commit_forwarded"}
+{"t": 1789306056.134, "evt": "proxy_listening", "listen": ["127.0.0.1", 8768], "upstream": ["127.0.0.1", 8766]}
+{"t": 1789306242.427, "evt": "commit_forwarded"}
+{"t": 1789306297.252, "evt": "commit_forwarded"}
+{"t": 1789306337.824, "evt": "commit_forwarded"}
+{"t": 1789306401.264, "evt": "commit_forwarded"}
+{"t": 1789306438.047, "evt": "commit_forwarded"}
+{"t": 1789306439.168, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789306475.305, "evt": "commit_forwarded"}
+{"t": 1789306478.803, "evt": "commit_forwarded"}
+{"t": 1789306481.328, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789306508.57, "evt": "commit_forwarded"}
+{"t": 1789306548.253, "evt": "commit_forwarded"}
+{"t": 1789306554.552, "evt": "commit_forwarded"}
+{"t": 1789306562.919, "evt": "commit_forwarded"}
+{"t": 1789306571.218, "evt": "commit_forwarded"}
+{"t": 1789306588.617, "evt": "commit_rewritten", "fields": {"screen_epoch": "00000000-dead-beef-0000-000000000000", "screen_seq": 1, "sync_id": 99, "adapter_id": "unrecognized"}}
+{"t": 1789306588.617, "evt": "commit_forwarded"}
+{"t": 1789306743.174, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789306773.613, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789306917.01, "evt": "commit_rewritten", "fields": {"screen_epoch": "00000000-dead-beef-0000-000000000000", "screen_seq": 1, "sync_id": 99, "adapter_id": "unrecognized"}}
+{"t": 1789306917.01, "evt": "commit_forwarded"}
+{"t": 1789306954.077, "evt": "proxy_listening", "listen": ["127.0.0.1", 8768], "upstream": ["127.0.0.1", 8766]}
+{"t": 1789307103.213, "evt": "commit_rewritten", "fields": {"screen_epoch": "00000000-dead-beef-0000-000000000000", "screen_seq": 1, "sync_id": 99, "adapter_id": "unrecognized"}}
+{"t": 1789307103.213, "evt": "commit_forwarded"}
+{"t": 1789307135.089, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789307261.978, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789307265.122, "evt": "commit_forwarded"}
+{"t": 1789307265.123, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789307404.152, "evt": "commit_forwarded"}
+{"t": 1789307428.554, "evt": "commit_forwarded"}
+{"t": 1789307473.705, "evt": "commit_forwarded"}
+{"t": 1789307474.367, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789307625.155, "evt": "commit_forwarded"}
+{"t": 1789307654.156, "evt": "commit_forwarded"}
+{"t": 1789307654.383, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789307791.955, "evt": "commit_forwarded"}
+{"t": 1789307791.971, "evt": "pump_end", "err": "[WinError 10054] 远程主机强迫关闭了一个现有的连接。"}
+{"t": 1789307918.701, "evt": "commit_forwarded"}

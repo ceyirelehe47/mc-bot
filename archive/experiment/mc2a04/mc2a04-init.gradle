@@ -1,0 +1,35 @@
+// MC-2A0.4 LIVE 私有 init script(v2)。
+// Windows 的 gradlew.bat 转发含空格参数会丢引号,且批处理在 supervisor 的
+// CREATE_NEW_PROCESS_GROUP 下可能 DLL init failed(0xC0000142)。
+// 方案:-Pmc2a04Identity=username+uuid+host:port 以无空格形式注入客户端参数;
+// -Pmc2a04Dump=path 时导出 JavaExec 完整启动配置后主动中止任务,
+// supervisor 之后用导出结果直接启动 java.exe(真 exe,参数数组可靠)。
+// init script 与导出文件都在仓库树外,不修改任何受审计的构建文件。
+def identity = gradle.startParameter.projectProperties.get('mc2a04Identity')
+def dumpPath = gradle.startParameter.projectProperties.get('mc2a04Dump')
+def extra = []
+if (identity != null) {
+    def parts = identity.tokenize('+')
+    if (parts.size() != 3) throw new GradleException('mc2a04Identity must be username+uuid+host:port')
+    extra = ['--username', parts[0], '--uuid', parts[1],
+             '--accessToken', '0', '--userType', 'legacy',
+             '--quickPlayMultiplayer', parts[2]]
+}
+allprojects {
+    tasks.matching { it.name == 'runClient' }.configureEach { t ->
+        if (extra) t.args = (t.args ?: []) + extra
+        if (dumpPath != null) t.doFirst {
+            def out = new groovy.json.JsonBuilder()
+            out {
+                cwd t.workingDir.toString()
+                main t.mainClass.get()
+                jvm t.jvmArgs
+                args t.args
+                env t.environment
+                classpath t.classpath.files.collect { it.absolutePath }
+            }
+            new File(dumpPath).text = out.toPrettyString()
+            throw new GradleException('mc2a04-dump-complete')
+        }
+    }
+}

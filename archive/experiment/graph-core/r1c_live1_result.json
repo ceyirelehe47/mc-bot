@@ -1,0 +1,24 @@
+{
+ "acquired": [
+  "tree_workset_acquired bot=Bob {execution=9f6c0a11-9486-40b9-9d0c-aa60ab2c2fa5, logs=8, tree=80980dea-4a25-46fa-ab97-eeefcc8b4b39:minecraft:overworld:145685291176007}"
+ ],
+ "placed": 3,
+ "removed": 3,
+ "reentered": [],
+ "paused": [
+  "task_paused bot=Bob {name=gather, stack_depth=1, origin=LLM_TOOL, why=threat: HOSTILE}"
+ ],
+ "resumed": [
+  "task_resumed bot=Bob {user_paused=false, name=gather, stack_depth=0, origin=LLM_TOOL}"
+ ],
+ "debt": [],
+ "target_changed": [],
+ "pose_lost": [],
+ "threat": [
+  "threat_detected bot=Bob {type=HOSTILE, source=class_2338{x=531, y=69, z=121}, decision=combat, severity=MEDIUM}"
+ ],
+ "complete": [
+  "tree_workset_complete bot=Bob {have=8/1, execution=9f6c0a11-9486-40b9-9d0c-aa60ab2c2fa5, tree=80980dea-4a25-46fa-ab97-eeefcc8b4b39:minecraft:overworld:145685291176007}"
+ ],
+ "failed": []
+}

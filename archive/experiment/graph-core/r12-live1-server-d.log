@@ -1,0 +1,222 @@
+Starting net.fabricmc.loader.impl.game.minecraft.BundlerClassPathCapture
+[17:20:59] [main/INFO]: Loading Minecraft 1.21.3 with Fabric Loader 0.19.5
+[17:20:59] [ForkJoinPool-1-worker-5/WARN]: Mod mr_vein_miner uses the version 26.x which isn't compatible with Loader's extended semantic version format (Could not parse version number component 'x'!), SemVer is recommended for reliably evaluating dependencies and prioritizing newer version
+[17:20:59] [main/INFO]: Loading 47 mods:
+	- aibot 0.0.1
+	- appleskin 3.0.6+mc1.21.3
+	   \-- cloth-config 16.0.141
+	        \-- cloth-basic-math 0.6.1
+	- fabric-api 0.114.1+1.21.3
+	   |-- fabric-api-base 0.4.50+119c825640
+	   |-- fabric-api-lookup-api-v1 1.6.81+fd37071f40
+	   |-- fabric-biome-api-v1 14.0.7+add2a48640
+	   |-- fabric-block-api-v1 1.0.28+fd37071f40
+	   |-- fabric-block-view-api-v2 1.0.16+fd37071f40
+	   |-- fabric-command-api-v1 1.2.58+f71b366f40
+	   |-- fabric-command-api-v2 2.2.37+c9d82ab240
+	   |-- fabric-commands-v0 0.2.75+df3654b340
+	   |-- fabric-content-registries-v0 9.1.8+fd37071f40
+	   |-- fabric-convention-tags-v1 2.1.4+7f945d5b40
+	   |-- fabric-convention-tags-v2 2.9.4+129f0c1f40
+	   |-- fabric-crash-report-info-v1 0.3.3+fd37071f40
+	   |-- fabric-data-attachment-api-v1 1.4.0+dbad41f140
+	   |-- fabric-data-generation-api-v1 21.1.2+a730659c40
+	   |-- fabric-dimensions-v1 4.0.7+fd37071f40
+	   |-- fabric-entity-events-v1 2.0.8+825023f840
+	   |-- fabric-events-interaction-v0 2.0.12+c2c3ac4740
+	   |-- fabric-game-rule-api-v1 1.0.59+fd37071f40
+	   |-- fabric-item-api-v1 11.1.7+fd37071f40
+	   |-- fabric-item-group-api-v1 4.1.17+fd37071f40
+	   |-- fabric-lifecycle-events-v1 2.5.1+6da5ef6940
+	   |-- fabric-loot-api-v2 3.0.26+3f89f5a540
+	   |-- fabric-loot-api-v3 1.0.14+fd37071f40
+	   |-- fabric-message-api-v1 6.0.22+5a9b22c640
+	   |-- fabric-networking-api-v1 4.3.5+fd37071f40
+	   |-- fabric-object-builder-api-v1 17.0.9+fd37071f40
+	   |-- fabric-particles-v1 4.0.10+fd37071f40
+	   |-- fabric-recipe-api-v1 7.0.5+8ea69ff840
+	   |-- fabric-registry-sync-v0 5.4.1+3f3c499540
+	   |-- fabric-rendering-data-attachment-v1 0.3.54+73761d2e40
+	   |-- fabric-rendering-fluids-v1 3.1.15+fd37071f40
+	   |-- fabric-resource-conditions-api-v1 5.0.8+fd37071f40
+	   |-- fabric-resource-loader-v0 3.0.6+fd37071f40
+	   |-- fabric-screen-handler-api-v1 1.3.103+fd37071f40
+	   |-- fabric-tag-api-v1 1.0.0+a730659c40
+	   |-- fabric-transfer-api-v1 5.4.3+cb44d14340
+	   \-- fabric-transitive-access-wideners-v1 6.2.0+54a41b1c40
+	- fabricloader 0.19.5
+	   \-- mixinextras 0.5.5
+	- java 21
+	- minecraft 1.21.3
+	- mr_vein_miner 26.x
+[17:20:59] [main/INFO]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/D:/code/mc-experiment/mc-server-mc1ca/libraries/net/fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/sponge-mixin-0.17.4+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[17:21:00] [main/INFO]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).
+[17:21:11] [main/INFO]: [AIBot] CONFIG event=operating_profile_resolved bot=- {effective_capabilities=[], configured_manual_teleport=true, profile=strict_survival, source=FILE_OR_DEFAULT, configured_forced_pickup=true, configured_hidden_block_scan=true, configured_emergency_teleport=true}
+[17:21:11] [main/INFO]: [AIBot] LIFECYCLE event=mod_loaded bot=- {version=0.0.1}
+[17:21:11] [main/INFO]: [AIBot] CONFIG event=config_loaded bot=- {logging_enabled=true, configured_operator_capabilities=OperatorCapabilities[hiddenBlockScan=true, emergencyTeleport=true, forcedPickup=true, manualTeleport=true], deepseek_model=deepseek/deepseek-v4-flash, effective_capabilities=[], perception_radius=16, pickup_force_radius=2.75, profile=strict_survival, nav_lookahead=4}
+[17:21:11] [main/INFO]: ================================
+[17:21:11] [main/INFO]:   AIBot v0.0.1 loaded
+[17:21:11] [main/INFO]:   Mode: M6 structured logs over M5 tasks
+[17:21:11] [main/INFO]: ================================
+[17:21:12] [main/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[17:21:16] [main/INFO]: Loaded 1338 recipes
+[17:21:16] [main/INFO]: Loaded 1448 advancements
+[17:21:16] [main/INFO]: Applied 0 biome modifications to 0 of 64 new biomes in 8.015 ms
+[17:21:16] [Server thread/INFO]: Starting minecraft server version 1.21.3
+[17:21:16] [Server thread/INFO]: Loading properties
+[17:21:16] [Server thread/INFO]: Default game type: SURVIVAL
+[17:21:16] [Server thread/INFO]: Generating keypair
+[17:21:16] [Server thread/INFO]: Starting Minecraft server on *:25565
+[17:21:16] [Server thread/INFO]: Using default channel type
+[17:21:16] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[17:21:16] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[17:21:16] [Server thread/WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[17:21:16] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[17:21:16] [Server thread/INFO]: Preparing level "world_play"
+[17:21:17] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[17:21:18] [Worker-Main-6/INFO]: Preparing spawn area: 0%
+[17:21:18] [Worker-Main-6/INFO]: Preparing spawn area: 0%
+[17:21:18] [Worker-Main-6/INFO]: Preparing spawn area: 0%
+[17:21:18] [Server thread/INFO]: Time elapsed: 1333 ms
+[17:21:18] [Server thread/INFO]: Done (1.836s)! For help, type "help"
+[17:21:18] [Server thread/INFO]: Starting remote control listener
+[17:21:18] [Server thread/INFO]: Thread RCON Listener started
+[17:21:18] [Server thread/INFO]: RCON running on 0.0.0.0:25575
+[17:21:18] [Server thread/INFO]: [AIBot] LIFECYCLE event=server_started bot=- {motd=aibot-dsh-m0 isolated acceptance}
+[17:21:18] [Server thread/INFO]: [AIBot] TASK event=jobs_cleared bot=- {}
+[17:21:19] [Server thread/INFO]: [AIBot] COMM event=runtime_recipe_index_built bot=- {indexed=757, scanned=1338}
+[17:21:19] [Server thread/INFO]: Bob[127.0.0.1] logged in with entity id 1 at (532.5, 67.0, 127.5)
+[17:21:19] [Server thread/INFO]: Bob joined the game
+[17:21:19] [Server thread/INFO]: [AIBot] LIFECYCLE event=bot_spawned bot=Bob {mode=survival, pos=532,67,127}
+[17:21:19] [Server thread/INFO]: [AIBot] LIFECYCLE event=bot_role_set bot=Bob {role=worker}
+[17:21:19] [Server thread/INFO]: [AIBot] COMM event=bot_memory_loaded bot=- {bot_uuid=faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b}
+[17:21:19] [Server thread/INFO]: [AIBot] LIFECYCLE event=bot_restored bot=Bob {dimension=minecraft:overworld, pos=532,67,127, mode=survival, fallback=false}
+[17:21:19] [Server thread/INFO]: [AIBot] LIFECYCLE event=server_runtime_ready bot=- {runtime_session=269d5010-3ee6-482a-b984-e82e66a8eb33, restored_bots=1}
+[17:21:19] [Server thread/INFO]: [AIBot] COMM event=conversation_reset bot=Bob {}
+[17:21:19] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=perception_snapshot, reason=DENIED_STRICT_SURVIVAL}
+[17:21:19] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_block_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:20] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=302}
+[17:21:20] [Server thread/INFO]: AIBot external-body bridge bound to loopback port 8765 for Bob
+[17:21:20] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2005ms or 40 ticks behind
+[17:21:21] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=76}
+[17:21:21] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=87}
+[17:21:22] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=43}
+[17:21:22] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=46}
+[17:21:22] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=diagnostic_nearby, reason=DENIED_STRICT_SURVIVAL}
+[17:21:22] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:23] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=34}
+[17:21:23] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=15}
+[17:21:24] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=12}
+[17:21:24] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:25] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=11}
+[17:21:25] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_block_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:25] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=perception_snapshot, reason=DENIED_STRICT_SURVIVAL}
+[17:21:25] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=16}
+[17:21:26] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=15}
+[17:21:26] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=12}
+[17:21:26] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:27] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=12}
+[17:21:28] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=diagnostic_nearby, reason=DENIED_STRICT_SURVIVAL}
+[17:21:28] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:29] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=17}
+[17:21:30] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=17}
+[17:21:30] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_block_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:30] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=perception_snapshot, reason=DENIED_STRICT_SURVIVAL}
+[17:21:30] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:31] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=16}
+[17:21:31] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=11}
+[17:21:32] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=15}
+[17:21:32] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:34] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=diagnostic_nearby, reason=DENIED_STRICT_SURVIVAL}
+[17:21:34] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:35] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=12}
+[17:21:35] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_block_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:35] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=perception_snapshot, reason=DENIED_STRICT_SURVIVAL}
+[17:21:35] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=11}
+[17:21:36] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:38] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:40] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_block_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:40] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=perception_snapshot, reason=DENIED_STRICT_SURVIVAL}
+[17:21:40] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=diagnostic_nearby, reason=DENIED_STRICT_SURVIVAL}
+[17:21:40] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:41] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=11}
+[17:21:42] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=, goal=none, task_progress=1.0, task=idle, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=532,67,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=COMPLETED}
+[17:21:42] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {origin=LLM_TOOL, params=Mine known minecraft:iron_ore at 562, 68, 127 phase=APPROACH, origin_reason=external_dsh:4f3dc96a-8d82-40e2-954f-67d74704a17f, name=mine_known_resource}
+[17:21:42] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_cell_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:42] [Server thread/INFO]: [AIBot] PROFILE event=profile_slow_section bot=- {elapsed_ms=58.64, section=task_tick, bot=Bob}
+[17:21:43] [Server thread/INFO]: [AIBot] ACTION event=fake_player_jump bot=Bob {to=class_2338{x=537, y=68, z=127}, from=class_2338{x=536, y=67, z=127}, reason=path_jump_up}
+[17:21:44] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=14}
+[17:21:44] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=APPROACH, goal=none, task_progress=0.2, task=mine_known_resource, mode=survival, air=300, food=20, path_idle=false, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=542,68,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=RUNNING}
+[17:21:45] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=harvest_nearest_blocks, reason=DENIED_STRICT_SURVIVAL}
+[17:21:45] [Server thread/INFO]: [AIBot] COMM event=findpath_timeout_diag bot=- {ms=31, dig=false, open=132, explored=2398}
+[17:21:45] [Server thread/INFO]: [AIBot] PROFILE event=profile_slow_section bot=- {elapsed_ms=282.04, section=task_tick, bot=Bob}
+[17:21:45] [Server thread/WARN]: [AIBot] TASK event=task_failed bot=Bob {name=mine_known_resource, reason=known_resource_unreachable:no_reachable_work_pose, elapsed_ticks=53}
+[17:21:45] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_block_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:45] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=perception_snapshot, reason=DENIED_STRICT_SURVIVAL}
+[17:21:45] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=14}
+[17:21:46] [Server thread/INFO]: [AIBot] ACTION event=fake_player_step bot=Bob {to=class_2338{x=553, y=67, z=127}, from=class_2338{x=552, y=68, z=127}, reason=path_drop_down}
+[17:21:46] [Server thread/INFO]: [AIBot] ACTION event=fake_player_step bot=Bob {to=class_2338{x=553, y=66, z=127}, from=class_2338{x=553, y=67, z=127}, reason=path_drop_down}
+[17:21:46] [Server thread/INFO]: [AIBot] ACTION event=fake_player_step bot=Bob {to=class_2338{x=554, y=65, z=127}, from=class_2338{x=553, y=66, z=127}, reason=path_drop_down}
+[17:21:46] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=47}
+[17:21:46] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=diagnostic_nearby, reason=DENIED_STRICT_SURVIVAL}
+[17:21:46] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=APPROACH, goal=none, task_progress=0.2, task=mine_known_resource, mode=survival, air=300, food=20, path_idle=false, inv=minecraft:iron_axex1 minecraft:dirtx15 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=false, pos=554,65,127, fall=0.0, held=minecraft:rotten_fleshx2, task_state=FAILED}
+[17:21:47] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=11}
+[17:21:47] [Server thread/INFO]: [AIBot] ACTION event=fake_player_step bot=Bob {to=class_2338{x=557, y=64, z=127}, from=class_2338{x=556, y=65, z=127}, reason=path_drop_down}
+[17:21:47] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=16}
+[17:21:48] [Server thread/INFO]: [AIBot] ACTION event=equip_slot bot=Bob {hotbar_slot=1, source_slot=1}
+[17:21:48] [Server thread/INFO]: [AIBot] ACTION event=fake_player_jump bot=Bob {to=class_2338{x=560, y=65, z=127}, from=class_2338{x=560, y=64, z=127}, reason=path_pillar_jump}
+[17:21:48] [Server thread/INFO]: [AIBot] ACTION event=place bot=Bob {item=minecraft:dirt, face=up, pos=560,64,127}
+[17:21:48] [Server thread/INFO]: [AIBot] ACTION event=fake_player_jump bot=Bob {to=class_2338{x=560, y=66, z=127}, from=class_2338{x=560, y=65, z=127}, reason=path_pillar_jump}
+[17:21:48] [Server thread/INFO]: [AIBot] ACTION event=place bot=Bob {item=minecraft:dirt, face=up, pos=560,65,127}
+[17:21:48] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=16}
+[17:21:48] [Server thread/INFO]: [AIBot] ACTION event=fake_player_jump bot=Bob {to=class_2338{x=560, y=67, z=127}, from=class_2338{x=560, y=66, z=127}, reason=path_pillar_jump}
+[17:21:48] [Server thread/INFO]: [AIBot] ACTION event=place bot=Bob {item=minecraft:dirt, face=up, pos=560,66,127}
+[17:21:48] [Server thread/INFO]: [AIBot] ACTION event=fake_player_jump bot=Bob {to=class_2338{x=561, y=68, z=127}, from=class_2338{x=560, y=67, z=127}, reason=path_jump_up}
+[17:21:48] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=15}
+[17:21:48] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_entity_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:48] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=APPROACH, goal=none, task_progress=0.2, task=mine_known_resource, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx12 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=561,68,127, fall=0.0, held=minecraft:dirtx12, task_state=FAILED}
+[17:21:50] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=11}
+[17:21:50] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_block_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:50] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=perception_snapshot, reason=DENIED_STRICT_SURVIVAL}
+[17:21:50] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=APPROACH, goal=none, task_progress=0.2, task=mine_known_resource, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx12 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=561,68,127, fall=0.0, held=minecraft:dirtx12, task_state=FAILED}
+[17:21:52] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=diagnostic_nearby, reason=DENIED_STRICT_SURVIVAL}
+[17:21:52] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=APPROACH, goal=none, task_progress=0.2, task=mine_known_resource, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx12 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=561,68,127, fall=0.0, held=minecraft:dirtx12, task_state=FAILED}
+[17:21:53] [Server thread/INFO]: [AIBot] TASK event=task_assigned bot=Bob {origin=LLM_TOOL, params=Mine known minecraft:iron_ore at 562, 68, 127 phase=APPROACH, origin_reason=external_dsh:f2bd3e4f-d0e9-4199-a758-42e8e22046ef, name=mine_known_resource}
+[17:21:54] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_cell_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:54] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=harvest_nearest_blocks, reason=DENIED_STRICT_SURVIVAL}
+[17:21:54] [Server thread/INFO]: [AIBot] PROFILE event=profile_slow_section bot=- {elapsed_ms=138.58, section=task_tick, bot=Bob}
+[17:21:54] [Server thread/INFO]: [AIBot] ACTION event=equip_slot bot=Bob {hotbar_slot=4, source_slot=4}
+[17:21:54] [Server thread/INFO]: [AIBot] ACTION event=equip_best_tool bot=Bob {tool=minecraft:iron_pickaxe, score=120.6, slot=4}
+[17:21:54] [Server thread/INFO]: [AIBot] ACTION event=mine_start bot=Bob {face=down, pos=562,68,127}
+[17:21:54] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_entity_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:54] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=MINING, goal=none, task_progress=0.6, task=mine_known_resource, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx12 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6, nearby=animals=0 hostiles=0, mining_idle=false, hp=20.0/20.0, on_ground=true, pos=561,68,127, fall=0.0, held=minecraft:iron_pickaxex1, task_state=RUNNING}
+[17:21:54] [Server thread/INFO]: [AIBot] ACTION event=mine_complete bot=Bob {}
+[17:21:54] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=FORCED_PICKUP, context=harvest_force_pickup, reason=DENIED_STRICT_SURVIVAL}
+[17:21:55] [Server thread/INFO]: [AIBot] ACTION event=known_resource_collected bot=Bob {opportunity=ore_fefc057feb30_24947ca16ae04bb2, count=1}
+[17:21:55] [Server thread/INFO]: [AIBot] TASK event=task_completed bot=Bob {name=mine_known_resource, elapsed_ticks=28}
+[17:21:55] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=observable_block_query, reason=DENIED_STRICT_SURVIVAL}
+[17:21:55] [Server thread/INFO]: [AIBot] ACTION event=capability_decision bot=Bob {allowed=false, profile=strict_survival, capability=HIDDEN_BLOCK_SCAN, context=perception_snapshot, reason=DENIED_STRICT_SURVIVAL}
+[17:21:55] [Server thread/WARN]: [AIBot] PERCEPTION event=snapshot_slow bot=Bob {elapsed_ms=16}
+[17:21:56] [Server thread/INFO]: [AIBot] ACTION event=diag_snapshot bot=Bob {submerged=false, light=15, step=, in_lava=false, task_phase=PICKUP, goal=none, task_progress=0.9, task=mine_known_resource, mode=survival, air=300, food=20, path_idle=true, inv=minecraft:iron_axex1 minecraft:dirtx12 minecraft:oak_logx8 minecraft:rotten_fleshx2 minecraft:iron_pickaxex6 minecraft:raw_ironx1, nearby=animals=0 hostiles=0, mining_idle=true, hp=20.0/20.0, on_ground=true, pos=561,68,127, fall=0.0, held=minecraft:iron_pickaxex1, task_state=COMPLETED}
+[17:21:57] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[17:21:57] [Server thread/INFO]: [Rcon: Stopping the server]
+[17:21:57] [RCON Client /127.0.0.1 #2/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[17:21:57] [Server thread/INFO]: [AIBot] LIFECYCLE event=server_stopping bot=- {}
+[17:21:57] [AIBotPersistenceWriter/INFO]: [AIBot] LIFECYCLE event=runtime_persist_saved bot=- {bots=1, path=.\world_play\.\aibot\runtime.json, atomic_move=true, schema=1, jobs=0}
+[17:21:57] [Server thread/INFO]: [AIBot] COMM event=conversation_reset bot=Bob {}
+[17:21:57] [Server thread/INFO]: Bob lost connection: AIBot server unload
+[17:21:57] [Server thread/INFO]: Bob left the game
+[17:21:57] [Server thread/INFO]: [AIBot] LIFECYCLE event=all_bots_cleared bot=- {count=1}
+[17:21:57] [Server thread/INFO]: [AIBot] TASK event=jobs_cleared bot=- {}
+[17:21:57] [Server thread/INFO]: [AIBot] LIFECYCLE event=server_runtime_stopped bot=- {persisted_bots=1}
+[17:21:57] [Server thread/INFO]: Stopping server
+[17:21:57] [Server thread/INFO]: Saving players
+[17:21:57] [Server thread/INFO]: Saving worlds
+[17:21:57] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world_play]'/minecraft:overworld
+[17:21:57] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world_play]'/minecraft:the_end
+[17:21:57] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world_play]'/minecraft:the_nether
+[17:21:57] [Server thread/INFO]: ThreadedAnvilChunkStorage (world_play): All chunks are saved
+[17:21:57] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[17:21:57] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[17:21:57] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[17:21:57] [Server thread/INFO]: Thread RCON Listener stopped

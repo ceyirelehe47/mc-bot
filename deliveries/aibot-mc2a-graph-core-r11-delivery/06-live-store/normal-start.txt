@@ -1,0 +1,1 @@
+[server-r11-h.log] [14:29:37] [Server thread/INFO]: AIBot external-body bridge bound to loopback port 8765 for Bob

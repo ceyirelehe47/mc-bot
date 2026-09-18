@@ -1,0 +1,28 @@
+{
+ "final": {
+  "execution_id": "00796bc1-823b-43e1-a8fa-8b00d65ca8b6",
+  "request_id": "mc2a05-liveB-face-91516729",
+  "body_id": "bob",
+  "backend_kind": "real_client",
+  "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+  "body_session_epoch": "0c2b83ed-f2f6-4d0b-8414-f8565e1cd182",
+  "operation": "goto",
+  "state": "completed",
+  "progress": 1.0,
+  "reason": "server_authoritative_arrival_and_facing_verified",
+  "terminal": true,
+  "success_scope": "bounded_body_operation_not_user_goal"
+ },
+ "trail": [
+  [
+   0.0,
+   "accepted",
+   ""
+  ],
+  [
+   0.81,
+   "completed",
+   "server_authoritative_arrival_and_facing_verified"
+  ]
+ ]
+}

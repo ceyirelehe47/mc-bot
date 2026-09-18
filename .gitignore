@@ -17,3 +17,4 @@ aibot-mc2a0-*-delivery/**/jar/
 aibot-mc2a0-*-delivery/**/*.jar
 aibot-mc2a0-*-delivery/**/*stdout*.log
 aibot-mc2a0-*-delivery/**/*-pid.txt
+*.jar
