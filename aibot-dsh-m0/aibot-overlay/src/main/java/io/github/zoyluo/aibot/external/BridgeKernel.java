@@ -432,7 +432,20 @@ public final class BridgeKernel {
         requireReady();
         if(needsReconcile) throw new BridgeFault(409,"observe_required_before_new_work");
         if(active!=null) throw new BridgeFault(409,"execution_in_progress");
-        if(byId.size()>=MAX_EXECUTIONS) throw new BridgeFault(503,"execution_ledger_capacity_exhausted");
+        if(byId.size()>=MAX_EXECUTIONS) {
+            // 长会话游玩:终态执行的历史已持久在 journal,内存索引淘汰最老的终态条目。
+            // 全部非终态(不可能:单执行槽)才真正耗尽。
+            java.util.Map.Entry<String,Execution> oldest=null;
+            for(java.util.Map.Entry<String,Execution> entry:byId.entrySet()) {
+                if(TERMINAL.contains(entry.getValue().state)
+                        &&(oldest==null||entry.getValue().id.compareTo(oldest.getValue().id)<0))
+                    oldest=entry;
+            }
+            if(oldest==null)
+                throw new BridgeFault(503,"execution_ledger_capacity_exhausted");
+            byRequest.remove(oldest.getValue().request);
+            byId.remove(oldest.getKey());
+        }
         Execution e=new Execution(); e.id=UUID.randomUUID().toString(); e.request=request; e.owner=owner;
         e.operation=operation; e.arguments=arguments; e.fingerprint=fp;
         e.admittingLeaseEpoch=leaseEpoch; e.bodyId=bodyId; e.backendKind=backendKind;

@@ -101,7 +101,8 @@ public final class RealClientOpportunityTracker {
         String actualId=Registries.BLOCK.getId(state.getBlock()).toString();
         if(!actualId.equals(sensor.crosshairBlock())
                 || !(OreScan.isOreBlock(state.getBlock())
-                        ||state.isIn(net.minecraft.registry.tag.BlockTags.LOGS))) {
+                        ||state.isIn(net.minecraft.registry.tag.BlockTags.LOGS)
+                        ||isOrdinaryDiggable(state,player,pos))) {
             diagReject(player,sensor,pos,serverRay,"block_or_ore_mismatch:"+actualId);
             return Optional.empty();
         }
@@ -306,6 +307,14 @@ public final class RealClientOpportunityTracker {
                 .toString().replace("-","").substring(0,12);
         String incarnation=UUID.randomUUID().toString().replace("-","").substring(0,16);
         return "rcore_"+location+"_"+incarnation;
+    }
+
+    /** 普通可挖方块(泥土/沙等徒手可挖):挖洞过夜与地形施工的基础。 */
+    private static boolean isOrdinaryDiggable(
+            BlockState state,ServerPlayerEntity player,BlockPos pos) {
+        if(state.isAir())return false;
+        return state.getHardness(player.getServerWorld(),pos)>=0F
+                &&!state.isToolRequired();
     }
 
     private static String expectedItem(Block block) {

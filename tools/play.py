@@ -85,7 +85,17 @@ class Session:
         tag = tag or ("play-" + op)
         r = L.submit(self.lease, op, args, tag)
         if not r.get("ok"):
-            return {"op": op, "submit": r}
+            # submit 409(执行槽被占,常见于上个进程被杀后 in-flight 执行残留):
+            # 等服务器 stall 兜底(<=120s)释放后重试一次
+            for _ in range(65):
+                st = self.status()["data"]
+                if not st.get("active_execution"):
+                    break
+                time.sleep(2)
+            r = L.submit(self.lease, op, args, tag)
+            if not r.get("ok"):
+                time.sleep(5)  # 退避:防上层空转循环打爆桥
+                return {"op": op, "submit": r}
         ex_id = r["data"]["execution_id"]
         res, trail = L.wait_terminal(self.lease, ex_id, timeout_s=timeout_s)
         if res.get("state") == "TIMEOUT":  # 主动取消释放执行槽(带重试+对账)

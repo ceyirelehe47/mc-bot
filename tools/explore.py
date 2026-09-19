@@ -78,8 +78,9 @@ def main():
             s.do("goto", {"x": lp["x"], "y": lp["y"], "z": lp["z"],
                           "allow_terrain_changes": True}, timeout_s=110)
             continue
-        # 无命中:沿方向链直线推进;无位移即换向(短超时避免堵死方向浪费时间)
-        dx, dz = directions[hop_round % len(directions)]
+        # 无命中:每 6 轮换一个大方向,期间连续直线推进(150+ 格拉距)
+        big_dir = (hop_round // 6) % len(directions)
+        dx, dz = directions[big_dir]
         tgt = (p["x"] + dx, p["y"], p["z"] + dz)
         r = s.do("goto", {"x": tgt[0], "y": tgt[1], "z": tgt[2],
                           "allow_terrain_changes": True}, timeout_s=70)

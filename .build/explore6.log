@@ -1,0 +1,15 @@
+[15:08:55] hop r=0 (-13, 11)->(11, 109, 11) completed moved=22 now={'x': 9, 'y': 110, 'z': 11}
+[15:10:07] hop r=1 (9, 11)->(33, 110, 11) TIMEOUT moved=26 now={'x': 30, 'y': 113, 'z': 16}
+[15:10:51] hop r=2 (30, 16)->(54, 112, 16) completed moved=22 now={'x': 52, 'y': 111, 'z': 16}
+[15:12:03] hop r=3 (52, 16)->(76, 111, 16) TIMEOUT moved=34 now={'x': 85, 'y': 118, 'z': 17}
+[15:12:20] hop r=4 (86, 17)->(110, 118, 17) completed moved=27 now={'x': 111, 'y': 118, 'z': 19}
+[15:12:27] hop r=5 (111, 19)->(135, 118, 19) completed moved=22 now={'x': 133, 'y': 118, 'z': 19}
+[15:12:33] hop r=6 (133, 19)->(133, 118, 43) completed moved=22 now={'x': 133, 'y': 118, 'z': 41}
+[15:12:46] hop r=7 (133, 41)->(133, 118, 65) completed moved=25 now={'x': 132, 'y': 119, 'z': 65}
+[15:13:59] hop r=8 (132, 65)->(132, 119, 89) TIMEOUT moved=33 now={'x': 125, 'y': 114, 'z': 91}
+[15:14:00] night: idle wait (survive) logs=1
+[15:14:45] night: idle wait (survive) logs=1
+[15:15:31] night: idle wait (survive) logs=1
+[15:16:16] night: idle wait (survive) logs=0
+[15:17:01] night: idle wait (survive) logs=0
+[15:17:46] night: idle wait (survive) logs=0
