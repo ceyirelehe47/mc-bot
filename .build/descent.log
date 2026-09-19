@@ -1,0 +1,6 @@
+0 failed | real_client_goto_stalled | pos {'x': -2, 'y': 114, 'z': -3}
+1 failed | real_client_goto_stalled | pos {'x': -2, 'y': 114, 'z': -3}
+2 failed | real_client_goto_stalled | pos {'x': -2, 'y': 115, 'z': -3}
+Traceback (most recent call last):
+  File "<stdin>", line 15, in <module>
+KeyError: 'data'

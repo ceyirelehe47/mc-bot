@@ -317,7 +317,8 @@ public final class RealClientExecutionDriver
             return new BodyBackend.Snapshot(
                     "outcome_unknown",0D,
                     "real_client_body_unavailable");
-        // 无进展检测:45 秒距目标距离无改善即失败并通知客户端收尾,
+        // 无进展检测:120 秒距目标距离无改善即失败并通知客户端收尾
+        // (需覆盖客户端绕障序列 6x25tick + 空手挖穿石墙的时间),
         // 避免卡死执行占满服务器单槽 240 秒(实测执行槽饥饿)。
         double distanceNow=current.getPos()
                 .squaredDistanceTo(target.toCenterPos());
@@ -326,7 +327,7 @@ public final class RealClientExecutionDriver
             lastDistance[0]=distanceNow;
             lastProgressTick[0]=server.getTicks();
         } else if(server.getTicks()-lastProgressTick[0]
-                >20*45) {
+                >20*120) {
             transport.sendControl(
                     executionId,"cancel",
                     "real_client_goto_stalled");

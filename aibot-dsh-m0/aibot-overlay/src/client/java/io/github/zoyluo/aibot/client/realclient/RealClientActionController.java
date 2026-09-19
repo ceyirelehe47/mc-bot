@@ -470,27 +470,23 @@ final class RealClientActionController {
 
             stableTicks=0;
             facingTicks=0;
-            clearInputs(client);
-            lookAt(client,target);
-            client.options.forwardKey.setPressed(true);
-            client.options.sprintKey.setPressed(
-                    distance>6D);
-            client.options.jumpKey.setPressed(
-                    client.player.horizontalCollision);
+            // 移动统一走 walkTo:绕障偏航/挖穿/清屏/跳跃都在那里
+            // (此前这里是内联直线走,绕障逻辑从未接入 goto,实测山顶死锁)。
+            walkTo(client,target);
             progress=Math.max(
                     progress,Math.min(.95D,1D-distance/32D));
             send(executionId,"running",
                     progress,"walking_to_target");
             if(client.world.getTime()%40L==0L)
                 io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                        "[AIBot] goto-diag pos={} fwd={} sprint={} jump={} collision={} screen={} input={}",
+                        "[AIBot] goto-diag pos={} yaw={} detour={} phase={} stuck={} breaking={} fwd={} jump={} collision={}",
                         client.player.getBlockPos(),
+                        (int)client.player.getYaw(),
+                        detourActive,detourPhase,stuckTicks,
+                        breakingPos==null?"-":breakingPos.toString(),
                         client.options.forwardKey.isPressed(),
-                        client.options.sprintKey.isPressed(),
                         client.options.jumpKey.isPressed(),
-                        client.player.horizontalCollision,
-                        client.currentScreen,
-                        client.player.input != null ? client.player.input.playerInput : "null");
+                        client.player.horizontalCollision);
         }
     }
 
@@ -775,30 +771,53 @@ final class RealClientActionController {
 
     // ---------- 寻路运动状态:直线 -> 偏航绕行 -> 挖穿(真实挖掘) ----------
     private static int stuckTicks,clearTicks,detourTicks,detourPhase;
+    private static double bestDistance=-1D;
+    private static int noProgressTicks;
     private static float detourBaseYaw,detourYaw;
     private static boolean detourActive;
     private static BlockPos breakingPos;
     private static Direction breakingFace;
-    private static final float[] DETOURS={60F,-60F,110F,-110F,150F,-150F};
+    private static final float[] DETOURS={45F,-45F,90F,-90F};
 
     private static void resetLocomotion() {
         stuckTicks=0;clearTicks=0;detourTicks=0;detourPhase=0;
         detourActive=false;breakingPos=null;breakingFace=null;
+        bestDistance=-1D;noProgressTicks=0;
     }
 
     private static void startBreaking(
             MinecraftClient client,Vec3d target) {
+        // 确定性位置挖掘:先朝向目标再取面朝方向(墙在目标方向上),
+        // 否则水平朝向是偏航残留,会挖错方向。raycast 不可靠(视线掠近墙)。
         lookAt(client,target);
-        if(client.crosshairTarget instanceof BlockHitResult hit
-                &&hit.getType()==HitResult.Type.BLOCK
-                &&client.player.getEyePos().distanceTo(
-                        hit.getPos())<4.5D) {
-            breakingPos=hit.getBlockPos();
-            breakingFace=hit.getSide();
-            client.interactionManager.attackBlock(
-                    breakingPos,breakingFace);
-            client.player.swingHand(Hand.MAIN_HAND);
+        Direction dir=client.player.getHorizontalFacing();
+        BlockPos feet=client.player.getBlockPos();
+        BlockPos head=feet.up();
+        BlockPos footAhead=feet.offset(dir);
+        BlockPos headAhead=head.offset(dir);
+        BlockPos pick=null;
+        if(!client.world.getBlockState(headAhead).isAir())
+            pick=headAhead;
+        else if(!client.world.getBlockState(footAhead).isAir())
+            pick=footAhead;
+        else if(!client.world.getBlockState(headAhead.up()).isAir())
+            pick=headAhead.up();
+        if(pick==null) {
+            io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                    "[AIBot] dig-diag nothing-ahead feet={} dir={} state={}",
+                    feet,dir,
+                    Registries.BLOCK.getId(client.world
+                            .getBlockState(footAhead).getBlock()));
+            return;
         }
+        io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                "[AIBot] dig-diag start pick={} face={}",
+                pick,dir.getOpposite());
+        breakingPos=pick;
+        breakingFace=dir.getOpposite();
+        client.interactionManager.attackBlock(
+                breakingPos,breakingFace);
+        client.player.swingHand(Hand.MAIN_HAND);
     }
 
     private static void walkTo(
@@ -831,12 +850,13 @@ final class RealClientActionController {
                 clearTicks=0;
             else {
                 clearTicks++;
-                if(clearTicks>8) {
+                // 弹跳瞬间会短暂脱墙(0.4s),过短会误判脱困并丢弃绕障进度(实测)
+                if(clearTicks>25) {
                     resetLocomotion();
                     return;
                 }
             }
-            if(detourTicks>25) {
+            if(detourTicks>40) {
                 detourTicks=0;clearTicks=0;
                 detourPhase++;
                 if(detourPhase>=DETOURS.length) {
@@ -855,17 +875,22 @@ final class RealClientActionController {
         // 1 格台阶/迎面碰撞自动跳:无跳跃的 W 按住在梯田地形必然卡死(实测)。
         client.options.jumpKey.setPressed(
                 client.player.horizontalCollision);
-        if(client.player.horizontalCollision) {
-            stuckTicks++;
-            if(stuckTicks>15) {
-                // 持续碰撞:进入偏航绕行(渐进方向序列),仍不通再挖穿
-                detourActive=true;detourTicks=0;clearTicks=0;
-                detourBaseYaw=client.player.getYaw();
-                detourYaw=detourBaseYaw
-                        +DETOURS[Math.min(detourPhase,DETOURS.length-1)];
-            }
+        // 距目标无改善检测:原地弹跳(114<->115 震荡)会骗过位置不变检测,
+        // 只有持续接近目标才算有效移动;60 tick 无改善即进入偏航绕行,仍不通再挖穿。
+        double dNow=client.player.getPos().distanceTo(target);
+        if(bestDistance<0D||dNow<bestDistance-0.1D) {
+            bestDistance=dNow;
+            noProgressTicks=0;
         } else {
-            stuckTicks=0;
+            noProgressTicks++;
+        }
+        if(noProgressTicks>60) {
+            detourActive=true;detourTicks=0;clearTicks=0;
+            detourBaseYaw=client.player.getYaw();
+            detourYaw=detourBaseYaw
+                    +DETOURS[Math.min(detourPhase,DETOURS.length-1)];
+            noProgressTicks=0;
+            bestDistance=-1D;
         }
     }
 

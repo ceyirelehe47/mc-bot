@@ -1,0 +1,11 @@
+[14:21:09] night: idle wait (survive) logs=0
+[14:22:47] hop r=1 (-4, -3)->(-4, 115, 21) TIMEOUT moved=0 now={'x': -4, 'y': 115, 'z': -3}
+[14:22:47]   direction (0,24) blocked, rotating
+[14:23:41] hop r=2 (-4, -3)->(-28, 115, -3) TIMEOUT moved=0 now={'x': -4, 'y': 115, 'z': -3}
+[14:23:41]   direction (-24,0) blocked, rotating
+[14:24:34] hop r=3 (-4, -3)->(-4, 115, -27) TIMEOUT moved=3 now={'x': -4, 'y': 114, 'z': -6}
+[14:25:28] hop r=4 (-4, -6)->(20, 114, -6) TIMEOUT moved=2 now={'x': -2, 'y': 114, 'z': -6}
+[14:25:28]   direction (24,0) blocked, rotating
+[14:26:22] hop r=5 (-2, -6)->(-2, 114, 18) TIMEOUT moved=3 now={'x': -2, 'y': 114, 'z': -3}
+[14:27:13] hop r=6 (-2, -3)->(-26, 114, -3) TIMEOUT moved=2 now={'x': -4, 'y': 115, 'z': -3}
+[14:27:13]   direction (-24,0) blocked, rotating

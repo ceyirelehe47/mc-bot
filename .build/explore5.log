@@ -1,0 +1,4 @@
+[15:00:11] night: idle wait (survive) logs=0
+[15:00:56] night: idle wait (survive) logs=0
+[15:02:51] hop r=2 (8, 7)->(-16, 110, 7) TIMEOUT moved=22 now={'x': -14, 'y': 108, 'z': 7}
+[15:03:03] hop r=3 (-14, 7)->(-14, 108, -17) completed moved=23 now={'x': -14, 'y': 110, 'z': -16}

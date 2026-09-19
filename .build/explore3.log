@@ -1,0 +1,10 @@
+[14:11:24] hop r=0 (-4, -6)->(20, 114, -6) failed moved=2 now={'x': -2, 'y': 114, 'z': -6}
+[14:11:24]   direction (24,0) blocked, rotating
+[14:12:11] hop r=1 (-2, -6)->(-2, 114, 18) failed moved=3 now={'x': -2, 'y': 114, 'z': -3}
+[14:12:58] hop r=2 (-2, -3)->(-26, 114, -3) failed moved=2 now={'x': -4, 'y': 115, 'z': -3}
+[14:12:58]   direction (-24,0) blocked, rotating
+[14:12:59] night: idle wait (survive) logs=0
+[14:13:44] night: idle wait (survive) logs=0
+[14:14:29] night: idle wait (survive) logs=0
+[14:15:14] night: idle wait (survive) logs=0
+[14:15:59] night: idle wait (survive) logs=0

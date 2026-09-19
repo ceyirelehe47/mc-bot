@@ -78,16 +78,20 @@ def main():
             s.do("goto", {"x": lp["x"], "y": lp["y"], "z": lp["z"],
                           "allow_terrain_changes": True}, timeout_s=110)
             continue
-        # 无命中:沿方向链直线推进
+        # 无命中:沿方向链直线推进;无位移即换向(短超时避免堵死方向浪费时间)
         dx, dz = directions[hop_round % len(directions)]
         tgt = (p["x"] + dx, p["y"], p["z"] + dz)
         r = s.do("goto", {"x": tgt[0], "y": tgt[1], "z": tgt[2],
-                          "allow_terrain_changes": True}, timeout_s=100)
+                          "allow_terrain_changes": True}, timeout_s=70)
         t = r.get("terminal") or {}
         np_ = s.view()["data"]["scene"]["self"]["block_position"]
-        log("hop r=%d %s->%s %s now=%s" % (hop_round, (p["x"], p["z"]), tgt,
-                                           t.get("state"), np_))
-        time.sleep(2)
+        moved = abs(np_["x"] - p["x"]) + abs(np_["z"] - p["z"])
+        log("hop r=%d %s->%s %s moved=%d now=%s" % (
+            hop_round, (p["x"], p["z"]), tgt, t.get("state"), moved, np_))
+        if moved < 3:
+            # 本方向堵死:下一轮直接跳到再下一个方向
+            log("  direction (%d,%d) blocked, rotating" % (dx, dz))
+        time.sleep(1)
     log("EXPLORE-END logs=%d" % total_logs)
 
 

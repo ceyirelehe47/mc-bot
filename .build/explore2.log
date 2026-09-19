@@ -8,3 +8,8 @@
 [13:56:50] night: idle wait (survive) logs=0
 [13:57:36] night: idle wait (survive) logs=0
 [13:58:21] night: idle wait (survive) logs=0
+[13:59:06] night: idle wait (survive) logs=0
+[13:59:51] night: idle wait (survive) logs=0
+[14:00:36] night: idle wait (survive) logs=0
+[14:03:03] hop r=13 (-4, -4)->(-4, 114, 20) TIMEOUT now={'x': -4, 'y': 115, 'z': -3}
+[14:04:46] hop r=14 (-4, -3)->(-28, 115, -3) TIMEOUT now={'x': -4, 'y': 115, 'z': -3}
