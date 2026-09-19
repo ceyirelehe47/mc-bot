@@ -74,15 +74,22 @@ final class RealClientActionController {
             return;
         }
         if(active!=null && !active.terminal()) {
-            send(executionId,"failed",0D,
-                    "real_client_action_busy");
-            return;
+            // 服务器执行槽单语义:服务器发出新命令=旧执行已被服务器终止。
+            // 残留的旧 action 只可能是 cancel 回执丢失造成的孤儿,直接替换并回报终态。
+            send(active.executionId,"failed",active.progress,
+                    "client_action_superseded");
+            // 输入清理交给新 action 的首个 tick(walkTo/tick 均先 clearInputs+清屏)
         }
 
+        resetLocomotion();
         active=switch(operation) {
             case "say" -> new SayAction(
                     executionId,
                     args.get("message").getAsString());
+            case "eat" -> new EatAction(
+                    executionId,
+                    args.has("slot")
+                            ?args.get("slot").getAsInt():-1);
             case "goto" -> new GotoAction(
                     executionId,
                     args.get("x").getAsDouble(),
@@ -197,6 +204,15 @@ final class RealClientActionController {
             clearInputs(client);
             return;
         }
+        if(++active.ageTicks>20*150) {
+            // 硬超时防呆:残留 action 永不终态会占死执行槽(real_client_action_busy 死锁,实测)
+            clearInputs(client);
+            closeHandled(client);
+            send(active.executionId,"failed",
+                    active.progress,"client_action_hard_timeout");
+            active=null;
+            return;
+        }
         try {
             active.tick(client);
         } catch(RuntimeException failure) {
@@ -309,6 +325,7 @@ final class RealClientActionController {
         final String executionId;
         boolean paused,cancelled,failed,completed;
         double progress;
+        int ageTicks;
 
         Action(String executionId) {
             this.executionId=executionId;
@@ -329,6 +346,44 @@ final class RealClientActionController {
         void fail(String reason) {
             failed=true;
             send(executionId,"failed",progress,reason);
+        }
+    }
+
+    private final class EatAction extends Action {
+        final int slot;
+        int ticks;
+        boolean started;
+
+        EatAction(String executionId,int slot) {
+            super(executionId);
+            this.slot=slot;
+        }
+
+        @Override void tick(MinecraftClient client) {
+            if(client.currentScreen!=null)
+                client.setScreen(null);
+            if(!started) {
+                if(slot>=0&&slot<9)
+                    client.player.getInventory().selectedSlot=slot;
+                client.options.useKey.setPressed(true);
+                started=true;
+                send(executionId,"running",.2D,"client_eating_started");
+                return;
+            }
+            ticks++;
+            client.options.useKey.setPressed(true);
+            if(ticks>12&&!client.player.isUsingItem()) {
+                client.options.useKey.setPressed(false);
+                complete("client_food_consumed");
+                return;
+            }
+            if(ticks>20*12) {
+                client.options.useKey.setPressed(false);
+                fail("client_eat_timeout");
+                return;
+            }
+            send(executionId,"running",Math.min(.9D,ticks/160D),
+                    "client_eating");
         }
     }
 
@@ -420,10 +475,22 @@ final class RealClientActionController {
             client.options.forwardKey.setPressed(true);
             client.options.sprintKey.setPressed(
                     distance>6D);
+            client.options.jumpKey.setPressed(
+                    client.player.horizontalCollision);
             progress=Math.max(
                     progress,Math.min(.95D,1D-distance/32D));
             send(executionId,"running",
                     progress,"walking_to_target");
+            if(client.world.getTime()%40L==0L)
+                io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                        "[AIBot] goto-diag pos={} fwd={} sprint={} jump={} collision={} screen={} input={}",
+                        client.player.getBlockPos(),
+                        client.options.forwardKey.isPressed(),
+                        client.options.sprintKey.isPressed(),
+                        client.options.jumpKey.isPressed(),
+                        client.player.horizontalCollision,
+                        client.currentScreen,
+                        client.player.input != null ? client.player.input.playerInput : "null");
         }
     }
 
@@ -706,12 +773,113 @@ final class RealClientActionController {
         return total;
     }
 
+    // ---------- 寻路运动状态:直线 -> 偏航绕行 -> 挖穿(真实挖掘) ----------
+    private static int stuckTicks,clearTicks,detourTicks,detourPhase;
+    private static float detourBaseYaw,detourYaw;
+    private static boolean detourActive;
+    private static BlockPos breakingPos;
+    private static Direction breakingFace;
+    private static final float[] DETOURS={60F,-60F,110F,-110F,150F,-150F};
+
+    private static void resetLocomotion() {
+        stuckTicks=0;clearTicks=0;detourTicks=0;detourPhase=0;
+        detourActive=false;breakingPos=null;breakingFace=null;
+    }
+
+    private static void startBreaking(
+            MinecraftClient client,Vec3d target) {
+        lookAt(client,target);
+        if(client.crosshairTarget instanceof BlockHitResult hit
+                &&hit.getType()==HitResult.Type.BLOCK
+                &&client.player.getEyePos().distanceTo(
+                        hit.getPos())<4.5D) {
+            breakingPos=hit.getBlockPos();
+            breakingFace=hit.getSide();
+            client.interactionManager.attackBlock(
+                    breakingPos,breakingFace);
+            client.player.swingHand(Hand.MAIN_HAND);
+        }
+    }
+
     private static void walkTo(
             MinecraftClient client,Vec3d target) {
+        // 任何 UI 屏(聊天/菜单/残留界面)都会吞掉移动输入:移动类动作开始前强制清屏
+        if(client.currentScreen!=null)
+            client.setScreen(null);
         clearInputs(client);
+        // 挖掘进行中:持续挖掘直到方块消失,期间不移动
+        if(breakingPos!=null) {
+            if(client.world.getBlockState(breakingPos).isAir()
+                    ||client.player.getEyePos().distanceTo(
+                            breakingPos.toCenterPos())>4.5D) {
+                breakingPos=null;
+                client.interactionManager.cancelBlockBreaking();
+                return;
+            }
+            client.interactionManager.updateBlockBreakingProgress(
+                    breakingPos,breakingFace);
+            client.player.swingHand(Hand.MAIN_HAND);
+            return;
+        }
+        if(detourActive) {
+            turnTowards(client,detourYaw);
+            client.options.forwardKey.setPressed(true);
+            client.options.jumpKey.setPressed(
+                    client.player.horizontalCollision);
+            detourTicks++;
+            if(client.player.horizontalCollision)
+                clearTicks=0;
+            else {
+                clearTicks++;
+                if(clearTicks>8) {
+                    resetLocomotion();
+                    return;
+                }
+            }
+            if(detourTicks>25) {
+                detourTicks=0;clearTicks=0;
+                detourPhase++;
+                if(detourPhase>=DETOURS.length) {
+                    // 六个偏航方向全部失败:挖穿视线内的墙(真实挖掘,工具与时间遵循游戏规则)
+                    detourActive=false;
+                    startBreaking(client,target);
+                    return;
+                }
+                detourYaw=detourBaseYaw+DETOURS[detourPhase];
+            }
+            return;
+        }
         lookAt(client,target);
         client.options.forwardKey.setPressed(true);
         client.options.sprintKey.setPressed(false);
+        // 1 格台阶/迎面碰撞自动跳:无跳跃的 W 按住在梯田地形必然卡死(实测)。
+        client.options.jumpKey.setPressed(
+                client.player.horizontalCollision);
+        if(client.player.horizontalCollision) {
+            stuckTicks++;
+            if(stuckTicks>15) {
+                // 持续碰撞:进入偏航绕行(渐进方向序列),仍不通再挖穿
+                detourActive=true;detourTicks=0;clearTicks=0;
+                detourBaseYaw=client.player.getYaw();
+                detourYaw=detourBaseYaw
+                        +DETOURS[Math.min(detourPhase,DETOURS.length-1)];
+            }
+        } else {
+            stuckTicks=0;
+        }
+    }
+
+    /** 平滑转向:每 tick 最多转 12 度,消除视角瞬移造成的画面抽搐。 */
+    private static void turnTowards(
+            MinecraftClient client,float targetYaw) {
+        float current=client.player.getYaw();
+        float delta=net.minecraft.util.math.MathHelper
+                .wrapDegrees(targetYaw-current);
+        float step=MathHelper.clamp(delta,-12F,12F);
+        float next=current+step;
+        client.player.setYaw(next);
+        client.player.setHeadYaw(next);
+        client.player.setBodyYaw(next);
     }
 
     private static void lookAt(

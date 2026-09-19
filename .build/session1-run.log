@@ -1,0 +1,780 @@
+[12:34:14] session start, pos={'x': 0, 'y': 113, 'z': -8} day=NIGHT
+[12:34:14] waiting for day (NIGHT)...
+[12:34:34] waiting for day (NIGHT)...
+[12:34:54] waiting for day (NIGHT)...
+[12:35:14] waiting for day (NIGHT)...
+[12:35:34] waiting for day (NIGHT)...
+[12:35:54] waiting for day (NIGHT)...
+[12:36:14] waiting for day (NIGHT)...
+[12:36:37] waiting for day (NIGHT)...
+[12:36:57] waiting for day (NIGHT)...
+[12:37:17] waiting for day (NIGHT)...
+[12:37:37] waiting for day (NIGHT)...
+[12:37:57] waiting for day (NIGHT)...
+[12:38:17] waiting for day (NIGHT)...
+[12:38:37] waiting for day (NIGHT)...
+[12:38:57] waiting for day (NIGHT)...
+[12:39:17] waiting for day (NIGHT)...
+[12:39:37] waiting for day (NIGHT)...
+[12:39:57] waiting for day (NIGHT)...
+[12:40:48] probe tgt=(8, 119, -5) pos={'x': 2, 'y': 114, 'z': 1} no-hits
+[12:41:03] probe tgt=(-14, 114, 1) pos={'x': -10, 'y': 109, 'z': 9} no-hits
+[12:41:05] probe tgt=(-10, 109, 25) pos={'x': -10, 'y': 109, 'z': 9} no-hits
+[12:41:12] probe tgt=(-10, 109, -7) pos={'x': -10, 'y': 112, 'z': -8} no-hits
+[12:41:15] probe tgt=(6, 112, 8) pos={'x': -11, 'y': 112, 'z': -8} no-hits
+[12:41:18] probe tgt=(-27, 112, -24) pos={'x': -2, 'y': 111, 'z': 1} no-hits
+[12:41:20] probe tgt=(14, 111, -15) pos={'x': -2, 'y': 111, 'z': 1} no-hits
+[12:41:22] probe tgt=(-18, 111, 17) pos={'x': -2, 'y': 111, 'z': 1} no-hits
+[12:41:30] probe tgt=(22, 111, 1) pos={'x': 16, 'y': 110, 'z': 5} no-hits
+[12:41:32] probe tgt=(16, 110, 29) pos={'x': 15, 'y': 110, 'z': 11} no-hits
+[12:41:34] probe tgt=(-9, 110, 11) pos={'x': 7, 'y': 110, 'z': 15} no-hits
+[12:41:36] probe tgt=(7, 110, -9) pos={'x': 6, 'y': 109, 'z': 16} no-hits
+[12:41:41] probe tgt=(22, 109, 16) pos={'x': 16, 'y': 110, 'z': 16} no-hits
+[12:41:43] probe tgt=(0, 110, 16) pos={'x': 5, 'y': 109, 'z': 16} no-hits
+[12:41:45] probe tgt=(5, 109, 32) pos={'x': -2, 'y': 110, 'z': 16} no-hits
+[12:41:52] probe tgt=(-2, 110, 0) pos={'x': -10, 'y': 111, 'z': 1} no-hits
+[12:41:54] probe tgt=(6, 111, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:41:56] probe tgt=(-33, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:41:58] probe tgt=(-1, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:00] probe tgt=(-33, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:02] probe tgt=(7, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:04] probe tgt=(-17, 109, 25) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:07] probe tgt=(-41, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:09] probe tgt=(-17, 109, -23) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:11] probe tgt=(-1, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:13] probe tgt=(-33, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:15] probe tgt=(-17, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:17] probe tgt=(-17, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:19] probe tgt=(-1, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:21] probe tgt=(-33, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:23] probe tgt=(-1, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:25] probe tgt=(-33, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:27] probe tgt=(7, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:29] probe tgt=(-17, 109, 25) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:31] probe tgt=(-41, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:33] probe tgt=(-17, 109, -23) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:35] probe tgt=(-1, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:37] probe tgt=(-33, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:39] probe tgt=(-17, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:41] probe tgt=(-17, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:43] probe tgt=(-1, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:45] probe tgt=(-33, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:47] probe tgt=(-1, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:49] probe tgt=(-33, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:51] probe tgt=(7, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:53] probe tgt=(-17, 109, 25) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:55] probe tgt=(-41, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:57] probe tgt=(-17, 109, -23) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:42:59] probe tgt=(-1, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:01] probe tgt=(-33, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:04] probe tgt=(-17, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:06] probe tgt=(-17, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:08] probe tgt=(-1, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:10] probe tgt=(-33, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:12] probe tgt=(-1, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:14] probe tgt=(-33, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:16] probe tgt=(7, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:18] probe tgt=(-17, 109, 25) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:20] probe tgt=(-41, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:22] probe tgt=(-17, 109, -23) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:24] probe tgt=(-1, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:26] probe tgt=(-33, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:28] probe tgt=(-17, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:30] probe tgt=(-17, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:32] probe tgt=(-1, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:34] probe tgt=(-33, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:36] probe tgt=(-1, 109, -15) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:38] probe tgt=(-33, 109, 17) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:40] probe tgt=(7, 109, 1) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:42] probe tgt=(-17, 109, 25) pos={'x': -17, 'y': 109, 'z': 1} no-hits
+[12:43:49] probe tgt=(-41, 109, 1) pos={'x': -32, 'y': 107, 'z': 8} no-hits
+[12:43:51] probe tgt=(-32, 107, -16) pos={'x': -26, 'y': 108, 'z': 14} no-hits
+[12:43:53] probe tgt=(-10, 108, 14) pos={'x': -24, 'y': 108, 'z': 16} no-hits
+[12:43:59] probe tgt=(-40, 108, 16) pos={'x': -31, 'y': 106, 'z': 8} no-hits
+[12:44:01] probe tgt=(-31, 106, 24) pos={'x': -26, 'y': 109, 'z': 2} no-hits
+[12:44:03] probe tgt=(-26, 109, -14) pos={'x': -24, 'y': 109, 'z': 1} no-hits
+[12:44:10] probe tgt=(-8, 109, 17) pos={'x': -11, 'y': 109, 'z': 16} no-hits
+[12:44:12] probe tgt=(-27, 109, 0) pos={'x': -22, 'y': 108, 'z': 16} no-hits
+[12:44:14] probe tgt=(-6, 108, 0) pos={'x': -32, 'y': 108, 'z': 16} no-hits
+[12:44:20] probe tgt=(-48, 108, 32) pos={'x': -46, 'y': 108, 'z': 31} no-hits
+[12:44:22] probe tgt=(-22, 108, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:44:24] probe tgt=(-47, 110, 55) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:44:26] probe tgt=(-71, 109, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:44:28] probe tgt=(-47, 109, 7) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:44:30] probe tgt=(-31, 109, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:44:32] probe tgt=(-63, 110, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:44:34] probe tgt=(-47, 110, 47) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:44:36] probe tgt=(-47, 109, 15) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:44:38] probe tgt=(-31, 110, 47) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:44:40] probe tgt=(-63, 109, 15) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:44:42] probe tgt=(-31, 110, 15) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:44:45] probe tgt=(-63, 109, 47) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:44:47] probe tgt=(-23, 109, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:44:49] probe tgt=(-47, 110, 55) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:44:51] probe tgt=(-71, 109, 31) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:44:53] probe tgt=(-47, 109, 7) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:44:55] probe tgt=(-31, 110, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:44:57] probe tgt=(-63, 110, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:44:59] probe tgt=(-47, 110, 47) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:01] probe tgt=(-47, 109, 15) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:03] probe tgt=(-31, 109, 47) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:05] probe tgt=(-63, 110, 15) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:07] probe tgt=(-31, 109, 15) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:09] probe tgt=(-63, 109, 47) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:11] probe tgt=(-23, 109, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:13] probe tgt=(-47, 110, 55) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:15] probe tgt=(-71, 110, 31) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:17] probe tgt=(-47, 109, 7) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:19] probe tgt=(-31, 110, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:21] probe tgt=(-63, 109, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:23] probe tgt=(-47, 110, 47) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:25] probe tgt=(-47, 109, 15) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:27] probe tgt=(-31, 109, 47) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:29] probe tgt=(-63, 110, 15) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:31] probe tgt=(-31, 110, 15) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:33] probe tgt=(-63, 109, 47) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:35] probe tgt=(-23, 109, 31) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:38] probe tgt=(-47, 109, 55) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:40] probe tgt=(-71, 110, 31) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:42] probe tgt=(-47, 109, 7) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:44] probe tgt=(-31, 109, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:46] probe tgt=(-63, 110, 31) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:48] probe tgt=(-47, 109, 47) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:50] probe tgt=(-47, 110, 15) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:52] probe tgt=(-31, 109, 47) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:54] probe tgt=(-63, 109, 15) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:45:56] probe tgt=(-31, 110, 15) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:45:58] probe tgt=(-63, 109, 47) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:46:00] probe tgt=(-23, 110, 31) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:46:02] probe tgt=(-47, 109, 55) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:46:04] probe tgt=(-71, 110, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:46:06] probe tgt=(-47, 110, 7) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:46:08] probe tgt=(-31, 109, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:46:10] probe tgt=(-63, 110, 31) pos={'x': -47, 'y': 110, 'z': 31} no-hits
+[12:46:12] probe tgt=(-47, 110, 47) pos={'x': -47, 'y': 109, 'z': 31} no-hits
+[12:48:05] probe tgt=(-47, 109, 15) pos={'x': -47, 'y': 109, 'z': 21} no-hits
+[12:48:07] probe tgt=(-31, 109, 37) pos={'x': -47, 'y': 109, 'z': 32} no-hits
+[12:48:09] probe tgt=(-63, 109, 18) pos={'x': -47, 'y': 108, 'z': 41} no-hits
+[12:48:17] probe tgt=(-31, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:19] probe tgt=(-45, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:21] probe tgt=(-5, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:23] probe tgt=(-29, 108, 49) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:25] probe tgt=(-53, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:27] probe tgt=(-29, 108, 1) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:29] probe tgt=(-13, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:31] probe tgt=(-45, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:33] probe tgt=(-29, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:35] probe tgt=(-29, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:37] probe tgt=(-13, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:39] probe tgt=(-45, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:41] probe tgt=(-13, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:43] probe tgt=(-45, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:45] probe tgt=(-5, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:47] probe tgt=(-29, 108, 49) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:49] probe tgt=(-53, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:51] probe tgt=(-29, 108, 1) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:53] probe tgt=(-13, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:55] probe tgt=(-45, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:57] probe tgt=(-29, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:48:59] probe tgt=(-29, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:01] probe tgt=(-13, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:04] probe tgt=(-45, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:06] probe tgt=(-13, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:08] probe tgt=(-45, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:10] probe tgt=(-5, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:12] probe tgt=(-29, 108, 49) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:14] probe tgt=(-53, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:16] probe tgt=(-29, 108, 1) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:18] probe tgt=(-13, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:20] probe tgt=(-45, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:22] probe tgt=(-29, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:24] probe tgt=(-29, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:26] probe tgt=(-13, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:28] probe tgt=(-45, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:30] probe tgt=(-13, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:32] probe tgt=(-45, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:34] probe tgt=(-5, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:36] probe tgt=(-29, 108, 49) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:38] probe tgt=(-53, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:40] probe tgt=(-29, 108, 1) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:42] probe tgt=(-13, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:44] probe tgt=(-45, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:46] probe tgt=(-29, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:48] probe tgt=(-29, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:50] probe tgt=(-13, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:52] probe tgt=(-45, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:54] probe tgt=(-13, 108, 9) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:56] probe tgt=(-45, 108, 41) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:49:58] probe tgt=(-5, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:50:00] probe tgt=(-29, 108, 49) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:50:03] probe tgt=(-53, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:50:05] probe tgt=(-29, 108, 1) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:50:07] probe tgt=(-13, 108, 25) pos={'x': -29, 'y': 108, 'z': 25} no-hits
+[12:50:13] probe tgt=(-45, 108, 25) pos={'x': -43, 'y': 108, 'z': 23} no-hits
+[12:50:15] probe tgt=(-43, 108, 39) pos={'x': -43, 'y': 108, 'z': 14} no-hits
+[12:50:17] probe tgt=(-43, 108, -2) pos={'x': -43, 'y': 108, 'z': 11} no-hits
+[12:50:24] probe tgt=(-27, 108, 27) pos={'x': -29, 'y': 108, 'z': 26} no-hits
+[12:50:26] probe tgt=(-45, 108, 10) pos={'x': -34, 'y': 109, 'z': 31} no-hits
+[12:50:28] probe tgt=(-18, 109, 15) pos={'x': -41, 'y': 108, 'z': 38} no-hits
+[12:50:30] probe tgt=(-57, 108, 54) pos={'x': -44, 'y': 108, 'z': 41} no-hits
+[12:50:38] probe tgt=(-20, 108, 41) pos={'x': -22, 'y': 109, 'z': 40} no-hits
+[12:50:40] probe tgt=(-22, 109, 64) pos={'x': -22, 'y': 108, 'z': 31} no-hits
+[12:50:42] probe tgt=(-46, 108, 31) pos={'x': -22, 'y': 108, 'z': 23} no-hits
+[12:50:44] probe tgt=(-22, 108, -1) pos={'x': -22, 'y': 108, 'z': 19} no-hits
+[12:50:50] probe tgt=(-6, 108, 19) pos={'x': -8, 'y': 109, 'z': 21} no-hits
+[12:50:52] probe tgt=(-24, 109, 21) pos={'x': -8, 'y': 109, 'z': 30} no-hits
+[12:50:54] probe tgt=(-8, 109, 46) pos={'x': -8, 'y': 109, 'z': 33} no-hits
+[12:50:59] probe tgt=(-8, 109, 17) pos={'x': -4, 'y': 110, 'z': 24} no-hits
+[12:51:01] probe tgt=(12, 110, 40) pos={'x': 1, 'y': 110, 'z': 29} no-hits
+[12:51:04] probe tgt=(-15, 110, 13) pos={'x': 7, 'y': 110, 'z': 34} no-hits
+[12:51:11] probe tgt=(23, 110, 18) pos={'x': 17, 'y': 109, 'z': 24} no-hits
+[12:51:13] probe tgt=(1, 109, 40) pos={'x': 12, 'y': 110, 'z': 30} no-hits
+[12:51:15] probe tgt=(36, 110, 30) pos={'x': 8, 'y': 110, 'z': 34} no-hits
+[12:53:08] probe tgt=(8, 110, 58) pos={'x': 8, 'y': 113, 'z': 44} no-hits
+[12:53:26] probe tgt=(-16, 113, 44) pos={'x': 8, 'y': 110, 'z': 1} no-hits
+[12:54:12] probe tgt=(8, 110, -23) pos={'x': -5, 'y': 110, 'z': 5} no-hits
+[12:54:12] end of day 0: logs={}
+[12:54:12] waiting for day (NIGHT)...
+[12:54:32] waiting for day (NIGHT)...
+[12:54:52] waiting for day (NIGHT)...
+[12:55:12] waiting for day (NIGHT)...
+[12:55:32] waiting for day (NIGHT)...
+[12:55:52] waiting for day (NIGHT)...
+[12:56:12] waiting for day (NIGHT)...
+[12:56:35] waiting for day (NIGHT)...
+[12:56:56] waiting for day (NIGHT)...
+[12:57:16] waiting for day (NIGHT)...
+[12:57:36] waiting for day (NIGHT)...
+[12:57:56] waiting for day (NIGHT)...
+[12:58:16] waiting for day (NIGHT)...
+[12:58:36] waiting for day (NIGHT)...
+[12:58:56] waiting for day (NIGHT)...
+[12:59:16] waiting for day (NIGHT)...
+[12:59:36] waiting for day (NIGHT)...
+[12:59:56] waiting for day (NIGHT)...
+[13:00:18] probe tgt=(10, 114, -5) pos={'x': -6, 'y': 113, 'z': -7} no-hits
+[13:00:20] probe tgt=(-22, 113, -7) pos={'x': -1, 'y': 113, 'z': -8} no-hits
+[13:00:22] probe tgt=(-1, 113, 8) pos={'x': 7, 'y': 109, 'z': -5} no-hits
+[13:00:24] probe tgt=(7, 109, -21) pos={'x': 7, 'y': 109, 'z': -5} no-hits
+[13:00:26] probe tgt=(23, 109, 11) pos={'x': 7, 'y': 109, 'z': -5} no-hits
+[13:00:30] probe tgt=(-9, 109, -21) pos={'x': -2, 'y': 113, 'z': -8} no-hits
+[13:00:32] probe tgt=(14, 113, -24) pos={'x': -6, 'y': 113, 'z': -8} no-hits
+[13:00:34] probe tgt=(-24, 113, 8) pos={'x': -18, 'y': 109, 'z': -8} no-hits
+[13:00:36] probe tgt=(6, 109, -8) pos={'x': -18, 'y': 109, 'z': -8} no-hits
+[13:00:38] probe tgt=(-18, 109, 16) pos={'x': -18, 'y': 109, 'z': -8} no-hits
+[13:00:40] probe tgt=(-42, 109, -8) pos={'x': -18, 'y': 109, 'z': -8} no-hits
+[13:00:42] probe tgt=(-18, 109, -32) pos={'x': -18, 'y': 109, 'z': -8} no-hits
+[13:00:45] probe tgt=(-2, 109, -8) pos={'x': -5, 'y': 113, 'z': -1} no-hits
+[13:00:47] probe tgt=(-21, 113, -1) pos={'x': -5, 'y': 110, 'z': 6} no-hits
+[13:00:49] probe tgt=(-5, 110, 22) pos={'x': -5, 'y': 109, 'z': 15} no-hits
+[13:00:52] probe tgt=(-5, 109, -1) pos={'x': -5, 'y': 109, 'z': 15} no-hits
+[13:00:54] probe tgt=(11, 109, 31) pos={'x': -5, 'y': 109, 'z': 15} no-hits
+[13:00:56] probe tgt=(-21, 109, -1) pos={'x': -5, 'y': 109, 'z': 15} no-hits
+[13:00:59] probe tgt=(11, 109, -1) pos={'x': -1, 'y': 112, 'z': -9} no-hits
+[13:01:01] probe tgt=(-17, 112, 7) pos={'x': -1, 'y': 112, 'z': -9} no-hits
+[13:01:03] probe tgt=(23, 112, -9) pos={'x': 5, 'y': 109, 'z': -4} no-hits
+[13:01:05] probe tgt=(5, 109, 20) pos={'x': 11, 'y': 110, 'z': 1} no-hits
+[13:01:07] probe tgt=(-13, 110, 1) pos={'x': 15, 'y': 110, 'z': 5} no-hits
+[13:01:29] probe tgt=(15, 110, -19) pos={'x': 9, 'y': 111, 'z': -5} no-hits
+[13:01:48] probe tgt=(25, 111, -5) pos={'x': 7, 'y': 110, 'z': 8} no-hits
+[13:02:01] probe tgt=(-9, 110, 8) pos={'x': -11, 'y': 109, 'z': 5} no-hits
+[13:02:03] probe tgt=(-11, 109, 21) pos={'x': -18, 'y': 109, 'z': -3} no-hits
+[13:02:06] probe tgt=(-18, 109, -19) pos={'x': -22, 'y': 109, 'z': -7} no-hits
+[13:02:13] probe tgt=(-6, 109, 9) pos={'x': 1, 'y': 109, 'z': 8} no-hits
+[13:02:15] probe tgt=(-15, 109, -8) pos={'x': 4, 'y': 110, 'z': 8} no-hits
+[13:02:17] probe tgt=(20, 110, -8) pos={'x': 4, 'y': 111, 'z': 10} no-hits
+[13:02:19] probe tgt=(-12, 111, 26) pos={'x': 9, 'y': 111, 'z': 9} no-hits
+[13:02:21] probe tgt=(33, 111, 9) pos={'x': 9, 'y': 111, 'z': 6} no-hits
+[13:02:23] probe tgt=(9, 111, 30) pos={'x': 12, 'y': 111, 'z': 5} no-hits
+[13:02:25] probe tgt=(-12, 111, 5) pos={'x': 16, 'y': 110, 'z': 7} no-hits
+[13:02:28] probe tgt=(16, 110, -17) pos={'x': -8, 'y': 111, 'z': 1} no-hits
+[13:02:30] probe tgt=(8, 111, 1) pos={'x': -8, 'y': 110, 'z': 10} no-hits
+[13:02:32] probe tgt=(-24, 110, 10) pos={'x': -8, 'y': 109, 'z': 19} no-hits
+[13:02:34] probe tgt=(-8, 109, 35) pos={'x': -8, 'y': 109, 'z': 21} no-hits
+[13:02:40] probe tgt=(-8, 109, 5) pos={'x': -4, 'y': 110, 'z': 6} no-hits
+[13:02:42] probe tgt=(12, 110, 22) pos={'x': 3, 'y': 110, 'z': 7} no-hits
+[13:02:44] probe tgt=(-13, 110, -9) pos={'x': 7, 'y': 110, 'z': 7} no-hits
+[13:03:00] probe tgt=(23, 110, -9) pos={'x': -1, 'y': 110, 'z': 2} no-hits
+[13:03:07] probe tgt=(-17, 110, 18) pos={'x': -25, 'y': 108, 'z': 17} no-hits
+[13:03:09] probe tgt=(-1, 108, 17) pos={'x': -36, 'y': 108, 'z': 17} no-hits
+[13:03:11] probe tgt=(-36, 108, 41) pos={'x': -38, 'y': 108, 'z': 17} no-hits
+[13:05:04] probe tgt=(-62, 108, 17) pos={'x': -68, 'y': 112, 'z': 11} no-hits
+[13:05:06] probe tgt=(-68, 112, -13) pos={'x': -75, 'y': 112, 'z': 4} no-hits
+[13:05:08] probe tgt=(-59, 112, 4) pos={'x': -77, 'y': 113, 'z': 2} no-hits
+[13:05:28] probe tgt=(-93, 113, 2) pos={'x': 8, 'y': 110, 'z': 1} no-hits
+[13:05:33] probe tgt=(8, 110, 17) pos={'x': 8, 'y': 110, 'z': 15} no-hits
+[13:05:38] probe tgt=(8, 110, -1) pos={'x': 8, 'y': 110, 'z': 1} no-hits
+[13:05:45] probe tgt=(24, 110, 17) pos={'x': 23, 'y': 112, 'z': 11} no-hits
+[13:05:47] probe tgt=(7, 112, -5) pos={'x': 24, 'y': 112, 'z': 11} no-hits
+[13:05:49] probe tgt=(40, 112, -5) pos={'x': 27, 'y': 111, 'z': 9} no-hits
+[13:05:51] probe tgt=(11, 111, 25) pos={'x': 26, 'y': 111, 'z': 2} no-hits
+[13:05:53] probe tgt=(50, 111, 2) pos={'x': 24, 'y': 113, 'z': -3} no-hits
+[13:05:56] probe tgt=(24, 113, 21) pos={'x': 23, 'y': 117, 'z': -6} no-hits
+[13:05:58] probe tgt=(-1, 117, -6) pos={'x': 23, 'y': 118, 'z': -8} no-hits
+[13:06:00] probe tgt=(23, 118, -32) pos={'x': 23, 'y': 118, 'z': -8} no-hits
+[13:06:02] probe tgt=(39, 118, -8) pos={'x': 23, 'y': 118, 'z': -8} no-hits
+[13:06:05] probe tgt=(7, 118, -8) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:07] probe tgt=(0, 111, 17) pos={'x': 8, 'y': 110, 'z': 1} no-hits
+[13:06:09] probe tgt=(8, 110, -15) pos={'x': 14, 'y': 111, 'z': 1} no-hits
+[13:06:11] probe tgt=(30, 111, 17) pos={'x': 13, 'y': 111, 'z': 1} no-hits
+[13:06:13] probe tgt=(-3, 111, -15) pos={'x': 4, 'y': 110, 'z': 1} no-hits
+[13:06:15] probe tgt=(20, 110, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:17] probe tgt=(-16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:19] probe tgt=(24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:21] probe tgt=(0, 111, 25) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:24] probe tgt=(-24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:26] probe tgt=(0, 111, -23) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:28] probe tgt=(16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:30] probe tgt=(-16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:32] probe tgt=(0, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:34] probe tgt=(0, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:36] probe tgt=(16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:38] probe tgt=(-16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:40] probe tgt=(16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:42] probe tgt=(-16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:44] probe tgt=(24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:46] probe tgt=(0, 111, 25) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:48] probe tgt=(-24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:50] probe tgt=(0, 111, -23) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:52] probe tgt=(16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:54] probe tgt=(-16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:56] probe tgt=(0, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:06:58] probe tgt=(0, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:00] probe tgt=(16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:02] probe tgt=(-16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:04] probe tgt=(16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:06] probe tgt=(-16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:08] probe tgt=(24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:10] probe tgt=(0, 111, 25) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:12] probe tgt=(-24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:14] probe tgt=(0, 111, -23) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:16] probe tgt=(16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:18] probe tgt=(-16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:20] probe tgt=(0, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:22] probe tgt=(0, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:25] probe tgt=(16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:27] probe tgt=(-16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:29] probe tgt=(16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:31] probe tgt=(-16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:33] probe tgt=(24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:35] probe tgt=(0, 111, 25) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:37] probe tgt=(-24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:39] probe tgt=(0, 111, -23) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:41] probe tgt=(16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:43] probe tgt=(-16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:45] probe tgt=(0, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:47] probe tgt=(0, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:49] probe tgt=(16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:51] probe tgt=(-16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:53] probe tgt=(16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:55] probe tgt=(-16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:57] probe tgt=(24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:07:59] probe tgt=(0, 111, 25) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:08:01] probe tgt=(-24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:08:03] probe tgt=(0, 111, -23) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:08:05] probe tgt=(16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:08:07] probe tgt=(-16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:00] probe tgt=(0, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:02] probe tgt=(0, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:04] probe tgt=(16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:06] probe tgt=(-16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:08] probe tgt=(16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:10] probe tgt=(-16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:12] probe tgt=(24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:14] probe tgt=(0, 111, 25) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:16] probe tgt=(-24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:18] probe tgt=(0, 111, -23) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:20] probe tgt=(16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:22] probe tgt=(-16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:24] probe tgt=(0, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:27] probe tgt=(0, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:29] probe tgt=(16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:31] probe tgt=(-16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:33] probe tgt=(16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:35] probe tgt=(-16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:37] probe tgt=(24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:39] probe tgt=(0, 111, 25) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:41] probe tgt=(-24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:43] probe tgt=(0, 111, -23) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:45] probe tgt=(16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:47] probe tgt=(-16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:49] probe tgt=(0, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:51] probe tgt=(0, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:53] probe tgt=(16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:55] probe tgt=(-16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:57] probe tgt=(16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:10:59] probe tgt=(-16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:01] probe tgt=(24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:03] probe tgt=(0, 111, 25) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:05] probe tgt=(-24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:07] probe tgt=(0, 111, -23) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:09] probe tgt=(16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:11] probe tgt=(-16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:13] probe tgt=(0, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:15] probe tgt=(0, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:17] probe tgt=(16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:19] probe tgt=(-16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:21] probe tgt=(16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:24] probe tgt=(-16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:26] probe tgt=(24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:28] probe tgt=(0, 111, 25) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:30] probe tgt=(-24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:32] probe tgt=(0, 111, -23) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:34] probe tgt=(16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:36] probe tgt=(-16, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:38] probe tgt=(0, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:40] probe tgt=(0, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:42] probe tgt=(16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:44] probe tgt=(-16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:46] probe tgt=(16, 111, -15) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:48] probe tgt=(-16, 111, 17) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:11:50] probe tgt=(24, 111, 1) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:13:43] probe tgt=(0, 111, 25) pos={'x': 0, 'y': 111, 'z': 1} no-hits
+[13:15:36] probe tgt=(-24, 111, 1) pos={'x': -23, 'y': 109, 'z': 1} no-hits
+[13:15:43] probe tgt=(-23, 109, -23) pos={'x': -23, 'y': 110, 'z': -21} no-hits
+[13:15:43] nightfall: stop moving, wait for day
+[13:15:43] end of day 1: logs={}
+[13:15:43] waiting for day (NIGHT)...
+[13:16:03] waiting for day (NIGHT)...
+[13:16:23] waiting for day (NIGHT)...
+[13:16:43] waiting for day (NIGHT)...
+[13:17:03] waiting for day (NIGHT)...
+[13:17:23] waiting for day (NIGHT)...
+[13:17:43] waiting for day (NIGHT)...
+[13:18:03] waiting for day (NIGHT)...
+[13:18:23] waiting for day (NIGHT)...
+[13:18:43] waiting for day (NIGHT)...
+[13:19:03] waiting for day (NIGHT)...
+[13:19:26] waiting for day (NIGHT)...
+[13:19:46] waiting for day (NIGHT)...
+[13:20:06] waiting for day (NIGHT)...
+[13:20:28] probe tgt=(34, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:30] probe tgt=(2, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:32] probe tgt=(18, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:34] probe tgt=(18, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:36] probe tgt=(34, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:38] probe tgt=(2, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:40] probe tgt=(34, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:42] probe tgt=(2, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:45] probe tgt=(42, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:47] probe tgt=(18, 111, 25) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:49] probe tgt=(-6, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:51] probe tgt=(18, 111, -23) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:53] probe tgt=(34, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:55] probe tgt=(2, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:57] probe tgt=(18, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:20:59] probe tgt=(18, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:01] probe tgt=(34, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:03] probe tgt=(2, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:05] probe tgt=(34, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:07] probe tgt=(2, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:09] probe tgt=(42, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:11] probe tgt=(18, 111, 25) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:13] probe tgt=(-6, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:15] probe tgt=(18, 111, -23) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:17] probe tgt=(34, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:19] probe tgt=(2, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:21] probe tgt=(18, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:23] probe tgt=(18, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:25] probe tgt=(34, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:27] probe tgt=(2, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:29] probe tgt=(34, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:31] probe tgt=(2, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:33] probe tgt=(42, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:36] probe tgt=(18, 111, 25) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:38] probe tgt=(-6, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:40] probe tgt=(18, 111, -23) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:42] probe tgt=(34, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:44] probe tgt=(2, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:46] probe tgt=(18, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:48] probe tgt=(18, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:50] probe tgt=(34, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:52] probe tgt=(2, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:54] probe tgt=(34, 111, -15) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:56] probe tgt=(2, 111, 17) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:21:58] probe tgt=(42, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:22:00] probe tgt=(18, 111, 25) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:22:02] probe tgt=(-6, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:22:04] probe tgt=(18, 111, -23) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:22:06] probe tgt=(34, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:22:08] probe tgt=(2, 111, 1) pos={'x': 18, 'y': 111, 'z': 1} no-hits
+[13:24:01] probe tgt=(18, 111, 17) pos={'x': 23, 'y': 110, 'z': 4} no-hits
+[13:24:03] probe tgt=(23, 110, -12) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:05] probe tgt=(45, 112, 20) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:07] probe tgt=(13, 112, -12) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:24:09] probe tgt=(45, 113, -12) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:11] probe tgt=(13, 112, 20) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:24:13] probe tgt=(53, 113, 4) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:15] probe tgt=(29, 112, 28) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:17] probe tgt=(5, 112, 4) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:19] probe tgt=(29, 112, -20) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:21] probe tgt=(45, 112, 4) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:23] probe tgt=(13, 112, 4) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:24:25] probe tgt=(29, 113, 20) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:27] probe tgt=(29, 112, -12) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:29] probe tgt=(45, 112, 20) pos={'x': 29, 'y': 111, 'z': 4} no-hits
+[13:24:31] probe tgt=(13, 111, -12) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:24:33] probe tgt=(45, 113, -12) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:35] probe tgt=(13, 112, 20) pos={'x': 29, 'y': 111, 'z': 4} no-hits
+[13:24:38] probe tgt=(53, 111, 4) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:24:40] probe tgt=(29, 113, 28) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:42] probe tgt=(5, 112, 4) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:24:44] probe tgt=(29, 113, -20) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:46] probe tgt=(45, 112, 4) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:48] probe tgt=(13, 112, 4) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:24:50] probe tgt=(29, 113, 20) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:52] probe tgt=(29, 112, -12) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:54] probe tgt=(45, 112, 20) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:56] probe tgt=(13, 112, -12) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:24:58] probe tgt=(45, 112, -12) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:00] probe tgt=(13, 113, 20) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:02] probe tgt=(53, 112, 4) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:04] probe tgt=(29, 112, 28) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:06] probe tgt=(5, 113, 4) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:08] probe tgt=(29, 112, -20) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:10] probe tgt=(45, 113, 4) pos={'x': 29, 'y': 111, 'z': 4} no-hits
+[13:25:12] probe tgt=(13, 111, 4) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:14] probe tgt=(29, 113, 20) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:16] probe tgt=(29, 113, -12) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:18] probe tgt=(45, 112, 20) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:20] probe tgt=(13, 112, -12) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:22] probe tgt=(45, 111, -12) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:24] probe tgt=(13, 113, 20) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:26] probe tgt=(53, 112, 4) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:28] probe tgt=(29, 112, 28) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:30] probe tgt=(5, 113, 4) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:32] probe tgt=(29, 112, -20) pos={'x': 29, 'y': 111, 'z': 4} no-hits
+[13:25:35] probe tgt=(45, 111, 4) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:37] probe tgt=(13, 113, 4) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:39] probe tgt=(29, 112, 20) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:41] probe tgt=(29, 113, -12) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:43] probe tgt=(45, 112, 20) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:45] probe tgt=(13, 112, -12) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:47] probe tgt=(45, 113, -12) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:25:49] probe tgt=(13, 112, 20) pos={'x': 29, 'y': 113, 'z': 4} no-hits
+[13:25:51] probe tgt=(53, 113, 4) pos={'x': 29, 'y': 112, 'z': 4} no-hits
+[13:27:43] probe tgt=(29, 112, 28) pos={'x': 29, 'y': 110, 'z': 25} no-hits
+[13:27:45] probe tgt=(5, 110, 25) pos={'x': 29, 'y': 111, 'z': 15} no-hits
+[13:27:47] probe tgt=(29, 111, -9) pos={'x': 29, 'y': 112, 'z': 12} no-hits
+[13:29:40] probe tgt=(45, 112, 12) pos={'x': 22, 'y': 111, 'z': 12} no-hits
+[13:29:42] probe tgt=(6, 111, 12) pos={'x': 11, 'y': 110, 'z': 12} no-hits
+[13:29:44] probe tgt=(11, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:29:46] probe tgt=(7, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:29:48] probe tgt=(23, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:29:50] probe tgt=(-9, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:29:52] probe tgt=(23, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:29:54] probe tgt=(-9, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:29:56] probe tgt=(31, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:29:58] probe tgt=(7, 110, 36) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:00] probe tgt=(-17, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:02] probe tgt=(7, 110, -12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:04] probe tgt=(23, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:06] probe tgt=(-9, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:08] probe tgt=(7, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:10] probe tgt=(7, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:12] probe tgt=(23, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:14] probe tgt=(-9, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:16] probe tgt=(23, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:18] probe tgt=(-9, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:20] probe tgt=(31, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:22] probe tgt=(7, 110, 36) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:24] probe tgt=(-17, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:27] probe tgt=(7, 110, -12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:29] probe tgt=(23, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:31] probe tgt=(-9, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:33] probe tgt=(7, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:35] probe tgt=(7, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:37] probe tgt=(23, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:39] probe tgt=(-9, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:41] probe tgt=(23, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:43] probe tgt=(-9, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:45] probe tgt=(31, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:47] probe tgt=(7, 110, 36) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:49] probe tgt=(-17, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:51] probe tgt=(7, 110, -12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:53] probe tgt=(23, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:55] probe tgt=(-9, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:57] probe tgt=(7, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:30:59] probe tgt=(7, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:01] probe tgt=(23, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:03] probe tgt=(-9, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:05] probe tgt=(23, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:07] probe tgt=(-9, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:09] probe tgt=(31, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:11] probe tgt=(7, 110, 36) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:13] probe tgt=(-17, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:15] probe tgt=(7, 110, -12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:17] probe tgt=(23, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:20] probe tgt=(-9, 110, 12) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:22] probe tgt=(7, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:24] probe tgt=(7, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:26] probe tgt=(23, 110, 28) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:28] probe tgt=(-9, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:30] probe tgt=(23, 110, -4) pos={'x': 7, 'y': 110, 'z': 12} no-hits
+[13:31:37] probe tgt=(-9, 110, 28) pos={'x': -16, 'y': 108, 'z': 27} no-hits
+[13:31:39] probe tgt=(8, 108, 27) pos={'x': -22, 'y': 108, 'z': 27} no-hits
+[13:33:31] probe tgt=(-22, 108, 51) pos={'x': -22, 'y': 109, 'z': 42} no-hits
+[13:33:39] probe tgt=(-46, 109, 42) pos={'x': -45, 'y': 107, 'z': 43} no-hits
+[13:33:48] probe tgt=(-45, 107, 19) pos={'x': 9, 'y': 110, 'z': 8} no-hits
+[13:33:48] nightfall: stop moving, wait for day
+[13:33:48] end of day 2: logs={}
+[13:33:48] waiting for day (NIGHT)...
+[13:34:08] waiting for day (NIGHT)...
+[13:34:28] waiting for day (NIGHT)...
+[13:34:48] waiting for day (NIGHT)...
+[13:35:08] waiting for day (NIGHT)...
+[13:35:46] waiting for day (NIGHT)...
+[13:36:06] waiting for day (NIGHT)...
+[13:36:26] waiting for day (NIGHT)...
+[13:36:46] waiting for day (NIGHT)...
+[13:37:06] waiting for day (NIGHT)...
+[13:37:27] waiting for day (NIGHT)...
+[13:37:47] waiting for day (NIGHT)...
+[13:38:07] waiting for day (NIGHT)...
+[13:38:27] waiting for day (NIGHT)...
+[13:38:47] waiting for day (NIGHT)...
+[13:39:07] waiting for day (NIGHT)...
+[13:39:27] waiting for day (NIGHT)...
+[13:39:47] waiting for day (NIGHT)...
+[13:40:07] waiting for day (NIGHT)...
+[13:40:32] probe tgt=(6, 109, 9) pos={'x': 5, 'y': 110, 'z': 9} no-hits
+[13:40:34] probe tgt=(-11, 111, 9) pos={'x': 5, 'y': 109, 'z': 16} no-hits
+[13:40:36] probe tgt=(5, 109, 32) pos={'x': 5, 'y': 109, 'z': 23} no-hits
+[13:40:43] probe tgt=(5, 109, 7) pos={'x': 1, 'y': 109, 'z': 5} no-hits
+[13:40:45] probe tgt=(17, 109, 21) pos={'x': -5, 'y': 113, 'z': 0} no-hits
+[13:40:47] probe tgt=(-21, 113, -16) pos={'x': -10, 'y': 111, 'z': -4} no-hits
+[13:40:49] probe tgt=(6, 111, -20) pos={'x': -9, 'y': 112, 'z': -6} no-hits
+[13:40:52] probe tgt=(-25, 112, 10) pos={'x': -6, 'y': 114, 'z': -6} no-hits
+[13:40:55] probe tgt=(18, 113, -6) pos={'x': -10, 'y': 109, 'z': 9} no-hits
+[13:40:57] probe tgt=(-10, 109, 33) pos={'x': -10, 'y': 109, 'z': 9} no-hits
+[13:40:59] probe tgt=(-34, 109, 9) pos={'x': -10, 'y': 109, 'z': 9} no-hits
+[13:41:07] probe tgt=(-10, 109, -15) pos={'x': -10, 'y': 112, 'z': -9} no-hits
+[13:41:09] probe tgt=(6, 112, -9) pos={'x': -10, 'y': 110, 'z': -1} no-hits
+[13:41:11] probe tgt=(-26, 110, -1) pos={'x': -10, 'y': 109, 'z': 8} no-hits
+[13:41:13] probe tgt=(-10, 109, 24) pos={'x': -10, 'y': 109, 'z': 9} no-hits
+[13:41:15] probe tgt=(-10, 109, -7) pos={'x': -10, 'y': 109, 'z': 9} no-hits
+[13:41:17] probe tgt=(6, 109, 25) pos={'x': -10, 'y': 109, 'z': 10} no-hits
+[13:41:19] probe tgt=(-26, 109, -6) pos={'x': -18, 'y': 108, 'z': 18} no-hits
+[13:41:21] probe tgt=(-2, 108, 2) pos={'x': -25, 'y': 108, 'z': 25} no-hits
+[13:41:28] probe tgt=(-41, 108, 41) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:41:30] probe tgt=(-19, 107, 40) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:41:32] probe tgt=(-43, 106, 64) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:41:34] probe tgt=(-67, 106, 40) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:41:36] probe tgt=(-43, 107, 16) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:41:38] probe tgt=(-27, 106, 40) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:41:41] probe tgt=(-59, 107, 40) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:41:43] probe tgt=(-43, 106, 56) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:41:45] probe tgt=(-43, 107, 24) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:41:47] probe tgt=(-27, 107, 56) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:41:49] probe tgt=(-59, 106, 24) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:41:51] probe tgt=(-27, 106, 24) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:41:53] probe tgt=(-59, 107, 56) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:41:55] probe tgt=(-19, 106, 40) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:41:57] probe tgt=(-43, 107, 64) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:41:59] probe tgt=(-67, 106, 40) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:01] probe tgt=(-43, 107, 16) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:03] probe tgt=(-27, 107, 40) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:42:05] probe tgt=(-59, 106, 40) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:07] probe tgt=(-43, 107, 56) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:09] probe tgt=(-43, 107, 24) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:11] probe tgt=(-27, 107, 56) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:13] probe tgt=(-59, 107, 24) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:42:15] probe tgt=(-27, 106, 24) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:17] probe tgt=(-59, 107, 56) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:42:19] probe tgt=(-19, 106, 40) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:42:21] probe tgt=(-43, 106, 64) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:23] probe tgt=(-67, 107, 40) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:25] probe tgt=(-43, 106, 16) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:27] probe tgt=(-27, 107, 40) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:42:29] probe tgt=(-59, 106, 40) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:42:31] probe tgt=(-43, 106, 56) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:33] probe tgt=(-43, 107, 24) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:42:36] probe tgt=(-27, 106, 56) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:38] probe tgt=(-59, 107, 24) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:42:40] probe tgt=(-27, 106, 24) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:42] probe tgt=(-59, 107, 56) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:44] probe tgt=(-19, 107, 40) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:46] probe tgt=(-43, 107, 64) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:48] probe tgt=(-67, 107, 40) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:42:50] probe tgt=(-43, 106, 16) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:52] probe tgt=(-27, 107, 40) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:54] probe tgt=(-59, 107, 40) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:42:56] probe tgt=(-43, 106, 56) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:42:58] probe tgt=(-43, 106, 24) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:43:00] probe tgt=(-27, 106, 56) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:43:02] probe tgt=(-59, 107, 24) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:43:04] probe tgt=(-27, 107, 24) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:43:06] probe tgt=(-59, 106, 56) pos={'x': -43, 'y': 107, 'z': 40} no-hits
+[13:43:08] probe tgt=(-19, 107, 40) pos={'x': -43, 'y': 106, 'z': 40} no-hits
+[13:45:01] probe tgt=(-43, 106, 64) pos={'x': -43, 'y': 110, 'z': 64} no-hits
+[13:45:03] probe tgt=(-67, 110, 64) pos={'x': -50, 'y': 111, 'z': 70} no-hits
+[13:45:05] probe tgt=(-50, 111, 46) pos={'x': -57, 'y': 111, 'z': 78} no-hits
+Traceback (most recent call last):
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 1319, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              encode_chunked=req.has_header('Transfer-encoding'))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1338, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1384, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1333, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1093, in _send_output
+    self.send(msg)
+    ~~~~~~~~~^^^^^
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1037, in send
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\http\client.py", line 1003, in connect
+    self.sock = self._create_connection(
+                ~~~~~~~~~~~~~~~~~~~~~~~^
+        (self.host,self.port), self.timeout, self.source_address)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 864, in create_connection
+    raise exceptions[0]
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 849, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\mc-bot\tools\session1.py", line 196, in <module>
+    main()
+    ~~~~^^
+  File "D:\code\mc-bot\tools\session1.py", line 181, in main
+    got = harvest_logs(s, quota)
+  File "D:\code\mc-bot\tools\session1.py", line 131, in harvest_logs
+    hits = explore_find_logs(s, rounds=1)
+  File "D:\code\mc-bot\tools\session1.py", line 68, in explore_find_logs
+    scene = view_scene(s, allow_night=True)
+  File "D:\code\mc-bot\tools\session1.py", line 24, in view_scene
+    v = s.view()["data"]["scene"]
+        ~~~~~~^^
+  File "D:\code\mc-bot\tools\play.py", line 58, in view
+    v = L.call("POST", "/v1/view", None, {})  # 认知查询无租约也可
+  File "D:\code\mc-experiment\mc2a07ar-work\drivers\mc2a07ar_live.py", line 238, in call
+    with urllib.request.urlopen(req, data, timeout=timeout) as r:
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 189, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 489, in open
+    response = self._open(req, data)
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 506, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 466, in _call_chain
+    result = func(*args)
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 1348, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\15027\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 1322, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>

@@ -99,7 +99,9 @@ public final class RealClientOpportunityTracker {
         }
         BlockState state=player.getServerWorld().getBlockState(pos);
         String actualId=Registries.BLOCK.getId(state.getBlock()).toString();
-        if(!actualId.equals(sensor.crosshairBlock()) || !OreScan.isOreBlock(state.getBlock())) {
+        if(!actualId.equals(sensor.crosshairBlock())
+                || !(OreScan.isOreBlock(state.getBlock())
+                        ||state.isIn(net.minecraft.registry.tag.BlockTags.LOGS))) {
             diagReject(player,sensor,pos,serverRay,"block_or_ore_mismatch:"+actualId);
             return Optional.empty();
         }

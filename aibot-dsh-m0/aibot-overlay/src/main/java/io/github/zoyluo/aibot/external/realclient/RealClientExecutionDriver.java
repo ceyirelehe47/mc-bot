@@ -4,10 +4,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.zoyluo.aibot.AIBotMod;
+import io.github.zoyluo.aibot.craft.CraftingHelper;
 import io.github.zoyluo.aibot.external.BodyBackend;
 import io.github.zoyluo.aibot.external.BridgeFault;
 import io.github.zoyluo.aibot.external.JsonOutput;
 import io.github.zoyluo.aibot.external.PhysicalExecutionDriver;
+import net.minecraft.item.Item;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
@@ -30,7 +32,7 @@ import java.util.function.Supplier;
 public final class RealClientExecutionDriver
         implements PhysicalExecutionDriver {
     public static final Set<String> OPERATIONS=
-            Set.of("say","goto","mine_opportunity","deposit");
+            Set.of("say","goto","mine_opportunity","deposit","craft","eat");
 
     private static final int MAX_GOTO_DISTANCE=32;
     private static final int EXECUTION_TIMEOUT_TICKS=20*120;
@@ -76,10 +78,129 @@ public final class RealClientExecutionDriver
             case "deposit" ->
                     startDeposit(
                             request,args,player,startedAt);
+            case "craft" ->
+                    startCraft(
+                            request,args,player,startedAt);
+            case "eat" ->
+                    startEat(
+                            request,args,player,startedAt);
             default -> throw new BridgeFault(
                     409,
                     "operation_not_supported_by_real_client_backend");
         };
+    }
+
+    private BodyBackend.Handle startCraft(
+            Request request,JsonObject args,
+            ServerPlayerEntity player,long startedAt) {
+        only(args,Set.of("item","count"));
+        Item target;
+        try {
+            Identifier targetId=Identifier.tryParse(
+                    string(args,"item",120));
+            target=targetId==null?null:Registries.ITEM.get(targetId);
+        } catch(RuntimeException invalid) {
+            throw new BridgeFault(400,"craft_unknown_item");
+        }
+        if(target==null||Registries.ITEM.getId(target).toString().equals("minecraft:air"))
+            throw new BridgeFault(400,"craft_unknown_item");
+        int count=integer(args,"count",1,64);
+        int baseline=InventoryCrafting.countItem(player,target);
+        CraftingHelper.CraftPlan plan=CraftingHelper.plan(
+                player,target,count);
+        if(!plan.success())
+            throw new BridgeFault(
+                    400,"craft_missing:"+plan.missingDescription());
+        String failure=InventoryCrafting.execute(player,plan,target);
+        if(failure!=null)
+            throw new BridgeFault(
+                    409,"craft_failed:"+failure);
+        int after=InventoryCrafting.countItem(player,target);
+        String reason="server_side_inventory_transformation:"
+                +"baseline="+baseline+":after="+after;
+        return ()->new BodyBackend.Snapshot(
+                "completed",1.0D,reason);
+    }
+
+    private BodyBackend.Handle startEat(
+            Request request,JsonObject args,
+            ServerPlayerEntity player,long startedAt) {
+        only(args,Set.of());
+        if(player.getHungerManager().getFoodLevel()>=20)
+            throw new BridgeFault(409,"eat_not_hungry");
+        // 安全食物优先(排除高危),与上游 InventoryAction 语义一致
+        int harmfulSlot=-1,slot=-1;
+        var inventory=player.getInventory();
+        for(int i=0;i<inventory.main.size();i++) {
+            ItemStack stack=inventory.main.get(i);
+            if(stack.isEmpty())continue;
+            var food=stack.get(net.minecraft.component.DataComponentTypes.FOOD);
+            if(food==null)continue;
+            boolean harmful=isHarmfulFood(stack.getItem());
+            if(harmful){if(harmfulSlot<0)harmfulSlot=i;continue;}
+            slot=i;break;
+        }
+        if(slot<0)slot=harmfulSlot;
+        if(slot<0)
+            throw new BridgeFault(409,"eat_no_food_in_inventory");
+        final int eatSlot=slot;
+        String itemId=Registries.ITEM.getId(
+                inventory.main.get(slot).getItem()).toString();
+        int before=inventory.main.get(slot).getCount();
+        int hungerBefore=player.getHungerManager().getFoodLevel();
+        if(!transport.sendCommand(
+                request.executionId(),"eat",
+                JsonOutput.encode(Map.of(
+                        "slot",slot<9?slot:0))))
+            throw new BridgeFault(
+                    503,"real_client_command_queue_unavailable");
+        return ()->eatSnapshot(
+                request.executionId(),startedAt,
+                eatSlot,itemId,before,hungerBefore);
+    }
+
+    private BodyBackend.Snapshot eatSnapshot(
+            String executionId,long startedAt,
+            int slot,String itemId,int before,int hungerBefore) {
+        onThread();
+        ServerPlayerEntity player=body.get();
+        if(player==null)
+            return new BodyBackend.Snapshot(
+                    "outcome_unknown",0D,"real_client_body_unavailable");
+        var remote=transport.execution(executionId).orElse(null);
+        if(remote!=null&&Set.of("failed","cancelled","outcome_unknown")
+                .contains(remote.state()))
+            return new BodyBackend.Snapshot(
+                    remote.state(),remote.progress(),remote.reason());
+        ItemStack stack=player.getInventory().getStack(slot);
+        int after=stack.isOf(Registries.ITEM.get(
+                Identifier.tryParse(itemId)))
+                ?stack.getCount():0;
+        int hunger=player.getHungerManager().getFoodLevel();
+        if(after<before||hunger>hungerBefore)
+            return new BodyBackend.Snapshot(
+                    "completed",1D,
+                    "server_authoritative_food_consumed:"
+                            +itemId+":"+before+"->"+after
+                            +":hunger:"+hungerBefore+"->"+hunger);
+        if(server.getTicks()-startedAt>EXECUTION_TIMEOUT_TICKS) {
+            transport.sendControl(executionId,"cancel",
+                    "real_client_execution_timeout");
+            return new BodyBackend.Snapshot(
+                    "failed",0D,"real_client_execution_timeout");
+        }
+        return new BodyBackend.Snapshot(
+                "running",
+                remote==null?0D:Math.min(.95D,remote.progress()),
+                remote==null?"awaiting_real_client_ack":remote.reason());
+    }
+
+    private static boolean isHarmfulFood(Item item) {
+        return item==net.minecraft.item.Items.CHICKEN
+                ||item==net.minecraft.item.Items.ROTTEN_FLESH
+                ||item==net.minecraft.item.Items.PUFFERFISH
+                ||item==net.minecraft.item.Items.SPIDER_EYE
+                ||item==net.minecraft.item.Items.POISONOUS_POTATO;
     }
 
     private BodyBackend.Handle startSay(
@@ -104,12 +225,8 @@ public final class RealClientExecutionDriver
                 "x","y","z",
                 "allow_terrain_changes",
                 "face_x","face_y","face_z"));
-        if(args.has("allow_terrain_changes")
-                &&args.get(
-                        "allow_terrain_changes").getAsBoolean())
-            throw new BridgeFault(
-                    400,
-                    "real_client_goto_mvp_disallows_terrain_changes");
+        // allow_terrain_changes=true 已授权:客户端挖掘遵循游戏规则(工具/时长/掉落),
+        // 属于真实玩家可执行的行为,不再视为 MVP 禁区。
 
         BlockPos target=new BlockPos(
                 integer(
@@ -183,20 +300,39 @@ public final class RealClientExecutionDriver
                     "real_client_command_queue_unavailable");
 
         BlockPos finalFace=faceTarget;
+        final double[] lastDistance={-1D};
+        final long[] lastProgressTick={startedAt};
         return ()->gotoSnapshot(
                 request.executionId(),startedAt,
-                target,finalFace);
+                target,finalFace,lastDistance,lastProgressTick);
     }
 
     private BodyBackend.Snapshot gotoSnapshot(
             String executionId,long startedAt,
-            BlockPos target,BlockPos faceTarget) {
+            BlockPos target,BlockPos faceTarget,
+            double[] lastDistance,long[] lastProgressTick) {
         onThread();
         ServerPlayerEntity current=body.get();
         if(current==null)
             return new BodyBackend.Snapshot(
                     "outcome_unknown",0D,
                     "real_client_body_unavailable");
+        // 无进展检测:45 秒距目标距离无改善即失败并通知客户端收尾,
+        // 避免卡死执行占满服务器单槽 240 秒(实测执行槽饥饿)。
+        double distanceNow=current.getPos()
+                .squaredDistanceTo(target.toCenterPos());
+        if(lastDistance[0]<0D
+                ||distanceNow<lastDistance[0]-0.25D) {
+            lastDistance[0]=distanceNow;
+            lastProgressTick[0]=server.getTicks();
+        } else if(server.getTicks()-lastProgressTick[0]
+                >20*45) {
+            transport.sendControl(
+                    executionId,"cancel",
+                    "real_client_goto_stalled");
+            return new BodyBackend.Snapshot(
+                    "failed",0D,"real_client_goto_stalled");
+        }
 
         var session=transport.session().orElse(null);
         if(session==null
@@ -790,6 +926,9 @@ public final class RealClientExecutionDriver
                     &&stack.isSuitableFor(state))
                 return slot;
         }
+        // 无工具要求的方块(原木/泥土等)徒手即可挖:用当前持物槽。
+        if(!state.isToolRequired())
+            return player.getInventory().selectedSlot;
         return -1;
     }
 

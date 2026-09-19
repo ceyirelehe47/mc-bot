@@ -74,6 +74,9 @@ public final class RealClientInputIsolation {
     public static void beforeActions(MinecraftClient client) {
         if(!suppressHumanInput() || client==null)return;
         KeyBinding.unpressAll();
+        // 失焦弹暂停菜单会吞掉移动输入:无人值守模式强制关闭(每帧设置,防御 options 被运行时覆写)
+        if(client.options!=null)
+            client.options.pauseOnLostFocus=false;
         if(client.getWindow()==null)return;
         long handle=client.getWindow().getHandle();
         if(handle==0L)return;

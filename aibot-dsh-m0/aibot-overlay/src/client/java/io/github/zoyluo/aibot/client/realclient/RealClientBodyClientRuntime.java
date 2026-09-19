@@ -24,6 +24,7 @@ public final class RealClientBodyClientRuntime {
     private static RealClientActionController actions;
     private static RealClientScreenController screens;
     private static int heartbeatTick;
+    private static int respawnTick;
     private static boolean controlWasConnected;
     private static String controlSessionEpoch="";
     private static volatile String gameSessionEpoch="";
@@ -125,6 +126,7 @@ public final class RealClientBodyClientRuntime {
         }
         actions.tick(client);
         screens.tick(client);
+        autoRespawn(client);
         if(++heartbeatTick%10==0)heartbeat(client);
     }
 
@@ -191,6 +193,15 @@ public final class RealClientBodyClientRuntime {
                 .connect(
                         client.currentScreen,client,address,info,
                         false,null);
+    }
+
+    /** 死亡屏幕卡住无人点击:直接走原生重生请求(与服务端 requestRespawn 等价)。 */
+    private static void autoRespawn(MinecraftClient client) {
+        if(client.player==null)return;
+        if(!(client.currentScreen instanceof net.minecraft.client.gui.screen.DeathScreen))return;
+        if(++respawnTick<20)return;
+        respawnTick=0;
+        client.player.requestRespawn();
     }
 
     private static void heartbeat(

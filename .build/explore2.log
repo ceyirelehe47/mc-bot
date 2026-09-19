@@ -1,0 +1,10 @@
+[13:51:19] hop r=0 (-2, -10)->(22, 112, -10) TIMEOUT now={'x': 5, 'y': 112, 'z': -10}
+[13:53:03] hop r=1 (5, -10)->(5, 111, 14) TIMEOUT now={'x': 5, 'y': 110, 'z': 9}
+[13:53:05] night: idle wait (survive) logs=0
+[13:53:50] night: idle wait (survive) logs=0
+[13:54:35] night: idle wait (survive) logs=0
+[13:55:20] night: idle wait (survive) logs=0
+[13:56:05] night: idle wait (survive) logs=0
+[13:56:50] night: idle wait (survive) logs=0
+[13:57:36] night: idle wait (survive) logs=0
+[13:58:21] night: idle wait (survive) logs=0

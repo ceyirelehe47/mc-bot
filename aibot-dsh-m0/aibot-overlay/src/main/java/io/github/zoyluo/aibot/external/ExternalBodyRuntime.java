@@ -7,6 +7,7 @@ import io.github.zoyluo.aibot.external.realclient.RealClientOpportunityTracker;
 import io.github.zoyluo.aibot.external.realclient.RealClientServerTransport;
 import io.github.zoyluo.aibot.manager.AIPlayerManager;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.WorldSavePath;
 
@@ -25,6 +26,9 @@ public final class ExternalBodyRuntime {
     private static UUID observedBody;
     private static float previousHealth=Float.NaN;
     private static boolean previousAlive;
+    private static int autoRespawnAtTick=-1;
+    private static double lastDeathX,lastDeathY,lastDeathZ;
+    private static ServerWorld lastDeathWorld;
     private static final Map<String,Integer> nextSurvivalAlertTick=new HashMap<>();
 
     private ExternalBodyRuntime() {}
@@ -126,7 +130,50 @@ public final class ExternalBodyRuntime {
                 "body_id",ExternalBodyAccess.bodyId(),
                 "body_instance_id",physical.getUuid().toString(),
                 "health",physical.getHealth()));
+        if(previousAlive && !physical.isAlive()) {
+            String source=physical.getRecentDamageSource()==null
+                    ?"unknown":physical.getRecentDamageSource().getName();
+            kernel.publish("death",Map.of(
+                    "body_id",ExternalBodyAccess.bodyId(),
+                    "body_instance_id",physical.getUuid().toString(),
+                    "recent_damage_source",source,
+                    "causal_chain_complete",false,
+                    "x",physical.getX(),"y",physical.getY(),"z",physical.getZ(),
+                    "dimension",physical.getServerWorld().getRegistryKey().getValue().toString()));
+            lastDeathX=physical.getX();lastDeathY=physical.getY();lastDeathZ=physical.getZ();
+            lastDeathWorld=physical.getServerWorld();
+            autoRespawnAtTick=server.getTicks()+20;
+        }
+        if(autoRespawnAtTick<=0 && !physical.isAlive()) {
+            // 启动/重连时已处于死亡态(客户端卡死亡屏幕):同样调度自动重生
+            autoRespawnAtTick=server.getTicks()+40;
+        }
+        if(autoRespawnAtTick>0 && server.getTicks()>=autoRespawnAtTick && !physical.isAlive()) {
+            if(lastDeathWorld!=null && hostileNearby(lastDeathWorld)) {
+                // 重生点仍有敌对生物:推迟重生,避免复活即死的无限循环
+                autoRespawnAtTick=server.getTicks()+100;
+            } else {
+                autoRespawnAtTick=-1;
+                AIBotMod.LOGGER.info("[AIBot] LIFECYCLE event=auto_respawn bot=- {body_instance_id={}}",
+                        physical.getUuid());
+                try {
+                    server.getPlayerManager().respawnPlayer(
+                            physical,false,net.minecraft.entity.Entity.RemovalReason.KILLED);
+                } catch(RuntimeException respawnFailure) {
+                    AIBotMod.LOGGER.warn("[AIBot] auto_respawn failed: {}",
+                            respawnFailure.toString());
+                }
+            }
+        }
         previousAlive=physical.isAlive();previousHealth=physical.getHealth();
+    }
+
+    private static boolean hostileNearby(ServerWorld world) {
+        net.minecraft.util.math.Box area=net.minecraft.util.math.Box.of(
+                new net.minecraft.util.math.Vec3d(lastDeathX,lastDeathY,lastDeathZ),16,12,16);
+        return !world.getEntitiesByClass(
+                net.minecraft.entity.mob.HostileEntity.class,area,
+                hostile->hostile.isAlive()).isEmpty();
     }
 
     public static void death(AIPlayerEntity bot) {

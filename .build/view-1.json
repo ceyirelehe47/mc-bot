@@ -1,0 +1,261 @@
+{
+ "ok": true,
+ "data": {
+  "schema": "mc.cognitive_view.v0",
+  "meta": {
+   "generated_server_tick": 3026,
+   "generated_game_time": 3024,
+   "scene_hash": "sha256:d16ceb96176a82c661265f1d13edd02b19a9becf174ca23ed576ed92fd2ed98f",
+   "encoded_bytes": 3967
+  },
+  "scene": {
+   "environment": {
+    "day_phase": "DAY",
+    "local_light": 14,
+    "nearby": {
+     "block_radius": 8,
+     "coverage_degrees": 360,
+     "entity_radius": 16,
+     "mode": "omni_semantic",
+     "remembered_block_count": 0,
+     "remembered_entity_count": 0,
+     "scan_server_tick": 3024,
+     "visible_block_count": 3,
+     "visible_entity_count": 2
+    },
+    "spatial_awareness": {
+     "block_radius": 8,
+     "coverage_degrees": 360,
+     "entities": {
+      "items": [
+       {
+        "category": "PASSIVE",
+        "entity_type": "minecraft:villager",
+        "freshness": "LIVE",
+        "knowledge": "CURRENT_VISIBLE",
+        "last_seen_ticks_ago": 5,
+        "line_of_sight": true,
+        "name": {
+         "origin": "entity_name",
+         "text": "Villager",
+         "trust": "untrusted_data"
+        },
+        "object_id": "ae572188-8fc1-466e-b401-fd3a1bf5823b",
+        "position": {
+         "x": 2,
+         "y": 110,
+         "z": 5
+        },
+        "relative": {
+         "bearing_degrees": 86,
+         "distance_blocks": 8.1,
+         "sector": "RIGHT",
+         "vertical": "LEVEL"
+        },
+        "source": "vision_360"
+       },
+       {
+        "category": "PASSIVE",
+        "entity_type": "minecraft:villager",
+        "freshness": "LIVE",
+        "knowledge": "CURRENT_VISIBLE",
+        "last_seen_ticks_ago": 5,
+        "line_of_sight": true,
+        "name": {
+         "origin": "entity_name",
+         "text": "Villager",
+         "trust": "untrusted_data"
+        },
+        "object_id": "bd94a694-d61c-4ab9-9399-7dc6602d1635",
+        "position": {
+         "x": 2,
+         "y": 110,
+         "z": 5
+        },
+        "relative": {
+         "bearing_degrees": 92,
+         "distance_blocks": 8.1,
+         "sector": "RIGHT",
+         "vertical": "LEVEL"
+        },
+        "source": "vision_360"
+       }
+      ],
+      "omitted_count": 0,
+      "total": 2,
+      "truncated": false
+     },
+     "entity_radius": 16,
+     "limitations": [
+      "current_state_requires_server_line_of_sight",
+      "occluded_objects_are_last_known_memory_only",
+      "awareness_does_not_authorize_mutation",
+      "precise_actions_require_directional_client_crosshair",
+      "candidate_evaluation_is_bounded_and_may_omit_unseen_objects"
+     ],
+     "mode": "omni_semantic",
+     "remembered_block_count": 0,
+     "remembered_entity_count": 0,
+     "scan_server_tick": 3024,
+     "visible_block_count": 3,
+     "visible_blocks": {
+      "items": [
+       {
+        "actionability": "awareness_only",
+        "block": "minecraft:oak_door",
+        "category": "INTERACTABLE",
+        "freshness": "LIVE",
+        "knowledge": "CURRENT_VISIBLE",
+        "last_seen_ticks_ago": 15,
+        "line_of_sight": true,
+        "object_id": "12,111,6",
+        "position": {
+         "x": 12,
+         "y": 111,
+         "z": 6
+        },
+        "relative": {
+         "bearing_degrees": -63,
+         "distance_blocks": 2.7,
+         "sector": "FRONT_LEFT",
+         "vertical": "LEVEL"
+        },
+        "source": "vision_360"
+       },
+       {
+        "actionability": "awareness_only",
+        "block": "minecraft:oak_door",
+        "category": "INTERACTABLE",
+        "freshness": "LIVE",
+        "knowledge": "CURRENT_VISIBLE",
+        "last_seen_ticks_ago": 15,
+        "line_of_sight": true,
+        "object_id": "12,112,6",
+        "position": {
+         "x": 12,
+         "y": 112,
+         "z": 6
+        },
+        "relative": {
+         "bearing_degrees": -63,
+         "distance_blocks": 3.4,
+         "sector": "FRONT_LEFT",
+         "vertical": "ABOVE"
+        },
+        "source": "vision_360"
+       },
+       {
+        "actionability": "awareness_only",
+        "block": "minecraft:bell",
+        "category": "INTERACTABLE",
+        "freshness": "LIVE",
+        "knowledge": "CURRENT_VISIBLE",
+        "last_seen_ticks_ago": 15,
+        "line_of_sight": true,
+        "object_id": "5,111,10",
+        "position": {
+         "x": 5,
+         "y": 111,
+         "z": 10
+        },
+        "relative": {
+         "bearing_degrees": 45,
+         "distance_blocks": 7.2,
+         "sector": "FRONT_RIGHT",
+         "vertical": "LEVEL"
+        },
+        "source": "vision_360"
+       }
+      ],
+      "omitted_count": 0,
+      "total": 3,
+      "truncated": false
+     },
+     "visible_entity_count": 2
+    },
+    "weather": "CLEAR"
+   },
+   "execution": {
+    "current_task": null,
+    "paused_depth": 0,
+    "progress_bucket": 0,
+    "safety_active": false,
+    "state": "BACKEND_MANAGED",
+    "user_paused": false
+   },
+   "recent_significant_events": {
+    "availability": "AVAILABLE",
+    "items": [
+     {
+      "kind": "control_acquired",
+      "sequence": 3
+     },
+     {
+      "kind": "control_lost",
+      "sequence": 4
+     },
+     {
+      "kind": "control_acquired",
+      "sequence": 5
+     },
+     {
+      "kind": "control_lost",
+      "sequence": 6
+     },
+     {
+      "kind": "control_acquired",
+      "sequence": 7
+     }
+    ],
+    "truncated": false
+   },
+   "self": {
+    "block_position": {
+     "x": 10,
+     "y": 110,
+     "z": 5
+    },
+    "body_id": "bob",
+    "facing": {
+     "body_yaw_degrees": 0.0,
+     "head_yaw_degrees": 0.0,
+     "pitch_degrees": 0.0,
+     "precise_interaction_requires_crosshair": true
+    },
+    "food": 20,
+    "health": 20.0,
+    "inventory": {},
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob"
+   },
+   "semantic_objects": {
+    "farms": {
+     "items": [],
+     "omitted_count": 0,
+     "total": 0,
+     "truncated": false
+    },
+    "resource_opportunities": {
+     "items": [],
+     "omitted_count": 0,
+     "total": 0,
+     "truncated": false
+    },
+    "structures": {
+     "items": [],
+     "omitted_count": 0,
+     "total": 0,
+     "truncated": false
+    }
+   },
+   "ui": {
+    "present": false
+   },
+   "uncertainty": [],
+   "world": {
+    "dimension": "minecraft:overworld",
+    "world_id": "725a92ed-a9b7-4508-a939-2b9d5966760e"
+   }
+  }
+ }
+}

@@ -13,7 +13,8 @@
   ],
   "client": [
     "client.RealClientMouseMixin",
-    "client.RealClientKeyboardMixin"
+    "client.RealClientKeyboardMixin",
+    "client.RealClientFrameRateMixin"
   ],
   "server": [],
   "injectors": {
