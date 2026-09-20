@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.slot.Slot;
@@ -86,6 +87,13 @@ final class RealClientActionController {
             case "say" -> new SayAction(
                     executionId,
                     args.get("message").getAsString());
+            case "smelt" -> new SmeltAction(
+                    executionId,
+                    args.get("furnace_x").getAsInt(),
+                    args.get("furnace_y").getAsInt(),
+                    args.get("furnace_z").getAsInt(),
+                    args.get("input_item").getAsString(),
+                    args.get("fuel_item").getAsString());
             case "place" -> new PlaceAction(
                     executionId,
                     args.has("slot")
@@ -353,6 +361,104 @@ final class RealClientActionController {
         void fail(String reason) {
             failed=true;
             send(executionId,"failed",progress,reason);
+        }
+    }
+
+    private final class SmeltAction extends Action {
+        final BlockPos furnace;
+        final Item inputItem,fuelItem;
+        int ticks;
+        boolean opened,collected;
+
+        SmeltAction(String executionId,int fx,int fy,int fz,
+                    String inputId,String fuelId) {
+            super(executionId);
+            this.furnace=new BlockPos(fx,fy,fz);
+            this.inputItem=Registries.ITEM.get(
+                    net.minecraft.util.Identifier.tryParse(inputId));
+            this.fuelItem=Registries.ITEM.get(
+                    net.minecraft.util.Identifier.tryParse(fuelId));
+        }
+
+        @Override void tick(MinecraftClient client) {
+            if(client.currentScreen instanceof net.minecraft.client.gui.screen.ingame.InventoryScreen)
+                client.setScreen(null);
+            if(++ticks>20*220) {
+                closeHandled(client);
+                fail("client_smelt_timeout");
+                return;
+            }
+            var handled=client.player.currentScreenHandler;
+            boolean furnaceOpen=handled!=client.player.playerScreenHandler
+                    &&handled instanceof net.minecraft.screen.AbstractFurnaceScreenHandler;
+            if(!furnaceOpen) {
+                if(opened) {
+                    closeHandled(client);
+                    fail("client_furnace_screen_closed");
+                    return;
+                }
+                if(client.player.getPos().squaredDistanceTo(
+                        furnace.toCenterPos())>20D) {
+                    walkTo(client,furnace.toCenterPos());
+                    send(executionId,"running",.1D,"client_walking_to_furnace");
+                    return;
+                }
+                lookAt(client,furnace.toCenterPos());
+                if(client.crosshairTarget instanceof BlockHitResult hit
+                        &&hit.getType()==HitResult.Type.BLOCK
+                        &&hit.getBlockPos().equals(furnace)) {
+                    client.interactionManager.interactBlock(
+                            client.player,Hand.MAIN_HAND,hit);
+                    client.player.swingHand(Hand.MAIN_HAND);
+                }
+                send(executionId,"running",.15D,"client_opening_furnace");
+                return;
+            }
+            opened=true;
+            // 喂料:快捷栏/背包槽 QUICK_MOVE(vanilla 自动路由 可熔物->输入 燃料->燃料槽)
+            boolean fedThisTick=false;
+            for(int i=3;i<handled.slots.size()&&i<=38;i++) {
+                ItemStack stack=handled.getSlot(i).getStack();
+                if(stack.isEmpty())continue;
+                if(stack.getItem()==inputItem||stack.getItem()==fuelItem) {
+                    client.interactionManager.clickSlot(
+                            handled.syncId,i,0,
+                            net.minecraft.screen.slot.SlotActionType.QUICK_MOVE,
+                            client.player);
+                    fedThisTick=true;
+                    break;
+                }
+            }
+            if(fedThisTick) {
+                send(executionId,"running",.3D,"client_feeding_furnace");
+                return;
+            }
+            // 收集产物(输出槽 id=2)
+            ItemStack out=handled.getSlot(2).getStack();
+            if(!out.isEmpty()) {
+                client.interactionManager.clickSlot(
+                        handled.syncId,2,0,
+                        net.minecraft.screen.slot.SlotActionType.QUICK_MOVE,
+                        client.player);
+                collected=true;
+                send(executionId,"running",.8D,"client_collecting_output");
+                return;
+            }
+            boolean inputEmpty=handled.getSlot(0).getStack().isEmpty();
+            if(inputEmpty&&collected) {
+                closeHandled(client);
+                complete("client_smelt_batch_collected");
+                return;
+            }
+            if(inputEmpty&&!collected
+                    &&handled.getSlot(1).getStack().isEmpty()
+                    &&ticks>20*10) {
+                closeHandled(client);
+                fail("client_smelt_no_output");
+                return;
+            }
+            send(executionId,"running",
+                    Math.min(.75D,.3D+ticks/400D),"client_smelting");
         }
     }
 

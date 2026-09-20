@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 public final class RealClientExecutionDriver
         implements PhysicalExecutionDriver {
     public static final Set<String> OPERATIONS=
-            Set.of("say","goto","mine_opportunity","deposit","craft","eat","place");
+            Set.of("say","goto","mine_opportunity","deposit","craft","eat","place","smelt");
 
     private static final int MAX_GOTO_DISTANCE=32;
     private static final int EXECUTION_TIMEOUT_TICKS=20*120;
@@ -86,6 +86,9 @@ public final class RealClientExecutionDriver
                             request,args,player,startedAt);
             case "place" ->
                     startPlace(
+                            request,args,player,startedAt);
+            case "smelt" ->
+                    startSmelt(
                             request,args,player,startedAt);
             default -> throw new BridgeFault(
                     409,
@@ -279,6 +282,86 @@ public final class RealClientExecutionDriver
         return new BodyBackend.Snapshot(
                 "running",
                 remote==null?0D:Math.min(.9D,remote.progress()),
+                remote==null?"awaiting_real_client_ack":remote.reason());
+    }
+
+    private BodyBackend.Handle startSmelt(
+            Request request,JsonObject args,
+            ServerPlayerEntity player,long startedAt) {
+        only(args,Set.of("input_item","fuel_item","count"));
+        String inputId=string(args,"input_item",120);
+        String fuelId=string(args,"fuel_item",120);
+        int count=integer(args,"count",1,12);
+        Identifier inId=Identifier.tryParse(inputId);
+        Identifier fuId=Identifier.tryParse(fuelId);
+        if(inId==null||fuId==null
+                ||!Registries.ITEM.containsId(inId)
+                ||!Registries.ITEM.containsId(fuId))
+            throw new BridgeFault(400,"smelt_unknown_item");
+        if(countItem(player,inputId)<count)
+            throw new BridgeFault(409,"smelt_input_insufficient");
+        if(countItem(player,fuelId)<1)
+            throw new BridgeFault(409,"smelt_fuel_missing");
+        // 找伸手可及的熔炉(半径 2)
+        BlockPos found=null;
+        BlockPos origin=player.getBlockPos();
+        for(BlockPos pos:BlockPos.iterate(
+                origin.add(-2,-2,-2),origin.add(2,2,2))) {
+            if(player.getServerWorld().getBlockState(pos)
+                    .isOf(net.minecraft.block.Blocks.FURNACE)) {
+                found=pos.toImmutable();
+                break;
+            }
+        }
+        if(found==null)
+            throw new BridgeFault(
+                    409,"smelt_no_furnace_within_reach");
+        if(player.getEyePos().distanceTo(found.toCenterPos())>4.5D)
+            throw new BridgeFault(409,"smelt_furnace_too_far");
+        int baseline=countItem(player,inputId);
+        if(!transport.sendCommand(
+                request.executionId(),"smelt",
+                JsonOutput.encode(Map.of(
+                        "furnace_x",found.getX(),
+                        "furnace_y",found.getY(),
+                        "furnace_z",found.getZ(),
+                        "input_item",inputId,
+                        "fuel_item",fuelId))))
+            throw new BridgeFault(
+                    503,"real_client_command_queue_unavailable");
+        return ()->smeltSnapshot(
+                request.executionId(),startedAt,inputId,baseline);
+    }
+
+    private BodyBackend.Snapshot smeltSnapshot(
+            String executionId,long startedAt,
+            String inputId,int baseline) {
+        onThread();
+        ServerPlayerEntity player=body.get();
+        if(player==null)
+            return new BodyBackend.Snapshot(
+                    "outcome_unknown",0D,"real_client_body_unavailable");
+        var remote=transport.execution(executionId).orElse(null);
+        if(remote!=null&&Set.of("failed","cancelled","outcome_unknown")
+                .contains(remote.state()))
+            return new BodyBackend.Snapshot(
+                    remote.state(),remote.progress(),remote.reason());
+        int current=countItem(player,inputId);
+        if("completed".equals(remote==null?"":remote.state())
+                &&current<baseline)
+            return new BodyBackend.Snapshot(
+                    "completed",1D,
+                    "server_authoritative_input_consumed:"
+                            +baseline+"->"+current);
+        if(server.getTicks()-startedAt>20*240) {
+            transport.sendControl(executionId,"cancel",
+                    "real_client_execution_timeout");
+            return new BodyBackend.Snapshot(
+                    "failed",0D,"real_client_execution_timeout");
+        }
+        return new BodyBackend.Snapshot(
+                "running",
+                remote==null?0D:Math.min(.95D,remote.progress()),
                 remote==null?"awaiting_real_client_ack":remote.reason());
     }
 
