@@ -78,23 +78,44 @@ def craft(s, item, n):
     return res.get("state") == "completed"
 
 
+def pick_shelter_dir(s, p):
+    """用感知选有泥土的水平方向(机会列表 near 环 dirt),返回单位向量。"""
+    ov = s.overview()
+    best = None
+    for ring, d, block, n, ref in ov["rings"]:
+        if block != "dirt" or d > 6:
+            continue
+        ins = s.inspect(ref, "summary")
+        ev = (ins.get("data") or {}).get("evidence") or {}
+        if "x" not in ev:
+            continue
+        dx, dz = ev["x"] - p["x"], ev["z"] - p["z"]
+        if abs(dx) + abs(dz) < 1:
+            continue
+        ux = (dx > 0) - (dx < 0)
+        uz = (dz > 0) - (dz < 0)
+        return (ux if abs(dx) >= abs(dz) else 0), (uz if abs(dz) > abs(dx) else 0)
+    return 1, 0  # 无线索:默认 +X
+
+
 def dig_shelter_and_seal(s, v):
-    """水平挖 2 格进山体,进去后回头放置封口(2 格高)。"""
+    """沿泥土方向水平挖 2 格进山体,进去后回头放置封口(2 格高)。"""
     p = v["self"]["block_position"]
-    # 选一个朝向:挖前方 2 格(脚+头)
+    ux, uz = pick_shelter_dir(s, p)
+    log("shelter dir (%+d,%+d)" % (ux, uz))
     for depth in (1, 2):
         for yy in (0, 1):
-            t = {"x": p["x"] + 2, "y": p["y"] + yy, "z": p["z"]}
+            t = {"x": p["x"] + ux * depth, "y": p["y"] + yy, "z": p["z"] + uz * depth}
             mine_at(s, t, "minecraft:dirt")
     time.sleep(1)
     # 走进洞
-    ex, _ = s.do_async("goto", {"x": p["x"] + 2, "y": p["y"], "z": p["z"],
+    ex, _ = s.do_async("goto", {"x": p["x"] + ux * 2, "y": p["y"], "z": p["z"] + uz * 2,
                                 "allow_terrain_changes": True})
     if ex:
         s.term(ex, timeout_s=40)
-    # 回头封口:放置在洞口列(原位置+1 深度方向即口),头/脚两格
+    # 回头封口:洞口列(身后 1 格),头/脚两格
     for yy in (1, 0):
-        ex2, _ = s.do_async("place", {"x": p["x"] + 1, "y": p["y"] + yy, "z": p["z"]})
+        ex2, _ = s.do_async("place", {"x": p["x"] + ux, "y": p["y"] + yy, "z": p["z"] + uz})
         if ex2:
             res, _ = s.term(ex2, timeout_s=25)
             log("  seal y+%d -> %s" % (yy, res.get("state")))
