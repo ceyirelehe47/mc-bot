@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.zoyluo.aibot.AIBotMod;
-import io.github.zoyluo.aibot.craft.CraftingHelper;
 import io.github.zoyluo.aibot.external.BodyBackend;
 import io.github.zoyluo.aibot.external.BridgeFault;
 import io.github.zoyluo.aibot.external.JsonOutput;
@@ -23,7 +22,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -32,7 +33,7 @@ import java.util.function.Supplier;
 public final class RealClientExecutionDriver
         implements PhysicalExecutionDriver {
     public static final Set<String> OPERATIONS=
-            Set.of("say","goto","mine_opportunity","deposit","craft","eat","place","smelt");
+            Set.of("say","goto","mine_opportunity","deposit","craft","eat","place","smelt","move_items");
 
     private static final int MAX_GOTO_DISTANCE=32;
     private static final int EXECUTION_TIMEOUT_TICKS=20*120;
@@ -90,6 +91,9 @@ public final class RealClientExecutionDriver
             case "smelt" ->
                     startSmelt(
                             request,args,player,startedAt);
+            case "move_items" ->
+                    startMoveItems(
+                            request,args,player,startedAt);
             default -> throw new BridgeFault(
                     409,
                     "operation_not_supported_by_real_client_backend");
@@ -100,74 +104,61 @@ public final class RealClientExecutionDriver
             Request request,JsonObject args,
             ServerPlayerEntity player,long startedAt) {
         only(args,Set.of("item","count"));
-        Item target;
-        try {
-            Identifier targetId=Identifier.tryParse(
-                    string(args,"item",120));
-            target=targetId==null?null:Registries.ITEM.get(targetId);
-        } catch(RuntimeException invalid) {
+        // MC-RCF-1 G3b:原生客户端合成。count=本次新增产出目标(增量语义,
+        // 按合法配方批次向上取整,回报实际新增)。服务端写包路径已撤除。
+        String targetId=string(args,"item",120);
+        if(Identifier.tryParse(targetId)==null
+                ||Registries.ITEM.get(
+                        Identifier.tryParse(targetId))
+                        ==net.minecraft.item.Items.AIR)
             throw new BridgeFault(400,"craft_unknown_item");
-        }
-        if(target==null||Registries.ITEM.getId(target).toString().equals("minecraft:air"))
-            throw new BridgeFault(400,"craft_unknown_item");
-        int count=integer(args,"count",1,64);
-        int baseline=InventoryCrafting.countItem(player,target);
-        CraftingHelper.CraftPlan plan=CraftingHelper.plan(
-                player,target,count);
-        if(!plan.success())
+        int count=integer(args,"count",1,2304);
+        NativeLayout layout=nativeLayoutFor(
+                targetId,player);
+        if(layout==null)
             throw new BridgeFault(
-                    400,"craft_missing:"+plan.missingDescription());
-        String failure=InventoryCrafting.execute(player,plan,target);
-        if(failure!=null)
-            throw new BridgeFault(
-                    409,"craft_failed:"+failure);
-        int after=InventoryCrafting.countItem(player,target);
-        String reason="server_side_inventory_transformation:"
-                +"baseline="+baseline+":after="+after;
-        return ()->new BodyBackend.Snapshot(
-                "completed",1.0D,reason);
-    }
-
-    private BodyBackend.Handle startEat(
-            Request request,JsonObject args,
-            ServerPlayerEntity player,long startedAt) {
-        only(args,Set.of());
-        if(player.getHungerManager().getFoodLevel()>=20)
-            throw new BridgeFault(409,"eat_not_hungry");
-        // 安全食物优先(排除高危),与上游 InventoryAction 语义一致
-        int harmfulSlot=-1,slot=-1;
-        var inventory=player.getInventory();
-        for(int i=0;i<inventory.main.size();i++) {
-            ItemStack stack=inventory.main.get(i);
-            if(stack.isEmpty())continue;
-            var food=stack.get(net.minecraft.component.DataComponentTypes.FOOD);
-            if(food==null)continue;
-            boolean harmful=isHarmfulFood(stack.getItem());
-            if(harmful){if(harmfulSlot<0)harmfulSlot=i;continue;}
-            slot=i;break;
+                    400,"craft_recipe_not_in_core_chain");
+        int batches=(count+layout.outputPerBatch-1)
+                /layout.outputPerBatch;
+        // 材料在场核验(增量批次所需)
+        for(var e:layout.needed.entrySet()) {
+            int have=countItem(player,e.getKey());
+            if(have<e.getValue()*batches)
+                throw new BridgeFault(409,
+                        "craft_missing:"+e.getKey()
+                                +"have="+have
+                                +"need="+e.getValue()*batches);
         }
-        if(slot<0)slot=harmfulSlot;
-        if(slot<0)
-            throw new BridgeFault(409,"eat_no_food_in_inventory");
-        final int eatSlot=slot;
-        String itemId=Registries.ITEM.getId(
-                inventory.main.get(slot).getItem()).toString();
-        int before=inventory.main.get(slot).getCount();
-        int hungerBefore=player.getHungerManager().getFoodLevel();
+        BlockPos table=null;
+        if(layout.needsTable) {
+            table=findNearbyCraftingTable(player);
+            if(table==null)
+                throw new BridgeFault(
+                        409,"craft_no_crafting_table_nearby");
+        }
+        int baseline=countItem(player,targetId);
+        Map<String,Object> command=new LinkedHashMap<>();
+        command.put("grid",layout.grid);
+        command.put("result_item",targetId);
+        command.put("batches",batches);
+        if(table!=null) {
+            command.put("table_x",table.getX());
+            command.put("table_y",table.getY());
+            command.put("table_z",table.getZ());
+        }
         if(!transport.sendCommand(
-                request.executionId(),"eat",
-                JsonOutput.encode(Map.of(
-                        "slot",slot<9?slot:0))))
+                request.executionId(),"craft",
+                JsonOutput.encode(command)))
             throw new BridgeFault(
                     503,"real_client_command_queue_unavailable");
-        return ()->eatSnapshot(
+        return ()->craftSnapshot(
                 request.executionId(),startedAt,
-                eatSlot,itemId,before,hungerBefore);
+                targetId,baseline,count,batches);
     }
 
-    private BodyBackend.Snapshot eatSnapshot(
+    private BodyBackend.Snapshot craftSnapshot(
             String executionId,long startedAt,
-            int slot,String itemId,int before,int hungerBefore) {
+            String targetId,int baseline,int want,int batches) {
         onThread();
         ServerPlayerEntity player=body.get();
         if(player==null)
@@ -178,10 +169,200 @@ public final class RealClientExecutionDriver
                 .contains(remote.state()))
             return new BodyBackend.Snapshot(
                     remote.state(),remote.progress(),remote.reason());
-        ItemStack stack=player.getInventory().getStack(slot);
-        int after=stack.isOf(Registries.ITEM.get(
-                Identifier.tryParse(itemId)))
-                ?stack.getCount():0;
+        if("completed".equals(remote==null?"":remote.state())) {
+            int after=countItem(player,targetId);
+            int delta=after-baseline;
+            if(delta+0>=want||delta>=batches) // 产出按批次,至少完成全部批次
+                return new BodyBackend.Snapshot(
+                        "completed",1D,
+                        "server_authoritative_native_craft:"
+                                +targetId+":"+baseline+"->"+after
+                                +":delta="+delta+":batches="+batches);
+            return new BodyBackend.Snapshot(
+                    "failed",0D,
+                    "craft_inventory_delta_insufficient:"
+                            +delta+"/"+want);
+        }
+        if(server.getTicks()-startedAt>EXECUTION_TIMEOUT_TICKS) {
+            transport.sendControl(executionId,"cancel",
+                    "real_client_execution_timeout");
+            return new BodyBackend.Snapshot(
+                    "failed",0D,"real_client_execution_timeout");
+        }
+        return new BodyBackend.Snapshot(
+                "running",
+                remote==null?0D:Math.min(.95D,remote.progress()),
+                remote==null?"awaiting_real_client_ack":remote.reason());
+    }
+
+    /** 核心链配方布局(2×2 子集或 3×3),材料按玩家在场的具体木头推导。 */
+    private record NativeLayout(
+            List<String> grid,int outputPerBatch,
+            boolean needsTable,
+            Map<String,Integer> needed) {}
+
+    private NativeLayout nativeLayoutFor(
+            String targetId,ServerPlayerEntity player) {
+        String[] WOODS={"oak","spruce","birch","jungle",
+                "acacia","dark_oak","mangrove","cherry"};
+        // 木板:x_log → x_planks(无序,单格)
+        for(String w:WOODS) {
+            if(targetId.equals("minecraft:"+w+"_planks")) {
+                String log="minecraft:"+w+"_log";
+                if(countItem(player,log)<=0)
+                    return null; // 玩家无此木:让上层选在场木种
+                return new NativeLayout(
+                        Arrays.asList(log,null,null,null),
+                        4,false,Map.of(log,1));
+            }
+        }
+        if(targetId.equals("minecraft:stick")) {
+            String planks=firstSufficient(player,2,
+                    "minecraft:oak_planks","minecraft:spruce_planks",
+                    "minecraft:birch_planks","minecraft:jungle_planks",
+                    "minecraft:acacia_planks",
+                    "minecraft:dark_oak_planks",
+                    "minecraft:mangrove_planks",
+                    "minecraft:cherry_planks");
+            if(planks==null)return null;
+            return new NativeLayout(
+                    Arrays.asList(planks,null,planks,null),
+                    4,false,Map.of(planks,2));
+        }
+        if(targetId.equals("minecraft:crafting_table")) {
+            String planks=firstSufficient(player,4,
+                    "minecraft:oak_planks","minecraft:spruce_planks",
+                    "minecraft:birch_planks","minecraft:jungle_planks",
+                    "minecraft:acacia_planks",
+                    "minecraft:dark_oak_planks",
+                    "minecraft:mangrove_planks",
+                    "minecraft:cherry_planks");
+            if(planks==null)return null;
+            return new NativeLayout(
+                    Arrays.asList(planks,planks,planks,planks),
+                    1,false,Map.of(planks,4));
+        }
+        // 木镐:任意木板 3 + 木棍 2(3×3,需工作台)。原版 id=wooden_pickaxe
+        if(targetId.equals("minecraft:wooden_pickaxe")) {
+            String planks=firstSufficient(player,3,
+                    "minecraft:oak_planks","minecraft:spruce_planks",
+                    "minecraft:birch_planks","minecraft:jungle_planks",
+                    "minecraft:acacia_planks",
+                    "minecraft:dark_oak_planks",
+                    "minecraft:mangrove_planks",
+                    "minecraft:cherry_planks");
+            if(planks==null)return null;
+            return new NativeLayout(
+                    Arrays.asList(planks,planks,planks,
+                            null,"minecraft:stick",null,
+                            null,"minecraft:stick",null),
+                    1,true,
+                    Map.of(planks,3,
+                            "minecraft:stick",2));
+        }
+        if(targetId.equals("minecraft:stone_pickaxe")) {
+            return new NativeLayout(
+                    Arrays.asList("minecraft:cobblestone",
+                            "minecraft:cobblestone",
+                            "minecraft:cobblestone",
+                            null,"minecraft:stick",null,
+                            null,"minecraft:stick",null),
+                    1,true,
+                    Map.of("minecraft:cobblestone",3,
+                            "minecraft:stick",2));
+        }
+        return null;
+    }
+
+    private String firstPresent(
+            ServerPlayerEntity player,String...ids) {
+        return firstSufficient(player,1,ids);
+    }
+
+    /** 木种选择:数量充足者优先(修"首个在场但不足"缺陷,实测 oak 2<4 而 birch 8)。 */
+    private String firstSufficient(
+            ServerPlayerEntity player,int need,String...ids) {
+        String fallback=null;
+        for(String id:ids) {
+            int have=countItem(player,id);
+            if(have>=need)return id;
+            if(fallback==null&&have>0)fallback=id;
+        }
+        return fallback;
+    }
+
+    private BlockPos findNearbyCraftingTable(
+            ServerPlayerEntity player) {
+        // 半径 3 内已放置的工作台(真实存在才算 3×3 权限)
+        BlockPos feet=player.getBlockPos();
+        int r=3;
+        for(int dx=-r;dx<=r;dx++)
+            for(int dy=-r;dy<=r;dy++)
+                for(int dz=-r;dz<=r;dz++) {
+                    BlockPos p=feet.add(dx,dy,dz);
+                    if(player.getServerWorld().getBlockState(p)
+                            .isOf(net.minecraft.block.Blocks.CRAFTING_TABLE))
+                        return p;
+                }
+        return null;
+    }
+
+    private BodyBackend.Handle startEat(
+            Request request,JsonObject args,
+            ServerPlayerEntity player,long startedAt) {
+        only(args,Set.of());
+        if(player.getHungerManager().getFoodLevel()>=20)
+            throw new BridgeFault(409,"eat_not_hungry");
+        // 安全食物优先(排除高危);MC-RCF-1 G3d:传物品 id,
+        // 客户端真实定位/调入快捷栏(修"slot>=9 传 0"假映射)
+        String safeId=null,harmfulId=null;
+        var inventory=player.getInventory();
+        for(int i=0;i<inventory.main.size();i++) {
+            ItemStack stack=inventory.main.get(i);
+            if(stack.isEmpty())continue;
+            var food=stack.get(
+                    net.minecraft.component.DataComponentTypes.FOOD);
+            if(food==null)continue;
+            String id=Registries.ITEM.getId(stack.getItem())
+                    .toString();
+            if(isHarmfulFood(stack.getItem())) {
+                if(harmfulId==null)harmfulId=id;
+            } else {
+                safeId=id;
+                break;
+            }
+        }
+        String itemId=safeId!=null?safeId:harmfulId;
+        if(itemId==null)
+            throw new BridgeFault(409,"eat_no_food_in_inventory");
+        int before=countItem(player,itemId);
+        int hungerBefore=player.getHungerManager().getFoodLevel();
+        if(!transport.sendCommand(
+                request.executionId(),"eat",
+                JsonOutput.encode(Map.of(
+                        "food_item",itemId))))
+            throw new BridgeFault(
+                    503,"real_client_command_queue_unavailable");
+        final String foodId=itemId;
+        return ()->eatSnapshot(
+                request.executionId(),startedAt,
+                foodId,before,hungerBefore);
+    }
+
+    private BodyBackend.Snapshot eatSnapshot(
+            String executionId,long startedAt,
+            String itemId,int before,int hungerBefore) {
+        onThread();
+        ServerPlayerEntity player=body.get();
+        if(player==null)
+            return new BodyBackend.Snapshot(
+                    "outcome_unknown",0D,"real_client_body_unavailable");
+        var remote=transport.execution(executionId).orElse(null);
+        if(remote!=null&&Set.of("failed","cancelled","outcome_unknown")
+                .contains(remote.state()))
+            return new BodyBackend.Snapshot(
+                    remote.state(),remote.progress(),remote.reason());
+        int after=countItem(player,itemId);
         int hunger=player.getHungerManager().getFoodLevel();
         if(after<before||hunger>hungerBefore)
             return new BodyBackend.Snapshot(
@@ -204,7 +385,8 @@ public final class RealClientExecutionDriver
     private BodyBackend.Handle startPlace(
             Request request,JsonObject args,
             ServerPlayerEntity player,long startedAt) {
-        only(args,Set.of("x","y","z","slot"));
+        // MC-RCF-1 G3c:精确放置——指定物品+目标格;不再任意 BlockItem 顶替
+        only(args,Set.of("x","y","z","item"));
         BlockPos target=new BlockPos(
                 integer(args,"x",-29999984,29999984),
                 integer(args,"y",player.getServerWorld().getBottomY(),
@@ -213,40 +395,21 @@ public final class RealClientExecutionDriver
                 integer(args,"z",-29999984,29999984));
         if(!player.getServerWorld().getBlockState(target).isAir())
             throw new BridgeFault(409,"place_target_not_air");
-        if(player.getEyePos().distanceTo(target.toCenterPos())>4.5D)
+        if(player.getEyePos().distanceTo(
+                target.toCenterPos())>5.5D)
             throw new BridgeFault(409,"place_target_too_far");
-        // 槽位自动选择:显式 slot 无 BlockItem 时扫 0-35 找任意可放置方块
-        // (玩层看不到槽位号,固定传 0 是坏桩,实测封洞时 0 号槽常是工具)。
-        int slot=-1;
-        if(args.has("slot")) {
-            int requested=integer(args,"slot",0,35);
-            ItemStack req=player.getInventory().getStack(requested);
-            if(!req.isEmpty()
-                    &&req.getItem() instanceof net.minecraft.item.BlockItem)
-                slot=requested;
-        }
-        if(slot<0) {
-            for(int i=0;i<player.getInventory().size();i++) {
-                ItemStack cand=player.getInventory().getStack(i);
-                if(!cand.isEmpty()
-                        &&cand.getItem() instanceof net.minecraft.item.BlockItem) {
-                    slot=i;
-                    break;
-                }
-            }
-        }
-        if(slot<0)
-            throw new BridgeFault(409,"place_no_block_item_in_inventory");
-        ItemStack stack=player.getInventory().getStack(slot);
-        String itemId=Registries.ITEM.getId(stack.getItem()).toString();
-        int before=stack.getCount();
-        if(slot>8)
+        String itemId=string(args,"item",120);
+        var item=Registries.ITEM.get(
+                Identifier.tryParse(itemId));
+        if(!(item instanceof net.minecraft.item.BlockItem)
+                ||countItem(player,itemId)<=0)
             throw new BridgeFault(
-                    409,"place_block_item_not_in_hotbar");
+                    409,"place_item_not_in_inventory");
+        int before=countItem(player,itemId);
         if(!transport.sendCommand(
                 request.executionId(),"place",
                 JsonOutput.encode(Map.of(
-                        "slot",slot,
+                        "item",itemId,
                         "x",target.getX(),
                         "y",target.getY(),
                         "z",target.getZ()))))
@@ -266,11 +429,89 @@ public final class RealClientExecutionDriver
                     "outcome_unknown",0D,"real_client_body_unavailable");
         var state=player.getServerWorld().getBlockState(target);
         if(!state.isAir()) {
+            var expected=((net.minecraft.item.BlockItem)Registries.ITEM
+                    .get(Identifier.tryParse(itemId)))
+                    .getBlock().getDefaultState();
+            if(state.getBlock()!=expected.getBlock()) {
+                transport.sendControl(executionId,"cancel",
+                        "place_target_taken_by_other_block");
+                return new BodyBackend.Snapshot(
+                        "failed",0D,
+                        "place_target_taken_by_other_block:"
+                                +state.getBlock());
+            }
             int after=countItem(player,itemId);
             return new BodyBackend.Snapshot(
                     "completed",1D,
                     "server_authoritative_block_placed:"
-                            +itemId+":"+before+"->"+after);
+                            +itemId+":"+before+"->"+after
+                            +":at="+target.toShortString());
+        }
+        if(server.getTicks()-startedAt>20*25) {
+            transport.sendControl(executionId,"cancel",
+                    "real_client_execution_timeout");
+            return new BodyBackend.Snapshot(
+                    "failed",0D,"real_client_execution_timeout");
+        }
+        var remote=transport.execution(executionId).orElse(null);
+        return new BodyBackend.Snapshot(
+                "running",
+                remote==null?0D:Math.min(.9D,remote.progress()),
+                remote==null?"awaiting_real_client_ack":remote.reason());
+    }
+
+    private BodyBackend.Handle startMoveItems(
+            Request request,JsonObject args,
+            ServerPlayerEntity player,long startedAt) {
+        only(args,Set.of("item","count","hotbar"));
+        String itemId=string(args,"item",120);
+        int have=countItem(player,itemId);
+        if(have<=0)
+            throw new BridgeFault(
+                    409,"move_items_not_in_inventory");
+        int count=integer(args,"count",-1,64);
+        if(count>have)
+            throw new BridgeFault(
+                    409,"move_items_insufficient:"
+                            +"have="+have+":want="+count);
+        int hotbar=integer(args,"hotbar",0,8);
+        if(!transport.sendCommand(
+                request.executionId(),"move_items",
+                JsonOutput.encode(Map.of(
+                        "item",itemId,
+                        "count",count,
+                        "hotbar",hotbar))))
+            throw new BridgeFault(
+                    503,"real_client_command_queue_unavailable");
+        return ()->moveItemsSnapshot(
+                request.executionId(),startedAt,
+                itemId,count,hotbar);
+    }
+
+    private BodyBackend.Snapshot moveItemsSnapshot(
+            String executionId,long startedAt,
+            String itemId,int count,int hotbar) {
+        onThread();
+        ServerPlayerEntity player=body.get();
+        if(player==null)
+            return new BodyBackend.Snapshot(
+                    "outcome_unknown",0D,"real_client_body_unavailable");
+        var remote=transport.execution(executionId).orElse(null);
+        if(remote!=null&&Set.of("failed","cancelled","outcome_unknown")
+                .contains(remote.state()))
+            return new BodyBackend.Snapshot(
+                    remote.state(),remote.progress(),remote.reason());
+        if(remote!=null&&"completed".equals(remote.state())) {
+            ItemStack stack=player.getInventory().main.get(hotbar);
+            boolean ok=stack.getItem()==Registries.ITEM.get(
+                    Identifier.tryParse(itemId))
+                    &&(count<0||stack.getCount()>=count);
+            return new BodyBackend.Snapshot(
+                    ok?"completed":"failed",1D,
+                    ok?"server_authoritative_items_moved:"
+                            +itemId+":hotbar="+hotbar
+                            +":count="+stack.getCount()
+                            :"move_items_verification_failed");
         }
         if(server.getTicks()-startedAt>20*20) {
             transport.sendControl(executionId,"cancel",
@@ -278,7 +519,6 @@ public final class RealClientExecutionDriver
             return new BodyBackend.Snapshot(
                     "failed",0D,"real_client_execution_timeout");
         }
-        var remote=transport.execution(executionId).orElse(null);
         return new BodyBackend.Snapshot(
                 "running",
                 remote==null?0D:Math.min(.9D,remote.progress()),

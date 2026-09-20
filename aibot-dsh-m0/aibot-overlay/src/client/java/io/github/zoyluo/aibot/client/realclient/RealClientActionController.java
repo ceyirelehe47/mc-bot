@@ -1,5 +1,7 @@
 package io.github.zoyluo.aibot.client.realclient;
 
+import com.google.gson.JsonArray;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.MinecraftClient;
@@ -85,7 +87,7 @@ final class RealClientActionController {
         // MC-RCF-1 G2:移动承载动作依赖受控导航组件;组件缺失时诚实失败,
         // 不回退到旧偏航/挖穿逻辑(旧代码已从正式路径移除)。
         if(switch(operation) {
-            case "goto","mine","place","smelt","deposit" -> true;
+            case "goto","mine","place","smelt","deposit","craft" -> true;
             default -> false;
         } && !RealClientNavigation.available()) {
             send(executionId,"failed",0D,
@@ -106,15 +108,38 @@ final class RealClientActionController {
                     args.get("fuel_item").getAsString());
             case "place" -> new PlaceAction(
                     executionId,
-                    args.has("slot")
-                            ?args.get("slot").getAsInt():-1,
+                    args.get("item").getAsString(),
                     args.get("x").getAsInt(),
                     args.get("y").getAsInt(),
                     args.get("z").getAsInt());
             case "eat" -> new EatAction(
                     executionId,
-                    args.has("slot")
-                            ?args.get("slot").getAsInt():-1);
+                    args.get("food_item").getAsString());
+            case "move_items" -> new MoveItemsAction(
+                    executionId,
+                    args.get("item").getAsString(),
+                    args.has("count")
+                            ?args.get("count").getAsInt():-1,
+                    args.get("hotbar").getAsInt());
+            case "craft" -> {
+                JsonArray grid=args.getAsJsonArray("grid");
+                String[] cells=new String[grid.size()];
+                for(int i=0;i<grid.size();i++) {
+                    var e=grid.get(i);
+                    cells[i]=e.isJsonNull()?null:e.getAsString();
+                }
+                yield new CraftAction(
+                        executionId,
+                        cells,
+                        args.get("result_item").getAsString(),
+                        args.get("batches").getAsInt(),
+                        args.has("table_x")
+                                ?new BlockPos(
+                                        args.get("table_x").getAsInt(),
+                                        args.get("table_y").getAsInt(),
+                                        args.get("table_z").getAsInt())
+                                :null);
+            }
             case "goto" -> new GotoAction(
                     executionId,
                     args.get("x").getAsDouble(),
@@ -479,35 +504,145 @@ final class RealClientActionController {
     }
 
     private final class PlaceAction extends Action {
-        final int slot;
+        final String itemId;
         final BlockPos target;
-        int ticks;
+        int ticks,selectCooldown,selectSettle;
         boolean sent;
+        Direction supportFace;
 
-        PlaceAction(String executionId,int slot,int x,int y,int z) {
+        PlaceAction(String executionId,String itemId,int x,int y,int z) {
             super(executionId);
-            this.slot=slot;
+            this.itemId=itemId;
             this.target=new BlockPos(x,y,z);
         }
 
         @Override void tick(MinecraftClient client) {
             if(client.currentScreen!=null)
                 client.setScreen(null);
-            if(++ticks>20*10) {
+            // MC-RCF-1 G3c:事务层自助准备手持物品(真实调槽,节流防同步竞态)
+            if(!RealClientInventoryOps.heldItemId(client)
+                    .equals(itemId)) {
+                if(selectCooldown>0) {
+                    selectCooldown--;
+                    return;
+                }
+                var handler=client.player.currentScreenHandler;
+                var cursor=handler.getCursorStack();
+                if(RealClientInventoryOps.is(cursor,itemId)) {
+                    int empty=RealClientInventoryOps.findEmpty(
+                            handler,
+                            RealClientInventoryOps.PLAYER_HOTBAR_START,
+                            RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+                    if(empty<0)empty=
+                            RealClientInventoryOps.PLAYER_HOTBAR_START;
+                    RealClientInventoryOps.click(client,handler,
+                            empty,0,SlotActionType.PICKUP);
+                    selectCooldown=3;
+                    return;
+                }
+                if(!cursor.isEmpty()) {
+                    int back=RealClientInventoryOps.findEmpty(handler,
+                            RealClientInventoryOps.PLAYER_MAIN_START,
+                            RealClientInventoryOps.PLAYER_MAIN_START+27);
+                    RealClientInventoryOps.click(client,handler,
+                            back<0?36:back,0,SlotActionType.PICKUP);
+                    selectCooldown=3;
+                    return;
+                }
+                int hotbar=RealClientInventoryOps.findStack(
+                        handler,itemId,
+                        RealClientInventoryOps.PLAYER_HOTBAR_START,
+                        RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+                if(hotbar>=0) {
+                    client.player.getInventory().selectedSlot=
+                            hotbar-RealClientInventoryOps.PLAYER_HOTBAR_START;
+                    return;
+                }
+                int main=RealClientInventoryOps.findStack(
+                        handler,itemId,
+                        RealClientInventoryOps.PLAYER_MAIN_START,
+                        RealClientInventoryOps.PLAYER_MAIN_START+27);
+                if(main<0) {
+                    if(++selectSettle>20) {
+                        fail("client_place_item_not_found");
+                        return;
+                    }
+                    return;
+                }
+                RealClientInventoryOps.click(client,handler,
+                        main,0,SlotActionType.PICKUP);
+                selectCooldown=3;
+                send(executionId,"running",.05D,
+                        "client_place_selecting_item");
+                return;
+            }
+            if(++ticks>20*12) {
                 fail("client_place_timeout");
                 return;
             }
-            if(!client.world.getBlockState(target).isAir()) {
-                if(sent)complete("client_block_placed");
-                else complete("client_block_already_present");
+            var world=client.world;
+            // 正交邻位站位:对角站位射线无法命中目标支撑面(实测),
+            // 先到目标的水平邻格再瞄准——G3c 工作站位语义
+            BlockPos stand=null;
+            for(Direction f:new Direction[]{Direction.NORTH,
+                    Direction.SOUTH,Direction.EAST,Direction.WEST}) {
+                BlockPos n=target.offset(f);
+                if(world.getBlockState(n).isAir()
+                        &&world.getBlockState(n.down())
+                                .isSideSolidFullSquare(
+                                        world,n.down(),Direction.UP)) {
+                    stand=n;
+                    break;
+                }
+            }
+            if(stand==null) {
+                fail("client_place_no_stance");
                 return;
             }
-            if(slot>=0&&slot<9)
-                client.player.getInventory().selectedSlot=slot;
-            // 朝目标中心看;crosshair 命中相邻实体面即在其上放置
-            lookAt(client,target.toCenterPos());
+            if(!client.player.getBlockPos().equals(stand)) {
+                walkTo(client,stand.toCenterPos());
+                send(executionId,"running",.15D,
+                        "client_place_approaching_stance");
+                return;
+            }
+            // (瞄空气格中心时射线常从侧壁穿出,落点校验永不成立——实测教训)
+            BlockPos support=null;
+            Direction[] faces={Direction.DOWN,Direction.NORTH,
+                    Direction.SOUTH,Direction.EAST,Direction.WEST,
+                    Direction.UP};
+            for(Direction f:faces) {
+                BlockPos n=target.offset(f);
+                if(world.getBlockState(n).isSideSolidFullSquare(
+                        world,n,f.getOpposite())) {
+                    support=n;
+                    supportFace=f.getOpposite(); // 命中的是支撑块的暴露面
+                    break;
+                }
+            }
+            if(support==null) {
+                fail("client_place_no_support_face");
+                return;
+            }
+            lookAt(client,support.toCenterPos());
+            if(ticks%5==0) {
+                String cross=client.crosshairTarget==null?"null"
+                        :client.crosshairTarget.getType()
+                                +(client.crosshairTarget
+                                instanceof BlockHitResult b
+                                ?"@"+b.getBlockPos()
+                                +":"+b.getSide():"");
+                io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                        "[AIBot] place-diag pos={} stand={} support={}{} face={} yaw={} pitch={} cross={} held={} sent={}",
+                        client.player.getBlockPos(),stand,
+                        support,support==null?"":"@"+support,
+                        supportFace,Math.round(client.player.getYaw()),
+                        Math.round(client.player.getPitch()),cross,
+                        RealClientInventoryOps.heldItemId(client),sent);
+            }
             if(client.crosshairTarget instanceof BlockHitResult hit
                     &&hit.getType()==HitResult.Type.BLOCK
+                    &&hit.getBlockPos().equals(support)
+                    &&hit.getSide()==supportFace
                     &&!sent) {
                 client.interactionManager.interactBlock(
                         client.player,Hand.MAIN_HAND,hit);
@@ -516,58 +651,517 @@ final class RealClientActionController {
                 send(executionId,"running",.5D,"client_place_sent");
                 return;
             }
-            if(sent&&client.world.getBlockState(target).isAir()
-                    &&ticks%20==0) {
-                // 已发送但未落块:重试一次交互
-                if(client.crosshairTarget instanceof BlockHitResult hit2
-                        &&hit2.getType()==HitResult.Type.BLOCK) {
-                    client.interactionManager.interactBlock(
-                            client.player,Hand.MAIN_HAND,hit2);
-                    client.player.swingHand(Hand.MAIN_HAND);
-                }
+            if(sent&&ticks%10==0
+                    &&client.crosshairTarget
+                            instanceof BlockHitResult hit2
+                    &&hit2.getType()==HitResult.Type.BLOCK
+                    &&hit2.getBlockPos().equals(support)
+                    &&hit2.getSide()==supportFace) {
+                client.interactionManager.interactBlock(
+                        client.player,Hand.MAIN_HAND,hit2);
+                client.player.swingHand(Hand.MAIN_HAND);
             }
             send(executionId,"running",.2D,"client_placing");
         }
     }
 
     private final class EatAction extends Action {
-        final int slot;
-        int ticks;
-        boolean started;
+        final String foodItem;
+        int phase;      // 0=确保手持 1=进食中 2=收尾验证
+        int ticks,eatTicks,selectCooldown;
 
-        EatAction(String executionId,int slot) {
+        EatAction(String executionId,String foodItem) {
             super(executionId);
-            this.slot=slot;
+            this.foodItem=foodItem;
         }
 
         @Override void tick(MinecraftClient client) {
             if(client.currentScreen!=null)
                 client.setScreen(null);
-            if(!started) {
-                if(slot>=0&&slot<9)
-                    client.player.getInventory().selectedSlot=slot;
-                client.options.useKey.setPressed(true);
-                started=true;
-                send(executionId,"running",.2D,"client_eating_started");
-                return;
-            }
-            ticks++;
-            client.options.useKey.setPressed(true);
-            if(ticks>12&&!client.player.isUsingItem()) {
-                client.options.useKey.setPressed(false);
-                complete("client_food_consumed");
-                return;
-            }
-            if(ticks>20*12) {
+            if(++ticks>20*14) {
                 client.options.useKey.setPressed(false);
                 fail("client_eat_timeout");
                 return;
             }
-            send(executionId,"running",Math.min(.9D,ticks/160D),
-                    "client_eating");
+            var inv=client.player.getInventory();
+            var handler=client.player.currentScreenHandler;
+            if(phase==0) {
+                // MC-RCF-1 G3d:真实定位食物并调入快捷栏选中,
+                if(RealClientInventoryOps.heldItemId(client)
+                        .equals(foodItem)) {
+                    phase=1; // 已手持:进入进食
+                    return;
+                }
+                int hotbar=RealClientInventoryOps.findStack(
+                        handler,foodItem,
+                        RealClientInventoryOps.PLAYER_HOTBAR_START,
+                        RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+                if(hotbar>=0) {
+                    inv.selectedSlot=
+                            hotbar-RealClientInventoryOps.PLAYER_HOTBAR_START;
+                    return;
+                }
+                if(selectCooldown>0) {
+                    selectCooldown--;
+                    return; // 点击节流:服务端同步窗口
+                }
+                var cursor=handler.getCursorStack();
+                if(RealClientInventoryOps.is(cursor,foodItem)) {
+                    int empty=RealClientInventoryOps.findEmpty(
+                            handler,
+                            RealClientInventoryOps.PLAYER_HOTBAR_START,
+                            RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+                    if(empty<0)empty=
+                            RealClientInventoryOps.PLAYER_HOTBAR_START;
+                    RealClientInventoryOps.click(client,handler,
+                            empty,0,SlotActionType.PICKUP);
+                    selectCooldown=3;
+                    return;
+                }
+                if(!cursor.isEmpty()) {
+                    int back=RealClientInventoryOps.findEmpty(handler,
+                            RealClientInventoryOps.PLAYER_MAIN_START,
+                            RealClientInventoryOps.PLAYER_MAIN_START+27);
+                    RealClientInventoryOps.click(client,handler,
+                            back<0?36:back,0,SlotActionType.PICKUP);
+                    selectCooldown=3;
+                    return;
+                }
+                int main=RealClientInventoryOps.findStack(
+                        handler,foodItem,
+                        RealClientInventoryOps.PLAYER_MAIN_START,
+                        RealClientInventoryOps.PLAYER_MAIN_START+27);
+                if(main<0) {
+                    fail("client_food_not_found");
+                    return;
+                }
+                RealClientInventoryOps.click(client,handler,main,0,
+                        SlotActionType.PICKUP);
+                selectCooldown=3;
+            }
+            if(phase==1) {
+                // 抬头再吃:准星对可交互方块(如刚放的工作台)时 use 会变成
+                // 开屏而非进食(实测 A08 超时根因之二)
+                client.player.setPitch(-85F);
+                if(eatTicks<48)
+                    client.options.useKey.setPressed(true);
+                else {
+                    client.options.useKey.setPressed(false);
+                    if(!client.player.isUsingItem()) {
+                        phase=2;
+                        return;
+                    }
+                }
+                eatTicks++;
+                send(executionId,"running",
+                        Math.min(.9D,eatTicks/160D),"client_eating");
+                return;
+            }
+            // 收尾:手持不再是该食物,或数量减少
+            client.options.useKey.setPressed(false);
+            var held=inv.getMainHandStack();
+            boolean consumed=held.isEmpty()
+                    ||!RealClientInventoryOps.is(held,foodItem)
+                    ||held.getCount()<64; // 数量减少即消费(服务端终验)
+            if(consumed)
+                complete("client_food_consumed");
+            else
+                fail("client_eat_no_effect");
         }
     }
 
+    private final class MoveItemsAction extends Action {
+        // 状态机(每次点击后 cooldown=3 给服务端同步窗口,状态由实况驱动):
+        // A=光标空&目标未满足 → 取源
+        // B=光标持物 → 整堆:放 dest;精确:右键单放至足数后余量放回
+        // C=光标空 → 终验 dest
+        final String item;
+        final int count;           // -1=整堆;>0=精确数量
+        final int hotbarSemantic;  // 0..8
+        int cooldown,stuckTicks;
+
+        MoveItemsAction(String executionId,String item,int count,
+                        int hotbarSemantic) {
+            super(executionId);
+            this.item=item;
+            this.count=count;
+            this.hotbarSemantic=hotbarSemantic;
+        }
+
+        @Override void tick(MinecraftClient client) {
+            if(cooldown>0) {
+                cooldown--;
+                return;
+            }
+            var handler=client.player.currentScreenHandler;
+            int dest=RealClientInventoryOps.hotbarSlot(hotbarSemantic);
+            var destStack=handler.slots.get(dest).getStack();
+            var cursor=handler.getCursorStack();
+
+            // C:光标空 → 终验
+            if(cursor.isEmpty()) {
+                if(RealClientInventoryOps.is(destStack,item)
+                        &&(count<0||destStack.getCount()>=count)) {
+                    complete("client_items_moved");
+                    return;
+                }
+                if(!destStack.isEmpty()
+                        &&!RealClientInventoryOps.is(destStack,item)) {
+                    fail("client_move_dest_occupied_other_item");
+                    return;
+                }
+                // A:取源(主包优先,跳过 dest)
+                int src=RealClientInventoryOps.findStack(handler,item,
+                        RealClientInventoryOps.PLAYER_MAIN_START,
+                        RealClientInventoryOps.PLAYER_MAIN_START+27);
+                if(src<0||src==dest)
+                    src=RealClientInventoryOps.findStack(handler,item,
+                            RealClientInventoryOps.PLAYER_HOTBAR_START,
+                            RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+                if(src<0||src==dest) {
+                    fail("client_move_source_not_found");
+                    return;
+                }
+                RealClientInventoryOps.click(client,handler,src,0,
+                        SlotActionType.PICKUP);
+                cooldown=3;
+                stuckTicks=0;
+                return;
+            }
+
+            // B:光标持物
+            if(!RealClientInventoryOps.is(cursor,item)) {
+                if(++stuckTicks>10) {
+                    fail("client_move_cursor_unexpected");
+                    return;
+                }
+                return; // 等同步:光标应为本物品
+            }
+            stuckTicks=0;
+            if(!destStack.isEmpty()
+                    &&!RealClientInventoryOps.is(destStack,item)) {
+                fail("client_move_dest_occupied_other_item");
+                return;
+            }
+            if(count<0) {
+                // 整堆:放 dest(空格落下/同 id 合并)
+                RealClientInventoryOps.click(client,handler,dest,0,
+                        SlotActionType.PICKUP);
+                cooldown=3;
+                return; // 光标空后 C 终验
+            }
+            if(destStack.getCount()<count) {
+                // 右键单放一件
+                RealClientInventoryOps.click(client,handler,dest,1,
+                        SlotActionType.PICKUP);
+                cooldown=2;
+                return;
+            }
+            // dest 已足数:余量放回主包
+            int back=RealClientInventoryOps.findEmpty(handler,
+                    RealClientInventoryOps.PLAYER_MAIN_START,
+                    RealClientInventoryOps.PLAYER_MAIN_START+27);
+            if(back<0)back=RealClientInventoryOps.findEmpty(handler,
+                    RealClientInventoryOps.PLAYER_HOTBAR_START,
+                    RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+            RealClientInventoryOps.click(client,handler,
+                    back<0?dest:back,0,SlotActionType.PICKUP);
+            cooldown=3;
+        }
+    }
+
+    private final class CraftAction extends Action {
+        // 原生合成:材料真实放入合成格,结果真实拾取入包,经正常玩家处理链。
+        // gridItems: 下标=格序(0..3 或 0..8),值=物品 id 或 null。
+        // 本地 handler 滞后于点击:每次点击后节流等待服务端同步确认,
+        // 确认依据=格子内容/光标数量实际变化(实测连续快点击导致重复放置)。
+        final String[] gridItems;
+        final String resultItem;
+        final int batches;
+        final BlockPos tablePos;   // null=玩家 2x2
+        int phase;  // 0=开台/等屏 1=填格 2=取结果 3=入包 4=批间 5=收尾
+        int batch,fillIndex,settleTicks,openWait;
+        int openedSyncId=-1;
+        int cooldown;
+        int attempts;
+
+        CraftAction(String executionId,String[] gridItems,
+                    String resultItem,int batches,BlockPos tablePos) {
+            super(executionId);
+            this.gridItems=gridItems;
+            this.resultItem=resultItem;
+            this.batches=batches;
+            this.tablePos=tablePos;
+        }
+
+        @Override void tick(MinecraftClient client) {
+            if(cooldown>0) {
+                cooldown--;
+                return; // 点击节流:给服务端同步留窗口
+            }
+            var handler=client.player.currentScreenHandler;
+            if(phase==0) {
+                if(tablePos==null) {
+                    phase=1; // 玩家自身 2x2 合成格无需开屏
+                    return;
+                }
+                if(client.currentScreen==null) {
+                    if(client.player.getPos().squaredDistanceTo(
+                            tablePos.toCenterPos())>16D) {
+                        walkTo(client,tablePos.toCenterPos());
+                        return;
+                    }
+                    lookAt(client,tablePos.toCenterPos());
+                    if(client.crosshairTarget
+                            instanceof BlockHitResult hit
+                            &&hit.getType()==HitResult.Type.BLOCK
+                            &&hit.getBlockPos().equals(tablePos)) {
+                        client.interactionManager.interactBlock(
+                                client.player,Hand.MAIN_HAND,hit);
+                        client.player.swingHand(Hand.MAIN_HAND);
+                        cooldown=4;
+                    }
+                    return;
+                }
+                var current=screens.current();
+                boolean exactTableScreen=
+                        client.currentScreen
+                                instanceof net.minecraft.client.gui.screen
+                                        .ingame.CraftingScreen
+                                &&handler instanceof net.minecraft.screen
+                                        .CraftingScreenHandler
+                                &&current.present()
+                                &&current.syncId()==handler.syncId;
+                if(!exactTableScreen) {
+                    if(openWait++<80) {
+                        send(executionId,"running",.1D,
+                                "client_table_screen_opening");
+                        return;
+                    }
+                    closeHandled(client);
+                    fail("client_table_screen_expected");
+                    return;
+                }
+                openedSyncId=handler.syncId;
+                clearInputs(client);
+                phase=1;
+                fillIndex=0;
+                attempts=0;
+                return;
+            }
+            if(tablePos!=null&&phase>0&&phase<5
+                    &&(client.currentScreen==null
+                        ||handler.syncId!=openedSyncId)) {
+                fail("client_craft_screen_lost");
+                return;
+            }
+            if(phase==1) {
+                // 光标持他物:先放回主包空位(绝不点结果槽)
+                var cursor=handler.getCursorStack();
+                if(!cursor.isEmpty()
+                        &&!RealClientInventoryOps.is(cursor,
+                                fillIndex<gridItems.length
+                                        ?gridItems[fillIndex]:"")) {
+                    int back=RealClientInventoryOps.findEmpty(handler,
+                            RealClientInventoryOps.invMainStart(handler),
+                            RealClientInventoryOps.invMainStart(handler)+27);
+                    if(back<0)
+                        back=RealClientInventoryOps.findEmpty(handler,
+                                RealClientInventoryOps.invHotbarStart(handler),
+                                RealClientInventoryOps.invHotbarStart(handler)+9);
+                    if(back<0) {
+                        closeHandled(client);
+                        fail("client_craft_cursor_stuck");
+                        return;
+                    }
+                    RealClientInventoryOps.click(client,handler,
+                            back,0,SlotActionType.PICKUP);
+                    cooldown=3;
+                    return;
+                }
+                if(fillIndex>=gridItems.length) {
+                    if(!cursor.isEmpty()) {
+                        // 尾料:整堆放回
+                        int back=RealClientInventoryOps.findEmpty(handler,
+                                RealClientInventoryOps.PLAYER_MAIN_START,
+                                RealClientInventoryOps.PLAYER_MAIN_START+27);
+                        if(back<0)
+                            back=RealClientInventoryOps.findEmpty(handler,
+                                    RealClientInventoryOps.PLAYER_HOTBAR_START,
+                                    RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+                        RealClientInventoryOps.click(client,handler,
+                                back<0?RealClientInventoryOps.invHotbarStart(handler):back,0,SlotActionType.PICKUP);
+                        cooldown=3;
+                        return;
+                    }
+                    phase=2;
+                    settleTicks=0;
+                    return;
+                }
+                String need=gridItems[fillIndex];
+                int cell=1+fillIndex;
+                if(need==null) {
+                    fillIndex++;
+                    attempts=0;
+                    return;
+                }
+                var cellStack=handler.slots.get(cell).getStack();
+                if(RealClientInventoryOps.is(cellStack,need)
+                        &&cellStack.getCount()>=1) {
+                    fillIndex++;   // 已确认在格:下一格(服务端同步后)
+                    attempts=0;
+                    return;
+                }
+                if(RealClientInventoryOps.is(cursor,need)) {
+                    if(attempts>4) {
+                        closeHandled(client);
+                        fail("client_craft_fill_not_confirmed:"
+                                +"cell="+cell);
+                        return;
+                    }
+                    // 每格只放一件(核心配方单件/格)
+                    RealClientInventoryOps.click(client,handler,
+                            cell,1,SlotActionType.PICKUP);
+                    attempts++;
+                    cooldown=3;
+                    return;
+                }
+                if(!cursor.isEmpty()) {
+                    // 持同 need 之外的空档:交由下一 tick 光标放回分支
+                    cooldown=1;
+                    return;
+                }
+                int src=RealClientInventoryOps.findStack(handler,need,
+                        RealClientInventoryOps.PLAYER_MAIN_START,
+                        RealClientInventoryOps.PLAYER_MAIN_START+27);
+                if(src<0)
+                    src=RealClientInventoryOps.findStack(handler,need,
+                            RealClientInventoryOps.PLAYER_HOTBAR_START,
+                            RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+                if(src<0) {
+                    closeHandled(client);
+                    fail("client_craft_material_missing:"+need);
+                    return;
+                }
+                RealClientInventoryOps.click(client,handler,src,0,
+                        SlotActionType.PICKUP);
+                cooldown=3;
+                return;
+            }
+            if(phase==2) {
+                var result=handler.slots.get(0).getStack();
+                if(!RealClientInventoryOps.is(result,resultItem)) {
+                    if(settleTicks++%10==0) {
+                        StringBuilder gridState=new StringBuilder();
+                        for(int i=0;i<gridItems.length;i++) {
+                            var s=handler.slots.get(1+i).getStack();
+                            gridState.append(i).append('=')
+                                    .append(RealClientInventoryOps
+                                            .itemId(s))
+                                    .append('x')
+                                    .append(s.getCount()).append(' ');
+                        }
+                        io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                                "[AIBot] craft-diag want={} grid=[{}] cursor={}",
+                                resultItem,gridState,
+                                RealClientInventoryOps.itemId(
+                                        handler.getCursorStack()));
+                    }
+                    if(settleTicks>60) {
+                        closeHandled(client);
+                        fail("client_craft_result_not_ready");
+                        return;
+                    }
+                    return;
+                }
+                if(!handler.getCursorStack().isEmpty()) {
+                    int back=RealClientInventoryOps.findEmpty(handler,
+                            RealClientInventoryOps.invMainStart(handler),
+                            RealClientInventoryOps.invMainStart(handler)+27);
+                    if(back<0)
+                        back=RealClientInventoryOps.findEmpty(handler,
+                                RealClientInventoryOps.invHotbarStart(handler),
+                                RealClientInventoryOps.invHotbarStart(handler)+9);
+                    RealClientInventoryOps.click(client,handler,
+                            back<0?RealClientInventoryOps.invHotbarStart(handler):back,0,SlotActionType.PICKUP);
+                    cooldown=3;
+                    return;
+                }
+                RealClientInventoryOps.click(client,handler,0,0,
+                        SlotActionType.PICKUP); // 拾取合成结果
+                phase=3;
+                settleTicks=0;
+                cooldown=3;
+                return;
+            }
+            if(phase==3) {
+                var cursor=handler.getCursorStack();
+                if(!RealClientInventoryOps.is(cursor,resultItem)) {
+                    if(++settleTicks>20) {
+                        closeHandled(client);
+                        fail("client_craft_result_not_held");
+                        return;
+                    }
+                    return;
+                }
+                int dest=RealClientInventoryOps.findEmpty(handler,
+                        RealClientInventoryOps.PLAYER_MAIN_START,
+                        RealClientInventoryOps.PLAYER_MAIN_START+27);
+                if(dest<0)
+                    dest=RealClientInventoryOps.findEmpty(handler,
+                            RealClientInventoryOps.PLAYER_HOTBAR_START,
+                            RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+                if(dest<0) {
+                    closeHandled(client);
+                    fail("client_craft_inventory_full");
+                    return;
+                }
+                RealClientInventoryOps.click(client,handler,dest,0,
+                        SlotActionType.PICKUP);
+                batch++;
+                cooldown=3;
+                if(batch>=batches) {
+                    phase=5;
+                    return;
+                }
+                phase=4;
+                settleTicks=0;
+                return;
+            }
+            if(phase==4) {
+                if(settleTicks++<6)
+                    return;
+                fillIndex=0;
+                attempts=0;
+                phase=1;
+                return;
+            }
+            if(phase==5) {
+                for(int i=0;i<gridItems.length;i++) {
+                    if(gridItems[i]!=null) {
+                        int cell=1+i;
+                        if(!handler.slots.get(cell).getStack().isEmpty()) {
+                            RealClientInventoryOps.click(client,handler,
+                                    cell,0,SlotActionType.QUICK_MOVE);
+                            cooldown=3;
+                            return;
+                        }
+                    }
+                }
+                if(!handler.getCursorStack().isEmpty()) {
+                    int back=RealClientInventoryOps.findEmpty(handler,
+                            RealClientInventoryOps.invMainStart(handler),
+                            RealClientInventoryOps.invMainStart(handler)+27);
+                    RealClientInventoryOps.click(client,handler,
+                            back<0?RealClientInventoryOps.invHotbarStart(handler):back,0,SlotActionType.PICKUP);
+                    cooldown=3;
+                    return;
+                }
+                closeHandled(client);
+                complete("client_native_crafted");
+            }
+        }
+    }
     private final class SayAction extends Action {
         final String message;
         boolean sent;
