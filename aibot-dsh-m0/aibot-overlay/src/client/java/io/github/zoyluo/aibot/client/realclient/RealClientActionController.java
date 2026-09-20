@@ -148,7 +148,9 @@ final class RealClientActionController {
                     args.has("source_slot")
                             ?args.get("source_slot").getAsInt():-1,
                     args.has("protect_slot")
-                            ?args.get("protect_slot").getAsInt():-1);
+                            ?args.get("protect_slot").getAsInt():-1,
+                    args.has("dest_baseline")
+                            ?args.get("dest_baseline").getAsInt():0);
             case "craft" -> {
                 JsonArray grid=args.getAsJsonArray("grid");
                 String[] cells=new String[grid.size()];
@@ -632,8 +634,17 @@ final class RealClientActionController {
                 fail("client_place_no_stance");
                 return;
             }
-            if(!client.player.getBlockPos().equals(stand)) {
-                walkTo(client,stand.toCenterPos());
+            // R1 修复:Baritone GoalBlock 常停在目标相邻格并反复重规划
+            //(实测 approaching_stance 死循环)。站位=正交邻位语义:
+            //水平距 stand 中心 <1.3 格即视为到位;落点精度由后段
+            // crosshair 支撑面精确命中把关(N04 验收不变)。
+            double sdx=client.player.getX()-stand.getX()-.5D;
+            double sdz=client.player.getZ()-stand.getZ()-.5D;
+            boolean atStance=client.player.getBlockPos().equals(stand)
+                    ||(sdx*sdx+sdz*sdz<1.3D*1.3D
+                    &&Math.abs(client.player.getY()-stand.getY())<=1.5D);
+            if(!atStance) {
+                walkToExact(client,stand.toCenterPos());
                 send(executionId,"running",.15D,
                         "client_place_approaching_stance");
                 return;
@@ -701,7 +712,9 @@ final class RealClientActionController {
     private final class EatAction extends Action {
         final String foodItem;
         int phase;      // 0=确保手持 1=进食中 2=收尾验证
-        int ticks,eatTicks,selectCooldown;
+        int ticks,eatTicks,selectCooldown,heldStart;
+        boolean wasUsing,windowStarted;
+        int consumedRounds,windowTicks;
 
         EatAction(String executionId,String foodItem) {
             super(executionId);
@@ -722,6 +735,7 @@ final class RealClientActionController {
                 // MC-RCF-1 G3d:真实定位食物并调入快捷栏选中,
                 if(RealClientInventoryOps.heldItemId(client)
                         .equals(foodItem)) {
+                    heldStart=inv.getMainHandStack().getCount();
                     phase=1; // 已手持:进入进食
                     return;
                 }
@@ -776,7 +790,23 @@ final class RealClientActionController {
                 // 抬头再吃:准星对可交互方块(如刚放的工作台)时 use 会变成
                 // 开屏而非进食(实测 A08 超时根因之二)
                 client.player.setPitch(-85F);
-                if(eatTicks<48)
+                boolean using=client.player.isUsingItem();
+                // R1-I5/V04:claimed=真实完成的进食轮次。isUsingItem
+                // true→false 一次=吃完一块;外部清物不会触发该转换。
+                if(wasUsing&&!using)consumedRounds++;
+                wasUsing=using;
+                if(using&&!windowStarted)windowStarted=true;
+                if(!windowStarted) {
+                    // 窗口起点=服务器确认开始使用(调槽/网络延迟后)。
+                    // 窗口前不计时:找物+选中可耗时>1s,固定 48tick 上限
+                    // 会在真正开吃前耗尽(client_eat_no_effect 根因)。
+                    client.options.useKey.setPressed(true);
+                    eatTicks++; // 总防呆
+                    if(eatTicks>20*10)fail("client_eat_timeout");
+                    return;
+                }
+                windowTicks++;
+                if(windowTicks<48)
                     client.options.useKey.setPressed(true);
                 else {
                     client.options.useKey.setPressed(false);
@@ -785,19 +815,21 @@ final class RealClientActionController {
                         return;
                     }
                 }
-                eatTicks++;
                 send(executionId,"running",
-                        Math.min(.9D,eatTicks/160D),"client_eating");
+                        Math.min(.9D,windowTicks/160D),"client_eating");
                 return;
             }
-            // 收尾:手持不再是该食物,或数量减少
+            // R1-I5/V04 收尾:claimed=手持数量真实减少量。held<64 之类
+            // 布尔不能证明本次消费;外部取走与自然变化由服务端用
+            // claimed 核对(after==before-claimed)。
             client.options.useKey.setPressed(false);
             var held=inv.getMainHandStack();
-            boolean consumed=held.isEmpty()
-                    ||!RealClientInventoryOps.is(held,foodItem)
-                    ||held.getCount()<64; // 数量减少即消费(服务端终验)
-            if(consumed)
-                complete("client_food_consumed");
+            int heldNow=RealClientInventoryOps.is(held,foodItem)
+                    ?held.getCount():0;
+            int claimed=Math.min(consumedRounds,heldStart-heldNow);
+            if(claimed>0)
+                complete("client_food_consumed:"
+                        +"client_consumed="+claimed);
             else
                 fail("client_eat_no_effect");
         }
@@ -814,16 +846,19 @@ final class RealClientActionController {
         final int count;           // -1=整堆;>0=精确数量
         final int hotbarSemantic;  // 0..8
         final int sourceSlot,protectSlot;
+        final int destBaseline;
         int cooldown,stuckTicks;
 
         MoveItemsAction(String executionId,String item,int count,
-                        int hotbarSemantic,int sourceSlot,int protectSlot) {
+                        int hotbarSemantic,int sourceSlot,int protectSlot,
+                        int destBaseline) {
             super(executionId);
             this.item=item;
             this.count=count;
             this.hotbarSemantic=hotbarSemantic;
             this.sourceSlot=sourceSlot;
             this.protectSlot=protectSlot;
+            this.destBaseline=destBaseline;
         }
 
         @Override void tick(MinecraftClient client) {
@@ -836,10 +871,12 @@ final class RealClientActionController {
             var destStack=handler.slots.get(dest).getStack();
             var cursor=handler.getCursorStack();
 
-            // C:光标空 → 终验
+            // C:光标空 → 终验(R1-I2:净增语义,目标=destBaseline+count)
             if(cursor.isEmpty()) {
                 if(RealClientInventoryOps.is(destStack,item)
-                        &&(count<0||destStack.getCount()>=count)) {
+                        &&(count<0
+                        ||destStack.getCount()
+                                >=destBaseline+count)) {
                     complete("client_items_moved");
                     return;
                 }
@@ -912,8 +949,8 @@ final class RealClientActionController {
                 cooldown=3;
                 return; // 光标空后 C 终验
             }
-            if(destStack.getCount()<count) {
-                // 右键单放一件
+            if(destStack.getCount()<destBaseline+count) {
+                // 右键单放一件(直到净增达标)
                 RealClientInventoryOps.click(client,handler,dest,1,
                         SlotActionType.PICKUP);
                 cooldown=2;
@@ -944,6 +981,7 @@ final class RealClientActionController {
         int phase;  // 0=开台/等屏 1=填格 2=取结果 3=入包 4=批间 5=收尾
         int batch,fillIndex,settleTicks,openWait;
         int openedSyncId=-1;
+        boolean ownScreenPending;
         int cooldown;
         int attempts;
 
@@ -963,10 +1001,13 @@ final class RealClientActionController {
             }
             var handler=client.player.currentScreenHandler;
             if(phase==0) {
+                // R1-V09:先关任何旧屏(ownScreenPending 防开/关死循环)。
+                if(client.currentScreen!=null&&!ownScreenPending) {
+                    closeHandled(client);
+                    return;
+                }
                 if(tablePos==null) {
-                    // R1-I1/V05:个人 2x2 只在真实个人屏执行。外部屏
-                    // (工作台/箱子/熔炉)打开时先正常关闭并等同步,
-                    // 绝不 setScreen(null) 后假设服务端已回个人 handler。
+                    // R1-I1/V05:个人 2x2 只在真实个人屏执行(防错屏)。
                     if(client.currentScreen!=null) {
                         closeHandled(client);
                         return;
@@ -993,6 +1034,7 @@ final class RealClientActionController {
                         client.interactionManager.interactBlock(
                                 client.player,Hand.MAIN_HAND,hit);
                         client.player.swingHand(Hand.MAIN_HAND);
+                        ownScreenPending=true;
                         cooldown=4;
                     }
                     return;
@@ -1249,6 +1291,7 @@ final class RealClientActionController {
         int phase; // 0=开屏 1=取源 2=放置 3=终验
         int cooldown,stuckTicks,openWait,moved;
         int openedSyncId=-1;
+        boolean ownScreenPending;
 
         ContainerAction(String executionId,BlockPos target,
                         String item,int count,boolean withdraw,
@@ -1275,7 +1318,17 @@ final class RealClientActionController {
             }
             var handler=client.player.currentScreenHandler;
             if(phase==0) {
-                if(client.currentScreen==null) {
+                // R1-I4/V09:先关旧屏再开目标容器(防同类屏复用错容器)。
+                // ownScreenPending 区分"自己开的屏"——否则开屏后下一
+                // tick 又被当旧屏关掉,开/关死循环(实测 timeout 根因)。
+                if(client.currentScreen!=null) {
+                    if(!ownScreenPending) {
+                        closeHandled(client);
+                        return;
+                    }
+                    // 自己开的屏:落入下方 exact 核验
+                } else {
+                    ownScreenPending=false;
                     if(client.player.getPos().squaredDistanceTo(
                             target.toCenterPos())>25D) {
                         walkTo(client,target.toCenterPos());
@@ -1289,10 +1342,14 @@ final class RealClientActionController {
                         client.interactionManager.interactBlock(
                                 client.player,Hand.MAIN_HAND,hit);
                         client.player.swingHand(Hand.MAIN_HAND);
+                        ownScreenPending=true;
                         cooldown=4;
                     }
                     return;
                 }
+            }
+            if(phase==0) {
+                // 屏已开:exact 身份核验后进入转移(GenericContainer+syncId)
                 boolean exactContainer=
                         client.currentScreen
                                 instanceof net.minecraft.client.gui.screen
@@ -1368,6 +1425,22 @@ final class RealClientActionController {
                 return;
             }
             stuckTicks=0;
+            // R1-I4 修复:净增达标后不再继续转移——余量放回【源侧】。
+            // deposit 源=玩家;withdraw 源=容器(旧版一律回玩家侧,
+            // withdraw 4 件请求 2 会全取走,实测)。
+            if(count>0&&moved>=count) {
+                int back=withdraw
+                        ?findContainerDest(handler)
+                        :findPlayerDest(handler);
+                if(back<0) {
+                    fail("client_container_return_full");
+                    return;
+                }
+                RealClientInventoryOps.click(client,handler,
+                        back,0,SlotActionType.PICKUP);
+                cooldown=3;
+                return; // 光标空后终验
+            }
             int dest=findDest(handler,cursor.getCount());
             if(dest<0) {
                 fail("client_container_dest_full");
@@ -1385,6 +1458,38 @@ final class RealClientActionController {
                     dest,1,SlotActionType.PICKUP);
             moved++;
             cooldown=2;
+        }
+
+        private int findContainerDest(
+                net.minecraft.screen.ScreenHandler handler) {
+            for(int i=0;i<handler.slots.size();i++) {
+                var slot=handler.slots.get(i);
+                if(!isContainerSide(slot))continue;
+                var s=slot.getStack();
+                if(s.isEmpty())
+                    return i;
+                if(RealClientInventoryOps.is(s,item)
+                        &&s.getCount()<Math.min(
+                                s.getMaxCount(),64))
+                    return i;
+            }
+            return -1;
+        }
+
+        private int findPlayerDest(
+                net.minecraft.screen.ScreenHandler handler) {
+            for(int i=0;i<handler.slots.size();i++) {
+                var slot=handler.slots.get(i);
+                if(isContainerSide(slot))continue;
+                var s=slot.getStack();
+                if(s.isEmpty())
+                    return i;
+                if(RealClientInventoryOps.is(s,item)
+                        &&s.getCount()<Math.min(
+                                s.getMaxCount(),64))
+                    return i;
+            }
+            return -1;
         }
 
         private int findSource(
@@ -1820,6 +1925,17 @@ final class RealClientActionController {
             client.setScreen(null);
         clearInputs(client);
         RealClientNavigation.pathTo(client,target,2.0D);
+    }
+
+    /** R1-C2 修复:精确站格导航(GoalBlock)。PlaceAction 要求
+     * getBlockPos().equals(stand)——GoalNear(radius=2) 到达后 !pathing
+     * 但位置≠stand,重新 setGoal 死循环(approaching_stance 卡死根因)。 */
+    private static void walkToExact(
+            MinecraftClient client,Vec3d target) {
+        if(client.currentScreen!=null)
+            client.setScreen(null);
+        clearInputs(client);
+        RealClientNavigation.pathTo(client,target,0.5D);
     }
 
     /** 平滑转向:每 tick 最多转 12 度,消除视角瞬移造成的画面抽搐。 */

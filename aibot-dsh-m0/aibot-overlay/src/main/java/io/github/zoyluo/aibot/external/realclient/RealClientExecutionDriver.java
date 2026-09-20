@@ -33,7 +33,8 @@ import java.util.function.Supplier;
 public final class RealClientExecutionDriver
         implements PhysicalExecutionDriver {
     public static final Set<String> OPERATIONS=
-            Set.of("say","goto","mine_opportunity","deposit","craft","eat","place","smelt","move_items");
+            Set.of("say","goto","mine_opportunity","deposit","craft",
+                    "eat","place","move_items","container_transfer");
 
     private static final int MAX_GOTO_DISTANCE=32;
     private static final int EXECUTION_TIMEOUT_TICKS=20*120;
@@ -383,11 +384,22 @@ public final class RealClientExecutionDriver
         // 物品被外部取走(after<before 但客户端未完成)不得冒充本次进食。
         boolean clientDone=remote!=null
                 &&"completed".equals(remote.state());
-        if(clientDone&&after<before)
+        // R1-I5/V04:客户端回执携带本次真实消费数(client_consumed=N);
+        // 服务端核对 after==before-N。外部取走物品(clear/他因)造成的
+        // after<before 与 claimed 不符 → 不完成,不冒充本次进食。
+        int claimed=0;
+        if(clientDone&&remote.reason()!=null) {
+            var m=java.util.regex.Pattern
+                    .compile("client_consumed=(\\d+)")
+                    .matcher(remote.reason());
+            if(m.find())claimed=Integer.parseInt(m.group(1));
+        }
+        if(clientDone&&claimed>0&&after==before-claimed)
             return new BodyBackend.Snapshot(
                     "completed",1D,
                     "server_authoritative_food_consumed:"
                             +itemId+":"+before+"->"+after
+                            +":claimed="+claimed
                             +":hunger:"+hungerBefore+"->"+hunger);
         if(server.getTicks()-startedAt>EXECUTION_TIMEOUT_TICKS) {
             transport.sendControl(executionId,"cancel",
@@ -570,6 +582,9 @@ public final class RealClientExecutionDriver
         command.put("item",itemId);
         command.put("count",finalMoved);
         command.put("hotbar",hotbar);
+        // R1-I2:客户端增量语义锚点——目标=destBaseline+count(净增),
+        // 不是"目标槽最终=count"(实测该语义在目标已有内容时漏放)。
+        command.put("dest_baseline",destBaseline);
         if(sourceSlot>=0)command.put("source_slot",sourceSlot);
         if(protectSlot>=0)command.put("protect_slot",protectSlot);
         if(!transport.sendCommand(
