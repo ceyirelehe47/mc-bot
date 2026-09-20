@@ -1,0 +1,40 @@
+# MC-RCF-1 实现决策记录
+
+工作记录,随门推进更新。模板空栏 ≠ 已通过。
+
+## 源码与环境
+- 审查快照:`61aa6a85296d5722a80fc935bcc6ca53bf8bfec5`(experiment/mc2a0-8r1-acceptance-closure,G0 刷新远端确认无新提交)。
+- 实际开发祖先:**无父孤儿分支** `experiment/rc-foundation-v1`(首提交 b4502b2)。原因:审查快照全部可到达历史含 DSH 世代归档中的真实外部密钥(OpenAI sk-/GitHub/Notion,经 fbbc1b9 从树中脱敏但历史对象仍在远端);按 04_ENV_SECURITY §1.4 不带入新分支。新分支树 = 旧树减 deliveries/、archive/、.build/(磁盘保留,git 不跟踪)。
+- 生产源码权威:`aibot-dsh-m0/aibot-overlay/` + `scripts/apply_to_aibot.py`(锚定安装器)→ 应用到上游 `zoyluoblue/mc_aiplayer` fork `a029fa6a`。G0 已证明:干净 worktree + 安装器输出 = 活树 D:/code/mc-experiment/aibot **字节一致**(仅 mixins.json 行尾换行归一化,语义无差)。
+- 依赖锁:MC 1.21.3 / Fabric Loader 0.18.4 / Fabric API 0.114.1+1.21.3 / Java 21(运行 JDK 21.0.12.1+1 与 JDK 23.0.2 均可编译);gradle wrapper 9.4.0;经本地代理 127.0.0.1:7897 拉取 maven(用户环境既有配置)。
+- 候选 C:未定(逐门推进,当前 b4502b2+);测试世界:`world_rcf1` seed 178000000001,服务器 rcf1-server(端口 25599/桥 8799/控制 8798/RCON 25598,与生产 25565/8765/8766/25575 隔离),客户端 rcf1-client。
+
+## G0 关键事实
+- 旧时代进程已停:up.py 看门狗 PID 49296、hub mc-env;全部 java 清零后无 8765/8766/25565 占用。
+- 活树 = 上游 + 28 个未提交修改;其中 25 个由安装器 CHANGES/EXTRA_CHANGES 锚定补丁覆盖,2 个 craft 文件为整文件替换(本轮新增 REPLACES 机制修复,修复前干净重建被拒——已提交 5a879f0)。
+- 空目录构建:干净 worktree `gradlew build` 成功产出 `aibot-0.0.1.jar`(sha256 前缀 68c1909021bd6a79),已部署 rcf1-server/mods 与 rcf1-client/mods(两侧同哈希)。
+- GameTest 基线(诚实记录,未修):650 个测试,45 个失败(605 过)。失败集中在 MC2A02 tree-harvest(3)、MC2A0 cognitive-view(5+)、MC2A04 tracker(semantic_registry_not_started)等;完整清单见 BASELINE.md。G0 不要求修复,后续门触及相关语义时逐项处理。
+- smoke(2026-09-20 21:19,run 身份 world_rcf1/runtime f137f8de→初始 87d2…):服务器起→Bob 真实客户端 JOIN(background)→桥 observe 返回 body_id=bob/instance=faa5dca3…/session epoch→say 执行 complete 且服务器日志实证 `<Bob> rcf1 smoke hello`→杀客户端→0 人在线+lease 503 body_not_ready_or_server_tick_stale→重启客户端→重新 JOIN+租约恢复+**新 session epoch**(77a00c52→de561824,incarnation fence 生效)。
+
+## 安全处置状态
+- 已验证:HEAD 树无凭证模式命中;`.secrets/`/`.build/`/新 token 均不入库;新环境 token 三件套(bridge/control/rcon)新生成,值不落日志。
+- 待账户拥有者(明确阻塞,不代做):远端历史中的 DSH 归档密钥(OpenAI sk-jMcM…、GitHub、Notion)已实际暴露于 origin/experiment/mc2a0-8r1-acceptance-closure 可达历史,**需要用户撤销/轮换**;共享历史清理(force push/GC)未获授权不做。轮换完成前,新分支推送不含旧历史对象,不扩大暴露。
+
+## 导航
+(未开始;G2 填写)
+
+## 动作与背包事务
+(未开始;G3 填写)
+
+## 变更与审查
+- 旧入口禁用/迁移:旧时代脚本(wood*/stone/ironage/survival/up.py)保留在树中作为实验代码,本轮运行不使用;up.py 对历史目录 mc2a07ar-work/drivers 的 import 依赖由新 tools/rcf1_env.py 取代(路径/凭证全部配置化)。
+- 受影响协议/调用者:无协议变更;安装器新增 REPLACES(向后兼容:旧行为=拒绝)。
+- 每次关键失败、假设、修复与复测:见本文件追加段落。
+- 独立 reviewer 或明确的二次自审:(待各门完成后)
+- 仍需用户授权的事项:外部账户密钥轮换;共享历史清理。
+
+## 关键失败台账
+1. **installer 拒绝干净重建**(复现:rcf1-rebuild-base worktree `--apply` → `Overlay target already exists: craft/CraftingHelper.java`)。假设:overlay 两个 craft 文件为活树整文件修改,安装器无替换机制。修复:REPLACES 锚定整文件替换(blob SHA 校验)。复测:重建输出与活树字节一致。提交 5a879f0。
+2. **构建 TLS 握手失败**(maven.fabricmc.net)。根因:`-g` 自定义 gradle home 绕过了用户全局代理配置。修复:包装 bat 显式传代理。复测:构建成功。
+3. **服务器被 supervisor 树杀**:包装 python 退出→java 子进程同 Job 被杀。修复:java 作为被监督进程经 bat 直启。复测:服务器存活、桥就绪。
+4. **external_bridge_start_failed_closed**:hub env 漏传 token。修复:bat 内 `set /p` 从 .secrets 文件读入。复测:桥绑定成功(fail-closed 行为符合预期)。
