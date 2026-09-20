@@ -73,6 +73,9 @@ public final class RealClientExecutionDriver
             case "goto" ->
                     startGoto(
                             request,args,player,startedAt);
+            case "container_transfer" ->
+                    startContainerTransfer(
+                            request,args,player,startedAt);
             case "mine_opportunity" ->
                     startMine(
                             request,args,player,startedAt);
@@ -153,12 +156,14 @@ public final class RealClientExecutionDriver
                     503,"real_client_command_queue_unavailable");
         return ()->craftSnapshot(
                 request.executionId(),startedAt,
-                targetId,baseline,count,batches);
+                targetId,baseline,count,batches,
+                layout.outputPerBatch);
     }
 
     private BodyBackend.Snapshot craftSnapshot(
             String executionId,long startedAt,
-            String targetId,int baseline,int want,int batches) {
+            String targetId,int baseline,int want,int batches,
+            int outputPerBatch) {
         onThread();
         ServerPlayerEntity player=body.get();
         if(player==null)
@@ -172,16 +177,25 @@ public final class RealClientExecutionDriver
         if("completed".equals(remote==null?"":remote.state())) {
             int after=countItem(player,targetId);
             int delta=after-baseline;
-            if(delta+0>=want||delta>=batches) // 产出按批次,至少完成全部批次
+            // R1-I3/V01:完成单位=物品数,不是批次数。请求新增 q、每批 p、
+            // 客户端应执行 ceil(q/p) 批;合法产出=批次的完整乘积(上限 q,
+            // 末批不足时按整批落格后的实际入包数)。delta<合法产出下限即拒绝
+            // completed,按已发生效果诚实报告(部分产出+部分消耗归上层)。
+            int fullOutput=batches*outputPerBatch;
+            int minRequired=Math.min(want,fullOutput);
+            if(delta>=minRequired)
                 return new BodyBackend.Snapshot(
                         "completed",1D,
                         "server_authoritative_native_craft:"
                                 +targetId+":"+baseline+"->"+after
-                                +":delta="+delta+":batches="+batches);
+                                +":delta="+delta+":batches="+batches
+                                +":output_per_batch="+outputPerBatch);
             return new BodyBackend.Snapshot(
                     "failed",0D,
                     "craft_inventory_delta_insufficient:"
-                            +delta+"/"+want);
+                            +delta+"/"+want
+                            +"(expected>="+minRequired
+                            +"=min(want,fullOutput))");
         }
         if(server.getTicks()-startedAt>EXECUTION_TIMEOUT_TICKS) {
             transport.sendControl(executionId,"cancel",
@@ -364,7 +378,12 @@ public final class RealClientExecutionDriver
                     remote.state(),remote.progress(),remote.reason());
         int after=countItem(player,itemId);
         int hunger=player.getHungerManager().getFoodLevel();
-        if(after<before||hunger>hungerBefore)
+        // R1-I5/V04:完成=客户端完成回执 AND 本次物品真实减少。
+        // 饥饿值受自然饱和/外部效果并发影响,只作记录不作证据;
+        // 物品被外部取走(after<before 但客户端未完成)不得冒充本次进食。
+        boolean clientDone=remote!=null
+                &&"completed".equals(remote.state());
+        if(clientDone&&after<before)
             return new BodyBackend.Snapshot(
                     "completed",1D,
                     "server_authoritative_food_consumed:"
@@ -441,11 +460,33 @@ public final class RealClientExecutionDriver
                                 +state.getBlock());
             }
             int after=countItem(player,itemId);
+            // R1-I4/V03:块类型正确不等于 Bob 放的。completed 必须
+            // 同时证明本次库存消耗(after<before)——外部 actor 抢先放
+            // 同类型块时库存不减,不得冒充本次成功;客户端也已完成而
+            // 无消耗=外部放置,取消并诚实失败。
+            if(after<before)
+                return new BodyBackend.Snapshot(
+                        "completed",1D,
+                        "server_authoritative_block_placed:"
+                                +itemId+":"+before+"->"+after
+                                +":at="+target.toShortString()
+                                +":consumed=true");
+            var remoteNow=transport.execution(executionId).orElse(null);
+            boolean clientDone=remoteNow!=null
+                    &&"completed".equals(remoteNow.state());
+            if(clientDone) {
+                transport.sendControl(executionId,"cancel",
+                        "place_external_placement_unattributed");
+                return new BodyBackend.Snapshot(
+                        "failed",0D,
+                        "place_external_placement_unattributed:"
+                                +"block present without Bob consumption");
+            }
+            // 客户端仍在跑:块已出现但消耗未观测——给同步窗口,
+            // 下一 snapshot 复核(消耗或客户端终态二选一裁决)
             return new BodyBackend.Snapshot(
-                    "completed",1D,
-                    "server_authoritative_block_placed:"
-                            +itemId+":"+before+"->"+after
-                            +":at="+target.toShortString());
+                    "running",.9D,
+                    "place_block_present_awaiting_consumption_proof");
         }
         if(server.getTicks()-startedAt>20*25) {
             transport.sendControl(executionId,"cancel",
@@ -463,34 +504,87 @@ public final class RealClientExecutionDriver
     private BodyBackend.Handle startMoveItems(
             Request request,JsonObject args,
             ServerPlayerEntity player,long startedAt) {
-        only(args,Set.of("item","count","hotbar"));
+        // R1-I2:count=本次移动量(增量),非目标槽最终量。
+        // source_slot(可选,0..35 玩家主包索引)绑定指定源堆叠(同 ID
+        // 异组件选择,I03);protect_slot(可选)任务最低保留量槽,双侧执行。
+        only(args,Set.of(
+                "item","count","hotbar","source_slot","protect_slot"));
         String itemId=string(args,"item",120);
+        int count=integer(args,"count",-1,64);
+        if(count==0)
+            throw new BridgeFault(400,"move_items_count_zero_noop");
+        int hotbar=integer(args,"hotbar",0,8);
+        int sourceSlot=args.has("source_slot")
+                ?integer(args,"source_slot",0,35):-1;
+        int protectSlot=args.has("protect_slot")
+                ?integer(args,"protect_slot",0,35):-1;
+        if(sourceSlot==hotbar
+                ||(sourceSlot>=0&&sourceSlot==protectSlot))
+            throw new BridgeFault(
+                    400,"move_items_source_target_conflict");
         int have=countItem(player,itemId);
         if(have<=0)
             throw new BridgeFault(
                     409,"move_items_not_in_inventory");
-        int count=integer(args,"count",-1,64);
-        if(count>have)
+        int moved=count;
+        if(sourceSlot>=0) {
+            ItemStack src=player.getInventory().main.get(sourceSlot);
+            if(src.isEmpty()
+                    ||!Registries.ITEM.getId(src.getItem())
+                            .toString().equals(itemId))
+                throw new BridgeFault(
+                        409,"move_items_source_slot_mismatch");
+            if(moved<0||moved>src.getCount())
+                moved=moved<0?src.getCount():moved;
+        } else if(count>have)
             throw new BridgeFault(
                     409,"move_items_insufficient:"
                             +"have="+have+":want="+count);
-        int hotbar=integer(args,"hotbar",0,8);
+        // 基线:dest 槽现有量(增量判定)与源槽堆叠指纹(组件身份)
+        int destIndex=hotbar;
+        int destBaseline=player.getInventory()
+                .main.get(destIndex).getCount();
+        String destBaselineId=Registries.ITEM.getId(
+                player.getInventory().main.get(destIndex)
+                        .getItem()).toString();
+        if(!destBaselineId.equals(itemId)&&destBaseline>0)
+            throw new BridgeFault(
+                    409,"move_items_dest_occupied_other_item");
+        if(protectSlot>=0) {
+            ItemStack prot=player.getInventory()
+                    .main.get(protectSlot);
+            if(!prot.isEmpty()
+                    &&Registries.ITEM.getId(prot.getItem())
+                            .toString().equals(itemId)) {
+                int movable=have-prot.getCount();
+                if(count>movable)
+                    throw new BridgeFault(
+                            409,"move_items_protect_reservation:"
+                                    +"protect="+prot.getCount()
+                                    +":movable="+movable
+                                    +":want="+count);
+            }
+        }
+        final int finalMoved=moved;
+        Map<String,Object> command=new LinkedHashMap<>();
+        command.put("item",itemId);
+        command.put("count",finalMoved);
+        command.put("hotbar",hotbar);
+        if(sourceSlot>=0)command.put("source_slot",sourceSlot);
+        if(protectSlot>=0)command.put("protect_slot",protectSlot);
         if(!transport.sendCommand(
                 request.executionId(),"move_items",
-                JsonOutput.encode(Map.of(
-                        "item",itemId,
-                        "count",count,
-                        "hotbar",hotbar))))
+                JsonOutput.encode(command)))
             throw new BridgeFault(
                     503,"real_client_command_queue_unavailable");
         return ()->moveItemsSnapshot(
                 request.executionId(),startedAt,
-                itemId,count,hotbar);
+                itemId,finalMoved,hotbar,destBaseline);
     }
 
     private BodyBackend.Snapshot moveItemsSnapshot(
             String executionId,long startedAt,
-            String itemId,int count,int hotbar) {
+            String itemId,int count,int hotbar,int destBaseline) {
         onThread();
         ServerPlayerEntity player=body.get();
         if(player==null)
@@ -503,15 +597,25 @@ public final class RealClientExecutionDriver
                     remote.state(),remote.progress(),remote.reason());
         if(remote!=null&&"completed".equals(remote.state())) {
             ItemStack stack=player.getInventory().main.get(hotbar);
+            int gained=stack.getCount()-destBaseline;
+            // R1-I2/V02:完成=目标槽净增本次请求量(不是"最终≥count"
+            // ——目标原有 10 件请求移 7 未动也过是审查点名缺陷)。
             boolean ok=stack.getItem()==Registries.ITEM.get(
                     Identifier.tryParse(itemId))
-                    &&(count<0||stack.getCount()>=count);
-            return new BodyBackend.Snapshot(
-                    ok?"completed":"failed",1D,
-                    ok?"server_authoritative_items_moved:"
-                            +itemId+":hotbar="+hotbar
-                            +":count="+stack.getCount()
-                            :"move_items_verification_failed");
+                    &&gained>=count;
+            return ok
+                    ?new BodyBackend.Snapshot(
+                            "completed",1D,
+                            "server_authoritative_items_moved:"
+                                    +itemId+":hotbar="+hotbar
+                                    +":baseline="+destBaseline
+                                    +":after="+stack.getCount()
+                                    +":gained="+gained)
+                    :new BodyBackend.Snapshot(
+                            "failed",1D,
+                            "move_items_increment_unproven:"
+                                    +"gained="+gained+"/"+count
+                                    +"(baseline="+destBaseline+")");
         }
         if(server.getTicks()-startedAt>20*20) {
             transport.sendControl(executionId,"cancel",
@@ -526,6 +630,15 @@ public final class RealClientExecutionDriver
     }
 
     private BodyBackend.Handle startSmelt(
+            Request request,JsonObject args,
+            ServerPlayerEntity player,long startedAt) {
+        // R1-I7: smelt 未验收——能力与分发入口全部拒绝(不是"注册但可用")。
+        throw new BridgeFault(
+                403,"smelt_not_available_unvalidated");
+    }
+
+    @SuppressWarnings("unused")
+    private BodyBackend.Handle startSmeltDisabled(
             Request request,JsonObject args,
             ServerPlayerEntity player,long startedAt) {
         only(args,Set.of("input_item","fuel_item","count"));
@@ -611,6 +724,135 @@ public final class RealClientExecutionDriver
                 ||item==net.minecraft.item.Items.PUFFERFISH
                 ||item==net.minecraft.item.Items.SPIDER_EYE
                 ||item==net.minecraft.item.Items.POISONOUS_POTATO;
+    }
+
+    private BodyBackend.Handle startContainerTransfer(
+            Request request,JsonObject args,
+            ServerPlayerEntity player,long startedAt) {
+        // R1-I4:普通箱子/木桶双向真实事务(原生 Screen 点击,
+        // 与 deposit 的 Tom's 通道并存且互不替代)。
+        only(args,Set.of("x","y","z","item","count",
+                "direction","source_slot"));
+        BlockPos target=new BlockPos(
+                integer(args,"x",-29999984,29999984),
+                integer(args,"y",player.getServerWorld().getBottomY(),
+                        player.getServerWorld().getBottomY()
+                                +player.getServerWorld().getHeight()-1),
+                integer(args,"z",-29999984,29999984));
+        var state=player.getServerWorld().getBlockState(target);
+        if(!(state.getBlock()
+                instanceof net.minecraft.block.InventoryProvider
+                ||state.hasBlockEntity()
+                &&player.getServerWorld()
+                        .getBlockEntity(target)
+                        instanceof net.minecraft.inventory.Inventory))
+            throw new BridgeFault(
+                    409,"container_not_an_inventory");
+        var be=player.getServerWorld().getBlockEntity(target);
+        if(!(be instanceof net.minecraft.inventory.Inventory inv))
+            throw new BridgeFault(
+                    409,"container_not_an_inventory");
+        if(player.getEyePos().distanceTo(
+                target.toCenterPos())>5.5D)
+            throw new BridgeFault(409,"container_too_far");
+        String itemId=string(args,"item",120);
+        int count=integer(args,"count",-1,64);
+        if(count==0)
+            throw new BridgeFault(400,"container_count_zero_noop");
+        boolean withdraw="withdraw".equals(
+                string(args,"direction",16));
+        int sourceSlot=args.has("source_slot")
+                ?integer(args,"source_slot",0,35):-1;
+        int invHave=countInventory(inv);
+        int playerHave=countItem(player,itemId);
+        int containerHave=countInInventory(inv,itemId);
+        if(!withdraw&&playerHave<=0)
+            throw new BridgeFault(
+                    409,"container_deposit_source_missing");
+        if(withdraw&&containerHave<=0)
+            throw new BridgeFault(
+                    409,"container_withdraw_source_missing");
+        Map<String,Object> command=new LinkedHashMap<>();
+        command.put("x",target.getX());
+        command.put("y",target.getY());
+        command.put("z",target.getZ());
+        command.put("item",itemId);
+        command.put("count",count);
+        command.put("direction",withdraw?"withdraw":"deposit");
+        if(sourceSlot>=0)command.put("source_slot",sourceSlot);
+        if(!transport.sendCommand(
+                request.executionId(),"container_transfer",
+                JsonOutput.encode(command)))
+            throw new BridgeFault(
+                    503,"real_client_command_queue_unavailable");
+        final int playerBaseline=playerHave;
+        final int containerBaseline=containerHave;
+        final int totalSlots=inv.size();
+        return ()->containerSnapshot(
+                request.executionId(),startedAt,
+                target,itemId,count,withdraw,
+                playerBaseline,containerBaseline);
+    }
+
+    private BodyBackend.Snapshot containerSnapshot(
+            String executionId,long startedAt,
+            BlockPos target,String itemId,int count,boolean withdraw,
+            int playerBaseline,int containerBaseline) {
+        onThread();
+        ServerPlayerEntity player=body.get();
+        if(player==null)
+            return new BodyBackend.Snapshot(
+                    "outcome_unknown",0D,"real_client_body_unavailable");
+        var be=player.getServerWorld().getBlockEntity(target);
+        if(!(be instanceof net.minecraft.inventory.Inventory inv)) {
+            transport.sendControl(executionId,"cancel",
+                    "container_target_changed");
+            return new BodyBackend.Snapshot(
+                    "failed",0D,"container_target_changed");
+        }
+        var remote=transport.execution(executionId).orElse(null);
+        if(remote!=null&&Set.of("failed","cancelled","outcome_unknown")
+                .contains(remote.state()))
+            return new BodyBackend.Snapshot(
+                    remote.state(),remote.progress(),remote.reason());
+        if(remote!=null
+                &&"completed".equals(remote.state())) {
+            int playerNow=countItem(player,itemId);
+            int containerNow=countInInventory(inv,itemId);
+            int playerDelta=playerNow-playerBaseline;
+            int containerDelta=containerNow-containerBaseline;
+            // 双向守恒:withdraw=玩家+X 容器-X;deposit 反之。
+            // 完成=两侧变化等量反向 且 净转移量达到请求。
+            int net=withdraw?playerDelta:containerDelta;
+            boolean ok=Math.abs(playerDelta)
+                    ==Math.abs(containerDelta)
+                    &&net>=Math.abs(count);
+            if(ok)
+                return new BodyBackend.Snapshot(
+                        "completed",1D,
+                        "server_authoritative_container_transfer:"
+                                +itemId+":"+(withdraw?"withdraw":"deposit")
+                                +":player:"+playerBaseline
+                                +"->"+playerNow
+                                +":container:"+containerBaseline
+                                +"->"+containerNow);
+            return new BodyBackend.Snapshot(
+                    "failed",1D,
+                    "container_transfer_unproven:"
+                            +"playerΔ"+playerDelta
+                            +"containerΔ"+containerDelta
+                            +"want"+count);
+        }
+        if(server.getTicks()-startedAt>20*45) {
+            transport.sendControl(executionId,"cancel",
+                    "real_client_execution_timeout");
+            return new BodyBackend.Snapshot(
+                    "failed",0D,"real_client_execution_timeout");
+        }
+        return new BodyBackend.Snapshot(
+                "running",
+                remote==null?0D:Math.min(.95D,remote.progress()),
+                remote==null?"awaiting_real_client_ack":remote.reason());
     }
 
     private BodyBackend.Handle startSay(
@@ -1377,6 +1619,19 @@ public final class RealClientExecutionDriver
             ItemStack stack=
                     player.getInventory().getStack(slot);
             if(!stack.isEmpty())
+                count+=stack.getCount();
+        }
+        return count;
+    }
+
+    private static int countInInventory(
+            Inventory inventory,String itemId) {
+        int count=0;
+        for(int slot=0;slot<inventory.size();slot++) {
+            ItemStack stack=inventory.getStack(slot);
+            if(!stack.isEmpty()
+                    &&Registries.ITEM.getId(stack.getItem())
+                            .toString().equals(itemId))
                 count+=stack.getCount();
         }
         return count;

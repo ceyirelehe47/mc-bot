@@ -38,7 +38,7 @@ final class RealClientActionController {
     void command(JsonObject message,MinecraftClient client) {
         String executionId=safeExecutionId(message);
         try {
-            commandChecked(message);
+            commandChecked(message,client);
         } catch(RuntimeException failure) {
             failMalformedCurrent(
                 client,executionId,
@@ -47,7 +47,7 @@ final class RealClientActionController {
         }
     }
 
-    private void commandChecked(JsonObject message) {
+    private void commandChecked(JsonObject message,MinecraftClient client) {
         String executionId=
                 message.get("execution_id").getAsString();
         String operation=
@@ -81,13 +81,16 @@ final class RealClientActionController {
             // 残留的旧 action 只可能是 cancel 回执丢失造成的孤儿,直接替换并回报终态。
             send(active.executionId,"failed",active.progress,
                     "client_action_superseded");
-            // 输入清理交给新 action 的首个 tick(walkTo/tick 均先 clearInputs+清屏)
+            // R1-C1:替换同样走统一收尾——旧导航任务/输入/GUI 不留给新动作
+            finishAction(client);
         }
 
-        // MC-RCF-1 G2:移动承载动作依赖受控导航组件;组件缺失时诚实失败,
+        // MC-RCF-1 G2/R1-C2:移动承载动作依赖受控导航组件;组件缺失时诚实失败,
         // 不回退到旧偏航/挖穿逻辑(旧代码已从正式路径移除)。
+        // R1 修正:操作名对齐实际下发名 mine_opportunity(旧 "mine" 永不匹配,
+        // 组件缺失时挖掘动作不被拒——审查点名)。
         if(switch(operation) {
-            case "goto","mine","place","smelt","deposit","craft" -> true;
+            case "goto","mine_opportunity","place","smelt","deposit","craft" -> true;
             default -> false;
         } && !RealClientNavigation.available()) {
             send(executionId,"failed",0D,
@@ -99,7 +102,28 @@ final class RealClientActionController {
             case "say" -> new SayAction(
                     executionId,
                     args.get("message").getAsString());
-            case "smelt" -> new SmeltAction(
+            case "smelt" -> {
+                // R1-I7:未验收能力,客户端同样拒绝(纵深防御)
+                send(executionId,"failed",0D,
+                        "smelt_not_available_unvalidated");
+                yield null;
+            }
+            case "container_transfer" -> new ContainerAction(
+                    executionId,
+                    new BlockPos(
+                            args.get("x").getAsInt(),
+                            args.get("y").getAsInt(),
+                            args.get("z").getAsInt()),
+                    args.get("item").getAsString(),
+                    args.has("count")
+                            ?args.get("count").getAsInt():-1,
+                    "withdraw".equals(
+                            args.has("direction")
+                                    ?args.get("direction")
+                                            .getAsString():"deposit"),
+                    args.has("source_slot")
+                            ?args.get("source_slot").getAsInt():-1);
+            case "smelt-disabled" -> new SmeltAction(
                     executionId,
                     args.get("furnace_x").getAsInt(),
                     args.get("furnace_y").getAsInt(),
@@ -120,7 +144,11 @@ final class RealClientActionController {
                     args.get("item").getAsString(),
                     args.has("count")
                             ?args.get("count").getAsInt():-1,
-                    args.get("hotbar").getAsInt());
+                    args.get("hotbar").getAsInt(),
+                    args.has("source_slot")
+                            ?args.get("source_slot").getAsInt():-1,
+                    args.has("protect_slot")
+                            ?args.get("protect_slot").getAsInt():-1);
             case "craft" -> {
                 JsonArray grid=args.getAsJsonArray("grid");
                 String[] cells=new String[grid.size()];
@@ -203,6 +231,19 @@ final class RealClientActionController {
         }
     }
 
+    /** R1-C1 统一收尾:所有执行生命周期出口共用同一顺序——
+     * 停本执行调度已由调用方处理;这里停 Baritone 目标/路径任务及转向
+     * →释放移动/use/attack/sneak 输入与破坏状态 → 关 GUI(cursor 恢复
+     * 规则由各动作自己的 closeHandled 语义承载)。clearInputs 不再被
+     * 当作 Baritone cancel(实测库会继续接管按键)。 */
+    private void finishAction(MinecraftClient client) {
+        RealClientNavigation.stop(client);
+        clearInputs(client);
+        if(client.interactionManager!=null)
+            client.interactionManager.cancelBlockBreaking();
+        closeHandled(client);
+    }
+
     private void controlChecked(
             JsonObject message,MinecraftClient client) {
         if(active==null || !active.executionId.equals(
@@ -211,23 +252,24 @@ final class RealClientActionController {
         String action=message.get("action").getAsString();
         switch(action) {
             case "pause" -> {
+                // R1-C1:暂停保留语义意图,但停止路径任务与全部输入——
+                // 库持有任务时仅清键会立刻被 pathing 重新接管。
                 active.paused=true;
-                clearInputs(client);
+                finishAction(client);
                 send(active.executionId,"paused",
                         active.progress,"external_pause");
             }
             case "resume" -> {
+                // resume 对当前身份/目标重新验证再规划:各动作 tick 内
+                // walkTo 每次以真实位置/目标重设 goal,组件或世界不符时
+                // 其自身验证路径会诚实失败。
                 active.paused=false;
                 send(active.executionId,"running",
                         active.progress,"external_resume");
             }
             case "cancel" -> {
                 active.cancelled=true;
-                clearInputs(client);
-                if(client.interactionManager!=null)
-                    client.interactionManager
-                            .cancelBlockBreaking();
-                closeHandled(client);
+                finishAction(client);
                 send(active.executionId,"cancelled",
                         active.progress,
                         message.has("reason")
@@ -256,8 +298,7 @@ final class RealClientActionController {
         }
         if(++active.ageTicks>20*150) {
             // 硬超时防呆:残留 action 永不终态会占死执行槽(real_client_action_busy 死锁,实测)
-            clearInputs(client);
-            closeHandled(client);
+            finishAction(client);
             send(active.executionId,"failed",
                     active.progress,"client_action_hard_timeout");
             active=null;
@@ -266,8 +307,7 @@ final class RealClientActionController {
         try {
             active.tick(client);
         } catch(RuntimeException failure) {
-            clearInputs(client);
-            closeHandled(client);
+            finishAction(client);
             active.failed=true;
             send(active.executionId,"failed",
                     active.progress,
@@ -277,28 +317,21 @@ final class RealClientActionController {
     }
 
     void controlSessionLost(MinecraftClient client) {
-        clearInputs(client);
-        if(client.interactionManager!=null)
-            client.interactionManager.cancelBlockBreaking();
-        closeHandled(client);
+        finishAction(client);
         if(active!=null && !active.terminal())
             active.failed=true;
         active=null;
     }
 
     void gameSessionStarted(MinecraftClient client) {
-        clearInputs(client);
-        if(client.interactionManager!=null)
-            client.interactionManager.cancelBlockBreaking();
-        closeHandled(client);
+        finishAction(client);
         if(active!=null && !active.terminal())
             active.failed=true;
         active=null;
     }
 
     void disconnected(MinecraftClient client) {
-        clearInputs(client);
-        closeHandled(client);
+        finishAction(client);
         if(active!=null && !active.terminal()) {
             active.failed=true;
             send(active.executionId,"outcome_unknown",
@@ -775,17 +808,22 @@ final class RealClientActionController {
         // A=光标空&目标未满足 → 取源
         // B=光标持物 → 整堆:放 dest;精确:右键单放至足数后余量放回
         // C=光标空 → 终验 dest
+        // R1-I2:sourceSlot(0..35)绑定指定源堆叠(同 ID 异组件选择);
+        // protectSlot 保护槽绝不作为源;count=本次净增量。
         final String item;
         final int count;           // -1=整堆;>0=精确数量
         final int hotbarSemantic;  // 0..8
+        final int sourceSlot,protectSlot;
         int cooldown,stuckTicks;
 
         MoveItemsAction(String executionId,String item,int count,
-                        int hotbarSemantic) {
+                        int hotbarSemantic,int sourceSlot,int protectSlot) {
             super(executionId);
             this.item=item;
             this.count=count;
             this.hotbarSemantic=hotbarSemantic;
+            this.sourceSlot=sourceSlot;
+            this.protectSlot=protectSlot;
         }
 
         @Override void tick(MinecraftClient client) {
@@ -810,14 +848,38 @@ final class RealClientActionController {
                     fail("client_move_dest_occupied_other_item");
                     return;
                 }
-                // A:取源(主包优先,跳过 dest)
-                int src=RealClientInventoryOps.findStack(handler,item,
-                        RealClientInventoryOps.PLAYER_MAIN_START,
-                        RealClientInventoryOps.PLAYER_MAIN_START+27);
-                if(src<0||src==dest)
+                // A:取源(指定源槽优先;否则主包扫描,排除保护槽与 dest)
+                int src=-1;
+                if(sourceSlot>=0) {
+                    int mapped=sourceSlot<9
+                            ?RealClientInventoryOps.PLAYER_HOTBAR_START
+                                    +sourceSlot
+                            :RealClientInventoryOps.PLAYER_MAIN_START
+                                    +(sourceSlot-9);
+                    var s=handler.slots.get(mapped).getStack();
+                    if(RealClientInventoryOps.is(s,item))
+                        src=mapped;
+                } else {
                     src=RealClientInventoryOps.findStack(handler,item,
-                            RealClientInventoryOps.PLAYER_HOTBAR_START,
-                            RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+                            RealClientInventoryOps.PLAYER_MAIN_START,
+                            RealClientInventoryOps.PLAYER_MAIN_START+27);
+                    if(src<0||src==dest)
+                        src=RealClientInventoryOps.findStack(handler,item,
+                                RealClientInventoryOps.PLAYER_HOTBAR_START,
+                                RealClientInventoryOps.PLAYER_HOTBAR_START+9);
+                    if(protectSlot>=0) {
+                        int mapped=protectSlot<9
+                                ?RealClientInventoryOps.PLAYER_HOTBAR_START
+                                        +protectSlot
+                                :RealClientInventoryOps.PLAYER_MAIN_START
+                                        +(protectSlot-9);
+                        if(src==mapped)
+                            src=RealClientInventoryOps.findStack(handler,
+                                    item,src+1,
+                                    RealClientInventoryOps.PLAYER_MAIN_START
+                                            +27);
+                    }
+                }
                 if(src<0||src==dest) {
                     fail("client_move_source_not_found");
                     return;
@@ -902,6 +964,18 @@ final class RealClientActionController {
             var handler=client.player.currentScreenHandler;
             if(phase==0) {
                 if(tablePos==null) {
+                    // R1-I1/V05:个人 2x2 只在真实个人屏执行。外部屏
+                    // (工作台/箱子/熔炉)打开时先正常关闭并等同步,
+                    // 绝不 setScreen(null) 后假设服务端已回个人 handler。
+                    if(client.currentScreen!=null) {
+                        closeHandled(client);
+                        return;
+                    }
+                    if(!(handler instanceof
+                            net.minecraft.screen.PlayerScreenHandler)) {
+                        fail("client_personal_screen_required");
+                        return;
+                    }
                     phase=1; // 玩家自身 2x2 合成格无需开屏
                     return;
                 }
@@ -1162,6 +1236,200 @@ final class RealClientActionController {
             }
         }
     }
+    private final class ContainerAction extends Action {
+        // R1-I4:普通箱子/木桶双向真实事务。开屏=瞄准指定方块交互;
+        // 屏身份=GenericContainerScreen+syncId;转移=PICKUP 源→放目标
+        // (同 id 合并/空位),精确数量右键单放,余量放回;全部点击节流
+        // 并以实况驱动(与 MoveItems 同一状态机模式)。
+        final BlockPos target;
+        final String item;
+        final int count;          // -1=整堆
+        final boolean withdraw;   // true=容器→玩家
+        final int sourceSlot;     // 可选:绑定源槽(玩家索引,deposit 用)
+        int phase; // 0=开屏 1=取源 2=放置 3=终验
+        int cooldown,stuckTicks,openWait,moved;
+        int openedSyncId=-1;
+
+        ContainerAction(String executionId,BlockPos target,
+                        String item,int count,boolean withdraw,
+                        int sourceSlot) {
+            super(executionId);
+            this.target=target;
+            this.item=item;
+            this.count=count;
+            this.withdraw=withdraw;
+            this.sourceSlot=sourceSlot;
+        }
+
+        private boolean isContainerSide(
+                net.minecraft.screen.slot.Slot slot) {
+            return !(slot.inventory
+                    instanceof net.minecraft.entity.player
+                            .PlayerInventory);
+        }
+
+        @Override void tick(MinecraftClient client) {
+            if(cooldown>0) {
+                cooldown--;
+                return;
+            }
+            var handler=client.player.currentScreenHandler;
+            if(phase==0) {
+                if(client.currentScreen==null) {
+                    if(client.player.getPos().squaredDistanceTo(
+                            target.toCenterPos())>25D) {
+                        walkTo(client,target.toCenterPos());
+                        return;
+                    }
+                    lookAt(client,target.toCenterPos());
+                    if(client.crosshairTarget
+                            instanceof BlockHitResult hit
+                            &&hit.getType()==HitResult.Type.BLOCK
+                            &&hit.getBlockPos().equals(target)) {
+                        client.interactionManager.interactBlock(
+                                client.player,Hand.MAIN_HAND,hit);
+                        client.player.swingHand(Hand.MAIN_HAND);
+                        cooldown=4;
+                    }
+                    return;
+                }
+                boolean exactContainer=
+                        client.currentScreen
+                                instanceof net.minecraft.client.gui.screen
+                                        .ingame.GenericContainerScreen
+                                &&handler instanceof net.minecraft.screen
+                                        .GenericContainerScreenHandler
+                                &&screens.current().present()
+                                &&screens.current().syncId()
+                                        ==handler.syncId;
+                if(!exactContainer) {
+                    if(openWait++<80) {
+                        send(executionId,"running",.1D,
+                                "client_container_screen_opening");
+                        return;
+                    }
+                    closeHandled(client);
+                    fail("client_container_screen_expected");
+                    return;
+                }
+                openedSyncId=handler.syncId;
+                phase=1;
+                return;
+            }
+            // 屏身份持续核验:换屏/关屏即拒绝
+            if(client.currentScreen==null
+                    ||!(handler instanceof
+                            net.minecraft.screen
+                                    .GenericContainerScreenHandler)
+                    ||handler.syncId!=openedSyncId) {
+                if(moved>0) {
+                    complete("client_container_partial:"
+                            +item+":"+moved);
+                } else {
+                    fail("client_container_screen_lost");
+                }
+                return;
+            }
+            var cursor=handler.getCursorStack();
+            if(cursor.isEmpty()) {
+                // 终验 or 取源
+                if(count>0&&moved>=count) {
+                    complete("client_container_moved:"
+                            +item+":"+moved);
+                    return;
+                }
+                if(count<0&&moved>0) {
+                    complete("client_container_moved:"
+                            +item+":"+moved);
+                    return;
+                }
+                // 取源:deposit=玩家侧;withdraw=容器侧
+                int src=findSource(handler);
+                if(src<0) {
+                    if(moved>0) {
+                        complete("client_container_moved:"
+                                +item+":"+moved);
+                    } else {
+                        fail("client_container_source_not_found");
+                    }
+                    return;
+                }
+                RealClientInventoryOps.click(client,handler,
+                        src,0,SlotActionType.PICKUP);
+                cooldown=3;
+                return;
+            }
+            // 光标持物:放目标(deposit=容器侧;withdraw=玩家侧)
+            if(!RealClientInventoryOps.is(cursor,item)) {
+                if(++stuckTicks>10) {
+                    fail("client_container_cursor_unexpected");
+                    return;
+                }
+                return;
+            }
+            stuckTicks=0;
+            int dest=findDest(handler,cursor.getCount());
+            if(dest<0) {
+                fail("client_container_dest_full");
+                return;
+            }
+            if(count<0||cursor.getCount()+moved<=count) {
+                RealClientInventoryOps.click(client,handler,
+                        dest,0,SlotActionType.PICKUP);
+                cooldown=3;
+                if(count<0)moved=1; // 整堆语义:放下即记
+                return;
+            }
+            // 需要部分:右键单放一件
+            RealClientInventoryOps.click(client,handler,
+                    dest,1,SlotActionType.PICKUP);
+            moved++;
+            cooldown=2;
+        }
+
+        private int findSource(
+                net.minecraft.screen.ScreenHandler handler) {
+            if(sourceSlot>=0&&!withdraw) {
+                int mapped=sourceSlot<9
+                        ?RealClientInventoryOps.PLAYER_HOTBAR_START
+                                +sourceSlot
+                        :RealClientInventoryOps.PLAYER_MAIN_START
+                                +(sourceSlot-9);
+                var s=handler.slots.get(mapped).getStack();
+                if(RealClientInventoryOps.is(s,item))
+                    return mapped;
+                return -1;
+            }
+            for(int i=0;i<handler.slots.size();i++) {
+                var slot=handler.slots.get(i);
+                boolean side=isContainerSide(slot);
+                if(side!=withdraw)continue; // deposit 取玩家侧
+                if(RealClientInventoryOps.is(
+                        slot.getStack(),item))
+                    return i;
+            }
+            return -1;
+        }
+
+        private int findDest(
+                net.minecraft.screen.ScreenHandler handler,
+                int stackCount) {
+            for(int i=0;i<handler.slots.size();i++) {
+                var slot=handler.slots.get(i);
+                boolean side=isContainerSide(slot);
+                if(side!=(!withdraw))continue; // deposit 放容器侧
+                var s=slot.getStack();
+                if(s.isEmpty())
+                    return i;
+                if(RealClientInventoryOps.is(s,item)
+                        &&s.getCount()<Math.min(
+                                s.getMaxCount(),64))
+                    return i;
+            }
+            return -1;
+        }
+    }
+
     private final class SayAction extends Action {
         final String message;
         boolean sent;

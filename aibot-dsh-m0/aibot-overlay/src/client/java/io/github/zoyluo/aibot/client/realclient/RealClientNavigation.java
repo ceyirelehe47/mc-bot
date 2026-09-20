@@ -8,25 +8,19 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 /**
- * MC-RCF-1 G2: constrained Baritone navigation adapter.
+ * MC-RCF-1-R1 C2: constrained Baritone navigation adapter.
  *
- * <p>The library is used ONLY as a route executor for goals handed down by the
- * body controller. Resource scanning, autonomous mining and free exploration of
- * the library are structurally disarmed: {@code allowBreak}/{@code allowPlace}/
- * {@code allowInventory}/{@code allowDownload} are forced false on every call
- * (defence in depth on top of the locked settings file). Terrain changes remain
- * unsupported this round: {@code allow_terrain_changes=true} is rejected by the
- * server driver, never silently ignored here.</p>
- *
- * <p>All input authority stays with the single actuator: {@link #stop(MinecraftClient)}
- * cancels the pathing process and releases keys; the caller clears the rest.</p>
+ * <p>Library is ONLY a route executor. Constraints are re-asserted and
+ * VERIFIED on every admission (R1: the old {@code if(constrained) return}
+ * let a tampered setting pass as constrained). Arrival is proven by real
+ * 3D position, never by {@code !isPathing()} — "no path task", "planning
+ * failed" and "arrived" are distinct states.</p>
  */
 public final class RealClientNavigation {
     private RealClientNavigation() {}
 
     private static BlockPos currentGoal;
     private static int currentRadius=-1;
-    private static boolean constrained;
 
     public static boolean available() {
         try {
@@ -37,26 +31,32 @@ public final class RealClientNavigation {
         }
     }
 
-    /** Force the library into a read-only-terrain profile on every entry.
-     *  chatControl=false closes the unauthorized chat command entrance;
-     *  navigation is driven ONLY by the body controller through this adapter. */
+    /** R1-C2: re-assert AND verify the read-only-terrain profile on every
+     *  admission. Tampered values are restored; if a value still reads back
+     *  wrong we refuse instead of navigating unconstrained. */
     private static void ensureConstrained() {
-        if(constrained) return;
         try {
-            BaritoneAPI.getSettings().allowBreak.value=false;
-            BaritoneAPI.getSettings().allowPlace.value=false;
-            BaritoneAPI.getSettings().allowInventory.value=false;
-            BaritoneAPI.getSettings().chatControl.value=false;
-            constrained=true;
+            var s=BaritoneAPI.getSettings();
+            s.allowBreak.value=false;
+            s.allowPlace.value=false;
+            s.allowInventory.value=false;
+            s.chatControl.value=false;
+            if(s.allowBreak.value||s.allowPlace.value
+                    ||s.allowInventory.value||s.chatControl.value)
+                throw new IllegalStateException(
+                        "baritone_settings_tampered_unrecoverable");
+        } catch(IllegalStateException ise) {
+            throw ise;
         } catch(Throwable t) {
-            // settings unreachable: treat as unavailable rather than run unconstrained
             throw new IllegalStateException(
                     "baritone_settings_unconstrainable",t);
         }
     }
 
-    /** Path to the exact stand block (GoalBlock: 3D 含 y;"到指定可站格"语义)。
-     *  GoalNear 只保水平距离,地形起伏会造成 y 失配假到达,弃用。 */
+    /** Path to the exact stand block (radius<1: GoalBlock, 3D including y)
+     *  or an approach goal (radius>=1: GoalNear — dig/interact actions do
+     *  their own final approach; canopy targets are unreachable with
+     *  GoalBlock, measured). */
     public static void pathTo(MinecraftClient client,Vec3d target,double radius) {
         ensureConstrained();
         BlockPos goal=BlockPos.ofFloored(target.x,target.y,target.z);
@@ -64,9 +64,6 @@ public final class RealClientNavigation {
             return;
         currentGoal=goal;
         currentRadius=Math.max(0,(int)Math.ceil(radius));
-        // radius>=1:接近语义(GoalNear,挖掘/交互动作自行完成最后逼近);
-        // radius<1:精确站格(GoalBlock)。树冠等不可站目标用接近语义
-        // (GoalBlock 到树冠内永远无路径——实测挖叶卡死根因)。
         BaritoneAPI.getProvider().getPrimaryBaritone()
                 .getCustomGoalProcess()
                 .setGoalAndPath(currentRadius>=1
@@ -74,7 +71,7 @@ public final class RealClientNavigation {
                         :new GoalBlock(goal));
     }
 
-    /** True while the library believes it still has work for the current goal. */
+    /** True while the library is planning or walking the current goal. */
     public static boolean pathing() {
         try {
             return BaritoneAPI.getProvider().getPrimaryBaritone()
@@ -101,15 +98,32 @@ public final class RealClientNavigation {
             client.options.rightKey.setPressed(false);
             client.options.jumpKey.setPressed(false);
             client.options.sprintKey.setPressed(false);
+            client.options.sneakKey.setPressed(false);
         }
     }
 
-    /** Goal reached per the library's own completion report. */
-    public static boolean goalReached() {
-        try {
-            return currentGoal==null||!pathing();
-        } catch(Throwable t) {
-            return true;
+    /** R1-C2: arrival = real 3D position inside the goal envelope.
+     *  GoalBlock: exact block (y included). GoalNear: horizontal distance
+     *  within radius (+ step tolerance) and y within 2 blocks. */
+    public static boolean atGoal(MinecraftClient client) {
+        if(currentGoal==null||client==null||client.player==null)
+            return false;
+        BlockPos p=client.player.getBlockPos();
+        if(currentRadius>=1) {
+            int dx=p.getX()-currentGoal.getX();
+            int dz=p.getZ()-currentGoal.getZ();
+            int dy=p.getY()-currentGoal.getY();
+            return dx*dx+dz*dz<=currentRadius*currentRadius+1
+                    &&Math.abs(dy)<=2;
         }
+        return p.equals(currentGoal);
+    }
+
+    /** Three-state navigation outcome. R1-C2: {@code !pathing()} alone is
+     *  NOT arrival — planning failure and no-task must never report
+     *  success. Kept for callers that still want the boolean; prefer
+     *  {@link #atGoal}. */
+    public static boolean goalReached(MinecraftClient client) {
+        return atGoal(client);
     }
 }
