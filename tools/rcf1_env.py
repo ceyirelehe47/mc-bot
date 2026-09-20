@@ -77,6 +77,10 @@ def _alive_cmdline(pid):
 
 
 def server_pid():
+    """优先返回持有 GAME_PORT 的 java(权威身份);pid 文件仅作回退。"""
+    port_pid = server_java_pid()
+    if port_pid:
+        return port_pid
     pid = _read_pid("server")
     if pid and "rcf1-server" in _alive_cmdline(pid):
         return pid
@@ -127,15 +131,25 @@ def start_server(extra_env=None, log_name="rcf1-server.log"):
     raise RuntimeError("server bridge not ready in 300s")
 
 
+def server_java_pid():
+    """持有 GAME_PORT 的 java pid(端口是本环境独占身份,不受 pid 文件/包装进程失准影响)。"""
+    out = subprocess.run(["powershell", "-NoProfile", "-Command",
+        "(Get-NetTCPConnection -LocalPort %d -State Listen -ErrorAction SilentlyContinue | "
+ "Select-Object -First 1).OwningProcess" % GAME_PORT],
+        capture_output=True, text=True).stdout.strip()
+    return int(out) if out.isdigit() else None
+
+
 def stop_server():
-    pid = server_pid()
+    pid = server_java_pid()
     if not pid:
+        _pid_file("server").unlink(missing_ok=True)
         return False
     rcon("stop")
     deadline = time.time() + 90
-    while time.time() < deadline and _read_pid("server"):
+    while time.time() < deadline and server_java_pid() == pid:
         time.sleep(2)
-    if _read_pid("server"):
+    if server_java_pid() == pid:
         subprocess.run(["powershell", "-NoProfile", "-Command",
                         "Stop-Process -Id %d -Force" % pid])
         time.sleep(3)
@@ -155,9 +169,9 @@ def _client_cmd():
 
 
 def start_bob(log_name="rcf1-bob-stdout.log"):
-    pid = client_pid()
-    if pid:
-        return {"pid": pid, "already": True}
+    existing = rcf1_client_pids()  # 单实例守卫:命令行级检测,不信 pid 文件
+    if existing:
+        return {"pid": existing[0], "already": True, "all_pids": existing}
     env = os.environ.copy()
     env.update({
         "AIBOT_REAL_CLIENT": "1",
@@ -180,14 +194,33 @@ def start_bob(log_name="rcf1-bob-stdout.log"):
     return {"pid": p.pid}
 
 
+def rcf1_client_pids():
+    """全部 rcf1 客户端 java(命令行含 rcf1-client;项目内精确定位,非按名批杀)。"""
+    out = subprocess.run(["powershell", "-NoProfile", "-Command",
+        "Get-CimInstance Win32_Process -Filter \"Name='java.exe'\" | "
+        "Select-Object ProcessId, CommandLine | ConvertTo-Json -Compress"],
+        capture_output=True, text=True).stdout.strip()
+    if not out:
+        return []
+    data = json.loads(out)
+    if isinstance(data, dict):
+        data = [data]
+    return [int(p["ProcessId"]) for p in data
+            if "rcf1-client" in (p.get("CommandLine") or "")]
+
+
 def stop_bob():
-    pid = client_pid()
-    if not pid:
+    """清扫全部 rcf1 客户端进程。修复:pid 文件单点失效导致旧客户端残留、
+    重复实例同 UUID 互踢顶号(2026-09-20 实测 4 实例堆积)。"""
+    pids = rcf1_client_pids()
+    for pid in pids:
+        subprocess.run(["powershell", "-NoProfile", "-Command",
+                        "Stop-Process -Id %d -Force" % pid])
+    if not pids:
+        _pid_file("client").unlink(missing_ok=True)
         return False
-    subprocess.run(["powershell", "-NoProfile", "-Command",
-                    "Stop-Process -Id %d -Force" % pid])
     deadline = time.time() + 30
-    while time.time() < deadline and _read_pid("client"):
+    while time.time() < deadline and rcf1_client_pids():
         time.sleep(1)
     _pid_file("client").unlink(missing_ok=True)
     return True
