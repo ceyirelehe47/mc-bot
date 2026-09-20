@@ -726,6 +726,13 @@ CHANGES = {
 
 # 不在 PREFIX 下的补充锚点补丁(带同样的 blob 校验)。MC-1C-A:把专项 GameTest 注册进 gametest 入口,
 # 否则 fabric-gametest 不会发现它,干净重建后测试静默消失。
+REPLACES={
+ # MC-RCF-1 G0: 上游已跟踪文件的整文件替换(锚定上游 blob,等价于 CHANGES 的
+ # exact-blob 保证;不满足锚点即拒绝,不做猜测性覆盖)。overlay 版本=活树实测版本。
+ 'src/main/java/io/github/zoyluo/aibot/craft/CraftingHelper.java': 'c0d97817898ce943202bab160e2f2f70fde49104',
+ 'src/main/java/io/github/zoyluo/aibot/craft/RecipeRegistry.java': 'e118ce2c9577dc71544997700cb04a3f35c3a4b7',
+}
+
 EXTRA_CHANGES={
  'src/client/java/io/github/zoyluo/aibot/client/AIBotClient.java': ('d9476d8f310699a3c3ff1d8eddf5200d90339214', [
   ('        AIBotClientNetworking.register();\n',
@@ -887,22 +894,31 @@ def plan(repo: pathlib.Path, *, validate_head: bool=True) -> tuple[dict[pathlib.
     for source in sorted((ROOT/'aibot-overlay').rglob('*')):
         if not source.is_file():continue
         target=repo/source.relative_to(ROOT/'aibot-overlay')
-        if target.exists():
-            # MC-2A0.5 最小 installer 修正:上游已跟踪的 aibot.mixins.json 不再拒绝,
-            # 改为把 overlay 的 client mixin 项合并进上游数组(保序去重),其余冲突仍拒绝。
-            if target.relative_to(repo).as_posix()!='src/main/resources/aibot.mixins.json':
-                raise ValueError(f'Overlay target already exists: {target}')
-            import json as _json
-            merged=_json.loads(target.read_text(encoding='utf-8'))
-            overlay=_json.loads(source.read_text(encoding='utf-8'))
-            clients=list(merged.get('client',[]))
-            for entry in overlay.get('client',[]):
-                if entry not in clients:clients.append(entry)
-            merged['client']=clients
-            old_files[target]=target.read_bytes()
-            writes[target]=(_json.dumps(merged,indent=2)+'\n').encode('utf-8')
+        rel_posix=target.relative_to(repo).as_posix()
+        if not target.exists():
+            writes[target]=source.read_bytes()
             continue
-        writes[target]=source.read_bytes()
+        if rel_posix in REPLACES:
+            # MC-RCF-1 G0: 上游已跟踪文件 → 锚定整文件替换。blob 不匹配即拒绝。
+            original=target.read_bytes()
+            if blob_id(original)!=REPLACES[rel_posix]: raise ValueError(f'Frozen blob mismatch (REPLACES): {target}')
+            old_files[target]=original
+            writes[target]=source.read_bytes()
+            continue
+        # MC-2A0.5 最小 installer 修正:上游已跟踪的 aibot.mixins.json 不再拒绝,
+        # 改为把 overlay 的 client mixin 项合并进上游数组(保序去重),其余冲突仍拒绝。
+        if rel_posix!='src/main/resources/aibot.mixins.json':
+            raise ValueError(f'Overlay target already exists: {target}')
+        import json as _json
+        merged=_json.loads(target.read_text(encoding='utf-8'))
+        overlay=_json.loads(source.read_text(encoding='utf-8'))
+        clients=list(merged.get('client',[]))
+        for entry in overlay.get('client',[]):
+            if entry not in clients:clients.append(entry)
+        merged['client']=clients
+        old_files[target]=target.read_bytes()
+        writes[target]=(_json.dumps(merged,indent=2)+'\n').encode('utf-8')
+        continue
     return old_files,writes
 
 def main() -> int:
