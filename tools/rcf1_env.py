@@ -77,158 +77,66 @@ def _alive_cmdline(pid):
 
 
 def server_pid():
-    """优先返回持有 GAME_PORT 的 java(权威身份);pid 文件仅作回退。"""
-    port_pid = server_java_pid()
-    if port_pid:
-        return port_pid
-    pid = _read_pid("server")
-    if pid and "rcf1-server" in _alive_cmdline(pid):
-        return pid
-    return None
+    try:
+        st = LC.status()
+        srv = st.get("server") or {}
+        return srv.get("pid") if srv.get("verified") else None
+    except Exception:
+        return None
 
 
 def client_pid():
-    pid = _read_pid("client")
-    if pid and "rcf1-client" in _alive_cmdline(pid):
-        return pid
-    return None
+    try:
+        st = LC.status()
+        cli = st.get("client") or {}
+        return cli.get("pid") if cli.get("verified") else None
+    except Exception:
+        return None
 
 
-# ---------- 服务器 ----------
+# 生命周期委托块在此行之后(import 前移到模块头)
+# MC-RCF-1(用户指令 2026-09-20):进程生命周期唯一入口是 rcf1_lifecycle。
+# 本模块只保留环境常量/RCON/桥 HTTP/客户端命令构造;起停全部委托,
+# 不再有第二条能拉起游戏进程的路径。
+import rcf1_lifecycle as LC  # noqa: E402
+
 
 def start_server(extra_env=None, log_name="rcf1-server.log"):
-    pid = server_pid()
-    if pid:
-        return {"pid": pid, "already": True}
-    env = dict(os.environ)
-    env.update({
-        "AIBOT_EXTERNAL_BOT": "Bob",
-        "AIBOT_EXTERNAL_BACKEND": "real_client",
-        "AIBOT_BRIDGE_TOKEN": BRIDGE_TOKEN,
-        "AIBOT_BRIDGE_PORT": str(BRIDGE_PORT),
-        "AIBOT_REAL_CLIENT_PORT": str(CONTROL_PORT),
-        "AIBOT_REAL_CLIENT_TOKEN": CONTROL_TOKEN,
-    })
-    env.update(extra_env or {})
-    log_path = RUNLOG.joinpath("logs", log_name)
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    log = open(log_path, "ab")
-    p = subprocess.Popen([JAVA, "-Xmx3G", "-jar", "fabric-server-launch.jar", "nogui"],
-                         cwd=SERVER, env=env, stdout=log, stderr=subprocess.STDOUT)
-    _pid_file("server").write_text(str(p.pid))
-    deadline = time.time() + 300
-    while time.time() < deadline:
-        if p.poll() is not None:
-            log.close()
-            raise RuntimeError("server exited early rc=%s; see %s" % (p.returncode, log_path))
-        try:
-            if READY_MARK in open(log_path, "rb").read().decode("utf-8", "replace"):
-                return {"pid": p.pid}
-        except OSError:
-            pass
-        time.sleep(2)
-    log.close()
-    raise RuntimeError("server bridge not ready in 300s")
+    return LC.start("server", timeout_s=300)
 
 
 def server_java_pid():
-    """持有 GAME_PORT 的 java pid(端口是本环境独占身份,不受 pid 文件/包装进程失准影响)。"""
-    out = subprocess.run(["powershell", "-NoProfile", "-Command",
-        "(Get-NetTCPConnection -LocalPort %d -State Listen -ErrorAction SilentlyContinue | "
- "Select-Object -First 1).OwningProcess" % GAME_PORT],
-        capture_output=True, text=True).stdout.strip()
-    return int(out) if out.isdigit() else None
+    try:
+        return LC.server_port_owner()
+    except Exception:
+        return None
 
 
 def stop_server():
-    pid = server_java_pid()
-    if not pid:
-        _pid_file("server").unlink(missing_ok=True)
-        return False
-    rcon("stop")
-    deadline = time.time() + 90
-    while time.time() < deadline and server_java_pid() == pid:
-        time.sleep(2)
-    if server_java_pid() == pid:
-        subprocess.run(["powershell", "-NoProfile", "-Command",
-                        "Stop-Process -Id %d -Force" % pid])
-        time.sleep(3)
-    _pid_file("server").unlink(missing_ok=True)
-    return True
-
-
-# ---------- Bob 真实客户端 ----------
-
-def _client_cmd():
-    """生产客户端命令模板,仅做目录替换(mc2a07-prod-client→rcf1-client)。"""
-    raw = open(CMD_TEMPLATE, encoding="utf-8").read()
-    raw = raw.replace("mc2a07-prod-client", "rcf1-client")
-    CMD_FILE.parent.mkdir(parents=True, exist_ok=True)
-    CMD_FILE.write_text(raw, encoding="utf-8")
-    return json.loads(raw)
-
-
-def start_bob(log_name="rcf1-bob-stdout.log"):
-    existing = rcf1_client_pids()  # 单实例守卫:命令行级检测,不信 pid 文件
-    if existing:
-        return {"pid": existing[0], "already": True, "all_pids": existing}
-    env = os.environ.copy()
-    env.update({
-        "AIBOT_REAL_CLIENT": "1",
-        "AIBOT_REAL_CLIENT_HOST": "127.0.0.1",
-        "AIBOT_REAL_CLIENT_PORT": str(CONTROL_PORT),
-        "AIBOT_REAL_CLIENT_TOKEN": CONTROL_TOKEN,
-        "AIBOT_REAL_CLIENT_BODY_ID": "bob",
-        "AIBOT_REAL_CLIENT_BOT_NAME": "Bob",
-        "AIBOT_REAL_CLIENT_AUTO_JOIN": "127.0.0.1:%d" % GAME_PORT,
-        "AIBOT_REAL_CLIENT_WINDOW_MODE": "background",
-    })
-    cmd = _client_cmd()
-    log_path = RUNLOG.joinpath("logs", log_name)
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    log = open(log_path, "ab")
-    DETACHED = 0x00000008
-    p = subprocess.Popen(cmd, creationflags=DETACHED, env=env,
-                         stdout=log, stderr=subprocess.STDOUT, cwd=CLIENT)
-    _pid_file("client").write_text(str(p.pid))
-    return {"pid": p.pid}
+    r = LC.stop("server")
+    return "STOPPED" in str(r)
 
 
 def rcf1_client_pids():
-    """全部 rcf1 客户端 java(命令行含 rcf1-client;项目内精确定位,非按名批杀)。"""
-    out = subprocess.run(["powershell", "-NoProfile", "-Command",
-        "Get-CimInstance Win32_Process -Filter \"Name='java.exe'\" | "
-        "Select-Object ProcessId, CommandLine | ConvertTo-Json -Compress"],
-        capture_output=True, text=True).stdout.strip()
-    if not out:
-        return []
-    data = json.loads(out)
-    if isinstance(data, dict):
-        data = [data]
-    return [int(p["ProcessId"]) for p in data
-            if "rcf1-client" in (p.get("CommandLine") or "")]
+    """委托:按生命周期状态核验的客户端实例(可能为空)。"""
+    st = LC.status()
+    cli = st.get("client") or {}
+    return [cli["pid"]] if cli.get("verified") and cli.get("pid") else []
+
+
+def start_bob(log_name="rcf1-bob-stdout.log"):
+    return LC.start("client", timeout_s=240)
 
 
 def stop_bob():
-    """清扫全部 rcf1 客户端进程。修复:pid 文件单点失效导致旧客户端残留、
-    重复实例同 UUID 互踢顶号(2026-09-20 实测 4 实例堆积)。"""
-    pids = rcf1_client_pids()
-    for pid in pids:
-        subprocess.run(["powershell", "-NoProfile", "-Command",
-                        "Stop-Process -Id %d -Force" % pid])
-    if not pids:
-        _pid_file("client").unlink(missing_ok=True)
-        return False
-    deadline = time.time() + 30
-    while time.time() < deadline and rcf1_client_pids():
-        time.sleep(1)
-    _pid_file("client").unlink(missing_ok=True)
-    return True
+    r = LC.stop("client")
+    return "STOPPED" in str(r)
 
 
 def stop_all():
-    stop_bob()
-    stop_server()
+    LC.stop("all")
+
+
 
 
 # ---------- RCON ----------
