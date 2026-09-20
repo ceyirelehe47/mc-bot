@@ -1,0 +1,210 @@
+{
+ "run": "20260921-021448",
+ "results": [
+  {
+   "id": "I01",
+   "pass": true,
+   "results": {
+    "minecraft:stone_pickaxe": {
+     "state": "completed",
+     "reason": "server_authoritative_items_moved:minecraft:stone_pickaxe:hotbar=5:count=1"
+    },
+    "minecraft:cooked_beef": {
+     "state": "completed",
+     "reason": "server_authoritative_items_moved:minecraft:cooked_beef:hotbar=6:count=3"
+    },
+    "minecraft:cobblestone": {
+     "state": "completed",
+     "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=7:count=32"
+    }
+   },
+   "note": "服务端 moveItemsSnapshot 验证 hotbar 槽位物品与数量"
+  },
+  {
+   "id": "I02",
+   "pass": true,
+   "r1": {
+    "state": "completed",
+    "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=1:count=7"
+   },
+   "r2": {
+    "state": "completed",
+    "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=3:count=31"
+   },
+   "cobble_total": 38
+  },
+  {
+   "id": "I03",
+   "pass": true,
+   "r": {
+    "state": "completed",
+    "reason": "server_authoritative_items_moved:minecraft:iron_pickaxe:hotbar=0:count=1"
+   },
+   "pickaxes_found": 2,
+   "note": "两把同 id 不同耐久镐均仍在包(无合并/丢失)"
+  },
+  {
+   "id": "I05",
+   "pass": true,
+   "r": {
+    "state": "completed",
+    "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->4:delta=4:batches=1"
+   }
+  },
+  {
+   "id": "A01",
+   "pass": true,
+   "results": [
+    {
+     "state": "completed",
+     "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->8:delta=8:batches=2"
+    },
+    {
+     "state": "completed",
+     "reason": "server_authoritative_native_craft:minecraft:birch_planks:0->12:delta=12:batches=3"
+    },
+    {
+     "state": "completed",
+     "reason": "server_authoritative_native_craft:minecraft:stick:0->4:delta=4:batches=1"
+    },
+    {
+     "state": "completed",
+     "reason": "server_authoritative_native_craft:minecraft:crafting_table:0->1:delta=1:batches=1"
+    }
+   ],
+   "inv": {
+    "minecraft:birch_planks": 12,
+    "minecraft:crafting_table": 1,
+    "minecraft:oak_planks": 2,
+    "minecraft:stick": 4
+   }
+  },
+  {
+   "id": "A02",
+   "pass": true,
+   "chain": [
+    [
+     "planks",
+     {
+      "state": "completed",
+      "reason": "server_authoritative_native_craft:minecraft:birch_planks:0->16:delta=16:batches=4"
+     }
+    ],
+    [
+     "sticks",
+     {
+      "state": "completed",
+      "reason": "server_authoritative_native_craft:minecraft:stick:0->4:delta=4:batches=1"
+     }
+    ],
+    [
+     "table",
+     {
+      "state": "completed",
+      "reason": "server_authoritative_native_craft:minecraft:crafting_table:0->1:delta=1:batches=1"
+     }
+    ],
+    [
+     "place",
+     {
+      "state": "completed",
+      "reason": "server_authoritative_block_placed:minecraft:crafting_table:1->0:at=302, 120, 302"
+     }
+    ],
+    [
+     "wooden_pickaxe",
+     {
+      "state": "completed",
+      "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:0->1:delta=1:batches=1"
+     }
+    ],
+    [
+     "stone_pickaxe",
+     {
+      "state": "completed",
+      "reason": "server_authoritative_native_craft:minecraft:stone_pickaxe:0->1:delta=1:batches=1"
+     }
+    ]
+   ],
+   "inv": {
+    "minecraft:birch_planks": 7,
+    "minecraft:stone_pickaxe": 1,
+    "minecraft:wooden_pickaxe": 1
+   },
+   "table_placed": true
+  },
+  {
+   "id": "A03",
+   "pass": true,
+   "r": {
+    "state": "failed",
+    "reason": "craft_no_crafting_table_nearby"
+   },
+   "note": "包里有材料无工作台:3x3 不完成、不服务端变换"
+  },
+  {
+   "id": "A04",
+   "pass": true,
+   "r1": {
+    "state": "completed",
+    "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->4:delta=4:batches=1"
+   },
+   "r2": {
+    "state": "completed",
+    "reason": "server_authoritative_native_craft:minecraft:oak_planks:4->8:delta=4:batches=1"
+   },
+   "planks": 8
+  },
+  {
+   "id": "A05",
+   "pass": true,
+   "planks": {
+    "state": "completed",
+    "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->4:delta=4:batches=1"
+   },
+   "sticks": {
+    "state": "completed",
+    "reason": "server_authoritative_native_craft:minecraft:stick:0->4:delta=4:batches=1"
+   },
+   "r": {
+    "state": "failed",
+    "reason": "craft_missing:minecraft:oak_plankshave=2need=4"
+   },
+   "inv": {
+    "minecraft:oak_planks": 2,
+    "minecraft:stick": 4
+   }
+  },
+  {
+   "id": "A06",
+   "pass": true,
+   "r": {
+    "state": "completed",
+    "reason": "server_authoritative_block_placed:minecraft:crafting_table:1->0:at=302, 120, 302"
+   },
+   "table_placed": true,
+   "inv": {
+    "minecraft:dirt": 16
+   },
+   "note": "泥土在包不误放;工作台精确落格并消耗"
+  },
+  {
+   "id": "A08",
+   "pass": false,
+   "eat": {
+    "state": "failed",
+    "reason": "client_eat_timeout"
+   },
+   "reject": {
+    "state": "failed",
+    "reason": "eat_not_hungry"
+   },
+   "beef_left": 3
+  },
+  {
+   "id": "A09A10",
+   "pass": true,
+   "note": "mine_opportunity 沿用既有 incarnation 绑定;G4 链内验证"
+  }
+ ]
+}

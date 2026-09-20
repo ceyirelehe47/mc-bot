@@ -1,0 +1,10 @@
+== 假进程生命周期测试(无 Minecraft)==
+23:45:55 T1 并发启动单实例                             PASS procs=1 launched=8 starting=0
+23:47:36 T2 连续启动幂等                              PASS procs=1 a=58400 b=58400
+23:49:24 T3 慢启动不二启                              PASS procs=1 second=RUNNING waited=8.4s
+23:51:06 T4 崩溃陈旧状态重启                            PASS procs=1 newpid=63140 oldpid=57552
+23:52:47 T5 PID复用拒启动                            PASS refused=True procs=1 fails=1
+23:56:09 T6 停后无复活                               PASS procs=0 status=STOPPED
+23:56:49 T7 三败锁定BLOCKED                         PASS locked=True
+23:58:29 T7b unlock后恢复                          PASS 
+SUMMARY 8/8
