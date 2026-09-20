@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 public final class RealClientExecutionDriver
         implements PhysicalExecutionDriver {
     public static final Set<String> OPERATIONS=
-            Set.of("say","goto","mine_opportunity","deposit","craft","eat");
+            Set.of("say","goto","mine_opportunity","deposit","craft","eat","place");
 
     private static final int MAX_GOTO_DISTANCE=32;
     private static final int EXECUTION_TIMEOUT_TICKS=20*120;
@@ -83,6 +83,9 @@ public final class RealClientExecutionDriver
                             request,args,player,startedAt);
             case "eat" ->
                     startEat(
+                            request,args,player,startedAt);
+            case "place" ->
+                    startPlace(
                             request,args,player,startedAt);
             default -> throw new BridgeFault(
                     409,
@@ -192,6 +195,90 @@ public final class RealClientExecutionDriver
         return new BodyBackend.Snapshot(
                 "running",
                 remote==null?0D:Math.min(.95D,remote.progress()),
+                remote==null?"awaiting_real_client_ack":remote.reason());
+    }
+
+    private BodyBackend.Handle startPlace(
+            Request request,JsonObject args,
+            ServerPlayerEntity player,long startedAt) {
+        only(args,Set.of("x","y","z","slot"));
+        BlockPos target=new BlockPos(
+                integer(args,"x",-29999984,29999984),
+                integer(args,"y",player.getServerWorld().getBottomY(),
+                        player.getServerWorld().getBottomY()
+                                +player.getServerWorld().getHeight()-1),
+                integer(args,"z",-29999984,29999984));
+        if(!player.getServerWorld().getBlockState(target).isAir())
+            throw new BridgeFault(409,"place_target_not_air");
+        if(player.getEyePos().distanceTo(target.toCenterPos())>4.5D)
+            throw new BridgeFault(409,"place_target_too_far");
+        // 槽位自动选择:显式 slot 无 BlockItem 时扫 0-35 找任意可放置方块
+        // (玩层看不到槽位号,固定传 0 是坏桩,实测封洞时 0 号槽常是工具)。
+        int slot=-1;
+        if(args.has("slot")) {
+            int requested=integer(args,"slot",0,35);
+            ItemStack req=player.getInventory().getStack(requested);
+            if(!req.isEmpty()
+                    &&req.getItem() instanceof net.minecraft.item.BlockItem)
+                slot=requested;
+        }
+        if(slot<0) {
+            for(int i=0;i<player.getInventory().size();i++) {
+                ItemStack cand=player.getInventory().getStack(i);
+                if(!cand.isEmpty()
+                        &&cand.getItem() instanceof net.minecraft.item.BlockItem) {
+                    slot=i;
+                    break;
+                }
+            }
+        }
+        if(slot<0)
+            throw new BridgeFault(409,"place_no_block_item_in_inventory");
+        ItemStack stack=player.getInventory().getStack(slot);
+        String itemId=Registries.ITEM.getId(stack.getItem()).toString();
+        int before=stack.getCount();
+        if(slot>8)
+            throw new BridgeFault(
+                    409,"place_block_item_not_in_hotbar");
+        if(!transport.sendCommand(
+                request.executionId(),"place",
+                JsonOutput.encode(Map.of(
+                        "slot",slot,
+                        "x",target.getX(),
+                        "y",target.getY(),
+                        "z",target.getZ()))))
+            throw new BridgeFault(
+                    503,"real_client_command_queue_unavailable");
+        return ()->placeSnapshot(
+                request.executionId(),startedAt,target,itemId,before);
+    }
+
+    private BodyBackend.Snapshot placeSnapshot(
+            String executionId,long startedAt,
+            BlockPos target,String itemId,int before) {
+        onThread();
+        ServerPlayerEntity player=body.get();
+        if(player==null)
+            return new BodyBackend.Snapshot(
+                    "outcome_unknown",0D,"real_client_body_unavailable");
+        var state=player.getServerWorld().getBlockState(target);
+        if(!state.isAir()) {
+            int after=countItem(player,itemId);
+            return new BodyBackend.Snapshot(
+                    "completed",1D,
+                    "server_authoritative_block_placed:"
+                            +itemId+":"+before+"->"+after);
+        }
+        if(server.getTicks()-startedAt>20*20) {
+            transport.sendControl(executionId,"cancel",
+                    "real_client_execution_timeout");
+            return new BodyBackend.Snapshot(
+                    "failed",0D,"real_client_execution_timeout");
+        }
+        var remote=transport.execution(executionId).orElse(null);
+        return new BodyBackend.Snapshot(
+                "running",
+                remote==null?0D:Math.min(.9D,remote.progress()),
                 remote==null?"awaiting_real_client_ack":remote.reason());
     }
 

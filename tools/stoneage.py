@@ -35,13 +35,14 @@ def wait_daylight(s):
 def nearest_stone(s):
     ov = s.overview()
     for ring, d, block, n, ref in ov["rings"]:
-        if block in ("stone", "cobblestone", "minecraft:stone",
-                     "minecraft:cobblestone", "andesite", "diorite", "granite"):
+        base = block.replace("minecraft:", "")
+        if base in ("stone", "cobblestone", "andesite", "diorite", "granite",
+                    "cobbled_deepslate", "tuff", "deepslate"):
             ins = s.inspect(ref, "summary")
             ev = (ins.get("data") or {}).get("evidence") or {}
             if "x" in ev:
                 return {"pos": {"x": ev["x"], "y": ev["y"], "z": ev["z"]},
-                        "block": "minecraft:" + block.replace("minecraft:", ""),
+                        "block": "minecraft:" + base,
                         "dist": d, "n": n}
     return None
 
@@ -136,9 +137,22 @@ def main():
                 log("dig %s @ %s (d=%s)" % (t["block"], t["pos"], t["dist"]))
                 mine_at(s, t["pos"], t["block"])
             else:
+                # 地表无裸岩:垂直下挖(泥土层下即石头),边挖边检
                 p = v["self"]["block_position"]
-                s.do("goto", {"x": p["x"] + 6, "y": p["y"] - 2, "z": p["z"] - 6,
-                              "allow_terrain_changes": True}, timeout_s=80)
+                log("dig-down from %s" % p)
+                for depth in range(4):
+                    below = {"x": p["x"], "y": p["y"] - 1 - depth, "z": p["z"]}
+                    if not mine_at(s, below, "minecraft:dirt"):
+                        # dirt 不行试 stone(可能已到石层)
+                        mine_at(s, below, "minecraft:stone")
+                    time.sleep(1)
+                    v2 = scene(s)
+                    i2 = inv(v2)
+                    c2 = (i2.get("minecraft:cobblestone", 0)
+                          + i2.get("minecraft:cobbled_deepslate", 0))
+                    if c2 > cobble:
+                        log("reached stone layer at depth %d" % depth)
+                        break
             continue
         # 材料够但顺序没触发(如缺棍缺镐):打日志排查
         log("materials odd state, wait")

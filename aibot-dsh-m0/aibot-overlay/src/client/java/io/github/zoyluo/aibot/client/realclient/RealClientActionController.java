@@ -86,6 +86,13 @@ final class RealClientActionController {
             case "say" -> new SayAction(
                     executionId,
                     args.get("message").getAsString());
+            case "place" -> new PlaceAction(
+                    executionId,
+                    args.has("slot")
+                            ?args.get("slot").getAsInt():-1,
+                    args.get("x").getAsInt(),
+                    args.get("y").getAsInt(),
+                    args.get("z").getAsInt());
             case "eat" -> new EatAction(
                     executionId,
                     args.has("slot")
@@ -346,6 +353,58 @@ final class RealClientActionController {
         void fail(String reason) {
             failed=true;
             send(executionId,"failed",progress,reason);
+        }
+    }
+
+    private final class PlaceAction extends Action {
+        final int slot;
+        final BlockPos target;
+        int ticks;
+        boolean sent;
+
+        PlaceAction(String executionId,int slot,int x,int y,int z) {
+            super(executionId);
+            this.slot=slot;
+            this.target=new BlockPos(x,y,z);
+        }
+
+        @Override void tick(MinecraftClient client) {
+            if(client.currentScreen!=null)
+                client.setScreen(null);
+            if(++ticks>20*10) {
+                fail("client_place_timeout");
+                return;
+            }
+            if(!client.world.getBlockState(target).isAir()) {
+                if(sent)complete("client_block_placed");
+                else complete("client_block_already_present");
+                return;
+            }
+            if(slot>=0&&slot<9)
+                client.player.getInventory().selectedSlot=slot;
+            // 朝目标中心看;crosshair 命中相邻实体面即在其上放置
+            lookAt(client,target.toCenterPos());
+            if(client.crosshairTarget instanceof BlockHitResult hit
+                    &&hit.getType()==HitResult.Type.BLOCK
+                    &&!sent) {
+                client.interactionManager.interactBlock(
+                        client.player,Hand.MAIN_HAND,hit);
+                client.player.swingHand(Hand.MAIN_HAND);
+                sent=true;
+                send(executionId,"running",.5D,"client_place_sent");
+                return;
+            }
+            if(sent&&client.world.getBlockState(target).isAir()
+                    &&ticks%20==0) {
+                // 已发送但未落块:重试一次交互
+                if(client.crosshairTarget instanceof BlockHitResult hit2
+                        &&hit2.getType()==HitResult.Type.BLOCK) {
+                    client.interactionManager.interactBlock(
+                            client.player,Hand.MAIN_HAND,hit2);
+                    client.player.swingHand(Hand.MAIN_HAND);
+                }
+            }
+            send(executionId,"running",.2D,"client_placing");
         }
     }
 

@@ -315,6 +315,12 @@ public final class RealClientOpportunityTracker {
     private static boolean isOrdinaryDiggable(
             BlockState state,ServerPlayerEntity player,BlockPos pos) {
         if(state.isAir())return false;
+        // 超常见无价值方块不进机会池(会挤爆视图 40 槽,实测石头被泥土顶掉)
+        if(state.isOf(net.minecraft.block.Blocks.GRASS_BLOCK)
+                ||state.isOf(net.minecraft.block.Blocks.SHORT_GRASS)
+                ||state.isOf(net.minecraft.block.Blocks.DIRT_PATH)
+                ||state.isOf(net.minecraft.block.Blocks.SAND))
+            return false;
         return state.getHardness(player.getServerWorld(),pos)>=0F;
     }
 

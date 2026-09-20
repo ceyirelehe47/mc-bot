@@ -65,13 +65,13 @@ public final class RealClientCognitiveViewBuilder {
         }
         cards.sort(Comparator.comparing(card->String.valueOf(card.get("object_id"))));
         // 认知视图预算:机会卡片按距离截断(泥土机会放宽后全列会超 VIEW_MAX_BYTES 硬限)。
-        if(cards.size()>40) {
+        if(cards.size()>56) {
             java.util.Map<String,Object> player0=CanonicalJson.object();
             cards.sort((a,b)->Long.compare(
                     ((Number)((Map<String,Object>)a.get("summary")).get("distance_blocks")).longValue(),
                     ((Number)((Map<String,Object>)b.get("summary")).get("distance_blocks")).longValue()));
-            long omitted=cards.size()-40L;
-            while(cards.size()>40)cards.remove(cards.size()-1);
+            long omitted=cards.size()-56L;
+            while(cards.size()>56)cards.remove(cards.size()-1);
             opportunities_truncated[0]=true;
             opportunities_omitted[0]=omitted;
         }
