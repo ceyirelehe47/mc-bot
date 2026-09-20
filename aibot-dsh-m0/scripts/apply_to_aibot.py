@@ -857,6 +857,14 @@ EXTRA_CHANGES={
     private static Map<String, String> matchingSources(Pattern pattern) throws IOException {
 ''', 1),
  ]),
+ 'build.gradle': ('cbfe3efdda8a9b5c897c4fb1ba177605b2bf3012', [
+  ('    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"\n',
+   '    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"\n'
+   '    // MC-RCF-1 G2: Baritone controlled navigation (compile-time API only;\n'
+   '    // runtime provided by client mods). Locked official release asset,\n'
+   '    // sha256 enforced by scripts/fetch_baritone.py + delivery BASELINE).\n'
+   "    modCompileOnly files(rootProject.findProperty('baritone_jar') ?: 'D:/mc-rcf1-raw/deps/baritone-api-fabric-1.12.0.jar')\n", 1),
+ ]),
 }
 
 def git(repo: pathlib.Path, *args: str) -> str:

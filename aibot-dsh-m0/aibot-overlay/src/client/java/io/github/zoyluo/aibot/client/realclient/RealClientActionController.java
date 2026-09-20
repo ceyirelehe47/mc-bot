@@ -82,7 +82,17 @@ final class RealClientActionController {
             // 输入清理交给新 action 的首个 tick(walkTo/tick 均先 clearInputs+清屏)
         }
 
-        resetLocomotion();
+        // MC-RCF-1 G2:移动承载动作依赖受控导航组件;组件缺失时诚实失败,
+        // 不回退到旧偏航/挖穿逻辑(旧代码已从正式路径移除)。
+        if(switch(operation) {
+            case "goto","mine","place","smelt","deposit" -> true;
+            default -> false;
+        } && !RealClientNavigation.available()) {
+            send(executionId,"failed",0D,
+                    "navigation_component_unavailable");
+            return;
+        }
+        RealClientNavigation.stop(null);
         active=switch(operation) {
             case "say" -> new SayAction(
                     executionId,
@@ -641,8 +651,7 @@ final class RealClientActionController {
 
             stableTicks=0;
             facingTicks=0;
-            // 移动统一走 walkTo:绕障偏航/挖穿/清屏/跳跃都在那里
-            // (此前这里是内联直线走,绕障逻辑从未接入 goto,实测山顶死锁)。
+            // 移动统一走 walkTo → 受控 Baritone 适配器(G2 起)
             walkTo(client,target);
             progress=Math.max(
                     progress,Math.min(.95D,1D-distance/32D));
@@ -650,14 +659,12 @@ final class RealClientActionController {
                     progress,"walking_to_target");
             if(client.world.getTime()%40L==0L)
                 io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                        "[AIBot] goto-diag pos={} yaw={} detour={} phase={} stuck={} breaking={} fwd={} jump={} collision={}",
+                        "[AIBot] goto-diag pos={} yaw={} pathing={} goal={} dist={}",
                         client.player.getBlockPos(),
                         (int)client.player.getYaw(),
-                        detourActive,detourPhase,stuckTicks,
-                        breakingPos==null?"-":breakingPos.toString(),
-                        client.options.forwardKey.isPressed(),
-                        client.options.jumpKey.isPressed(),
-                        client.player.horizontalCollision);
+                        RealClientNavigation.pathing(),
+                        String.valueOf(distance),
+                        String.format("%.1f",distance));
         }
     }
 
@@ -940,56 +947,9 @@ final class RealClientActionController {
         return total;
     }
 
-    // ---------- 寻路运动状态:直线 -> 偏航绕行 -> 挖穿(真实挖掘) ----------
-    private static int stuckTicks,clearTicks,detourTicks,detourPhase;
-    private static double bestDistance=-1D;
-    private static int noProgressTicks;
-    private static float detourBaseYaw,detourYaw;
-    private static boolean detourActive;
-    private static BlockPos breakingPos;
-    private static Direction breakingFace;
-    private static final float[] DETOURS={45F,-45F,90F,-90F};
-
-    private static void resetLocomotion() {
-        stuckTicks=0;clearTicks=0;detourTicks=0;detourPhase=0;
-        detourActive=false;breakingPos=null;breakingFace=null;
-        bestDistance=-1D;noProgressTicks=0;
-    }
-
-    private static void startBreaking(
-            MinecraftClient client,Vec3d target) {
-        // 确定性位置挖掘:先朝向目标再取面朝方向(墙在目标方向上),
-        // 否则水平朝向是偏航残留,会挖错方向。raycast 不可靠(视线掠近墙)。
-        lookAt(client,target);
-        Direction dir=client.player.getHorizontalFacing();
-        BlockPos feet=client.player.getBlockPos();
-        BlockPos head=feet.up();
-        BlockPos footAhead=feet.offset(dir);
-        BlockPos headAhead=head.offset(dir);
-        BlockPos pick=null;
-        if(!client.world.getBlockState(headAhead).isAir())
-            pick=headAhead;
-        else if(!client.world.getBlockState(footAhead).isAir())
-            pick=footAhead;
-        else if(!client.world.getBlockState(headAhead.up()).isAir())
-            pick=headAhead.up();
-        if(pick==null) {
-            io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                    "[AIBot] dig-diag nothing-ahead feet={} dir={} state={}",
-                    feet,dir,
-                    Registries.BLOCK.getId(client.world
-                            .getBlockState(footAhead).getBlock()));
-            return;
-        }
-        io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                "[AIBot] dig-diag start pick={} face={}",
-                pick,dir.getOpposite());
-        breakingPos=pick;
-        breakingFace=dir.getOpposite();
-        client.interactionManager.attackBlock(
-                breakingPos,breakingFace);
-        client.player.swingHand(Hand.MAIN_HAND);
-    }
+    // ---------- 寻路运动:MC-RCF-1 G2 起由受控 Baritone 适配器执行 ----------
+    // 旧机制(直线+偏航绕行+60tick 无改善挖穿)已从正式导航路径移除:
+    // 挖穿属未授权地形修改,绕行误判会导致坠崖;成熟寻路组件接管。
 
     private static void walkTo(
             MinecraftClient client,Vec3d target) {
@@ -997,72 +957,7 @@ final class RealClientActionController {
         if(client.currentScreen!=null)
             client.setScreen(null);
         clearInputs(client);
-        // 挖掘进行中:持续挖掘直到方块消失,期间不移动
-        if(breakingPos!=null) {
-            if(client.world.getBlockState(breakingPos).isAir()
-                    ||client.player.getEyePos().distanceTo(
-                            breakingPos.toCenterPos())>4.5D) {
-                breakingPos=null;
-                client.interactionManager.cancelBlockBreaking();
-                return;
-            }
-            client.interactionManager.updateBlockBreakingProgress(
-                    breakingPos,breakingFace);
-            client.player.swingHand(Hand.MAIN_HAND);
-            return;
-        }
-        if(detourActive) {
-            turnTowards(client,detourYaw);
-            client.options.forwardKey.setPressed(true);
-            client.options.jumpKey.setPressed(
-                    client.player.horizontalCollision);
-            detourTicks++;
-            if(client.player.horizontalCollision)
-                clearTicks=0;
-            else {
-                clearTicks++;
-                // 弹跳瞬间会短暂脱墙(0.4s),过短会误判脱困并丢弃绕障进度(实测)
-                if(clearTicks>25) {
-                    resetLocomotion();
-                    return;
-                }
-            }
-            if(detourTicks>40) {
-                detourTicks=0;clearTicks=0;
-                detourPhase++;
-                if(detourPhase>=DETOURS.length) {
-                    // 六个偏航方向全部失败:挖穿视线内的墙(真实挖掘,工具与时间遵循游戏规则)
-                    detourActive=false;
-                    startBreaking(client,target);
-                    return;
-                }
-                detourYaw=detourBaseYaw+DETOURS[detourPhase];
-            }
-            return;
-        }
-        lookAt(client,target);
-        client.options.forwardKey.setPressed(true);
-        client.options.sprintKey.setPressed(false);
-        // 1 格台阶/迎面碰撞自动跳:无跳跃的 W 按住在梯田地形必然卡死(实测)。
-        client.options.jumpKey.setPressed(
-                client.player.horizontalCollision);
-        // 距目标无改善检测:原地弹跳(114<->115 震荡)会骗过位置不变检测,
-        // 只有持续接近目标才算有效移动;60 tick 无改善即进入偏航绕行,仍不通再挖穿。
-        double dNow=client.player.getPos().distanceTo(target);
-        if(bestDistance<0D||dNow<bestDistance-0.1D) {
-            bestDistance=dNow;
-            noProgressTicks=0;
-        } else {
-            noProgressTicks++;
-        }
-        if(noProgressTicks>60) {
-            detourActive=true;detourTicks=0;clearTicks=0;
-            detourBaseYaw=client.player.getYaw();
-            detourYaw=detourBaseYaw
-                    +DETOURS[Math.min(detourPhase,DETOURS.length-1)];
-            noProgressTicks=0;
-            bestDistance=-1D;
-        }
+        RealClientNavigation.pathTo(client,target,2.0D);
     }
 
     /** 平滑转向:每 tick 最多转 12 度,消除视角瞬移造成的画面抽搐。 */
