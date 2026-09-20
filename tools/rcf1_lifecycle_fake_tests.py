@@ -43,17 +43,21 @@ def reset_state():
 
 
 def count_procs():
+    """只统计 python 假进程(marker + python 可执行);
+    真实游戏实例是 java 且带同一 marker——绝不能误杀(实测教训)。"""
     out = subprocess.run(
         ["powershell", "-NoProfile", "-Command",
-         "Get-CimInstance Win32_Process -Filter \"Name='python.exe' or Name='java.exe'\" "
-         "| Select-Object ProcessId, CommandLine | ConvertTo-Json -Compress"],
+         "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" "
+         "| Select-Object ProcessId, ExecutablePath, CommandLine | ConvertTo-Json -Compress"],
         capture_output=True).stdout.decode("utf-8", "replace").strip()
     if not out:
         return []
     d = json.loads(out)
     if isinstance(d, dict):
         d = [d]
-    return [p for p in d if "-Drcf1.instance.marker=" in (p.get("CommandLine") or "")]
+    return [p for p in d
+            if "-Drcf1.instance.marker=" in (p.get("CommandLine") or "")
+            and "python" in (p.get("ExecutablePath") or "").lower()]
 
 
 def kill_all_fake():
