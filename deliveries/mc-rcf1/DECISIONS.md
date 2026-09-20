@@ -46,3 +46,10 @@
 - 发现(继承弱点,非本轮引入):goto face 转向超时(client_final_facing_timeout)在部分地形高频出现;walkTo 直线+局部偏航导致 C02 途中坠落到 y=94。均属 G2 Baritone 接管范围。
 - C 组 LIVE 5/5 PASS(C01/C02/C03/C04-lite/C05),证据 D:/mc-rcf1-raw/c-group/c-group-20260920-214823.json。C06(use/cursor 取消)依赖 G3 食物/容器事务;C07(journal 淘汰)轻量 LIVE+journal 单测归自动化阶段;C08 记录设计证据(background 窗口+每 tick unpressAll 输入隔离+唯一仲裁器),真实共存需用户客户端在线,列为人工复核项。
 - 环境事实:C 组 fixture(设白天+清 48 格敌对)是开发模式 armed 前布置,计分运行不用;首次无 fixture 运行时 Bob 被夜袭击杀→死亡重生翻转会话→在途执行正确转 outcome_unknown(fence 行为的意外实证)。
+
+## 生命周期治理(用户指令 2026-09-20,优先于 MC-RCF-1 各门)
+- 事故:重复拉起客户端(pid 文件单点失效+bat cd 失败期间),4 个同 UUID 客户端互踢顶号。用户叫停。
+- 止血:hub rcf1-srv 停止(连树),全部 hub 条目终态无 restart;看门狗此前已停;我方 4 客户端全清,清单确认 5 个无关进程未动。
+- 唯一入口 tools/rcf1_lifecycle.py:msvcrt 文件锁跨进程原子互斥;身份=PID+创建时间+命令行 marker 三要素;枚举失败禁止启动;停后零自动复活;连续 3 败锁定 BLOCKED(显式 unlock);配额 server/client 各 1(STARTING 占位)。rcf1_env 起停全部委托,无第二条拉起路径。subagent 禁止拉起游戏(其 tools 白名单不含生命周期入口)。
+- 假进程测试 8/8 PASS(fake-tests-full.log):并发/连续/慢启动(等待 9.9s)/崩溃陈旧/PID 复用拒启/停后不复活/三败锁定/unlock 恢复。测试中发现并修复三处真缺陷:枚举过滤器漏 python、追加日志历史标记假就绪(改轮转)、_wait_ready 瞬态缺失即判死(改 5 次容忍)。
+- 实机验证:4 路并发 server 启动→单实例同 pid 单监听;3 路并发 client→单实例入服;顺序幂等;stop 后 10s 无复活;重启正常;非 marker 进程零接触。
