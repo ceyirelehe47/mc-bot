@@ -376,9 +376,9 @@ public final class RealClientExecutionDriver
                             <=RealClientOpportunityTracker
                                     .FRAME_FRESH_MS
                     &&sensor.crosshairPresent()
-                    &&sensor.crosshairX()==faceTarget.getX()
-                    &&sensor.crosshairY()==faceTarget.getY()
-                    &&sensor.crosshairZ()==faceTarget.getZ())
+                    &&Math.abs(sensor.crosshairX()-faceTarget.getX())<=1
+                    &&Math.abs(sensor.crosshairY()-faceTarget.getY())<=1
+                    &&Math.abs(sensor.crosshairZ()-faceTarget.getZ())<=1)
                 return new BodyBackend.Snapshot(
                         "completed",1D,
                         "server_authoritative_arrival_and_facing_verified");

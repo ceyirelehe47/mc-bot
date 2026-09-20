@@ -28,7 +28,15 @@ L.STATE = os.path.join(TOOLS, "..", ".build", "play-lease-state.json")
 
 class Session:
     def __init__(self, owner="llm-play"):
-        lease = L.lease_for(owner=owner, wait_s=60)
+        # owner 隔离租约状态文件,防多进程会话互抢(实测诊断脚本偷走运行中脚本的租约)
+        orig_state = L.STATE
+        suffix = "" if owner == "llm-play" else "-" + owner
+        L.STATE = orig_state.replace("play-lease-state.json",
+                                     "play-lease-state%s.json" % suffix)
+        try:
+            lease = L.lease_for(owner=owner, wait_s=60)
+        finally:
+            L.STATE = orig_state
         if not lease:
             raise RuntimeError("no control lease available")
         self.lease = lease
@@ -67,6 +75,34 @@ class Session:
     def observe(self):
         return L.observe(self.lease)
 
+    def overview(self, kind_suffix=None):
+        """分层查询·远景层:机会按 方向×类别 聚类成紧凑决策清单。
+        kind_suffix 可选过滤(如 '_log' 只看原木)。
+        近景用 inspect_local,单证深查用 inspect。"""
+        v = self.view()
+        sc = (v.get("data") or {}).get("scene") or {}
+        me = (sc.get("self") or {}).get("block_position") or {}
+        opps = ((sc.get("semantic_objects") or {}).get("resource_opportunities") or {}).get("items") or []
+        buckets = {}
+        for o in opps:
+            sm = o.get("summary") or {}
+            bl = sm.get("block", "")
+            if kind_suffix and not bl.endswith(kind_suffix):
+                continue
+            d = sm.get("distance_blocks", 999)
+            ring = "near<8" if d < 8 else "mid<16" if d < 16 else "far<24" if d < 24 else "vfar"
+            short = bl.split(":")[-1]
+            key = (ring, short)
+            cur = buckets.get(key)
+            if cur is None or d < cur[1]:
+                buckets[key] = [key[0], d, short, 1, o.get("evidence_ref", "")]
+            else:
+                cur[3] += 1
+                if d < cur[1]:
+                    cur[1] = d
+        out = sorted(buckets.values(), key=lambda r: r[1])
+        return {"pos": me, "rings": out}
+
     def inspect_local(self, radius=6, detail="summary"):
         return L.call("POST", "/v1/inspect-local?radius=%d&detail=%s" % (radius, detail), None, {})
 
@@ -80,10 +116,68 @@ class Session:
     def status(self, ex_id=None):
         return L.execution(self.lease, ex_id) if ex_id else L.status()
 
-    def do(self, op, args, timeout_s=180, tag=None):
+    def submit(self, op, args, tag=None):
+        """异步提交:返回 execution_id;失败返回 (None, submit_dict)。"""
         self.keepalive()
         tag = tag or ("play-" + op)
         r = L.submit(self.lease, op, args, tag)
+        if not r.get("ok"):
+            # LLM 优先级抢占:槽被占(残留/僵尸执行)直接取消它,立即接管,
+            # 不再干等服务器 stall 兜底(实测一等就是 2 分钟)。
+            st = self.status()["data"]
+            active = st.get("active_execution") or {}
+            if active.get("execution_id"):
+                try:
+                    L.control(self.lease, active["execution_id"], "cancel",
+                              "llm-preempt")
+                except Exception:
+                    pass
+            for _ in range(15):  # 等抢占生效(<=30s)
+                st = self.status()["data"]
+                if not st.get("active_execution"):
+                    break
+                time.sleep(2)
+            r = L.submit(self.lease, op, args, tag)
+            if not r.get("ok"):
+                time.sleep(3)
+                return None, r
+        return r["data"]["execution_id"], None
+
+    def poll(self, ex_id):
+        """非阻塞查执行状态。"""
+        d = (self.status(ex_id).get("data") or {})
+        return d
+
+    def term(self, ex_id, timeout_s=180, cancel_on_timeout=True):
+        """等待终态;超时可主动取消释放执行槽。"""
+        res, trail = L.wait_terminal(self.lease, ex_id, timeout_s=timeout_s)
+        if res.get("state") == "TIMEOUT" and cancel_on_timeout:
+            for _ in range(4):
+                try:
+                    c = L.control(self.lease, ex_id, "cancel", "play-timeout-cancel")
+                    if c.get("ok"):
+                        break
+                except Exception:
+                    pass
+                self.keepalive()
+                time.sleep(2)
+        for _ in range(25):
+            st = self.status()["data"]
+            if not st.get("active_execution"):
+                break
+            time.sleep(2)
+        return res, trail
+
+    def do(self, op, args, timeout_s=180, tag=None):
+        ex_id, err = self.submit(op, args, tag)
+        if ex_id is None:
+            return {"op": op, "submit": err}
+        res, trail = self.term(ex_id, timeout_s=timeout_s)
+        return {"op": op, "execution_id": ex_id, "terminal": res}
+
+    def do_async(self, op, args, tag=None):
+        """异步执行:立即返回 (ex_id, None) 或 (None, err)。"""
+        return self.submit(op, args, tag)
         if not r.get("ok"):
             # submit 409(执行槽被占,常见于上个进程被杀后 in-flight 执行残留):
             # 等服务器 stall 兜底(<=120s)释放后重试一次
@@ -142,6 +236,8 @@ def main():
         _print(s.observe())
     elif cmd == "view":
         _print(s.view())
+    elif cmd == "overview":
+        _print(s.overview(a[1].lstrip("_") and ("_" + a[1].lstrip("_")) if len(a) > 1 and a[1] != "-" else None))
     elif cmd == "local":
         _print(s.inspect_local(int(a[1]) if len(a) > 1 else 6, a[2] if len(a) > 2 else "summary"))
     elif cmd == "inspect":

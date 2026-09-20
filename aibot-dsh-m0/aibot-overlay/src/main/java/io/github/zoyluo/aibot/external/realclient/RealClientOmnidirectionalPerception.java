@@ -90,10 +90,10 @@ public final class RealClientOmnidirectionalPerception {
             int entityScanTicks,int blockScanTicks) {
         public Config {
             if(mode==null)throw new IllegalArgumentException("perception_mode_required");
-            if(entityRadius<4 || entityRadius>24)
-                throw new IllegalArgumentException("perception_entity_radius_out_of_range_4_24");
-            if(blockRadius<2 || blockRadius>12)
-                throw new IllegalArgumentException("perception_block_radius_out_of_range_2_12");
+            if(entityRadius<4 || entityRadius>48)
+                throw new IllegalArgumentException("perception_entity_radius_out_of_range_4_48");
+            if(blockRadius<2 || blockRadius>32)
+                throw new IllegalArgumentException("perception_block_radius_out_of_range_2_32");
             if(memoryTicks<20 || memoryTicks>1200)
                 throw new IllegalArgumentException("perception_memory_ticks_out_of_range_20_1200");
             if(entityScanTicks<1 || entityScanTicks>200)

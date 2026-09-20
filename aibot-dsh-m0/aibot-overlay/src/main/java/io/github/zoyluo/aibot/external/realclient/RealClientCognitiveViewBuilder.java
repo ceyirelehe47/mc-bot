@@ -39,6 +39,8 @@ public final class RealClientCognitiveViewBuilder {
         scene.put("ui",screen(screen));
 
         List<Map<String,Object>> cards=new ArrayList<>();
+        final boolean[] opportunities_truncated={false};
+        final long[] opportunities_omitted={0L};
         Map<String,CognitiveSnapshot.EvidenceDescriptor> index=new LinkedHashMap<>();
         for(RealClientOpportunityTracker.Opportunity opportunity:tracker.opportunities(player)) {
             String ref=EvidenceRef.format(
@@ -62,11 +64,22 @@ public final class RealClientCognitiveViewBuilder {
                     ref,"opportunity",opportunity.id(),"resource_opportunity"));
         }
         cards.sort(Comparator.comparing(card->String.valueOf(card.get("object_id"))));
+        // 认知视图预算:机会卡片按距离截断(泥土机会放宽后全列会超 VIEW_MAX_BYTES 硬限)。
+        if(cards.size()>40) {
+            java.util.Map<String,Object> player0=CanonicalJson.object();
+            cards.sort((a,b)->Long.compare(
+                    ((Number)((Map<String,Object>)a.get("summary")).get("distance_blocks")).longValue(),
+                    ((Number)((Map<String,Object>)b.get("summary")).get("distance_blocks")).longValue()));
+            long omitted=cards.size()-40L;
+            while(cards.size()>40)cards.remove(cards.size()-1);
+            opportunities_truncated[0]=true;
+            opportunities_omitted[0]=omitted;
+        }
         Map<String,Object> opportunities=CanonicalJson.object();
         opportunities.put("items",cards);
         opportunities.put("total",(long)cards.size());
-        opportunities.put("truncated",false);
-        opportunities.put("omitted_count",0L);
+        opportunities.put("truncated",opportunities_truncated[0]);
+        opportunities.put("omitted_count",opportunities_omitted[0]);
         Map<String,Object> empty=Map.of(
                 "items",List.of(),"total",0L,"truncated",false,"omitted_count",0L);
         Map<String,Object> semantic=CanonicalJson.object();

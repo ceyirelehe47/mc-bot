@@ -55,9 +55,11 @@ def start_bob_confirmed(tag="play"):
 
 
 def run():
+    extra = {"AIBOT_REAL_CLIENT_PERCEPTION_BLOCK_RADIUS": "24",
+             "AIBOT_REAL_CLIENT_PERCEPTION_RADIUS": "32"}
     if not L.server_pid():
         print("starting server...", flush=True)
-        L.start_server(log_name="server-play.log")
+        L.start_server(log_name="server-play.log", extra_env=extra)
     print("SERVER-READY", flush=True)
     out = L.rcon("list") or ""
     if "Bob" not in out:

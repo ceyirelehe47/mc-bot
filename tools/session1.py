@@ -101,7 +101,7 @@ def mine_one(s, block_item, block_pos, timeout_s=110):
     opps = (v.get("semantic_objects") or {}).get("resource_opportunities") or {}
     items = opps.get("items") or []
     for o in items:
-        oid = o.get("id")
+        oid = o.get("object_id")
         op = o.get("position") or {}
         if op.get("x") == block_pos["x"] and op.get("y") == block_pos["y"] and op.get("z") == block_pos["z"]:
             m = s.do("mine_opportunity", {"id": oid}, timeout_s=timeout_s)

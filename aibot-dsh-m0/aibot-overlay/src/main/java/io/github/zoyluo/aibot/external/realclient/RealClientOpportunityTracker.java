@@ -30,7 +30,7 @@ import java.util.UUID;
 
 /** Durable incarnation tracker for opportunities actually pointed at by Bob's real client. */
 public final class RealClientOpportunityTracker {
-    private static final int MAX_ACTIVE=64;
+    private static final int MAX_ACTIVE=256;
     /** Coherent frame freshness: a sample older than this is never validated. */
     public static final long FRAME_FRESH_MS=2000L;
     /** Sensor position is a coherence hint only: it must stay near the authoritative body. */
@@ -309,12 +309,13 @@ public final class RealClientOpportunityTracker {
         return "rcore_"+location+"_"+incarnation;
     }
 
-    /** 普通可挖方块(泥土/沙等徒手可挖):挖洞过夜与地形施工的基础。 */
+    /** 普通可挖方块(泥土/沙/石头等):挖洞过夜与地形施工的基础。
+     * 石头等需工具方块同样放行,工具检查交给执行驱动的热键栏选择
+     * (有镐则挖,无镐 409 required_tool_missing)。 */
     private static boolean isOrdinaryDiggable(
             BlockState state,ServerPlayerEntity player,BlockPos pos) {
         if(state.isAir())return false;
-        return state.getHardness(player.getServerWorld(),pos)>=0F
-                &&!state.isToolRequired();
+        return state.getHardness(player.getServerWorld(),pos)>=0F;
     }
 
     private static String expectedItem(Block block) {

@@ -408,7 +408,7 @@ final class RealClientActionController {
 
     private final class GotoAction extends Action {
         private static final int ARRIVAL_STABLE_TICKS=8;
-        private static final int MAX_FACING_TICKS=200;
+        private static final int MAX_FACING_TICKS=400;
         private static final double VELOCITY_EPSILON_SQUARED=.0025D;
 
         final Vec3d target;

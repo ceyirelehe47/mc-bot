@@ -38,9 +38,9 @@ def mine_one(s, block, pos):
     for o in opps.get("items") or []:
         op = o.get("position") or {}
         if op.get("x") == pos["x"] and op.get("y") == pos["y"] and op.get("z") == pos["z"]:
-            m = s.do("mine_opportunity", {"id": o.get("id")}, timeout_s=110)
+            m = s.do("mine_opportunity", {"id": o.get("object_id")}, timeout_s=110)
             mt = m.get("terminal") or {}
-            log("  mine %s -> %s %s" % (o.get("id"), mt.get("state"),
+            log("  mine %s -> %s %s" % (o.get("object_id"), mt.get("state"),
                                         (mt.get("reason") or "")[:60]))
             return mt.get("state") == "completed"
     log("  no opportunity for %s" % pos)

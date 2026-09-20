@@ -5,7 +5,7 @@ import json, sys, time
 sys.path.insert(0, r"D:\code\mc-bot\tools")
 import play
 
-TREE_ZONE = (125, 114, 91)
+TREE_ZONE = (132, 119, 89)
 
 
 def log(m):
@@ -46,10 +46,10 @@ def mine_at(s, pos, tag="dig"):
     for o in opps.get("items") or []:
         op = o.get("position") or {}
         if op.get("x") == pos["x"] and op.get("y") == pos["y"] and op.get("z") == pos["z"]:
-            m = s.do("mine_opportunity", {"id": o.get("id")}, timeout_s=110)
+            m = s.do("mine_opportunity", {"id": o.get("object_id")}, timeout_s=110)
             mt = m.get("terminal") or {}
             ok = mt.get("state") == "completed"
-            log("  %s mine(%s) -> %s %s" % (tag, o.get("id")[-8:], mt.get("state"),
+            log("  %s mine(%s) -> %s %s" % (tag, o.get("object_id")[-8:], mt.get("state"),
                                             (mt.get("reason") or "")[:50]))
             return ok
     log("  %s no-opportunity" % tag)
