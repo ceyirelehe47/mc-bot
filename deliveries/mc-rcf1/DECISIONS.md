@@ -53,3 +53,11 @@
 - 唯一入口 tools/rcf1_lifecycle.py:msvcrt 文件锁跨进程原子互斥;身份=PID+创建时间+命令行 marker 三要素;枚举失败禁止启动;停后零自动复活;连续 3 败锁定 BLOCKED(显式 unlock);配额 server/client 各 1(STARTING 占位)。rcf1_env 起停全部委托,无第二条拉起路径。subagent 禁止拉起游戏(其 tools 白名单不含生命周期入口)。
 - 假进程测试 8/8 PASS(fake-tests-full.log):并发/连续/慢启动(等待 9.9s)/崩溃陈旧/PID 复用拒启/停后不复活/三败锁定/unlock 恢复。测试中发现并修复三处真缺陷:枚举过滤器漏 python、追加日志历史标记假就绪(改轮转)、_wait_ready 瞬态缺失即判死(改 5 次容忍)。
 - 实机验证:4 路并发 server 启动→单实例同 pid 单监听;3 路并发 client→单实例入服;顺序幂等;stop 后 10s 无复活;重启正常;非 marker 进程零接触。
+
+## G2 记录(2026-09-21 00:25)
+- 兼容性切片(G2a):Baritone v1.12.0 api-fabric 官方资产(sha256 b3b36aa3… 三方核验:计划包/gh 认证 API/下载字节)与 aibot+tomstorage 共存零 Mixin 冲突;后台可驱动;#stop 后 drift=0.00。
+- 适配器(G2b):RealClientNavigation 仅收 Body 目标;GoalBlock 精确站格(GoalNear 水平假到达已修);allowBreak/allowPlace/allowInventory/chatControl 每次进入强制 false;旧 直线+偏航+挖穿 机制从正式路径删除,组件缺失诚实失败。
+- N 组 18/18(N01-N06 ×3,零世界改动,普通场景 ≤12s)。
+- 工作站位评价:当前在玩层(站位=可站格+face 目标);G3/G4 需要时扩展评价器(脚/头空间/LOS 由 Baritone 可达性+face 距离约束隐式覆盖)。
+- 绕行备选未启用(Baritone 达标);输入隔离与 Baritone 共存实测正常(unpressAll 在 actuator 写键前,Baritone 自写自读不冲突)。
+- 教训入台账:源码三副本(overlay/活树/构建树)同步靠手工 cp 漏了控制器→旧字节码假跑 3 轮 N 组;现部署必须解包验证字节码再重启。
