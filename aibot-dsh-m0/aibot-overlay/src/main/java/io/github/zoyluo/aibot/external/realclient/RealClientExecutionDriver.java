@@ -395,8 +395,15 @@ public final class RealClientExecutionDriver
                 "x","y","z",
                 "allow_terrain_changes",
                 "face_x","face_y","face_z"));
-        // allow_terrain_changes=true 已授权:客户端挖掘遵循游戏规则(工具/时长/掉落),
-        // 属于真实玩家可执行的行为,不再视为 MVP 禁区。
+        // MC-RCF-1 G2: 本轮导航默认不挖不放(客户端 Baritone allowBreak/allowPlace
+        // 强制 false)。旧注释"true 已授权"指的挖穿机制已从正式路径移除;
+        // 现在 true 必须显式拒绝,不得默默忽略(01_ROUTE §3 导航路线)。
+        if(args.has("allow_terrain_changes")
+                &&args.get("allow_terrain_changes").getAsBoolean())
+            throw new BridgeFault(
+                    400,
+                    "terrain_changes_not_supported_this_round");
+
 
         BlockPos target=new BlockPos(
                 integer(
