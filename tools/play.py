@@ -1,59 +1,84 @@
 # -*- coding: utf-8 -*-
-"""LLM 直控玩层:桥 HTTP 客户端 + 操作执行 + 事件轮询。复用 mc2a07ar_live 生命周期。
+"""LLM 直控玩层:桥 HTTP 客户端 + 操作执行 + 事件轮询(rcf1 隔离环境)。
+
+环境驱动为 tools/rcf1_env.py(端口/凭证/路径全部配置化,不再 import 历史实验目录)。
 
 CLI:
   python play.py observe                       # 全量观察(含 inventory/pos/当前任务)
   python play.py view                          # 紧凑认知视图(机会/家园/事件)
   python play.py local [radius] [detail]       # inspect-local 身体周边
   python play.py inspect <ref> [detail]        # 深查一个 semantic 对象
-  python play.py graphs [graph_id]             # TaskGraph 状态
-  python play.py do <op> '<json-args>' [timeout_s]   # 提交操作并等到终态
+  python play.py do <op> '<json-args>' [timeout_s] [--preempt]   # 提交操作并等到终态
   python play.py ctl <execution_id> <pause|resume|cancel>
   python play.py events [cursor] [wait_s]      # 事件长轮询
   python play.py status [execution_id]
   python play.py rcon <cmd...>                 # 服务器 RCON 直通(仅观察用)
+
+G1 语义(MC-RCF-1):
+- submit 失败按错误类别处理:参数/语义/容量类错误直接失败返回,绝不触碰进行中执行。
+- 仅 409 execution_in_progress 且调用方显式 preempt=True 时才允许取消当前执行
+  (取消对象 = status 里的确切 execution_id,即"明确授权+目标执行身份")。
+- observe_required_before_new_work / body_unavailable 类:观察对账后有限重试,不 cancel。
+- keepalive 续租失败只以本会话 owner 重新获取,不做固定 owner 越权重获。
 """
-import json, os, sys, time
+import json
+import os
+import sys
+import time
 
-ROOT = r"D:\code\mc-experiment"
 TOOLS = os.path.dirname(os.path.abspath(__file__))
-for _p in (os.path.join(ROOT, "mc2a07ar-work", "drivers"), TOOLS):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
-import mc2a07ar_live as L  # noqa: E402
+if TOOLS not in sys.path:
+    sys.path.insert(0, TOOLS)
+import rcf1_env as E  # noqa: E402
 
-# 租约状态文件不放实验根,归到 mc-bot/.build/
-L.STATE = os.path.join(TOOLS, "..", ".build", "play-lease-state.json")
+# 错误类别(桥 BridgeFault 全集实测枚举)
+SLOT_BUSY = {"execution_in_progress"}                       # 唯一可(经授权)抢占类
+RECONCILE_RETRY = {"observe_required_before_new_work", "body_unavailable"}
+
+
+def _fault(r):
+    """从桥响应提取 (http_code, error_kind)。"""
+    code = r.get("_http")
+    if code is None and r.get("_unreachable"):
+        return 0, "bridge_unreachable"
+    body = r.get("_body") or ""
+    try:
+        kind = json.loads(body).get("error", "unknown")
+    except Exception:
+        kind = "unknown"
+    return code, kind
 
 
 class Session:
     def __init__(self, owner="llm-play"):
-        # owner 隔离租约状态文件,防多进程会话互抢(实测诊断脚本偷走运行中脚本的租约)
-        orig_state = L.STATE
-        suffix = "" if owner == "llm-play" else "-" + owner
-        L.STATE = orig_state.replace("play-lease-state.json",
-                                     "play-lease-state%s.json" % suffix)
-        try:
-            lease = L.lease_for(owner=owner, wait_s=60)
-        finally:
-            L.STATE = orig_state
+        self.owner = owner
+        lease = E.acquire_lease(owner=owner, wait_s=60)
         if not lease:
             raise RuntimeError("no control lease available")
         self.lease = lease
         self.renewed = time.time()
-        r = L.observe(self.lease)  # 死亡/重启后对账解锁
+        r = E.observe(self.lease)  # 死亡/重启后对账解锁
         if not r.get("ok"):
             raise RuntimeError("observe reconcile failed: %s" % json.dumps(r)[:200])
 
+    # ---------- 租约 ----------
+
     def keepalive(self):
         if time.time() - self.renewed > 15:
-            r = L.call("POST", "/v1/lease/renew", self.lease)
+            r = E.call("POST", "/v1/lease/renew", self.lease)
             if not r.get("ok"):
-                lease = L.lease_for(owner="llm-play", wait_s=30)
+                # 只以本会话 owner 重新获取(不做固定 owner 越权重获);
+                # 拿不到新租约就抛给上层,不静默继续用失效租约发指令。
+                lease = E.acquire_lease(owner=self.owner, wait_s=15, reuse=False)
                 if lease:
                     self.lease = lease
-                    L.observe(self.lease)
+                    E.observe(self.lease)
+                else:
+                    raise RuntimeError("lease lost and not re-acquirable")
             self.renewed = time.time()
+
+    # ---------- 只读查询(不抢控制租约) ----------
+
     def day_phase(self):
         try:
             v = self.view()
@@ -62,23 +87,19 @@ class Session:
             return "?"
 
     def view(self, retries=3):
+        v = None
         for _ in range(retries):
-            v = L.call("POST", "/v1/view", None, {})  # 认知查询无租约也可
+            v = E.view()
             if v.get("ok"):
                 return v
             time.sleep(1.5)
         return v
 
     def observe(self):
-        return L.observe(self.lease)
-
-    def observe(self):
-        return L.observe(self.lease)
+        return E.observe(self.lease)
 
     def overview(self, kind_suffix=None):
-        """分层查询·远景层:机会按 方向×类别 聚类成紧凑决策清单。
-        kind_suffix 可选过滤(如 '_log' 只看原木)。
-        近景用 inspect_local,单证深查用 inspect。"""
+        """分层查询·远景层:机会按 方向×类别 聚类成紧凑决策清单。"""
         v = self.view()
         sc = (v.get("data") or {}).get("scene") or {}
         me = (sc.get("self") or {}).get("block_position") or {}
@@ -104,118 +125,102 @@ class Session:
         return {"pos": me, "rings": out}
 
     def inspect_local(self, radius=6, detail="summary"):
-        return L.call("POST", "/v1/inspect-local?radius=%d&detail=%s" % (radius, detail), None, {})
+        return E.inspect_local(radius, detail)
 
     def inspect(self, ref, detail="summary"):
-        from urllib.parse import quote
-        return L.call("POST", "/v1/inspect?ref=%s&detail=%s" % (quote(ref, safe=""), quote(detail)), None, {})
+        return E.inspect(ref, detail)
 
     def graphs(self, graph_id=None):
-        return L.call("GET", "/v1/graphs" + ("/" + graph_id if graph_id else ""), self.lease)
+        return E.graphs(self.lease, graph_id)
 
     def status(self, ex_id=None):
-        return L.execution(self.lease, ex_id) if ex_id else L.status()
+        return E.execution(self.lease, ex_id) if ex_id else E.status()
 
-    def submit(self, op, args, tag=None):
-        """异步提交:返回 execution_id;失败返回 (None, submit_dict)。"""
+    def events(self, cursor=None, wait_s=20):
+        return E.events(cursor, wait_s)
+
+    # ---------- 执行 ----------
+
+    def submit(self, op, args, tag=None, preempt=False):
+        """异步提交:成功返回 (execution_id, None);失败返回 (None, fault_dict)。
+
+        fault_dict: {"http", "error", "preempted": bool}。失败分类处理:
+        - 参数/语义/容量/未知错误:直接返回,不触碰进行中执行(C01)。
+        - execution_in_progress + preempt=True:取消 status 中确切 execution_id,
+          有界等待释放后重试一次;preempt=False 直接返回失败。
+        - observe_required/body_unavailable:观察对账 + 有限重试,不 cancel。
+        """
         self.keepalive()
         tag = tag or ("play-" + op)
-        r = L.submit(self.lease, op, args, tag)
-        if not r.get("ok"):
-            # LLM 优先级抢占:槽被占(残留/僵尸执行)直接取消它,立即接管,
-            # 不再干等服务器 stall 兜底(实测一等就是 2 分钟)。
-            st = self.status()["data"]
-            active = st.get("active_execution") or {}
-            if active.get("execution_id"):
-                try:
-                    L.control(self.lease, active["execution_id"], "cancel",
-                              "llm-preempt")
-                except Exception:
-                    pass
-            for _ in range(15):  # 等抢占生效(<=30s)
-                st = self.status()["data"]
-                if not st.get("active_execution"):
-                    break
+        preempted = False
+        for attempt in range(4):
+            r = E.submit(self.lease, op, args, tag)
+            if r.get("ok"):
+                return r["data"]["execution_id"], None
+            code, kind = _fault(r)
+            if kind in RECONCILE_RETRY:
+                E.observe(self.lease)
                 time.sleep(2)
-            r = L.submit(self.lease, op, args, tag)
-            if not r.get("ok"):
-                time.sleep(3)
-                return None, r
-        return r["data"]["execution_id"], None
+                continue
+            if kind in SLOT_BUSY and preempt and attempt == 0:
+                st = (self.status().get("data") or {})
+                active = st.get("active_execution") or {}
+                target = active.get("execution_id")
+                if target:
+                    try:
+                        E.control(self.lease, target, "cancel", "llm-preempt-authorized")
+                        preempted = True
+                    except Exception:
+                        pass
+                    for _ in range(15):  # 有界等待释放(<=30s)
+                        st = (self.status().get("data") or {})
+                        if not st.get("active_execution"):
+                            break
+                        time.sleep(2)
+                continue
+            # 其余一切错误:准确失败,不 cancel 不重试
+            return None, {"http": code, "error": kind, "preempted": preempted}
+        return None, {"http": code, "error": kind, "preempted": preempted}
 
     def poll(self, ex_id):
         """非阻塞查执行状态。"""
-        d = (self.status(ex_id).get("data") or {})
-        return d
+        return (self.status(ex_id).get("data") or {})
 
     def term(self, ex_id, timeout_s=180, cancel_on_timeout=True):
-        """等待终态;超时可主动取消释放执行槽。"""
-        res, trail = L.wait_terminal(self.lease, ex_id, timeout_s=timeout_s)
+        """等待终态;超时主动取消自己的执行释放槽位(有界,带对账)。"""
+        res, trail = E.wait_terminal(self.lease, ex_id, timeout_s=timeout_s)
         if res.get("state") == "TIMEOUT" and cancel_on_timeout:
             for _ in range(4):
                 try:
-                    c = L.control(self.lease, ex_id, "cancel", "play-timeout-cancel")
+                    c = E.control(self.lease, ex_id, "cancel", "play-timeout-cancel")
                     if c.get("ok"):
                         break
                 except Exception:
                     pass
-                self.keepalive()
+                try:
+                    self.keepalive()
+                except RuntimeError:
+                    break
                 time.sleep(2)
-        for _ in range(25):
-            st = self.status()["data"]
-            if not st.get("active_execution"):
-                break
-            time.sleep(2)
+            # 等待确定回执:终态或 outcome_unknown,不是清变量就当空闲
+            res2, trail2 = E.wait_terminal(self.lease, ex_id, timeout_s=30)
+            if res2.get("state") != "TIMEOUT":
+                res, trail = res2, trail + trail2
         return res, trail
 
-    def do(self, op, args, timeout_s=180, tag=None):
-        ex_id, err = self.submit(op, args, tag)
+    def do(self, op, args, timeout_s=180, tag=None, preempt=False):
+        ex_id, err = self.submit(op, args, tag, preempt=preempt)
         if ex_id is None:
             return {"op": op, "submit": err}
         res, trail = self.term(ex_id, timeout_s=timeout_s)
         return {"op": op, "execution_id": ex_id, "terminal": res}
 
-    def do_async(self, op, args, tag=None):
-        """异步执行:立即返回 (ex_id, None) 或 (None, err)。"""
-        return self.submit(op, args, tag)
-        if not r.get("ok"):
-            # submit 409(执行槽被占,常见于上个进程被杀后 in-flight 执行残留):
-            # 等服务器 stall 兜底(<=120s)释放后重试一次
-            for _ in range(65):
-                st = self.status()["data"]
-                if not st.get("active_execution"):
-                    break
-                time.sleep(2)
-            r = L.submit(self.lease, op, args, tag)
-            if not r.get("ok"):
-                time.sleep(5)  # 退避:防上层空转循环打爆桥
-                return {"op": op, "submit": r}
-        ex_id = r["data"]["execution_id"]
-        res, trail = L.wait_terminal(self.lease, ex_id, timeout_s=timeout_s)
-        if res.get("state") == "TIMEOUT":  # 主动取消释放执行槽(带重试+对账)
-            for attempt in range(4):
-                try:
-                    c = L.control(self.lease, ex_id, "cancel", "play-timeout-cancel")
-                    if c.get("ok"):
-                        break
-                except Exception:
-                    pass
-                self.keepalive()
-                time.sleep(2)
-        # 等执行槽真正释放(最多 50s),避免下一个动作撞 execution_in_progress
-        for _ in range(25):
-            st = self.status()["data"]
-            if not st.get("active_execution"):
-                break
-            time.sleep(2)
-        return {"op": op, "execution_id": ex_id, "terminal": res}
+    def do_async(self, op, args, tag=None, preempt=False):
+        """异步执行:立即返回 (ex_id, None) 或 (None, fault_dict)。"""
+        return self.submit(op, args, tag, preempt=preempt)
 
     def ctl(self, ex_id, action):
-        return L.control(self.lease, ex_id, action, "play-ctl")
-
-    def events(self, cursor=None, wait_s=20):
-        path = "/v1/events" + ("?cursor=%s&waitMs=%d" % (cursor, wait_s * 1000) if cursor else "?waitMs=%d" % (wait_s * 1000))
-        return L.call("GET", path, None, {}, timeout=wait_s + 15)
+        return E.control(self.lease, ex_id, action, "play-ctl")
 
 
 def _print(obj):
@@ -229,7 +234,8 @@ def main():
         return 0
     cmd = a[0]
     if cmd == "rcon":
-        print(L.rcon(" ".join(a[1:])))
+        import os
+        print(E.rcon(" ".join(a[1:])))
         return 0
     s = Session()
     if cmd == "observe":
@@ -248,8 +254,11 @@ def main():
         _print(s.status(a[1] if len(a) > 1 else None))
     elif cmd == "do":
         op, args = a[1], (json.loads(a[2]) if len(a) > 2 else {})
-        t = int(a[3]) if len(a) > 3 else 180
-        _print(s.do(op, args, timeout_s=t))
+        rest = a[3:]
+        preempt = "--preempt" in rest
+        rest = [x for x in rest if x != "--preempt"]
+        t = int(rest[0]) if rest else 180
+        _print(s.do(op, args, timeout_s=t, preempt=preempt))
     elif cmd == "ctl":
         _print(s.ctl(a[1], a[2]))
     elif cmd == "events":

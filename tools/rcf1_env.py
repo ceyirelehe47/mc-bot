@@ -254,21 +254,112 @@ def call(method, path, lease=None, body=None, headers=None, timeout=25):
         return {"_unreachable": True}
 
 
-def acquire_lease(owner, wait_s=30):
+LEASE_STATE_DIR = os.path.join(REPO, ".build")
+
+
+def acquire_lease(owner, wait_s=30, reuse=True):
+    """获取控制租约。per-owner 状态文件复用未过期 token,避免同 owner 连续 CLI
+    调用互相抢租约;状态文件绝不跨 owner 共享(owner 名即身份,写入时锁定)。"""
+    state_file = os.path.join(LEASE_STATE_DIR, "rcf1-lease-%s.json" % owner)
     deadline = time.time() + wait_s
-    suffix = secrets.token_hex(3)
     while time.time() < deadline:
-        r = call("POST", "/v1/lease", headers={"X-Owner-Id": owner + "-" + suffix})
+        if reuse and os.path.exists(state_file):
+            try:
+                st = json.load(open(state_file, encoding="utf-8"))
+                if st.get("token") and st.get("owner", "").startswith(owner):
+                    r = call("POST", "/v1/lease", st["token"], None,
+                             {"X-Owner-Id": st["owner"]})
+                    if r.get("ok"):
+                        # 桥可能轮换 token:必须采用响应里的新值,回存状态文件
+                        tok = (r.get("data") or {}).get("token") or st["token"]
+                        if tok != st["token"]:
+                            json.dump({"owner": st["owner"], "token": tok,
+                                       "ts": time.time()},
+                                      open(state_file, "w", encoding="utf-8"))
+                        return tok
+            except Exception:
+                pass
+        this_owner = "%s-%s" % (owner, secrets.token_hex(3))
+        r = call("POST", "/v1/lease", headers={"X-Owner-Id": this_owner})
         if r.get("ok"):
-            return r["data"]["token"]
+            tok = r["data"]["token"]
+            os.makedirs(LEASE_STATE_DIR, exist_ok=True)
+            json.dump({"owner": this_owner, "token": tok, "ts": time.time()},
+                      open(state_file, "w", encoding="utf-8"))
+            return tok
         time.sleep(2)
     return None
-
-
 def release_lease(lease):
     return call("DELETE", "/v1/lease", lease)
 
 
+def submit(lease, op, args, tag):
+    rid = "rcf1-%s-%d" % (tag, int(time.time() * 1000) % 100000000)
+    return call("POST", "/v1/executions/" + op, lease, args, {"X-Request-Id": rid})
+
+
+def execution(lease, ex_id):
+    return call("GET", "/v1/executions/" + ex_id, lease)
+
+
+def status():
+    return call("GET", "/v1/status")
+
+
+def view(lease=None):
+    return call("POST", "/v1/view", lease, {})
+
+
+def observe(lease=None):
+    return call("GET", "/v1/observe", lease)
+
+
+def control(lease, ex_id, action, tag):
+    rid = "rcf1-%s-%d" % (tag, int(time.time() * 1000) % 100000000)
+    return call("POST", "/v1/executions/%s/%s" % (ex_id, action), lease, {}, {"X-Request-Id": rid})
+
+
+TERMINAL_STATES = ("completed", "failed", "cancelled", "outcome_unknown", "rejected")
+
+
+def wait_terminal(lease, ex_id, timeout_s=120, poll_s=0.8):
+    """轮询至终态;LEASE 全程续租。超时返回 {'state': 'TIMEOUT', ...}。"""
+    t0 = time.time()
+    last = None
+    trail = []
+    while time.time() - t0 < timeout_s:
+        last = execution(lease, ex_id)
+        d = last.get("data") or {}
+        st = d.get("state")
+        low = st.lower() if isinstance(st, str) else ""
+        trail.append((round(time.time() - t0, 2), low, (d.get("reason") or "")[:80]))
+        if low in TERMINAL_STATES:
+            return d, trail
+        call("POST", "/v1/lease/renew", lease)
+        time.sleep(poll_s)
+    return {"state": "TIMEOUT", "last": last}, trail
+
+
+def events(cursor=None, wait_s=20):
+    path = "/v1/events"
+    if cursor:
+        path += "?cursor=%s&waitMs=%d" % (cursor, wait_s * 1000)
+    else:
+        path += "?waitMs=%d" % (wait_s * 1000)
+    return call("GET", path, timeout=wait_s + 15)
+
+
+def inspect_local(radius=6, detail="summary"):
+    return call("POST", "/v1/inspect-local?radius=%d&detail=%s" % (radius, detail), None, {})
+
+
+def inspect(ref, detail="summary"):
+    from urllib.parse import quote
+    return call("POST", "/v1/inspect?ref=%s&detail=%s" % (quote(ref, safe=""), quote(detail)), None, {})
+
+
+def graphs(lease, graph_id=None):
+    return call("GET", "/v1/graphs" + ("/" + graph_id if graph_id else ""), lease)
 def bob_online():
     out = rcon("list") or ""
     return "Bob" in out, out.strip()

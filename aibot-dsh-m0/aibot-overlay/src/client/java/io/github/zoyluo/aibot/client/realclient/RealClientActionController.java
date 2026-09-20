@@ -326,6 +326,12 @@ final class RealClientActionController {
         client.options.jumpKey.setPressed(false);
         client.options.sprintKey.setPressed(false);
         client.options.attackKey.setPressed(false);
+        // MC-RCF-1 G1(C06/C02): useKey 是 eat/place 的持续输入,sneakKey 影响落点与
+        // 挖掘,pickItem 可能被屏幕路径按下;取消/终态/替换清理必须一并复位,
+        // 否则取消进食/放置后按键残留会继续产生未授权使用。
+        client.options.useKey.setPressed(false);
+        client.options.sneakKey.setPressed(false);
+        client.options.pickItemKey.setPressed(false);
     }
 
     private static void closeHandled(
