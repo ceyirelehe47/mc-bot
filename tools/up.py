@@ -67,8 +67,34 @@ def run():
             print("BOB-JOIN-FAILED", flush=True)
             raise SystemExit(1)
     print("PLAY-READY", flush=True)
+    # 运行期巡检:服务器/客户端中途崩溃自动拉起(此前 PLAY-READY 后只睡,
+    # java 全挂 supervisor 也不会发现,实测桥 10061 无响应)。
+    fail_count = 0
     while True:
         time.sleep(30)
+        try:
+            if not L.server_pid():
+                print("WATCHDOG: server gone, restarting", flush=True)
+                kill_clients_confirmed()
+                L.start_server(log_name="server-play-watchdog.log", extra_env=extra)
+                if not start_bob_confirmed():
+                    print("WATCHDOG: bob failed after server restart", flush=True)
+                else:
+                    print("PLAY-READY", flush=True)
+                continue
+            out = L.rcon("list") or ""
+            if "Bob" not in out:
+                fail_count += 1
+                if fail_count >= 3:
+                    print("WATCHDOG: bob offline, restarting client", flush=True)
+                    kill_clients_confirmed()
+                    if not start_bob_confirmed():
+                        print("WATCHDOG: client restart failed", flush=True)
+                    fail_count = 0
+            else:
+                fail_count = 0
+        except Exception as e:
+            print("WATCHDOG err: %s" % str(e)[:80], flush=True)
 
 
 def stop():
