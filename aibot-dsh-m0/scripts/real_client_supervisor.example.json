@@ -1,0 +1,22 @@
+{
+  "username": "Bob",
+  "body_id": "bob",
+  "minecraft_server": "127.0.0.1:25565",
+  "control_host": "127.0.0.1",
+  "control_port": 8766,
+  "cwd": "D:/code/mc-experiment/aibot-real-client",
+  "command": [
+    "gradlew.bat",
+    "--no-daemon",
+    "runClient",
+    "--args",
+    "--username {username} --uuid {offline_uuid} --accessToken 0 --userType legacy --quickPlayMultiplayer {minecraft_server}"
+  ],
+  "environment": {
+    "AIBOT_REAL_CLIENT_TOKEN": "replace-with-the-same-private-token-used-by-the-server"
+  },
+  "state_file": "D:/code/mc-experiment/real-client-state.json",
+  "log_file": "D:/code/mc-experiment/real-client.log",
+  "stable_runtime_seconds": 30,
+  "maximum_backoff_seconds": 30
+}

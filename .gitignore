@@ -1,0 +1,26 @@
+# 敏感信息与本地杂物,绝不入库
+numen-llm-config.txt
+*.zip
+.bin/
+aibot-dsh-m0/.build/
+# 本地临时文件
+*.pyc
+__pycache__/
+Thumbs.db
+neoforge-installer.jar.log
+# MC-2A evidence hygiene: credentials and third-party binaries stay local
+.secrets/
+.local-third-party/
+*.secret
+*.token
+aibot-mc2a0-*-delivery/**/jar/
+aibot-mc2a0-*-delivery/**/*.jar
+aibot-mc2a0-*-delivery/**/*stdout*.log
+aibot-mc2a0-*-delivery/**/*-pid.txt
+*.jar
+# MC-RCF-1: 旧时代归档与运行状态不再进入新分支(磁盘保留,git 不跟踪)
+.build/
+archive/
+deliveries/*
+!deliveries/mc-rcf1/
+taskpacks/

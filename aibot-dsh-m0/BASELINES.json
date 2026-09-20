@@ -1,0 +1,15 @@
+{
+  "aibot": {
+    "repository": "zoyluoblue/mc_aiplayer",
+    "commit": "a029fa6a3760fd0f83834c104051b041d986da60",
+    "minecraft": "1.21.3",
+    "java": 21
+  },
+  "dsh": {
+    "repository": "deepseek-ai/deepseek-harness",
+    "commit": "5dda764ed3aa172535a7967b06ff95d9cbfe536a",
+    "pin_source": "Actual public APIs read at this immutable commit; release tag not relied on."
+  },
+  "implementation_scope": "Independent AIBot external-body experiment; no Iris Core/Context/Memory integration",
+  "remote_target": "No accessible ceyirelehe47/mc_aiplayer fork found (404); no remote mutation performed"
+}

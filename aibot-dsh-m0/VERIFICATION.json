@@ -1,0 +1,79 @@
+{
+  "artifact": "aibot-dsh-m0",
+  "version": "0.2.0-integrated-m0",
+  "date": "2026-09-09",
+  "status": "INTEGRATED_AND_GAMEPLAY_VERIFIED_CORE",
+  "baselines": {
+    "aibot": {
+      "repository": "zoyluoblue/mc_aiplayer",
+      "commit": "a029fa6a3760fd0f83834c104051b041d986da60",
+      "minecraft": "1.21.3",
+      "java": 21
+    },
+    "dsh": {
+      "repository": "deepseek-ai/deepseek-harness",
+      "commit": "5dda764ed3aa172535a7967b06ff95d9cbfe536a"
+    },
+    "llm": {
+      "gateway": "Command Code Goat (OpenAI-compatible)",
+      "model": "deepseek/deepseek-v4-flash",
+      "context_window": 409600
+    }
+  },
+  "fixes_added_by_this_integration": {
+    "night_task_crash": "DangerWatcher SYSTEM_BACKGROUND auto-tasks (night lighting/resupply/eat/hunt/dark-area) threw uncaught external_body_reserved_use_dsh_bridge in the server tick loop, crashing the server deterministically every restart once world time entered night. Fixed by reserved() early-return in 4 maintenance methods (maybeResupply/maybeEat/maybeStartNightTask/maybeLightDarkArea); all SAFETY paths (threat defense, lava escape, death respawn, drop recovery) remain active. Two iterations: first whole-scanBot skip wrongly disabled SAFETY (proved by Bob being slain and stuck dead); final precise fix battle-tested (evade LOW_HP + creeper_defense both ran).",
+    "windows_test_fixes": "http-integration observation-cache vs execution-state 1-tick race (fast loopback) — wait now requires observed physical_starts; child.kill('SIGTERM') does not terminate the java child on Windows — taskkill /T /F tree kill. Offline suite green, zero leaks.",
+    "in_game_chat": "ChatCaptureListener: no-mention player chat routed to the reserved body (authorization gate and control-phrase semantics unchanged). say operation now broadcasts to global chat in addition to the panel."
+  },
+  "executed": [
+    {
+      "suite": "Baseline frozen checkout gradle compileJava+test",
+      "result": "PASS",
+      "evidence": "evidence/baseline-gradle-build.txt"
+    },
+    {
+      "suite": "Patched compileJava+test+build (incl. GameTest chain)",
+      "result": "PASS",
+      "evidence": "evidence/patched-compile.txt, evidence/patched-test.txt"
+    },
+    {
+      "suite": "Offline suite (after Windows fixes)",
+      "result": "PASS",
+      "counts": {"java": "57 checks", "node": "34/34", "installer": "11/11"}
+    },
+    {
+      "suite": "Real DSH web profile plugin load + 16 tools",
+      "result": "VERIFIED",
+      "detail": "aibot-body plugin running; connect/observe/gather/craft/say invoked live; canonical JSON results and error rendering verified"
+    },
+    {
+      "suite": "Live acceptance: connect/observe/gather-4-logs/4-step-craft chain with independent inventory verification",
+      "result": "VERIFIED",
+      "evidence": "04-live-acceptance/dsh-sessions + LIVE-ACCEPTANCE-REPORT.zh-CN.md"
+    },
+    {
+      "suite": "Live failure scenarios: server crash+restart reconciliation, lease invalidation+reconnect, death+respawn+safety defense, safety preemption mutual exclusion",
+      "result": "VERIFIED",
+      "evidence": "05-incident/crash-night-task-guard.txt, server-boot-logs 2-4"
+    },
+    {
+      "suite": "Player chat reaches DSH (no-mention direct chat), replies in global chat",
+      "result": "VERIFIED",
+      "detail": "User skyline_cc live play 22:07-22:17: gather->planks->crafting table->wooden pickaxe/axe->stone pickaxe/sword->furnace->charcoal, all origin_reason=external_dsh"
+    }
+  ],
+  "not_run": [
+    "Full in-game 5-step control chain (pause/resume/cancel + stale execution isolation) — covered by offline HTTP integration and busy-rejection live evidence; interrupted by crash incident + world rebuild",
+    "Legacy save with active Mission migration",
+    "Multi-session/multi-process lease contention beyond observed 409 behavior"
+  ],
+  "environment": {
+    "os": "Windows 11",
+    "java": "OpenJDK 21.0.12.1 (Adoptium)",
+    "gradle": "9.4.0 / Fabric Loom 1.16.2",
+    "node": "22.19.0",
+    "pnpm": "11.7.0",
+    "python": "3.13.7"
+  },
+  "deliverable": "delivery/ inside this repository (01 source patch, 02 build/test, 03 offline suite, 04 live acceptance incl. dsh session JSONL + server boot logs, 05 incident, 06 conclusion)"
+}
