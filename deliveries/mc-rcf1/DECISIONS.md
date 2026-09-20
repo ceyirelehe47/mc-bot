@@ -61,3 +61,12 @@
 - 工作站位评价:当前在玩层(站位=可站格+face 目标);G3/G4 需要时扩展评价器(脚/头空间/LOS 由 Baritone 可达性+face 距离约束隐式覆盖)。
 - 绕行备选未启用(Baritone 达标);输入隔离与 Baritone 共存实测正常(unpressAll 在 actuator 写键前,Baritone 自写自读不冲突)。
 - 教训入台账:源码三副本(overlay/活树/构建树)同步靠手工 cp 漏了控制器→旧字节码假跑 3 轮 N 组;现部署必须解包验证字节码再重启。
+
+## G3 记录(2026-09-21 02:40)
+- 原生化:craft 2x2/3x3、place、eat、move_items 全部经 clickSlot/interactBlock 正常玩家链;服务端写包路径(InventoryCrafting.java)从 overlay/活树/构建树三处删除。
+- 增量语义:craft count=新增产出(批次向上取整,reason 报 baseline->after:delta=batches);move count=移动量;已满足/不足均明确拒绝不假成功(A03/A04/A05)。
+- 屏幕权威:3x3 绑定 exact CraftingScreen+CraftingScreenHandler+syncId;表屏库存槽基址 10/37 与玩家屏 9/36 区分(实测余料回 9 落合成格的教训)。
+- 同步竞态对策(核心教训):本地 ScreenHandler 状态滞后于 clickSlot ~2-3 tick;全部事务动作改为"点击→cooldown→以格子/光标实况确认→推进"状态机,禁止连续快点击。
+- place 完成证明:支撑面暴露面语义(f.getOpposite())、正交站位、预计落点=命中面偏移=目标格、块身份+库存消耗核验。
+- eat 完成证明:food 消耗+hunger 上升(server_authoritative_food_consumed),抬头进食+单块时窗防连吃/防开屏。
+- I/A 组 12/12(证据 ia-group/)。A09/A10(mine 目标绑定/拾取区分)按计划在 G4 链内验证。C06(cursor 取消)已由 move_items 状态机的 cursor 去向分支覆盖(client_move_cursor_* 诚实失败)。
