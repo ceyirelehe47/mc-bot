@@ -345,6 +345,18 @@ public final class RealClientOpportunityTracker {
             return Registries.ITEM.getId(Items.QUARTZ).toString();
         if(block==net.minecraft.block.Blocks.NETHER_GOLD_ORE)
             return Registries.ITEM.getId(Items.GOLD_NUGGET).toString();
+        // MC-RCF-1 G4: 挖掘掉落与方块本体不同——石类必须按真实掉落计,
+        // 否则 mine 终验 countItem(stone) 永远为 0(实测)。
+        if(block==net.minecraft.block.Blocks.STONE)
+            return "minecraft:cobblestone";
+        if(block==net.minecraft.block.Blocks.DEEPSLATE)
+            return "minecraft:cobbled_deepslate";
+        if(block==net.minecraft.block.Blocks.GRANITE
+                ||block==net.minecraft.block.Blocks.DIORITE
+                ||block==net.minecraft.block.Blocks.ANDESITE
+                ||block==net.minecraft.block.Blocks.TUFF
+                ||block==net.minecraft.block.Blocks.CALCITE)
+            return Registries.ITEM.getId(block.asItem()).toString();
         Item item=block.asItem();
         if(item==Items.AIR)return "minecraft:air";
         return Registries.ITEM.getId(item).toString();

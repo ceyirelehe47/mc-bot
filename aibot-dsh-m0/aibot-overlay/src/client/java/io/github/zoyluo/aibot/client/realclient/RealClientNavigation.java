@@ -2,6 +2,7 @@ package io.github.zoyluo.aibot.client.realclient;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.pathing.goals.GoalBlock;
+import baritone.api.pathing.goals.GoalNear;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -63,9 +64,14 @@ public final class RealClientNavigation {
             return;
         currentGoal=goal;
         currentRadius=Math.max(0,(int)Math.ceil(radius));
+        // radius>=1:接近语义(GoalNear,挖掘/交互动作自行完成最后逼近);
+        // radius<1:精确站格(GoalBlock)。树冠等不可站目标用接近语义
+        // (GoalBlock 到树冠内永远无路径——实测挖叶卡死根因)。
         BaritoneAPI.getProvider().getPrimaryBaritone()
                 .getCustomGoalProcess()
-                .setGoalAndPath(new GoalBlock(goal));
+                .setGoalAndPath(currentRadius>=1
+                        ?new GoalNear(goal,currentRadius)
+                        :new GoalBlock(goal));
     }
 
     /** True while the library believes it still has work for the current goal. */
