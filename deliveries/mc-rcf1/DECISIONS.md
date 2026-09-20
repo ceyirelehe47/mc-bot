@@ -38,3 +38,11 @@
 2. **构建 TLS 握手失败**(maven.fabricmc.net)。根因:`-g` 自定义 gradle home 绕过了用户全局代理配置。修复:包装 bat 显式传代理。复测:构建成功。
 3. **服务器被 supervisor 树杀**:包装 python 退出→java 子进程同 Job 被杀。修复:java 作为被监督进程经 bat 直启。复测:服务器存活、桥就绪。
 4. **external_bridge_start_failed_closed**:hub env 漏传 token。修复:bat 内 `set /p` 从 .secrets 文件读入。复测:桥绑定成功(fail-closed 行为符合预期)。
+
+## G1 记录(2026-09-20 21:50)
+- 修复:play.py submit 任意失败→cancel 无关执行(现仅 409 execution_in_progress + 显式 preempt 授权,取消对象=status 确切 execution_id);keepalive 固定 llm-play 越权重获(现 per-session owner);do_async 死代码删除。
+- 修复:rcf1_env.acquire_lease reuse 路径丢弃桥轮换的新 token(返回旧值导致 control_lease_invalid)。
+- 修复:RealClientActionController.clearInputs 漏 useKey/sneakKey/pickItemKey——取消进食/放置后按键残留会继续产生未授权使用。
+- 发现(继承弱点,非本轮引入):goto face 转向超时(client_final_facing_timeout)在部分地形高频出现;walkTo 直线+局部偏航导致 C02 途中坠落到 y=94。均属 G2 Baritone 接管范围。
+- C 组 LIVE 5/5 PASS(C01/C02/C03/C04-lite/C05),证据 D:/mc-rcf1-raw/c-group/c-group-20260920-214823.json。C06(use/cursor 取消)依赖 G3 食物/容器事务;C07(journal 淘汰)轻量 LIVE+journal 单测归自动化阶段;C08 记录设计证据(background 窗口+每 tick unpressAll 输入隔离+唯一仲裁器),真实共存需用户客户端在线,列为人工复核项。
+- 环境事实:C 组 fixture(设白天+清 48 格敌对)是开发模式 armed 前布置,计分运行不用;首次无 fixture 运行时 Bob 被夜袭击杀→死亡重生翻转会话→在途执行正确转 outcome_unknown(fence 行为的意外实证)。
