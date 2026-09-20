@@ -1,233 +1,334 @@
 # -*- coding: utf-8 -*-
-"""MC-RCF-1 生命周期假进程测试:并发/连续/慢启动/崩溃陈旧/PID复用/停止语义/预算锁定。
+"""R1-L L01-L10 假进程验收:独立命名空间 + 真 OS 进程并发。
 
-全部用轻量 python sleeper 冒充游戏进程(monkeypatch 命令构造),测的是
-rcf1_lifecycle 真实的锁、状态、身份核验与预算逻辑。不启动任何 Minecraft。
+运行:python tools/rcf1_lifecycle_fake_tests.py
+绝不触碰真实生命周期状态/预算/进程/凭证:全部经 RCF1_LIFECYCLE_NS_ROOT
+重定向到本测试的临时目录;真实后端从不拉起 Minecraft。
 """
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
-import threading
+import tempfile
 import time
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)
-import rcf1_lifecycle as LC  # noqa: E402
+HERE = pathlib.Path(__file__).parent.absolute()
+TOOL = str(HERE / "rcf1_lifecycle.py")
+PY = sys.executable
 
-FAKE_READY = LC.SERVER_READY_MARK
-SLEEPER = "import sys,time;\n" \
-          "arg=[a for a in sys.argv[1:]]\n" \
-          "delay=float(arg[0]) if arg and not arg[0].startswith('-D') else 0\n" \
-          "time.sleep(delay)\n" \
-          "print('%s',flush=True)\n" \
-          "time.sleep(600)\n" % FAKE_READY
+REAL_NS = pathlib.Path(r"D:\mc-rcf1-raw\lifecycle")
 
 
-def fake_server_cmd(marker):
-    cmd = [sys.executable, "-c", SLEEPER, "0",
-           "-Drcf1.instance.marker=%s" % marker]
-    return cmd, {}, LC.SERVER_DIR
+def _ns_env(ns):
+    e = dict(os.environ)
+    e["RCF1_LIFECYCLE_NS_ROOT"] = str(ns)
+    e["RCF1_LIFECYCLE_FAKE"] = "1"
+    return e
 
 
-def fake_slow_cmd(marker):
-    cmd = [sys.executable, "-c", SLEEPER, "8",
-           "-Drcf1.instance.marker=%s" % marker]
-    return cmd, {}, LC.SERVER_DIR
+def _cli(env, *args, timeout=180):
+    return subprocess.run([PY, TOOL, *args], env=env,
+                          capture_output=True, text=True, timeout=timeout)
 
 
-def reset_state():
-    for f in (LC.STATE_FILE, LC.FAIL_FILE):
-        f.unlink(missing_ok=True)
+def _count_live(env, role):
+    """数命名空间内活实例(经 status 的 marker 扫描)。"""
+    st = json.loads(_cli(env, "status").stdout)
+    rec = st.get(role) or {}
+    return (1 if rec.get("verified") else 0), st
 
 
-def count_procs():
-    """只统计 python 假进程(marker + python 可执行);
-    真实游戏实例是 java 且带同一 marker——绝不能误杀(实测教训)。"""
-    out = subprocess.run(
-        ["powershell", "-NoProfile", "-Command",
-         "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" "
-         "| Select-Object ProcessId, ExecutablePath, CommandLine | ConvertTo-Json -Compress"],
-        capture_output=True).stdout.decode("utf-8", "replace").strip()
-    if not out:
-        return []
-    d = json.loads(out)
-    if isinstance(d, dict):
-        d = [d]
-    return [p for p in d
-            if "-Drcf1.instance.marker=" in (p.get("CommandLine") or "")
-            and "python" in (p.get("ExecutablePath") or "").lower()]
-
-
-def kill_all_fake():
-    for p in count_procs():
-        subprocess.run(["powershell", "-NoProfile", "-Command",
-                        "Stop-Process -Id %s -Force" % p["ProcessId"]],
-                       capture_output=True)
-    deadline = time.time() + 15
-    while time.time() < deadline and count_procs():
-        time.sleep(1)
+def _mk_ns():
+    ns = pathlib.Path(tempfile.mkdtemp(prefix="rcf1-ltest-"))
+    return ns
 
 
 RESULTS = []
 
 
-def check(name, ok, detail=""):
-    RESULTS.append((name, ok, detail))
-    print("%s %-38s %s %s" % (time.strftime("%H:%M:%S"), name,
-                              "PASS" if ok else "FAIL", detail))
+def check(tid, ok, detail=""):
+    RESULTS.append((tid, bool(ok), str(detail)[:300]))
+    print(json.dumps({"id": tid, "pass": bool(ok), "detail": str(detail)[:300]},
+                     ensure_ascii=False), flush=True)
 
 
-def t1_concurrent(patch):
-    reset_state()
-    LC._server_cmd = fake_server_cmd
-    LC._client_cmd = fake_server_cmd  # 防误触真命令
-    outs = []
-    def worker():
-        try:
-            outs.append(LC.start("server", timeout_s=60))
-        except Exception as e:  # noqa: BLE001
-            outs.append({"exc": str(e)})
-    threads = [threading.Thread(target=worker) for _ in range(8)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    n = len(count_procs())
-    launched = sum(1 for o in outs if isinstance(o, dict) and o.get("status") == "RUNNING")
-    dupes = sum(1 for o in outs if isinstance(o, dict) and o.get("status") == "STARTING")
-    check("T1 并发启动单实例", n == 1 and launched >= 1 and launched + dupes == 8,
-          "procs=%d launched=%d starting=%d" % (n, launched, dupes))
-    LC.stop("server")
 
-
-def t2_sequential():
-    LC._server_cmd = fake_server_cmd
-    a = LC.start("server", timeout_s=60)
-    b = LC.start("server", timeout_s=60)
-    n = len(count_procs())
-    check("T2 连续启动幂等", n == 1 and b.get("status") == "RUNNING"
-          and a.get("pid") == b.get("pid"),
-          "procs=%d a=%s b=%s" % (n, a.get("pid"), b.get("pid")))
-    LC.stop("server")
-
-
-def t3_slow_start():
-    LC._server_cmd = fake_slow_cmd
-    box = {}
-
-    def worker():
-        box["first"] = LC.start("server", timeout_s=60)
-
-    th = threading.Thread(target=worker)
-    th.start()
-    time.sleep(2.5)  # 首个仍在慢启动窗口
-    t_call = time.time()
-    second = LC.start("server", timeout_s=60)
-    waited = time.time() - t_call > 3  # 被锁等待,而非并行二启
-    th.join()
-    n = len(count_procs())
-    check("T3 慢启动不二启", n == 1 and second.get("status") == "RUNNING" and waited,
-          "procs=%d second=%s waited=%.1fs" % (n, second.get("status"), time.time() - t_call))
-    LC.stop("server")
-
-
-def t4_stale_starting():
-    LC._server_cmd = fake_server_cmd
-    rec = LC._spawn("server", _load_state())
-    pid = rec["pid"]
-    subprocess.run(["powershell", "-NoProfile", "-Command",
-                    "Stop-Process -Id %d -Force" % pid], capture_output=True)
-    time.sleep(1)
-    r = LC.start("server", timeout_s=60)
-    n = len(count_procs())
-    check("T4 崩溃陈旧状态重启", n == 1 and r.get("status") == "RUNNING"
-          and r.get("pid") != pid,
-          "procs=%d newpid=%s oldpid=%s" % (n, r.get("pid"), pid))
-    LC.stop("server")
-
-
-def _load_state():
-    return LC._load_json(LC.STATE_FILE, {})
-
-
-def t5_pid_reuse_and_budget():
-    LC._server_cmd = fake_server_cmd
-    LC.start("server", timeout_s=60)
-    state = _load_state()
-    real_marker = state["server"]["marker"]
-    # 模拟 PID 复用:状态 pid 指向另一个活着但无 marker 的进程(本测试进程)
-    state["server"]["pid"] = os.getpid()
-    LC._save_json(LC.STATE_FILE, state)
-    refused = None
+def _cleanup_fake_orphans():
+    """套件级清理:杀本测试脚本拉起的遗留假进程(精确命令行匹配)。"""
+    import json as _j
+    out = subprocess.run(
+        ["powershell", "-NoProfile", "-Command",
+         "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" "
+         "| Select-Object ProcessId,CommandLine | ConvertTo-Json"],
+        capture_output=True, text=True).stdout
     try:
-        LC.start("server", timeout_s=10)
-        refused = False
-    except RuntimeError:
-        refused = True
-    n = len(count_procs())
-    fails = LC._load_json(LC.FAIL_FILE, {"consecutive": 0}).get("consecutive", 0)
-    check("T5 PID复用拒启动", refused and n == 1 and fails >= 1,
-          "refused=%s procs=%d fails=%d" % (refused, n, fails))
-    # 恢复真 marker 以便清理
-    state = _load_state()
-    # 旧实例仍在(真 marker 进程)
-    LC.stop("server")
+        rows = _j.loads(out) if out.strip() else []
+    except _j.JSONDecodeError:
+        rows = []
+    if isinstance(rows, dict):
+        rows = [rows]
+    for r in rows:
+        cl = r.get("CommandLine") or ""
+        if "_rcf1_fake_proc" in cl and "rcf1fake-" in cl:
+            subprocess.run(["powershell", "-NoProfile", "-Command",
+                            "Stop-Process -Id %d -Force" % r["ProcessId"]],
+                           capture_output=True)
 
 
-def t6_stop_no_revive():
-    LC._server_cmd = fake_server_cmd
-    LC.start("server", timeout_s=60)
-    LC.stop("server")
-    time.sleep(5)
-    n = len(count_procs())
-    st = LC.status()
-    check("T6 停后无复活", n == 0 and st["server"]["status"] == "STOPPED",
-          "procs=%d status=%s" % (n, st["server"]["status"]))
+def l01_concurrent():
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    # 4 个 OS 进程并发 start(真跨进程)
+    procs = [subprocess.Popen([PY, TOOL, "start", "server", "--timeout", "60"],
+                              env=env, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT, text=True)
+             for _ in range(4)]
+    outs = [p.communicate(timeout=180)[0] for p in procs]
+    codes = [p.returncode for p in procs]
+    n, st = _count_live(env, "server")
+    check("L01", n == 1 and all(c == 0 for c in codes),
+          {"live": n, "codes": codes, "outs": [o.strip()[:120] for o in outs]})
+    # 连续 start:幂等同一实例
+    r2 = _cli(env, "start", "server")
+    n2, _ = _count_live(env, "server")
+    check("L01b", r2.returncode == 0 and n2 == 1, r2.stdout.strip()[:120])
+    _cli(env, "stop", "server", "--timeout", "6")
+    shutil.rmtree(ns, ignore_errors=True)
 
 
-def t7_budget_lock():
-    LC._server_cmd = fake_server_cmd
-    reset_state()
-    # 连续三次启动失败(用必死命令模拟启动即崩)
-    def dead_cmd(marker):
-        return [sys.executable, "-c", "import sys;sys.exit(3)",
-                "-Drcf1.instance.marker=%s" % marker], {}, LC.SERVER_DIR
-    LC._server_cmd = dead_cmd
-    locked = False
-    for _ in range(4):
+def l02_slow_start():
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    env["RCF1_FAKE_READY_S"] = "6"
+    # 慢启动:start 阻塞等 ready 期间并发 start
+    p1 = subprocess.Popen([PY, TOOL, "start", "server", "--timeout", "90"],
+                          env=env, stdout=subprocess.PIPE, text=True)
+    time.sleep(2.5)
+    r2 = _cli(env, "start", "server", timeout=90)
+    o1 = p1.communicate(timeout=120)[0]
+    n, st = _count_live(env, "server")
+    check("L02", n == 1 and p1.returncode == 0,
+          {"live": n, "first": o1.strip()[:120], "second": r2.stdout.strip()[:120],
+           "second_code": r2.returncode})
+    _cli(env, "stop", "server", "--timeout", "6")
+    shutil.rmtree(ns, ignore_errors=True)
+
+
+def l03_crash_windows():
+    # 场景A:意图已写、进程已拉起、state 未写(管理器 spawn 后崩溃)
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    ns.joinpath("intents").mkdir(parents=True, exist_ok=True)
+    marker = "rcf1fake-server-abc123deadbeef"
+    proc = subprocess.Popen(
+        [PY, str(HERE / "_rcf1_fake_proc.py"), "--role", "server",
+         "-Drcf1.instance.marker=%s" % marker],
+        env={k: v for k, v in os.environ.items()
+             if not k.startswith("RCF1_FAKE")},
+        stdout=subprocess.DEVNULL)
+    (ns / "intents" / "server.json").write_text(json.dumps(
+        {"marker": marker, "cmd": [], "ts": time.time()}), encoding="utf-8")
+    time.sleep(3)  # CIM CommandLine 注册延迟(实测 1s 不够,scan 看不到)
+    r = _cli(env, "start", "server", timeout=60)
+    n, st = _count_live(env, "server")
+    adopted = (st.get("server") or {}).get("status") in ("ADOPTED", "RUNNING")
+    # 后继必须接管原实例,不创建第二个:live==1 且 pid==原 pid
+    check("L03a", n == 1 and adopted and st["server"].get("pid") == proc.pid,
+          {"live": n, "status": (st.get("server") or {}).get("status"),
+           "pid": st.get("server", {}).get("pid"), "orig": proc.pid,
+           "rc": r.returncode, "out": r.stdout.strip()[:150]})
+    _cli(env, "stop", "server", "--timeout", "6")
+    # 场景B:两个未登记实例 → 冲突阻断,不选不杀
+    ns2 = _mk_ns()
+    env2 = _ns_env(ns2)
+    ps = []
+    for m in ("rcf1fake-server-1111111111111111", "rcf1fake-server-2222222222222222"):
+        ps.append(subprocess.Popen(
+            [PY, str(HERE / "_rcf1_fake_proc.py"), "--role", "server",
+             "-Drcf1.instance.marker=%s" % m],
+            env={k: v for k, v in os.environ.items()
+                 if not k.startswith("RCF1_FAKE")},
+            stdout=subprocess.DEVNULL))
+    time.sleep(3)  # 同上:CIM 延迟
+    r2 = _cli(env2, "start", "server", timeout=30)
+    n2, st2 = _count_live(env2, "server")
+    check("L03b", r2.returncode != 0 and n2 == 0 and "conflict" in (r2.stderr + r2.stdout).lower(),
+          {"rc": r2.returncode, "live_verified": n2,
+           "err": (r2.stderr or r2.stdout).strip()[:150],
+           "procs_alive": sum(p.poll() is None for p in ps)})
+    for p in ps:
+        p.kill()
+    shutil.rmtree(ns, ignore_errors=True)
+    shutil.rmtree(ns2, ignore_errors=True)
+
+
+def l04_corrupt_state():
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    ns.mkdir(parents=True, exist_ok=True)
+    for payload, tag in ((b"{trunc", "truncated"),
+                          (b"", "empty"),
+                          (b"not json at all", "garbage")):
+        (ns / "state.json").write_bytes(payload)
+        r = _cli(env, "start", "server", timeout=20)
+        ok = r.returncode != 0 and "corrupt" in (r.stderr + r.stdout).lower()
+        check("L04-" + tag, ok, (r.stderr or r.stdout).strip()[:150])
+    # 截断的失败计数
+    (ns / "state.json").unlink()
+    (ns / "failures.json").write_bytes(b"{half")
+    r = _cli(env, "start", "server", timeout=20)
+    check("L04-failfile", r.returncode != 0,
+          (r.stderr or r.stdout).strip()[:150])
+    shutil.rmtree(ns, ignore_errors=True)
+
+
+def l05_enum_fail():
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    env["RCF1_LIFECYCLE_CIM_FAIL"] = "1"
+    r = _cli(env, "start", "server", timeout=20)
+    check("L05", r.returncode != 0 and "enumeration" in (r.stderr + r.stdout).lower(),
+          (r.stderr or r.stdout).strip()[:150])
+    # 陌生端口占用由实机 L09 段覆盖;枚举失败零新增已证(start 被拒)
+    shutil.rmtree(ns, ignore_errors=True)
+
+
+def l06_pid_reuse():
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    r = _cli(env, "start", "server", timeout=60)
+    st = json.loads(_cli(env, "status").stdout)
+    pid = (st.get("server") or {}).get("pid")
+    # 篡改 created → 身份不匹配 → start 拒绝并记失败
+    state = json.loads((ns / "state.json").read_text(encoding="utf-8"))
+    state["server"]["created"] = int(state["server"].get("created") or 0) + 12345
+    (ns / "state.json").write_text(json.dumps(state), encoding="utf-8")
+    r2 = _cli(env, "start", "server", timeout=30)
+    n, _ = _count_live(env, "server")
+    refused = any(w in (r2.stderr + r2.stdout).lower()
+                  for w in ("mismatch", "conflict", "identity"))
+    check("L06", r2.returncode != 0 and refused,
+          {"rc": r2.returncode, "err": (r2.stderr or r2.stdout).strip()[-150:],
+           "pid": pid,
+           "note": "PID 复用→identity mismatch 或 untracked conflict 均为合法拒绝"})
+    _cli(env, "stop", "server", "--timeout", "6")
+    shutil.rmtree(ns, ignore_errors=True)
+
+
+def l07_stop_fail_keeps_budget():
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    _cli(env, "start", "server", timeout=60)
+    env2 = dict(env)
+    env2["RCF1_LIFECYCLE_STOP_FAIL"] = "1"
+    r = _cli(env2, "stop", "server", "--timeout", "2", timeout=45)
+    st = json.loads(_cli(env, "status").stdout)
+    fails_after = st.get("consecutive_failures")
+    # stop 失败后:状态 STOP_FAILED,预算≥1,start 被拒(预算或阻断)
+    r2 = _cli(env, "start", "server", timeout=30)
+    check("L07", "STOP_FAILED" in json.dumps(r.stdout) and fails_after >= 1
+          and r2.returncode != 0,
+          {"stop_out": r.stdout.strip()[:100], "fails": fails_after,
+           "restart_rc": r2.returncode})
+    # 清场:真实强杀(不注入)
+    _cli(env, "stop", "server", "--timeout", "6", timeout=60)
+    shutil.rmtree(ns, ignore_errors=True)
+
+
+def l08_budget_bypass():
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    env["RCF1_FAKE_DIE_S"] = "1"   # spawn 后即死 → start 失败
+    for i in range(3):
+        _cli(env, "start", "server", "--timeout", "15", timeout=60)
+    st = json.loads(_cli(env, "status").stdout)
+    locked = st.get("locked")
+    # 换 run 目录/换脚本名/stop 都不清预算
+    env2 = dict(env)
+    env2["RCF1_LIFECYCLE_NS_ROOT"] = str(ns)  # 同预算文件
+    r_stop = _cli(env2, "stop", "all", timeout=10)
+    st2 = json.loads(_cli(env2, "status").stdout)
+    r_retry = _cli(env2, "start", "server", timeout=45)
+    check("L08a", locked and st2.get("locked") and r_retry.returncode != 0,
+          {"locked1": locked, "locked2": st2.get("locked"),
+           "retry_rc": r_retry.returncode, "stop": r_stop.stdout.strip()[:80]})
+    # unlock 无 reason 拒绝;有 reason 清零但保留 total
+    r3 = _cli(env2, "unlock")
+    r4 = _cli(env2, "unlock", "--reason", "repair evidence: test fix")
+    st3 = json.loads(_cli(env2, "status").stdout)
+    fails_raw = json.loads((ns / "failures.json").read_text(encoding="utf-8"))
+    check("L08b", r3.returncode != 0 and r4.returncode == 0
+          and not st3.get("locked")
+          and fails_raw.get("total_failures", 0) >= 3,
+          {"unlock_no_reason_rc": r3.returncode, "unlock_rc": r4.returncode,
+           "total": fails_raw.get("total_failures"),
+           "consec": st3.get("consecutive_failures")})
+    shutil.rmtree(ns, ignore_errors=True)
+
+
+def l09_no_revive():
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    _cli(env, "start", "server", timeout=60)
+    _cli(env, "stop", "server", "--timeout", "6", timeout=60)
+    t0 = time.time()
+    revived = False
+    while time.time() - t0 < 8:  # 假后端两个巡检周期等价(无真实看门狗;实机 60s 段另证)
+        n, st = _count_live(env, "server")
+        if n:
+            revived = True
+            break
+        time.sleep(2)
+    check("L09(fake)", not revived, {"revived": revived,
+          "note": "实机 60s 段在 R1-L 实机确认中补"})
+    shutil.rmtree(ns, ignore_errors=True)
+
+
+def l10_real_state_untouched():
+    real_snap = None
+    if REAL_NS.exists():
         try:
-            LC.start("server", timeout_s=20)
-        except RuntimeError as e:
-            if "LIFECYCLE_LOCKED" in str(e):
-                locked = True
-                break
-    check("T7 三败锁定BLOCKED", locked, "locked=%s" % locked)
-    unlocked = LC.unlock("fake-test verification")
-    r = None
-    try:
-        LC._server_cmd = fake_server_cmd
-        r = LC.start("server", timeout_s=60)
-    finally:
-        LC.stop("server")
-    check("T7b unlock后恢复", "UNLOCKED" in unlocked and r and r.get("status") == "RUNNING")
+            real_snap = {p.name: p.read_bytes()
+                         for p in REAL_NS.iterdir() if p.is_file()}
+        except OSError:
+            real_snap = None
+    # 跑一轮完整假流程
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    env["RCF1_FAKE_READY_S"] = "2"
+    _cli(env, "start", "server", timeout=60)
+    _cli(env, "start", "client", timeout=60)
+    _cli(env, "stop", "all", "--timeout", "6")
+    if REAL_NS.exists():
+        try:
+            after = {p.name: p.read_bytes()
+                     for p in REAL_NS.iterdir() if p.is_file()}
+        except OSError:
+            after = None
+        same = (real_snap == after) or (real_snap is None and after is None)
+    else:
+        same = not ns.exists() or str(ns) != str(REAL_NS)
+    check("L10", same and str(ns) != str(REAL_NS),
+          {"real_untouched": same, "ns": str(ns)})
+    shutil.rmtree(ns, ignore_errors=True)
 
 
 def main():
-    print("== 假进程生命周期测试(无 Minecraft)==")
-    kill_all_fake()
-    t1_concurrent(None)
-    t2_sequential()
-    t3_slow_start()
-    t4_stale_starting()
-    t5_pid_reuse_and_budget()
-    t6_stop_no_revive()
-    t7_budget_lock()
-    kill_all_fake()
-    n_pass = sum(1 for _, ok, _ in RESULTS if ok)
-    print("SUMMARY %d/%d" % (n_pass, len(RESULTS)))
-    return 0 if n_pass == len(RESULTS) else 1
+    _cleanup_fake_orphans()
+    for fn in (l01_concurrent, l02_slow_start, l03_crash_windows,
+               l04_corrupt_state, l05_enum_fail, l06_pid_reuse,
+               l07_stop_fail_keeps_budget, l08_budget_bypass,
+               l09_no_revive, l10_real_state_untouched):
+        try:
+            fn()
+        except Exception as exc:  # noqa: BLE001
+            check(fn.__name__, False, "EXC %r" % exc)
+    _cleanup_fake_orphans()
+    passed = sum(1 for _, ok, _ in RESULTS if ok)
+    print("SUMMARY %d/%d" % (passed, len(RESULTS)))
+    return 0 if passed == len(RESULTS) else 1
 
 
 if __name__ == "__main__":

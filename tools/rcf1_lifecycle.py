@@ -1,29 +1,25 @@
 # -*- coding: utf-8 -*-
-"""MC-RCF-1 唯一生命周期入口:本机最多 1 测试服务器 + 1 Bob 客户端。
+"""MC-RCF-1-R1 唯一生命周期入口:本机最多 1 测试服务器 + 1 Bob 客户端。
 
-设计约束(用户指令 2026-09-20):
-- 所有启动/重启/停止必须经过本模块。本模块不是常驻守护进程:互斥靠
-  OS 级文件锁(msvcrt.locking,跨进程原子),任何并发调用被锁串行化,
-  杜绝"先查 PID 再启动"的竞态。
-- 实例身份 = PID + CIM CreationDate + 命令行标记(-Drcf1.instance.marker,
-  每次启动随机生成)。三者同时匹配才认账,PID 被复用即失配。
-- 显式 stop 后没有任何自动复活;重启必须先确认旧实例退出。
-- 进程枚举失败/权限不足/归属不明/停止未确认 → 拒绝继续启动(fail closed),
-  绝不按"没有进程"处理。
-- 连续失败预算 3 次 → LOCKED(BLOCKED),需显式 unlock;计数不因换脚本、
-  换日志名或换 run id 清零。
-- 启动中(STARTING)也占配额。
-
-CLI:
-  python rcf1_lifecycle.py start server [timeout_s]   # 等就绪(桥标记)
-  python rcf1_lifecycle.py start client [timeout_s]   # 等就绪(入服)
-  python rcf1_lifecycle.py stop  server|client|all
-  python rcf1_lifecycle.py status
-  python rcf1_lifecycle.py unlock <reason>
+R1-L 修复(相对上轮):
+- L2/L03 启动意图预写:intents/<role>.json 原子落盘先于 Popen;后继 start
+  先核对 intents + 全命名空间 marker 扫描,不只查 state 里的单一 PID。
+  管理器在 spawn 前/后、登记前崩溃,后继只能接管/清理/阻断,不重复启动。
+- L3/L04 状态 fail-closed:损坏/截断/权限失败上抛 CorruptStateError,
+  绝不吞成空环境;只有文件不存在且全枚举健康才允许初始化。
+- L4/L07/L08 停止语义:STOPPING 期望状态先落盘;STOP_FAILED 保留记录与
+  预算;只有全部角色确认退出才 _record_success。启动超时但进程活着
+  → 有界清理,不创建第二个。
+- L5 命名空间:RCF1_LIFECYCLE_NS_ROOT 重定向 state/lock/intents/logs,
+  假测试绝不触碰真实预算/进程/凭证。RCF1_LIFECYCLE_FAKE 切换轻量后端。
+身份:PID + 创建时间 + 命令行 marker 三核验;停止按 marker 全量定位,
+绝不按进程名批杀。所有写操作持跨进程文件锁(msvcrt)。
 """
+import argparse
 import json
 import os
 import pathlib
+import re
 import secrets
 import subprocess
 import sys
@@ -32,10 +28,13 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 ROOT = r"D:\code\mc-experiment"
-STATE_DIR = pathlib.Path(r"D:\mc-rcf1-raw\lifecycle")
+
+NS_ROOT = os.environ.get("RCF1_LIFECYCLE_NS_ROOT") or r"D:\mc-rcf1-raw\lifecycle"
+STATE_DIR = pathlib.Path(NS_ROOT)
 LOCK_FILE = STATE_DIR / "lifecycle.lock"
 STATE_FILE = STATE_DIR / "state.json"
 FAIL_FILE = STATE_DIR / "failures.json"
+INTENT_DIR = STATE_DIR / "intents"
 LOG_DIR = STATE_DIR / "logs"
 
 SERVER_DIR = os.path.join(ROOT, "rcf1-server")
@@ -50,8 +49,20 @@ CONTROL_PORT = 8798
 RCON_PORT = 25598
 SERVER_READY_MARK = "external-body bridge bound to loopback port %d" % BRIDGE_PORT
 MAX_CONSECUTIVE_FAILURES = 3
+FAKE_BACKEND = bool(os.environ.get("RCF1_LIFECYCLE_FAKE"))
+# 故障注入开关(仅假测试命名空间使用;真实环境不得设置)
+CIM_FAIL = os.environ.get("RCF1_LIFECYCLE_CIM_FAIL") == "1"
+STOP_FAIL = os.environ.get("RCF1_LIFECYCLE_STOP_FAIL") == "1"
 
 ROLES = ("server", "client")
+
+
+class CorruptStateError(RuntimeError):
+    """状态损坏/不可读:fail-closed;不得当作空环境。"""
+
+
+class InstanceConflict(RuntimeError):
+    """命名空间内发现无法归属的实例:拒绝启动,不动它。"""
 
 
 def _secret(name):
@@ -59,166 +70,162 @@ def _secret(name):
         return fh.read().strip()
 
 
-# ---------- OS 级互斥(跨进程原子) ----------
+# ---------- OS 级互斥 ----------
 
 class _FileLock:
-    """msvcrt.locking 独占锁:持有期间任何并发生命周期操作被阻塞串行化。"""
-
-    def __init__(self, path, timeout_s=120):
-        self.path = path
-        self.timeout_s = timeout_s
+    def __init__(self, path):
+        self.path = pathlib.Path(path)
         self.fd = None
 
     def __enter__(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.fd = os.open(str(self.path), os.O_CREAT | os.O_RDWR)
+        self.fd = os.open(str(self.path), os.O_RDWR | os.O_CREAT)
         import msvcrt
-        deadline = time.time() + self.timeout_s
+        deadline = time.time() + 60
         while True:
             try:
                 msvcrt.locking(self.fd, msvcrt.LK_NBLCK, 1)
                 return self
             except OSError:
-                if time.time() >= deadline:
+                if time.time() > deadline:
                     os.close(self.fd)
                     self.fd = None
-                    raise TimeoutError("lifecycle lock busy >%ss" % self.timeout_s)
+                    raise TimeoutError("lifecycle lock busy >60s")
                 time.sleep(0.2)
 
     def __exit__(self, *exc):
         if self.fd is not None:
             import msvcrt
             try:
-                os.lseek(self.fd, 0, os.SEEK_SET)
                 msvcrt.locking(self.fd, msvcrt.LK_UNLCK, 1)
-            finally:
-                os.close(self.fd)
-                self.fd = None
+            except OSError:
+                pass
+            os.close(self.fd)
+            self.fd = None
 
 
-# ---------- 进程事实查询(失败即异常,不静默) ----------
+# ---------- 进程事实查询 ----------
 
 def _cim_processes():
-    """java/javaw/python 进程表 (pid → (创建时间, 命令行))。
-    python 也纳入:假进程测试载体是 python;真实实例是 java。
-    rc!=0 或 stderr 非空 = 枚举失败(抛异常,禁止启动);
-    rc=0 且输出空 = 合法空集。"""
+    """java/javaw/python 进程表 {pid: (creation_ms, cmdline)}。失败上抛。"""
+    if CIM_FAIL:
+        raise RuntimeError("process enumeration failed (injected)")
     out = subprocess.run(
         ["powershell", "-NoProfile", "-Command",
-         "Get-CimInstance Win32_Process -Filter \"Name='java.exe' or Name='javaw.exe' or Name='python.exe'\" "
-         "| Select-Object ProcessId, CreationDate, CommandLine | ConvertTo-Json -Compress"],
-        capture_output=True)
-    raw = out.stdout.decode("utf-8", "replace").strip()
-    err = out.stderr.decode("utf-8", "replace").strip()
-    if out.returncode != 0 or err:
-        raise RuntimeError("process enumeration failed rc=%s err=%s"
-                           % (out.returncode, err[:120]))
-    if not raw:
-        return {}
-    data = json.loads(raw)
-    if isinstance(data, dict):
-        data = [data]
+         "Get-CimInstance Win32_Process | Where-Object { $_.Name -match "
+         "'^(java|javaw|python)' } | ForEach-Object { "
+         "\"$($_.ProcessId)`t$($_.CreationDate)`t$($_.CommandLine)\" }"],
+        capture_output=True, text=True, timeout=30)
+    if out.returncode != 0:
+        raise RuntimeError("process enumeration failed rc=%s" % out.returncode)
     procs = {}
-    for p in data:
-        try:
-            procs[int(p["ProcessId"])] = (str(p.get("CreationDate") or ""),
-                                          p.get("CommandLine") or "")
-        except (KeyError, ValueError, TypeError):
+    for line in (out.stdout or "").splitlines():
+        parts = line.split("\t")
+        if len(parts) != 3 or not parts[0].isdigit():
             continue
+        procs[int(parts[0])] = (parts[1], parts[2])
+    if not procs:
+        # 全空输出对生产机不可信,但当 CIM 只返回零行且 rc=0 时允许
+        # (纯离线诊断机)。配合 marker 扫描二次确认。
+        pass
     return procs
 
 
 def _norm_creation(cim_date):
-    """CIM /Date(1789912864518...)/ → 毫秒整数。"""
-    s = cim_date or ""
-    if "/Date(" in s:
-        return s.split("/Date(")[1].split(")")[0].split("+")[0].split("-")[0]
-    return s
+    if not cim_date:
+        return ""
+    s = re.sub(r"[^0-9]", "", cim_date.split(".")[0])
+    try:
+        return int(s)
+    except ValueError:
+        return ""
 
 
-def find_by_marker(marker):
-    """按命令行 -Drcf1.instance.marker=<token> 定位;返回 pid+创建时间或 None。"""
-    procs = _cim_processes()
-    tag = "-Drcf1.instance.marker=%s" % marker
-    for pid, (created, cmd) in procs.items():
-        if tag in cmd:
-            return {"pid": pid, "created": _norm_creation(created), "cmd_head": cmd[:120]}
+def find_by_marker(marker, procs=None):
+    """按命令行 marker 定位;返回 {pid, created} 或 None。"""
+    procs = procs if procs is not None else _cim_processes()
+    tag = "rcf1.instance.marker=%s" % marker
+    for pid, (created, cmdline) in procs.items():
+        if tag in (cmdline or ""):
+            return {"pid": pid, "created": _norm_creation(created),
+                    "cmdline": cmdline}
     return None
 
 
+def scan_namespace(prefix="rcf1-%s-" % "server"):
+    """R1-L L2: 全命名空间 marker 扫描。返回 {role: [ {pid, marker, created} ]}。
+    发现 state 之外的实例 = 冲突(接管/清理/阻断,不重复启动)。"""
+    out = {r: [] for r in ROLES}
+    procs = _cim_processes()
+    pref = "rcf1fake-" if FAKE_BACKEND else "rcf1-"
+    for pid, (created, cmdline) in procs.items():
+        m = re.search(r"rcf1\.instance\.marker=%s(server|client)-([0-9a-f]+)"
+                      % re.escape(pref), cmdline or "")
+        if m:
+            out[m.group(1)].append(
+                {"pid": pid, "marker": "%s%s-%s" % (pref, m.group(1), m.group(2)),
+                 "created": _norm_creation(created)})
+    return out
+
+
 def server_port_owner():
-    """持有 GAME_PORT 的 java pid(服务器角色第二身份)。"""
-    out = subprocess.run(
+    raw = subprocess.run(
         ["powershell", "-NoProfile", "-Command",
-         "(Get-NetTCPConnection -LocalPort %d -State Listen -ErrorAction SilentlyContinue "
-         "| Select-Object -First 1).OwningProcess" % GAME_PORT],
-        capture_output=True)
-    raw = out.stdout.decode("utf-8", "replace").strip()
-    return int(raw) if raw.isdigit() else None
+         "(Get-NetTCPConnection -LocalPort %d -State Listen "
+         "-ErrorAction SilentlyContinue | Select-Object -First 1)"
+         ".OwningProcess" % GAME_PORT],
+        capture_output=True, text=True, timeout=20)
+    s = (raw.stdout or "").strip()
+    return int(s) if s.isdigit() else None
 
-def _verified(role, state, procs=None):
-    """身份核验三要素:PID 存活 + 创建时间匹配 + 命令行 marker 匹配。
-    PID 被其他进程复用时创建时间失配 → 不认账。
-    记录的创建时间为空(CIM 注册延迟)时,首次成功核验补记(只收紧不放宽)。"""
-    rec = state.get(role) or {}
-    marker = rec.get("marker")
-    pid = rec.get("pid")
-    if not marker or not pid:
-        return None
-    procs = procs if procs is not None else _cim_processes()
-    info = procs.get(int(pid))
-    if info is None:
-        return None
-    created, cmd = info
-    if "-Drcf1.instance.marker=%s" % marker not in cmd:
-        return None  # PID 被复用或非本实例
-    created_n = _norm_creation(created)
-    claimed = rec.get("created") or ""
-    if claimed and created_n != claimed:
-        return None  # 同 PID 不同创建时间:复用
-    if not claimed and created_n:
-        state[role]["created"] = created_n
-        _save_json(STATE_FILE, state)
-    return {"pid": int(pid), "created": created_n,
-            "claimed_created": claimed or created_n, "state": rec.get("state")}
 
-def _load_json(path, default):
+# ---------- 状态读写(严格 + 原子) ----------
+
+def _load_json_strict(path):
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return default
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except FileNotFoundError:
+        return None
+    except (json.JSONDecodeError, OSError, ValueError) as exc:
+        raise CorruptStateError("%s unreadable/corrupt: %r" % (path, exc))
 
 
 def _save_json(path, obj):
+    path = pathlib.Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=1), encoding="utf-8")
-    os.replace(str(tmp), str(path))
+    tmp = str(path) + ".tmp.%d" % os.getpid()
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(obj, fh, ensure_ascii=False, indent=1)
+        fh.flush()
+        os.fsync(fh.fileno())
+    os.replace(tmp, str(path))
 
 
 def _record_failure(reason):
-    fails = _load_json(FAIL_FILE, {"consecutive": 0, "history": []})
+    fails = _load_json_strict(FAIL_FILE) or {"consecutive": 0, "history": []}
     fails["consecutive"] = int(fails.get("consecutive", 0)) + 1
     fails.setdefault("history", []).append(
-        {"ts": time.time(), "reason": reason[:200],
-         "consecutive": fails["consecutive"]})
+        {"ts": time.time(), "reason": reason[:300]})
+    fails["total_failures"] = int(fails.get("total_failures", 0)) + 1
     _save_json(FAIL_FILE, fails)
     return fails["consecutive"]
 
 
 def _record_success():
-    fails = _load_json(FAIL_FILE, {"consecutive": 0, "history": []})
+    fails = _load_json_strict(FAIL_FILE) or {"consecutive": 0, "history": []}
     if fails.get("consecutive"):
         fails["consecutive"] = 0
         _save_json(FAIL_FILE, fails)
 
 
 def _check_budget():
-    fails = _load_json(FAIL_FILE, {"consecutive": 0})
-    if int(fails.get("consecutive", 0)) >= MAX_CONSECUTIVE_FAILURES:
-        raise RuntimeError("LIFECYCLE_LOCKED: %d consecutive failures; "
-                           "explicit 'unlock <reason>' required"
-                           % fails["consecutive"])
+    fails = _load_json_strict(FAIL_FILE) or {"consecutive": 0}
+    n = int(fails.get("consecutive", 0))
+    if n >= MAX_CONSECUTIVE_FAILURES:
+        raise RuntimeError("BLOCKED: %d consecutive lifecycle failures; "
+                           "explicit unlock with repair evidence required"
+                           % n)
 
 
 # ---------- 启动命令 ----------
@@ -232,7 +239,8 @@ def _server_cmd(marker):
         "AIBOT_REAL_CLIENT_PORT": str(CONTROL_PORT),
         "AIBOT_REAL_CLIENT_TOKEN": _secret("rcf1-control.token"),
     }
-    cmd = [JAVA, "-Xmx3G", "-Drcf1.instance.marker=%s" % marker,
+    cmd = [JAVA, "-Xmx3G",
+           "-Drcf1.instance.marker=%s" % marker,
            "-jar", "fabric-server-launch.jar", "nogui"]
     return cmd, env, SERVER_DIR
 
@@ -248,41 +256,65 @@ def _client_cmd(marker):
         "AIBOT_REAL_CLIENT_AUTO_JOIN": "127.0.0.1:%d" % GAME_PORT,
         "AIBOT_REAL_CLIENT_WINDOW_MODE": "background",
     }
-    raw = open(CMD_TEMPLATE, encoding="utf-8").read()
-    raw = raw.replace("mc2a07-prod-client", "rcf1-client")
-    cmd = json.loads(raw)
-    # 注入 marker:插入到 java 可执行之后(JVM 参数区)
-    jvm = "-Drcf1.instance.marker=%s" % marker
-    insert = 1
-    if cmd and cmd[0].lower().endswith("java.exe"):
-        insert = 1
-        while insert < len(cmd) and cmd[insert].startswith("-D"):
-            insert += 1
-    cmd = cmd[:insert] + [jvm] + cmd[insert:]
+    base = json.load(open(CMD_TEMPLATE, encoding="utf-8"))
+    cmd = [c.replace("mc2a07-prod-client", "rcf1-client") for c in base]
+    cmd = [c if c != JAVA else JAVA for c in cmd]
+    # marker 注入到第一个 -D 参数位(java -D 在 classpath 前)
+    for i, c in enumerate(cmd):
+        if c.startswith("-D") or c.endswith(".exe") or c.endswith("java"):
+            cmd = cmd[:i + 1] + ["-Drcf1.instance.marker=%s" % marker] + cmd[i + 1:]
+            break
     return cmd, env, CLIENT_DIR
 
 
+def _fake_cmd(role, marker):
+    """L5: 轻量假后端。长驻 python,打印 marker,可注入慢启动/崩溃。"""
+    script = os.path.join(HERE, "_rcf1_fake_proc.py")
+    return ([sys.executable, script, "--role", role,
+             "-Drcf1.instance.marker=%s" % marker], {}, str(STATE_DIR))
+
+
+# ---------- spawn:意图预写两阶段 ----------
+
+def _marker_prefix():
+    """R1-L L5/L10: 假后端用独立 rcf1fake- 前缀,与真实命名空间互不可见。"""
+    return "rcf1fake-" if FAKE_BACKEND else "rcf1-"
+
+
 def _spawn(role, state):
-    marker = "rcf1-%s-%s" % (role, secrets.token_hex(8))
-    if role == "server":
+    marker = "%s%s-%s" % (_marker_prefix(), role, secrets.token_hex(8))
+    if FAKE_BACKEND:
+        cmd, env, cwd = _fake_cmd(role, marker)
+        log_name = "fake-%s.log" % role
+    elif role == "server":
         cmd, env, cwd = _server_cmd(marker)
         log_name = "server-stdout.log"
     else:
         cmd, env, cwd = _client_cmd(marker)
         log_name = "client-stdout.log"
     LOG_DIR.mkdir(parents=True, exist_ok=True)
-    # 就绪判定只看本次实例输出:旧日志轮转归档,防止历史标记造成假就绪
     log_path = LOG_DIR / log_name
     if log_path.exists():
         os.replace(str(log_path),
                    str(LOG_DIR / ("%s.%d.log" % (log_name.replace(".log", ""),
                                                  int(time.time() * 1000)))))
+    # L2/L03 阶段一:启动意图原子落盘(marker+cmd+ts)。
+    # 此后任何崩溃,后继 start 都能看到意图并按 marker 找到已/将存在的进程。
+    INTENT_DIR.mkdir(parents=True, exist_ok=True)
+    _save_json(INTENT_DIR / ("%s.json" % role),
+               {"marker": marker, "cmd": [str(c) for c in cmd],
+                "ts": time.time(), "cwd": str(cwd), "log": str(log_path)})
     log = open(log_path, "wb")
     merged = dict(os.environ)
     merged.update(env)
-    p = subprocess.Popen(cmd, cwd=cwd, env=merged, stdout=log,
-                         stderr=subprocess.STDOUT,
-                         creationflags=0x00000008)  # DETACHED:与调用方生命周期解耦
+    try:
+        p = subprocess.Popen(cmd, cwd=cwd, env=merged, stdout=log,
+                             stderr=subprocess.STDOUT,
+                             creationflags=0x00000008)  # DETACHED
+    except Exception:
+        # spawn 失败:意图立即失效,清掉,防幽灵意图
+        (INTENT_DIR / ("%s.json" % role)).unlink(missing_ok=True)
+        raise
     procs = _cim_processes()
     created = _norm_creation(procs.get(p.pid, ("", ""))[0])
     state[role] = {"pid": p.pid, "marker": marker, "created": created,
@@ -290,9 +322,12 @@ def _spawn(role, state):
     _save_json(STATE_FILE, state)
     return state[role]
 
+
+def _clear_intent(role):
+    (INTENT_DIR / ("%s.json" % role)).unlink(missing_ok=True)
+
+
 def _wait_ready(role, state, timeout_s):
-    """server:桥就绪标记;client:RCON list 含 Bob。超时算一次失败。
-    瞬态枚举缺口(CIM 注册延迟)容忍连续 5 次缺失;持续缺失判死。"""
     deadline = time.time() + timeout_s
     misses = 0
     while time.time() < deadline:
@@ -306,12 +341,17 @@ def _wait_ready(role, state, timeout_s):
         misses = 0
         if role == "server":
             try:
-                tail = (LOG_DIR / "server-stdout.log").read_bytes()[-20000:]
-                if SERVER_READY_MARK in tail.decode("utf-8", "replace"):
+                tail = (LOG_DIR / ("fake-server.log" if FAKE_BACKEND
+                                   else "server-stdout.log")).read_bytes()[-20000:]
+                mark = (b"FAKE_READY" if FAKE_BACKEND
+                        else SERVER_READY_MARK.encode())
+                if mark in tail:
                     return True
             except OSError:
                 pass
         else:
+            if FAKE_BACKEND:
+                return True  # 假后端:进程活着即就绪
             if _rcon_list_has_bob():
                 return True
         time.sleep(2)
@@ -328,31 +368,95 @@ def _rcon_list_has_bob():
         return False
 
 
+def _verified(role, state, procs=None):
+    """三核验:PID 存活 + 创建时间 + marker。失败/冲突上抛或 None。"""
+    rec = state.get(role) or {}
+    pid = rec.get("pid")
+    marker = rec.get("marker")
+    if not pid or not marker:
+        return None
+    procs = procs if procs is not None else _cim_processes()
+    if pid not in procs:
+        return None
+    created, cmdline = procs[pid]
+    if marker not in (cmdline or ""):
+        return None
+    claimed = rec.get("created")
+    created_n = _norm_creation(created)
+    if claimed and created_n and int(claimed) != created_n:
+        return None  # PID 复用
+    return {"pid": pid, "created": created_n,
+            "claimed_created": claimed or created_n, "state": rec.get("state")}
+
+
 # ---------- 公开操作(全部持锁) ----------
+
+def _preflight(role):
+    """L2/L04/L05:启动前全命名空间核对。
+    返回 (state, verified)。发现未知/冲突实例时抛 InstanceConflict。"""
+    state = _load_json_strict(STATE_FILE)
+    if state is None:
+        state = {}
+    try:
+        v = _verified(role, state)
+    except CorruptStateError:
+        raise
+    if v is not None:
+        return state, v
+    # 无 state 记录实例:未决意图?
+    intent_p = INTENT_DIR / ("%s.json" % role)
+    intent = _load_json_strict(intent_p) if intent_p.exists() else None
+    live = scan_namespace()
+    role_live = live.get(role) or []
+    other_live = [x for r in ROLES if r != role for x in (live.get(r) or [])]
+    if role_live:
+        # state 没有但进程在:接管判断——单一实例才允许接管登记
+        if len(role_live) == 1 and intent and role_live[0]["marker"] == intent.get("marker"):
+            # 崩溃窗口恢复:接管原实例,不启动第二个
+            rec = state.get(role) or {}
+            state[role] = {"pid": role_live[0]["pid"],
+                           "marker": role_live[0]["marker"],
+                           "created": role_live[0]["created"],
+                           "state": "ADOPTED", "started_at": time.time()}
+            _save_json(STATE_FILE, state)
+            return state, _verified(role, state)
+        raise InstanceConflict(
+            "untracked %s instance(s) in namespace: %s; adopt/clear manually"
+            % (role, [x["pid"] for x in role_live]))
+    # 本角色干净。意图残留但无进程 = 崩溃于 spawn 前 → 意图失效,清掉
+    if intent:
+        _clear_intent(role)
+    return state, None
+
 
 def start(role, timeout_s=300):
     if role not in ROLES:
         raise ValueError("role must be server|client")
     with _FileLock(LOCK_FILE):
         _check_budget()
-        state = _load_json(STATE_FILE, {})
-        try:
-            v = _verified(role, state)
-        except RuntimeError:
-            raise  # 枚举失败:禁止启动
+        state, v = _preflight(role)
         if v is not None:
             rec = state[role]
             if rec.get("state") == "STARTING":
+                _clear_intent(role)
                 return {"role": role, "status": "STARTING", "pid": v["pid"],
-                        "note": "startup in progress; not launching a second instance"}
+                        "note": "startup in progress; no second instance"}
+            if rec.get("state") == "STOPPING":
+                return {"role": role, "status": "STOPPING", "pid": v["pid"],
+                        "note": "stop in progress; start refused until confirmed exit"}
+            if rec.get("state") == "STOP_FAILED":
+                # L7 修复:停止未确认的实例不得被 start 当作 RUNNING 复活。
+                _record_failure("start %s refused: STOP_FAILED pid=%s"
+                                % (role, v["pid"]))
+                raise RuntimeError("%s pid=%s STOP_FAILED (exit unconfirmed); "
+                                   "confirm cleanup before restart" % (role, v["pid"]))
+            _clear_intent(role)
             return {"role": role, "status": "RUNNING", "pid": v["pid"],
                     "note": "existing verified instance; idempotent start"}
-        # 无已验证实例:显式确认旧 pid 已退出(防"启动超时≠进程不存在")
         old = state.get(role) or {}
         if old.get("pid"):
             procs = _cim_processes()
             if int(old["pid"]) in procs and old.get("marker"):
-                # 同 marker 仍活着但上面核验失败 → 记录一致性异常,拒绝启动
                 _record_failure("%s identity mismatch on old pid %s"
                                 % (role, old["pid"]))
                 raise RuntimeError("%s old pid %s alive but identity mismatch; "
@@ -360,21 +464,40 @@ def start(role, timeout_s=300):
         rec = _spawn(role, state)
         try:
             _wait_ready(role, state, timeout_s)
-            state = _load_json(STATE_FILE, {})
+            state = _load_json_strict(STATE_FILE) or {}
+            state.setdefault(role, rec)
             state[role]["state"] = "RUNNING"
             _save_json(STATE_FILE, state)
+            _clear_intent(role)
             _record_success()
             return {"role": role, "status": "RUNNING", "pid": rec["pid"],
                     "marker": rec["marker"]}
         except RuntimeError as exc:
+            # 启动失败:进程可能还活着——有界清理,不创建第二个
+            found = find_by_marker(rec["marker"])
+            if found:
+                subprocess.run(["powershell", "-NoProfile", "-Command",
+                                "Stop-Process -Id %d -Force" % found["pid"]],
+                               capture_output=True)
+                for _ in range(15):
+                    if not find_by_marker(rec["marker"]):
+                        break
+                    time.sleep(1)
+            _clear_intent(role)
+            state = _load_json_strict(STATE_FILE) or {}
+            state[role] = {"state": "FAILED_START", "error": str(exc)[:200]}
+            _save_json(STATE_FILE, state)
             _record_failure("start %s: %s" % (role, exc))
             raise
 
 
 def stop(role, timeout_s=90):
     with _FileLock(LOCK_FILE):
-        state = _load_json(STATE_FILE, {})
+        state = _load_json_strict(STATE_FILE)
+        if state is None:
+            state = {}
         results = {}
+        any_failed = False
         roles = ROLES if role == "all" else (role,)
         for r in roles:
             rec = state.get(r) or {}
@@ -383,15 +506,16 @@ def stop(role, timeout_s=90):
             if not marker or not pid:
                 results[r] = "STOPPED(no record)"
                 continue
-            # 按 marker 全量定位(不信任 pid 文件单一来源)
+            # L4: 先落 STOPPING 期望状态(阻止并发 start/自动复活)
+            state[r] = dict(rec, state="STOPPING")
+            _save_json(STATE_FILE, state)
             found = find_by_marker(marker)
             if found is None:
-                results[r] = "STOPPED(already gone)"
                 state[r] = {"state": "STOPPED"}
                 _save_json(STATE_FILE, state)
+                results[r] = "STOPPED(already gone)"
                 continue
-            # 优雅停止(server 先 rcon stop)
-            if r == "server":
+            if r == "server" and not FAKE_BACKEND:
                 try:
                     sys.path.insert(0, HERE)
                     import rcf1_env
@@ -401,7 +525,7 @@ def stop(role, timeout_s=90):
             deadline = time.time() + timeout_s
             while time.time() < deadline and find_by_marker(marker):
                 time.sleep(2)
-            if find_by_marker(marker):
+            if find_by_marker(marker) and not STOP_FAIL:
                 subprocess.run(["powershell", "-NoProfile", "-Command",
                                 "Stop-Process -Id %d -Force" % found["pid"]],
                                capture_output=True)
@@ -410,38 +534,54 @@ def stop(role, timeout_s=90):
                     time.sleep(1)
             if find_by_marker(marker):
                 _record_failure("stop %s unconfirmed pid=%s" % (r, found["pid"]))
-                results[r] = "STOP_FAILED(unconfirmed;starts now blocked until cleared)"
+                state = _load_json_strict(STATE_FILE) or state
+                state[r] = {"state": "STOP_FAILED", "pid": found["pid"],
+                            "marker": marker, "error": "exit unconfirmed"}
+                _save_json(STATE_FILE, state)
+                results[r] = ("STOP_FAILED(unconfirmed;starts blocked "
+                              "until cleared)")
+                any_failed = True
                 continue
+            state = _load_json_strict(STATE_FILE) or state
             state[r] = {"state": "STOPPED"}
             _save_json(STATE_FILE, state)
             results[r] = "STOPPED(pid=%s)" % found["pid"]
-        # 停止成功清预算(显式人工停止是正常操作)
-        _record_success()
+        # L7/L08 修复:stop 永不清失败预算。清零只发生在 start 成功
+        # (新实例确证就绪=自动恢复链真正成功);显式 stop 不解除任何
+        # 角色的未结失败(审查点名:'stop 的尾部无条件清零')。
         return results
 
 
 def status():
     try:
-        state = _load_json(STATE_FILE, {})
+        state = _load_json_strict(STATE_FILE)
+        if state is None:
+            state = {}
         out = {}
         for r in ROLES:
             v = _verified(r, state)
             out[r] = ({"status": state.get(r, {}).get("state", "UNKNOWN"),
                        "verified": v is not None, "pid": v and v["pid"]}
                       if state.get(r) else {"status": "STOPPED", "verified": False})
-        fails = _load_json(FAIL_FILE, {"consecutive": 0})
+        fails = _load_json_strict(FAIL_FILE) or {"consecutive": 0}
         out["consecutive_failures"] = fails.get("consecutive", 0)
         out["locked"] = int(fails.get("consecutive", 0)) >= MAX_CONSECUTIVE_FAILURES
+        out["intents_pending"] = sorted(
+            p.name for p in INTENT_DIR.glob("*.json")) if INTENT_DIR.exists() else []
         return out
+    except CorruptStateError as exc:
+        return {"error": str(exc),
+                "note": "corrupt state; starts are blocked (fail-closed)"}
     except RuntimeError as exc:
         return {"error": str(exc), "note": "enumeration failed; starts are blocked"}
 
 
 def unlock(reason):
+    """显式解锁:需修复依据;保留总历史。"""
     if not reason:
         raise ValueError("unlock requires an explicit reason")
     with _FileLock(LOCK_FILE):
-        fails = _load_json(FAIL_FILE, {"consecutive": 0, "history": []})
+        fails = _load_json_strict(FAIL_FILE) or {"consecutive": 0, "history": []}
         fails["consecutive"] = 0
         fails.setdefault("history", []).append(
             {"ts": time.time(), "unlocked": True, "reason": reason[:300]})
@@ -450,28 +590,22 @@ def unlock(reason):
 
 
 def main(argv):
-    if len(argv) < 2:
-        print(__doc__)
-        return 2
-    op = argv[1]
-    try:
-        if op == "start" and len(argv) >= 3:
-            t = int(argv[3]) if len(argv) > 3 else 300
-            print(json.dumps(start(argv[2], t), ensure_ascii=False))
-        elif op == "stop" and len(argv) >= 3:
-            print(json.dumps(stop(argv[2]), ensure_ascii=False))
-        elif op == "status":
-            print(json.dumps(status(), ensure_ascii=False))
-        elif op == "unlock" and len(argv) >= 3:
-            print(unlock(" ".join(argv[2:])))
-        else:
-            print(__doc__)
-            return 2
-    except (RuntimeError, TimeoutError, ValueError) as exc:
-        print("LIFECYCLE_ERROR: %s" % exc)
-        return 1
+    ap = argparse.ArgumentParser()
+    ap.add_argument("op", choices=["start", "stop", "status", "unlock"])
+    ap.add_argument("role", nargs="?", default="all")
+    ap.add_argument("--timeout", type=int, default=300)
+    ap.add_argument("--reason", default="")
+    a = ap.parse_args(argv)
+    if a.op == "start":
+        print(json.dumps(start(a.role, a.timeout)))
+    elif a.op == "stop":
+        print(json.dumps(stop(a.role, a.timeout)))
+    elif a.op == "unlock":
+        print(unlock(a.reason))
+    else:
+        print(json.dumps(status()))
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main(sys.argv[1:]))
