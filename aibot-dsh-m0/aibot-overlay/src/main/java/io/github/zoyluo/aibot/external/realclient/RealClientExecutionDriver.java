@@ -183,13 +183,17 @@ public final class RealClientExecutionDriver
         if("completed".equals(remote==null?"":remote.state())) {
             int after=countItem(player,targetId);
             int delta=after-baseline;
-            // R2/R07:q=5、p=4、两批应产8——completed 必须是完整批次乘积,
-            // 不是 min(want,fullOutput) 下限;delta=5 或 q=32 只有8都拒绝。
-            // delta>full 只能是外部混入,同样不可归因。
+            // R2/G4:completed 回执可能先于产物槽→背包包文同步到达
+            // (实测 b04 delta=0 误判根因)。给有界重查窗口,不瞬时判死。
             int fullOutput=batches*outputPerBatch;
+            if(delta!=fullOutput
+                    &&server.getTicks()-startedAt<EXECUTION_TIMEOUT_TICKS) {
+                return new BodyBackend.Snapshot(
+                        "running",Math.min(.99D,remote.progress()),
+                        "craft_completion_awaiting_inventory_sync:"
+                                +"delta="+delta+"/"+fullOutput);
+            }
             if(delta!=fullOutput) {
-                transport.sendControl(executionId,"cancel",
-                        "craft_full_batch_unproven");
                 return new BodyBackend.Snapshot(
                         "failed",0D,
                         "craft_full_batch_unproven:delta="+delta

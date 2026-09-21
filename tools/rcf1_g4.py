@@ -222,11 +222,18 @@ def run_core(run_id, fixture, diagnostic=False):
         chain.stop("initial-inventory-not-empty", inv0)
         return chain
 
-    logs = acquire_and_mine(s, chain, "minecraft:oak_log"
-                            if fixture.get("wood") == "oak"
-                            else "minecraft:%s_log" % fixture.get("wood"),
-                            fixture["tree_near"], fixture["logs_need"],
-                            "logs")
+    pre_logs = 0
+    if fixture.get("layout_perturb"):
+        if not perturb_layout(s, chain):
+            chain.stop("layout-perturb-failed")
+            return chain
+        pre_logs = 1
+    wood_log = ("minecraft:oak_log" if fixture.get("wood") == "oak"
+                else "minecraft:%s_log" % fixture.get("wood"))
+    logs = pre_logs + acquire_and_mine(s, chain, wood_log,
+                                       fixture["tree_near"],
+                                       fixture["logs_need"] - pre_logs,
+                                       "logs")
     chain.evt("logs-collected", n=logs)
     if logs < fixture["logs_need"]:
         return chain
@@ -330,7 +337,6 @@ FIXTURES = {
         # 桌面平台:泥土台(非石族,不会成为采集候选;石料只来自
         # 声明的露头),目标/站位均有支撑
         + ["setblock 8 105 %d minecraft:dirt" % z for z in (1, 2, 3)]
-        + ["setblock 8 106 %d minecraft:dirt" % z for z in (1, 2, 3)]
         + ["setblock 8 107 2 minecraft:air",
            "setblock 8 106 4 minecraft:stone",
            "tp Bob 8.5 107 4.5",
@@ -338,21 +344,82 @@ FIXTURES = {
     },
 }
 
+FIXTURES["oak1"]["layout_perturb"] = False
+FIXTURES["birch1"] = dict(FIXTURES["oak1"], wood="birch")
+FIXTURES["birch1"]["pre"] = [c.replace("minecraft:oak_log",
+                                        "minecraft:birch_log")
+                             for c in FIXTURES["oak1"]["pre"]]
+# 非默认快捷栏/堆叠布局:同橡木几何,armed 后先真实调槽扰动
+FIXTURES["oak-layout"] = dict(FIXTURES["oak1"], layout_perturb=True)
+
+
+def perturb_layout(s, chain):
+    """B05 场景:空包开局后用真实事务扰动布局——先采 1 木,
+    合成 4 板,move_items 2 板到 hotbar 7 号(非常规槽)。
+    之后整条链在非默认布局下继续。"""
+    got = acquire_and_mine(s, chain, "minecraft:oak_log",
+                           FIXTURES["oak1"]["tree_near"], 1, "perturb")
+    if got < 1:
+        return False
+    ok, _ = craft(s, chain, "minecraft:oak_planks", 4)
+    if not ok:
+        return False
+    r = s.do("move_items", {"item": "minecraft:oak_planks",
+                            "count": 2, "hotbar": 7},
+             timeout_s=60).get("terminal", {})
+    chain.evt("layout-perturb", state=r.get("state"),
+              reason=(r.get("reason") or "")[:80])
+    return r.get("state") == "completed"
+
+
 def main():
     diagnostic = "--diagnostic" in sys.argv
-    run_id = "diag" if diagnostic else "b01"
-    fixture = FIXTURES["oak1"]
-    chain = run_core(run_id, fixture, diagnostic)
-    result = {
+    candidate = "be3f0b0758cf1dbaafbc365dbe6251490d4f2510"
+    if diagnostic:
+        chain = run_core("diag", FIXTURES["oak1"], True)
+        result = _result_of(chain, candidate)
+        print(json.dumps({"RESULT": result}, ensure_ascii=False), flush=True)
+        return 0 if result["result"] == "PASS" else 1
+    # B01-B05 预写定矩阵:两橡木、两白桦、一非默认布局
+    matrix = [("b01", "oak1"), ("b02", "oak1"),
+              ("b03", "birch1"), ("b04", "birch1"),
+              ("b05", "oak-layout")]
+    runs = []
+    for run_id, fixture_key in matrix:
+        chain = run_core(run_id, FIXTURES[fixture_key], False)
+        result = _result_of(chain, candidate)
+        runs.append(result)
+        print(json.dumps({"RESULT": result}, ensure_ascii=False), flush=True)
+        if result["result"] != "PASS":
+            break  # 保存失败,不挑选零散成功
+    with open(r"D:\mc-rcf1-raw\g4-runs.json", "w",
+              encoding="utf-8") as fh:
+        json.dump({"candidate": candidate, "runs": runs}, fh,
+                  ensure_ascii=False, indent=1)
+    ok = len(runs) == 5 and all(r["result"] == "PASS" for r in runs)
+    print("G4 %s" % ("5/5 PASS" if ok else "FAILED at %d/5" % len(runs)))
+    return 0 if ok else 1
+
+
+def _result_of(chain, candidate):
+    return {
         "run": chain.run_id, "session_id": chain.session_id,
+        "candidate": candidate,
         "result": "PASS" if all(chain.chain.values())
         and not chain.fail_at else "FAIL",
         "fail_at": chain.fail_at,
         "duration_s": round(time.time() - chain.started_at, 1),
+        "final_inventory": dict(_last_inventory(chain)),
+        "cursor_empty": bool(chain.chain.get("cursor_empty")),
         "chain": chain.chain, "events": chain.events,
     }
-    print(json.dumps({"RESULT": result}, ensure_ascii=False), flush=True)
-    return 0 if result["result"] == "PASS" else 1
+
+
+def _last_inventory(chain):
+    for evt in reversed(chain.events):
+        if evt.get("kind") == "final" and isinstance(evt.get("inv"), dict):
+            return evt["inv"]
+    return {}
 
 
 if __name__ == "__main__":
