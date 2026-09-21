@@ -83,7 +83,9 @@ not_run;依门序。
   用例覆盖(2x2 错屏/约束验证/A09A10/own screen);V06 部分证据=C02;
   V10:not_run
 - L01-L10:pass 16/16+实机 5/5
-- C06(完整三阶段)/C07/C08:not_run;B(G4):BLOCKED(机会池刷新);
-  S(G5)/fresh replay:not_run
+- V10/V10b:pass(策略单测);checker 反测试 H0-H10:14/14
+  (tools/rcf1_tests_v.py,离线,变异必拒)
+- C06(完整三阶段)/C07/C08:not_run;B(G4):BLOCKED(链编排竞态,
+  机会系统 7 根因已修+单环节全通);S(G5)/fresh replay:not_run
 - 分母:C 8(5 pass+3 not_run)/N 7/I 8/A 12(11+1flaky)/L 11(全 pass)
   /V 10(3 LIVE+5 语义+2 部分)/B 5/S 2/replay 1

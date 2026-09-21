@@ -35,7 +35,9 @@
 1. **A08 eat flaky**(时序):单测曾 PASS(claimed=1+hunger 0->8);最新轮秒败 client_eat_no_effect 且 beef 消失,独立于 claimed 门(V04 已证外部取走不冒充)。下一动作:在 EatAction 调槽链加诊断日志定位秒败路径。
 2. **机会池刷新**(G4 阻塞):tracker 注册依赖传感器帧,方块变化后条目 stale 且无重扫。下一动作:传感器帧 diff 驱动 markStale→重注册;或 mine stale 后自动剔除过期条目。
 3. C06 完整三阶段 cursor 注入(I06 已覆盖取消阶段)、C07 ledger 批量、C08 并存观察:未完整跑。
-4. V10 避难策略单测、checker 反测试(H 节):未实现。
+4. ~~V10/checker 反测试~~:本轮窗口末补齐——V10/V10b pass(place
+   failed 不置 sheltered;伪造 completed 也不置)+H0-H10 14/14
+   (tools/rcf1_tests_v.py)。
 5. G5 两夜+fresh replay:未运行。
 6. 外部账户密钥轮换(用户动作,未变)。
 
