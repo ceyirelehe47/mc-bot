@@ -455,6 +455,9 @@ public final class RealClientExecutionDriver
                 integer(args,"z",-29999984,29999984));
         if(!player.getServerWorld().getBlockState(target).isAir())
             throw new BridgeFault(409,"place_target_not_air");
+        // R2:身体占据目标格时不在这里提前拒绝——客户端 PlaceAction 的
+        // bodyInTarget 分支会先走到真正邻位再放;此处拒绝会把可恢复
+        // 站位变成立即失败。服务端仍以最终方块+消耗+见证裁决。
         if(player.getEyePos().distanceTo(
                 target.toCenterPos())>5.5D)
             throw new BridgeFault(409,"place_target_too_far");

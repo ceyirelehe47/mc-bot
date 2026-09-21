@@ -474,7 +474,7 @@ final class RealClientActionController {
     private final class PlaceAction extends Action {
         final String itemId;
         final BlockPos target;
-        int ticks,selectCooldown,selectSettle;
+        int ticks,selectCooldown,selectSettle,selectTicks;
         boolean sent;
         Direction supportFace;
 
@@ -490,6 +490,32 @@ final class RealClientActionController {
             // MC-RCF-1 G3c:事务层自助准备手持物品(真实调槽,节流防同步竞态)
             if(!RealClientInventoryOps.heldItemId(client)
                     .equals(itemId)) {
+                if(++selectTicks>20*10) {
+                    // R2 诊断修复:选择阶段必须有界——旧代码此处无超时,
+                    // 永远 running 直到服务端超时(诊断链 place 卡死根因)。
+                    fail("client_place_select_stuck:cursor="
+                            +RealClientInventoryOps.itemId(
+                            client.player.currentScreenHandler
+                                    .getCursorStack()));
+                    return;
+                }
+                if(selectTicks%20==0)
+                    io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                            "[AIBot] place-select diag item={} ticks={} cursor={} hotbar={} main={}",
+                            itemId,selectTicks,
+                            RealClientInventoryOps.itemId(
+                                    client.player.currentScreenHandler
+                                            .getCursorStack()),
+                            RealClientInventoryOps.findStack(
+                                    client.player.currentScreenHandler,
+                                    itemId,
+                                    RealClientInventoryOps.PLAYER_HOTBAR_START,
+                                    RealClientInventoryOps.PLAYER_HOTBAR_START+9),
+                            RealClientInventoryOps.findStack(
+                                    client.player.currentScreenHandler,
+                                    itemId,
+                                    RealClientInventoryOps.PLAYER_MAIN_START,
+                                    RealClientInventoryOps.PLAYER_MAIN_START+27));
                 if(selectCooldown>0) {
                     selectCooldown--;
                     return;
@@ -576,10 +602,17 @@ final class RealClientActionController {
             boolean atStance=client.player.getBlockPos().equals(stand)
                     ||(sdx*sdx+sdz*sdz<1.3D*1.3D
                     &&Math.abs(client.player.getY()-stand.getY())<=1.5D);
-            if(!atStance) {
+            // R2 诊断修复:Bob 站进/贴住目标格时服务端因实体碰撞拒绝
+            // 放置(诊断链 place 反复发送无效果根因)——身体包围盒与
+            // 目标格相交视为未就位,先走到真正的邻位站格。
+            boolean bodyInTarget=client.player.getBoundingBox()
+                    .intersects(new net.minecraft.util.math.Box(target));
+            if(!atStance||bodyInTarget) {
                 walkToExact(client,stand.toCenterPos());
                 send(executionId,"running",.15D,
-                        "client_place_approaching_stance");
+                        bodyInTarget
+                                ?"client_place_body_overlapping_target"
+                                :"client_place_approaching_stance");
                 return;
             }
             // (瞄空气格中心时射线常从侧壁穿出,落点校验永不成立——实测教训)
@@ -1581,6 +1614,7 @@ final class RealClientActionController {
         final int slot,baseline;
         final String blockId,expectedItem;
         boolean started;
+        int pickupTicks;
 
         MineAction(
                 String executionId,BlockPos target,
@@ -1609,10 +1643,33 @@ final class RealClientActionController {
                             "client_block_gone_and_inventory_gain_observed");
                     return;
                 }
-                // R1/G4:拾取半径 1 格——GoalNear(2) 停在 2 格外永远
-                // 捡不到掉落(实测 block_gone_without_inventory_gain
-                // 超时根因)。用精确站格走到掉落点上。
-                walkToExact(client,target.toCenterPos());
+                // R1/G4 + R2:两阶段拾取——先定位真实掉落物实体(客户端
+                //世界可见),GoalNear(1) 走向它;40 tick 仍未拾取踏上其
+                //所在格(GoalBlock)。掉落物可能弹离原格,只走原格会
+                //永远捡不到(诊断链实测 stale 根因)。
+                Vec3d pickupTarget=target.toCenterPos();
+                var drops=client.world.getEntitiesByClass(
+                        net.minecraft.entity.ItemEntity.class,
+                        new net.minecraft.util.math.Box(target)
+                                .expand(4D),e->true);
+                if(!drops.isEmpty()) {
+                    double best=Double.MAX_VALUE;
+                    for(var drop:drops) {
+                        double d=drop.squaredDistanceTo(client.player);
+                        if(d<best) {
+                            best=d;
+                            pickupTarget=drop.getPos();
+                        }
+                    }
+                }
+                if(++pickupTicks>40) {
+                    RealClientNavigation.pathTo(client,
+                            pickupTarget,0.5D);
+                } else {
+                    RealClientNavigation.pathTo(client,
+                            pickupTarget,1.0D);
+                }
+                clearInputs(client);
                 progress=.9D;
                 send(executionId,"running",
                         progress,
@@ -1625,7 +1682,10 @@ final class RealClientActionController {
                 return;
             }
             if(client.player.getPos().squaredDistanceTo(
-                    target.toCenterPos())>16D) {
+                    target.toCenterPos())>24D) {
+                // R2 诊断修复:阈值=方块交互触达(≈4.9格),不是 4 格——
+                // 从树底向上挖第 5 根原木时纯垂直距离已 >4 格,旧 16D
+                // 阈值导致永远 walkTo 永不 attack(诊断链实测超时根因)。
                 walkTo(client,target.toCenterPos());
                 progress=Math.max(progress,.1D);
                 return;

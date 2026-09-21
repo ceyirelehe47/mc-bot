@@ -63,7 +63,10 @@ public final class RealClientNavigation {
         if(goal.equals(currentGoal)&&pathing())
             return;
         currentGoal=goal;
-        currentRadius=Math.max(0,(int)Math.ceil(radius));
+        // R2 诊断修复:radius<1 必须是 GoalBlock——旧代码 ceil(0.5)=1
+        // 把"精确站格"退化成 GoalNear(1),站在目标邻格即视为到达,
+        // bodyInTarget 走出目标格永远不发生(诊断链 place 卡死根因)。
+        currentRadius=Math.max(0,(int)Math.floor(radius));
         BaritoneAPI.getProvider().getPrimaryBaritone()
                 .getCustomGoalProcess()
                 .setGoalAndPath(currentRadius>=1

@@ -69,9 +69,14 @@ def inventory(s):
         .get("observation", {})
     rows = obs.get("inventory", [])
     out = {}
-    for x in rows:
-        if isinstance(x, dict) and x.get("item"):
-            out[x["item"]] = out.get(x["item"], 0) + x.get("count", 0)
+    if isinstance(rows, dict):
+        # observe 响应的 inventory 是 {itemId: count}(服务端聚合)
+        for k, v in rows.items():
+            out[k] = out.get(k, 0) + int(v)
+    else:
+        for x in rows:
+            if isinstance(x, dict) and x.get("item"):
+                out[x["item"]] = out.get(x["item"], 0) + x.get("count", 0)
     return out
 
 
@@ -82,8 +87,9 @@ def player_pos(s):
     return (int(pos.get("x", 0)), int(pos.get("y", 0)), int(pos.get("z", 0)))
 
 
-def visible_blocks(s, block_suffix, near=None, limit=24):
-    """只读感知里的可见方块候选(awareness_only,不是机会)。"""
+def visible_blocks(s, block_suffix, near=None, limit=24, window=None):
+    """只读感知里的可见方块候选(awareness_only,不是机会)。
+    window=(dx,dy,dz) 收紧 near 匹配窗(声明 fixture 的定向源)。"""
     loc = s.inspect_local(10, "all")
     snap = ((loc.get("data") or {}).get("snapshot") or {})
     if isinstance(snap, str):
@@ -99,12 +105,22 @@ def visible_blocks(s, block_suffix, near=None, limit=24):
         xyz = (int(p.get("x", 0)), int(p.get("y", 0)), int(p.get("z", 0)))
         if near:
             dx, dy, dz = (abs(xyz[i] - near[i]) for i in range(3))
-            if dx > 12 or dy > 8 or dz > 12:
+            wx, wy, wz = window or (12, 8, 12)
+            if dx > wx or dy > wy or dz > wz:
                 continue
         cands.append((b.get("relative", {}).get("distance_blocks", 99),
                       xyz, b.get("object_id", "")))
     cands.sort(key=lambda c: c[0])
     return cands[:limit]
+    for o in opps:
+        if not isinstance(o, dict):
+            continue
+        if block_id and o.get("block") != block_id:
+            continue
+        if at and (o.get("x"), o.get("y"), o.get("z")) != at:
+            continue
+        out.append(o)
+    return out
 
 
 def opportunities(s, block_id=None, at=None):
@@ -126,15 +142,20 @@ def opportunities(s, block_id=None, at=None):
 
 
 def acquire_and_mine(s, chain, block_id, near, need, label,
-                     pick_block=None):
+                     pick_block=None, window=None):
     """合法链采集:感知选目标 → goto(face) → 等机会出生 → mine。"""
     got = 0
+    mined = set()
     while got < need:
-        cands = visible_blocks(s, pick_block or block_id, near=near)
+        cands = [c for c in visible_blocks(s, pick_block or block_id,
+                                            near=near, window=window)
+                 if tuple(c[1]) not in mined]
         if not cands:
             chain.evt("no-visible-candidate", block=block_id, got=got)
             time.sleep(2)
-            cands = visible_blocks(s, pick_block or block_id, near=near)
+            cands = [c for c in visible_blocks(s, pick_block or block_id,
+                                               near=near, window=window)
+                     if tuple(c[1]) not in mined]
             if not cands:
                 chain.stop("no-visible-candidate:%s" % block_id)
                 return got
@@ -159,8 +180,8 @@ def acquire_and_mine(s, chain, block_id, near, need, label,
             time.sleep(0.8)
         if opp is None:
             chain.evt("opportunity-not-born", target=xyz)
-            # 有界重试:换下一个可见目标,不扩扫描
-            cands.pop(0) if cands else None
+            # 感知记忆滞后:该格实际已不在——记入 mined 避免重复选它
+            mined.add(tuple(xyz))
             continue
         r2 = s.do("mine_opportunity", {"id": opp.get("object_id")},
                   timeout_s=MINE_TIMEOUT).get("terminal", {})
@@ -168,6 +189,7 @@ def acquire_and_mine(s, chain, block_id, near, need, label,
                   reason=(r2.get("reason") or "")[:90])
         if r2.get("state") == "completed":
             got += 1
+            mined.add(tuple(xyz))
         else:
             chain.stop("mine:%s" % block_id, r2.get("reason"))
             return got
@@ -246,12 +268,17 @@ def run_core(run_id, fixture, diagnostic=False):
 
     stone = acquire_and_mine(s, chain, "minecraft:stone",
                              fixture["stone_near"], fixture["stone_need"],
-                             "stone")
-    chain.evt("stone-collected", n=stone)
+                             "stone", window=(3, 2, 3))
     if stone < fixture["stone_need"]:
         return chain
     chain.chain["mined_stone_with_pickup"] = True
-
+    # 采石会离开工作台(自然石壁下挖)——先回到台边再 3×3
+    px, py, pz = fixture["table_stand"]
+    r = s.do("goto", {"x": px, "y": py, "z": pz}, timeout_s=90) \
+        .get("terminal", {})
+    if r.get("state") != "completed":
+        chain.stop("goto-table-return", r.get("reason"))
+        return chain
     ok, _ = craft(s, chain, "minecraft:stone_pickaxe", 1)
     if not ok:
         return chain
@@ -277,31 +304,39 @@ def run_core(run_id, fixture, diagnostic=False):
 
 
 FIXTURES = {
-    # 与 R1 相同站位几何:平地、树干可见、石面预置(armed 前声明)
+    # 受控局部场景:暴露树干、桌面平台、声明石露头(armed 前布置)
     "oak1": {
         "wood": "oak", "logs_need": 5, "stone_need": 3,
-        "tree_near": (8, 109, 8), "stone_near": (8, 106, 4),
+        "tree_near": (8, 109, 8), "stone_near": (11, 107, 2),
         "table_pos": (8, 107, 2), "table_stand": (8, 107, 3),
         "pre": [
+            # 暴露树干柱(y107-112,无侧叶遮挡视线;叶帽只在 113)
             "tp Bob 8.5 107 -0.5",
         ] + ["setblock 8 %d %d minecraft:air" % (y, z)
-             for y in (107, 108, 109, 110) for z in (5, 6, 7)]
-        + ["setblock 8 %d 8 minecraft:oak_log" % (107 + dy)
-           for dy in range(7)]
-        + ["setblock %d %d %d minecraft:oak_leaves" % (8 + dx, dy, 8 + dz)
-           for dy in (108, 109, 110, 111)
-           for dx in (-2, -1, 0, 1, 2) for dz in (-2, -1, 0, 1, 2)
-           if abs(dx) + abs(dz) <= 3 and not (dx == 0 and dz == 0)]
-        + ["setblock %d 112 %d minecraft:oak_leaves" % (8 + dx, 8 + dz)
+             for y in range(107, 113) for z in range(2, 8)]
+        + ["setblock 8 %d 8 minecraft:oak_log" % y
+           for y in range(107, 113)]
+        + ["setblock %d 113 %d minecraft:oak_leaves" % (8 + dx, 8 + dz)
            for dx in (-1, 0, 1) for dz in (-1, 0, 1)]
-        + ["setblock 8 112 8 minecraft:oak_log"]
-        + ["setblock 8 106 4 minecraft:stone"]
-        + ["tp Bob 8.5 107 4.5",
-           "setblock 8 107 2 minecraft:air",
+        + ["setblock 8 113 8 minecraft:oak_log"]
+        # 石面:受控露头——清出空气后放置 6 块自然石(armed 前声明)
+        + ["setblock %d %d %d minecraft:air" % (x, y, z)
+           for x in (10, 11, 12) for y in (107, 108, 109)
+           for z in (2, 3)]
+        + ["setblock %d 106 %d minecraft:dirt" % (x, z)
+           for x in (10, 11, 12) for z in (2, 3)]
+        + ["setblock %d 107 %d minecraft:stone" % (x, z)
+           for x in (10, 11, 12) for z in (2, 3)]
+        # 桌面平台:泥土台(非石族,不会成为采集候选;石料只来自
+        # 声明的露头),目标/站位均有支撑
+        + ["setblock 8 105 %d minecraft:dirt" % z for z in (1, 2, 3)]
+        + ["setblock 8 106 %d minecraft:dirt" % z for z in (1, 2, 3)]
+        + ["setblock 8 107 2 minecraft:air",
+           "setblock 8 106 4 minecraft:stone",
+           "tp Bob 8.5 107 4.5",
            "time set day", "weather clear", "clear Bob"],
     },
 }
-
 
 def main():
     diagnostic = "--diagnostic" in sys.argv

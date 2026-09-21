@@ -512,11 +512,25 @@ public final class RealClientOmnidirectionalPerception {
         return "OTHER";
     }
 
+    private static final Set<String> STONE_FAMILY=Set.of(
+            "minecraft:stone","minecraft:deepslate","minecraft:granite",
+            "minecraft:diorite","minecraft:andesite","minecraft:tuff",
+            "minecraft:smooth_stone","minecraft:cobblestone");
+
     private static String blockCategory(
             ServerWorld world,BlockPos pos,String blockId) {
         if(HAZARD_BLOCKS.contains(blockId))return "HAZARD";
         if(blockId.endsWith("_ore")
                 || "minecraft:ancient_debris".equals(blockId))
+            return "RESOURCE_SURFACE";
+        // R2 核心链目标准备:只读感知必须能发现树干/石面候选
+        //(awareness_only,不可执行;执行仍需合法准星机会链)。
+        if(blockId.endsWith("_log")
+                ||blockId.endsWith("_wood")
+                ||blockId.endsWith("_stem")
+                ||blockId.endsWith("_hyphae"))
+            return "RESOURCE_SURFACE";
+        if(STONE_FAMILY.contains(blockId))
             return "RESOURCE_SURFACE";
         if(world.getBlockEntity(pos)!=null
                 || INTERACTABLE_BLOCKS.contains(blockId)
