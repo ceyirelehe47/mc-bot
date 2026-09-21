@@ -130,7 +130,8 @@ def bob_pos():
 
 def arrived_3d(target, radius=2.5):
     x, y, z = bob_pos()
-    return ((x - target[0]) ** 2 + (y - target[1]) ** 2 + (z - target[2]) ** 2) ** 0.5 <= radius
+    cx, cy, cz = target[0] + .5, target[1] + .5, target[2] + .5
+    return ((x - cx) ** 2 + (y - cy) ** 2 + (z - cz) ** 2) ** 0.5 <= radius
 
 
 def run_goto(target, timeout_s=120, face=None, sample=False):
@@ -184,7 +185,7 @@ def n01_flat_and_step(i):
     target = (CX + 8, P_STAND + 1, CZ)   # 平台顶面站立位
     day(); tp_start()
     res = run_goto(target, sample=True)
-    track = res.get("track") or []
+    track = (res.get("track") or []) + [tuple(res.get("pos") or ())]
     ground_y = [p[1] for p in track if abs(p[1] - P_STAND) < 0.6]
     plat_y = [p[1] for p in track if abs(p[1] - (P_STAND + 1)) < 0.6]
     both_levels = bool(ground_y) and bool(plat_y)

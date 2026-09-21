@@ -123,7 +123,12 @@ final class RealClientEatDecisionCoreTest {
         assertEquals(RealClientEatDecisionCore.Step.RELEASE_AND_VERIFY,step);
         assertEquals(0,m.consumedRounds(),
                 "isUsing staying true is NOT a consumed round");
-        // held count unchanged → claimed=0 → fail closed
+        // R2/A08:held 计数同步滞后——verify 有界等待(RELEASE 重试),
+        // 40 tick 内计数仍无变化才判 no_effect
+        for(int i=0;i<39;i++)
+            assertEquals(RealClientEatDecisionCore.Step.RELEASE_AND_VERIFY,
+                    m.tick(obs(true,2,true,false,false,true,false)),
+                    "verify waits bounded for the count sync");
         assertEquals(RealClientEatDecisionCore.Step.FAIL_NO_EFFECT,
                 m.tick(obs(true,2,true,false,false,true,false)));
     }

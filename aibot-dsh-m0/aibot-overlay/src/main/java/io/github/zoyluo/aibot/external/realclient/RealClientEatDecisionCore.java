@@ -79,6 +79,7 @@ public final class RealClientEatDecisionCore {
         private int heldStart=-1;
         private boolean wasUsing;
         private int consumedRounds;
+        private int verifyWaitTicks;
         private boolean done;
         private String doneReason="";
 
@@ -142,6 +143,11 @@ public final class RealClientEatDecisionCore {
                 doneReason="client_food_consumed:client_consumed="+claimed;
                 return Step.COMPLETE;
             }
+            // R2/A08:isUsing true→false 转换可能先于客户端物品数量
+            //同步(实测 food 0->8 且 beef 3->2 仍报 no_effect)。验证
+            //有界等待计数变化,不是瞬时判死。
+            if(++verifyWaitTicks<40 && windowStarted)
+                return Step.RELEASE_AND_VERIFY;
             done=true;
             doneReason="client_eat_no_effect";
             return Step.FAIL_NO_EFFECT;
