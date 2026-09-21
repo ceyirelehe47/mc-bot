@@ -125,27 +125,27 @@ public final class RealClientEatDecisionCore {
                 return Step.PRESS_USE;
             windowTicks++;
             boolean boundReached=windowTicks>=USE_WINDOW_TICKS;
-            // R2:真实吃完一件(isUsing true→false 完成一轮)即停 use,
-            // 不按满整个窗口造成连吃;48 tick 只是硬上界(防卡死)。
-            if(consumedRounds>=1||boundReached) {
+            // R2/A08:手持数量减少=真实消费的直接证据——立即停 use。
+            // 连吃场景(吃完一块同 tick 开始下一块)isUsing 永不落 false,
+            // 转换捕获不到(实测 hotbar 食物 no_effect 根因)。
+            boolean heldDecreased=o.heldIsFood()&&o.heldCount()<heldStart;
+            if(consumedRounds>=1||heldDecreased||boundReached) {
                 phase=2;
                 return Step.RELEASE_AND_VERIFY;
             }
             return Step.HOLD_USE;
         }
-
         private Step verifyTick(Observed o) {
             int heldNow=o.heldIsFood()?o.heldCount():0;
-            int claimed=Math.min(consumedRounds,
-                    Math.max(0,heldStart-heldNow));
+            // R2/A08:claimed 以手持数量真实减少为主证据(服务器端还会
+            // 核对 after==before-claimed);isUsing 转换只是辅助记录。
+            int claimed=heldStart-heldNow;
             if(claimed>0) {
                 done=true;
                 doneReason="client_food_consumed:client_consumed="+claimed;
                 return Step.COMPLETE;
             }
-            // R2/A08:isUsing true→false 转换可能先于客户端物品数量
-            //同步(实测 food 0->8 且 beef 3->2 仍报 no_effect)。验证
-            //有界等待计数变化,不是瞬时判死。
+            // isUsing 转换可能先于客户端物品数量同步:有界等待计数变化。
             if(++verifyWaitTicks<40 && windowStarted)
                 return Step.RELEASE_AND_VERIFY;
             done=true;

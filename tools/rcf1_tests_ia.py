@@ -367,18 +367,23 @@ def i08_tom_deposit_regression():
     # server_authoritative_owned_screen_toms_storage_terminal_*。
     safe()
     tx, ty, tz = 305, 120, 296
+    # 站位地面与视线走廊:Bob 站 (306,121,297) 面向终端;
+    # 眼(306.5,122.6,297.5)→终端中心(305.5,120.5,296.5) 通道保持空气
     for cmd in (
-            # 终端前空气走廊(防自然地形遮挡准星)
-            ["setblock %d %d %d minecraft:air" % (tx, ty + 1, z)
-             for z in (tz + 1, tz + 2)]
-            + ["setblock %d %d %d minecraft:air" % (tx, ty + 2, z)
-               for z in range(tz, tz + 3)]
-            + ["setblock %d %d %d minecraft:air" % (x, ty + 1, tz)
-               for x in (tx + 1, tx + 2)]
-            + ["setblock %d %d %d minecraft:air" % (x, ty, tz)
-               for x in (tx + 1, tx + 2)]
-            + ["setblock %d %d %d minecraft:air" % (x, ty - 1, tz)
-               for x in (tx + 1, tx + 2)]
+            ["setblock 306 120 297 minecraft:dirt",
+             "setblock 305 121 296 minecraft:air",
+             "setblock 306 121 296 minecraft:air",
+             "setblock 306 122 296 minecraft:air",
+             "setblock 305 122 296 minecraft:air",
+             "setblock 306 122 297 minecraft:air",
+             "setblock 307 120 297 minecraft:dirt",
+             "setblock 307 121 297 minecraft:air",
+             "setblock 306 121 297 minecraft:air",
+             "setblock 305 123 296 minecraft:air",
+             "setblock 306 123 296 minecraft:air",
+             "setblock 306 123 297 minecraft:air",
+             "setblock 306 120 296 minecraft:air",
+             "setblock 307 120 296 minecraft:air"]
             + ["setblock %d %d %d minecraft:chest" % (tx + 3, ty, tz),
                "setblock %d %d %d toms_storage:inventory_connector"
                % (tx + 2, ty, tz),
@@ -387,7 +392,7 @@ def i08_tom_deposit_regression():
                "setblock %d %d %d toms_storage:storage_terminal"
                % (tx, ty, tz)]):
         rcon(cmd)
-    rcon("tp Bob %d.5 %d %d.5" % (tx + 2, ty + 1, tz + 1))
+    rcon("tp Bob 306.5 121 297.5")
     rcon("clear Bob")
     rcon("give Bob minecraft:dirt 16")
     time.sleep(2.5)

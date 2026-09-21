@@ -235,6 +235,8 @@ final class RealClientActionController {
         clearInputs(client);
         if(client.interactionManager!=null)
             client.interactionManager.cancelBlockBreaking();
+        // R2/I06:先回收合成格残料(QUICK_MOVE 回包),再处理 cursor/关屏
+        restoreCraftingGrid(client);
         restoreCursorThenClose(client);
     }
 
@@ -266,6 +268,27 @@ final class RealClientActionController {
         RealClientInventoryOps.click(client,handler,back,0,
                 SlotActionType.PICKUP);
         closeHandled(client);
+    }
+
+    /** R2/I06:取消/终态收尾时,合成格里的材料必须 QUICK_MOVE 回包
+     * (关屏会把 grid 残料 spill 到世界——实测 cancel 后 1 log 去向
+     * 不可核验)。仅对个人/工作台合成屏生效,一次性有界回收。 */
+    private static void restoreCraftingGrid(MinecraftClient client) {
+        if(client.player==null)return;
+        var handler=client.player.currentScreenHandler;
+        if(!(handler instanceof net.minecraft.screen.PlayerScreenHandler
+                ||handler instanceof net.minecraft.screen.CraftingScreenHandler))
+            return;
+        // 个人屏 grid=1..4;工作台 grid=1..9(2x2/3x3 都从 1 起)
+        int gridEnd=handler instanceof net.minecraft.screen.CraftingScreenHandler
+                ?10:5;
+        for(int slot=1;slot<gridEnd;slot++) {
+            if(!handler.slots.get(slot).getStack().isEmpty()) {
+                RealClientInventoryOps.click(client,handler,slot,0,
+                        SlotActionType.QUICK_MOVE);
+                return; // 一次一格,余下下一 tick 继续或随关屏 spill 检查
+            }
+        }
     }
 
     private void controlChecked(
@@ -720,6 +743,16 @@ final class RealClientActionController {
                                     RealClientInventoryOps.PLAYER_MAIN_START,
                                     RealClientInventoryOps.PLAYER_MAIN_START+27)>=0,
                             client.player.isUsingItem());
+            if(ticks%5==0)
+                io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                        "[AIBot] eat-diag t={} corePhase={} heldFood={} heldN={} "
+                                +"using={} rounds={} winStarted={} cursor={} "
+                                +"selSlot={} heldStartV={}",
+                        ticks,core.phase(),heldIsFood,
+                        heldIsFood?inv.getMainHandStack().getCount():-1,
+                        client.player.isUsingItem(),core.consumedRounds(),
+                        core.phase()==1,RealClientInventoryOps.itemId(cursor),
+                        inv.selectedSlot,core.heldStart());
             switch(core.tick(observed)) {
                 case SELECT_HOTBAR -> {
                     int hotbar=RealClientInventoryOps.findStack(handler,foodItem,
