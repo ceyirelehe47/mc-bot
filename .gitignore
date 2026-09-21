@@ -23,4 +23,5 @@ aibot-mc2a0-*-delivery/**/*-pid.txt
 archive/
 deliveries/*
 !deliveries/mc-rcf1/
+!deliveries/mc-rcf1-r1/
 taskpacks/
