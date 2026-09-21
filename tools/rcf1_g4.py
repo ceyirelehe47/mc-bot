@@ -230,16 +230,23 @@ def run_core(run_id, fixture, diagnostic=False):
         pre_logs = 1
     wood_log = ("minecraft:oak_log" if fixture.get("wood") == "oak"
                 else "minecraft:%s_log" % fixture.get("wood"))
+    # 扰动用木已被 craft 消耗:主链仍需采满 logs_need
+    need = fixture["logs_need"] - (pre_logs if not fixture.get(
+        "layout_perturb") else 0)
+    # 扰动场景:扰动采 1(已消耗)+主链 4=总采 5;craft 板按 16+4=20
+    if fixture.get("layout_perturb"):
+        need = fixture["logs_need"] - 1
     logs = pre_logs + acquire_and_mine(s, chain, wood_log,
-                                       fixture["tree_near"],
-                                       fixture["logs_need"] - pre_logs,
+                                       fixture["tree_near"], need,
                                        "logs")
     chain.evt("logs-collected", n=logs)
     if logs < fixture["logs_need"]:
         return chain
     chain.chain["mined_logs"] = True
 
-    ok, _ = craft(s, chain, "minecraft:%s_planks" % fixture["wood"], 20)
+    # 扰动场景已有 4 板(扰动产物):主链 4 木补 craft 16 板=共 20
+    ok, _ = craft(s, chain, "minecraft:%s_planks" % fixture["wood"],
+                  16 if fixture.get("layout_perturb") else 20)
     if not ok:
         return chain
     ok, _ = craft(s, chain, "minecraft:stick", 8)
@@ -279,10 +286,16 @@ def run_core(run_id, fixture, diagnostic=False):
     if stone < fixture["stone_need"]:
         return chain
     chain.chain["mined_stone_with_pickup"] = True
-    # 采石会离开工作台(自然石壁下挖)——先回到台边再 3×3
+    # 采石会离开工作台(自然石壁下挖)——先回到台边再 3×3;
+    # 采石坑边缘 pathing 偶发卡住:失败重试一次(先小步挪动重设 goal)
     px, py, pz = fixture["table_stand"]
-    r = s.do("goto", {"x": px, "y": py, "z": pz}, timeout_s=90) \
-        .get("terminal", {})
+    for attempt in range(2):
+        r = s.do("goto", {"x": px, "y": py, "z": pz}, timeout_s=90) \
+            .get("terminal", {})
+        if r.get("state") == "completed":
+            break
+        chain.evt("goto-table-retry", attempt=attempt,
+                  reason=(r.get("reason") or "")[:60])
     if r.get("state") != "completed":
         chain.stop("goto-table-return", r.get("reason"))
         return chain
@@ -320,12 +333,12 @@ FIXTURES = {
             # 暴露树干柱(y107-112,无侧叶遮挡视线;叶帽只在 113)
             "tp Bob 8.5 107 -0.5",
         ] + ["setblock 8 %d %d minecraft:air" % (y, z)
-             for y in range(107, 113) for z in range(2, 8)]
+             for y in range(107, 114) for z in range(2, 8)]
         + ["setblock 8 %d 8 minecraft:oak_log" % y
-           for y in range(107, 113)]
-        + ["setblock %d 113 %d minecraft:oak_leaves" % (8 + dx, 8 + dz)
+           for y in range(107, 114)]
+        + ["setblock %d 114 %d minecraft:oak_leaves" % (8 + dx, 8 + dz)
            for dx in (-1, 0, 1) for dz in (-1, 0, 1)]
-        + ["setblock 8 113 8 minecraft:oak_log"]
+        + ["setblock 8 114 8 minecraft:oak_log"]
         # 石面:受控露头——清出空气后放置 6 块自然石(armed 前声明)
         + ["setblock %d %d %d minecraft:air" % (x, y, z)
            for x in (10, 11, 12) for y in (107, 108, 109)
@@ -374,7 +387,7 @@ def perturb_layout(s, chain):
 
 def main():
     diagnostic = "--diagnostic" in sys.argv
-    candidate = "be3f0b0758cf1dbaafbc365dbe6251490d4f2510"
+    candidate = "304da18010fa8e1ad1faa2442225ba00d59258d9"
     if diagnostic:
         chain = run_core("diag", FIXTURES["oak1"], True)
         result = _result_of(chain, candidate)
