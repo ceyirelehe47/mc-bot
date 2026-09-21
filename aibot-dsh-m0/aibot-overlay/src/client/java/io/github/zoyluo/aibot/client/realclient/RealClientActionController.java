@@ -1,9 +1,9 @@
 package io.github.zoyluo.aibot.client.realclient;
 
 import com.google.gson.JsonArray;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.zoyluo.aibot.external.realclient.RealClientEatDecisionCore;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.item.Item;
@@ -123,13 +123,6 @@ final class RealClientActionController {
                                             .getAsString():"deposit"),
                     args.has("source_slot")
                             ?args.get("source_slot").getAsInt():-1);
-            case "smelt-disabled" -> new SmeltAction(
-                    executionId,
-                    args.get("furnace_x").getAsInt(),
-                    args.get("furnace_y").getAsInt(),
-                    args.get("furnace_z").getAsInt(),
-                    args.get("input_item").getAsString(),
-                    args.get("fuel_item").getAsString());
             case "place" -> new PlaceAction(
                     executionId,
                     args.get("item").getAsString(),
@@ -287,7 +280,9 @@ final class RealClientActionController {
         if(client.player==null
                 ||client.world==null
                 ||client.interactionManager==null) {
-            clearInputs(client);
+            // R2/R05:无 player 的分支同样走统一收尾(停 Baritone/输入/
+            // 破坏状态/GUI),不能只 clearInputs 留下库继续写键。
+            finishAction(client);
             return;
         }
         if(active.terminal()) {
@@ -307,7 +302,15 @@ final class RealClientActionController {
             return;
         }
         try {
+            boolean wasTerminal=active.terminal();
             active.tick(client);
+            // R2/R05:普通 complete/fail(动作自身置终态)与显式 cancel 走
+            // 同一收尾——停导航、释放输入、取消破坏、关 GUI。只在终态
+            // 转移的那一 tick 执行一次(幂等),不在通用 clearInputs 里
+            // 每 tick 取消正常导航。成功终态不得先释放执行槽而实际
+            // 动作仍在运行。
+            if(!wasTerminal&&active.terminal())
+                finishAction(client);
         } catch(RuntimeException failure) {
             finishAction(client);
             active.failed=true;
@@ -352,16 +355,14 @@ final class RealClientActionController {
             send(executionId,"failed",0D,reason);
             return;
         }
-        clearInputs(client);
-        if(client.interactionManager!=null)
-            client.interactionManager.cancelBlockBreaking();
-        closeHandled(client);
+        // R2/R05:格式错误且归属当前执行同样停导航(旧清理路径漏
+        // RealClientNavigation.stop,Baritone 会继续接管移动)。
+        finishAction(client);
         double progress=active.progress;
         active.failed=true;
         active=null;
         send(executionId,"failed",progress,reason);
     }
-
     private static String safeExecutionId(JsonObject message) {
         try {
             if(message!=null && message.has("execution_id")
@@ -440,103 +441,6 @@ final class RealClientActionController {
         }
     }
 
-    private final class SmeltAction extends Action {
-        final BlockPos furnace;
-        final Item inputItem,fuelItem;
-        int ticks;
-        boolean opened,collected;
-
-        SmeltAction(String executionId,int fx,int fy,int fz,
-                    String inputId,String fuelId) {
-            super(executionId);
-            this.furnace=new BlockPos(fx,fy,fz);
-            this.inputItem=Registries.ITEM.get(
-                    net.minecraft.util.Identifier.tryParse(inputId));
-            this.fuelItem=Registries.ITEM.get(
-                    net.minecraft.util.Identifier.tryParse(fuelId));
-        }
-
-        @Override void tick(MinecraftClient client) {
-            if(client.currentScreen instanceof net.minecraft.client.gui.screen.ingame.InventoryScreen)
-                client.setScreen(null);
-            if(++ticks>20*220) {
-                closeHandled(client);
-                fail("client_smelt_timeout");
-                return;
-            }
-            var handled=client.player.currentScreenHandler;
-            boolean furnaceOpen=handled!=client.player.playerScreenHandler
-                    &&handled instanceof net.minecraft.screen.AbstractFurnaceScreenHandler;
-            if(!furnaceOpen) {
-                if(opened) {
-                    closeHandled(client);
-                    fail("client_furnace_screen_closed");
-                    return;
-                }
-                if(client.player.getPos().squaredDistanceTo(
-                        furnace.toCenterPos())>20D) {
-                    walkTo(client,furnace.toCenterPos());
-                    send(executionId,"running",.1D,"client_walking_to_furnace");
-                    return;
-                }
-                lookAt(client,furnace.toCenterPos());
-                if(client.crosshairTarget instanceof BlockHitResult hit
-                        &&hit.getType()==HitResult.Type.BLOCK
-                        &&hit.getBlockPos().equals(furnace)) {
-                    client.interactionManager.interactBlock(
-                            client.player,Hand.MAIN_HAND,hit);
-                    client.player.swingHand(Hand.MAIN_HAND);
-                }
-                send(executionId,"running",.15D,"client_opening_furnace");
-                return;
-            }
-            opened=true;
-            // 喂料:快捷栏/背包槽 QUICK_MOVE(vanilla 自动路由 可熔物->输入 燃料->燃料槽)
-            boolean fedThisTick=false;
-            for(int i=3;i<handled.slots.size()&&i<=38;i++) {
-                ItemStack stack=handled.getSlot(i).getStack();
-                if(stack.isEmpty())continue;
-                if(stack.getItem()==inputItem||stack.getItem()==fuelItem) {
-                    client.interactionManager.clickSlot(
-                            handled.syncId,i,0,
-                            net.minecraft.screen.slot.SlotActionType.QUICK_MOVE,
-                            client.player);
-                    fedThisTick=true;
-                    break;
-                }
-            }
-            if(fedThisTick) {
-                send(executionId,"running",.3D,"client_feeding_furnace");
-                return;
-            }
-            // 收集产物(输出槽 id=2)
-            ItemStack out=handled.getSlot(2).getStack();
-            if(!out.isEmpty()) {
-                client.interactionManager.clickSlot(
-                        handled.syncId,2,0,
-                        net.minecraft.screen.slot.SlotActionType.QUICK_MOVE,
-                        client.player);
-                collected=true;
-                send(executionId,"running",.8D,"client_collecting_output");
-                return;
-            }
-            boolean inputEmpty=handled.getSlot(0).getStack().isEmpty();
-            if(inputEmpty&&collected) {
-                closeHandled(client);
-                complete("client_smelt_batch_collected");
-                return;
-            }
-            if(inputEmpty&&!collected
-                    &&handled.getSlot(1).getStack().isEmpty()
-                    &&ticks>20*10) {
-                closeHandled(client);
-                fail("client_smelt_no_output");
-                return;
-            }
-            send(executionId,"running",
-                    Math.min(.75D,.3D+ticks/400D),"client_smelting");
-        }
-    }
 
     private final class PlaceAction extends Action {
         final String itemId;
@@ -711,10 +615,11 @@ final class RealClientActionController {
 
     private final class EatAction extends Action {
         final String foodItem;
-        int phase;      // 0=确保手持 1=进食中 2=收尾验证
-        int ticks,eatTicks,selectCooldown,heldStart;
-        boolean wasUsing,windowStarted;
-        int consumedRounds,windowTicks;
+        // R2/R03:阶段状态机在纯核心 RealClientEatDecisionCore 中,
+        // 生产路径与确定性回归共用同一实现(不另写测试专用状态机)。
+        final RealClientEatDecisionCore.Machine core=
+                new RealClientEatDecisionCore.Machine();
+        int ticks,selectCooldown;
 
         EatAction(String executionId,String foodItem) {
             super(executionId);
@@ -729,110 +634,107 @@ final class RealClientActionController {
                 fail("client_eat_timeout");
                 return;
             }
+            // 点击节流只防连点;阶段推进由下一 tick 的真实槽位/cursor
+            // 事实驱动(R2:不得以固定 sleep 充当同步确认)。
+            if(selectCooldown>0) {
+                selectCooldown--;
+                return;
+            }
             var inv=client.player.getInventory();
             var handler=client.player.currentScreenHandler;
-            if(phase==0) {
-                // MC-RCF-1 G3d:真实定位食物并调入快捷栏选中,
-                if(RealClientInventoryOps.heldItemId(client)
-                        .equals(foodItem)) {
-                    heldStart=inv.getMainHandStack().getCount();
-                    phase=1; // 已手持:进入进食
-                    return;
-                }
-                int hotbar=RealClientInventoryOps.findStack(
-                        handler,foodItem,
-                        RealClientInventoryOps.PLAYER_HOTBAR_START,
-                        RealClientInventoryOps.PLAYER_HOTBAR_START+9);
-                if(hotbar>=0) {
-                    inv.selectedSlot=
-                            hotbar-RealClientInventoryOps.PLAYER_HOTBAR_START;
-                    return;
-                }
-                if(selectCooldown>0) {
-                    selectCooldown--;
-                    return; // 点击节流:服务端同步窗口
-                }
-                var cursor=handler.getCursorStack();
-                if(RealClientInventoryOps.is(cursor,foodItem)) {
-                    int empty=RealClientInventoryOps.findEmpty(
-                            handler,
+            var cursor=handler.getCursorStack();
+            boolean heldIsFood=RealClientInventoryOps.heldItemId(client)
+                    .equals(foodItem);
+            RealClientEatDecisionCore.Observed observed=
+                    new RealClientEatDecisionCore.Observed(
+                            heldIsFood,
+                            heldIsFood?inv.getMainHandStack().getCount():0,
+                            RealClientInventoryOps.findStack(handler,foodItem,
+                                    RealClientInventoryOps.PLAYER_HOTBAR_START,
+                                    RealClientInventoryOps.PLAYER_HOTBAR_START+9)>=0,
+                            RealClientInventoryOps.is(cursor,foodItem),
+                            !cursor.isEmpty(),
+                            RealClientInventoryOps.findStack(handler,foodItem,
+                                    RealClientInventoryOps.PLAYER_MAIN_START,
+                                    RealClientInventoryOps.PLAYER_MAIN_START+27)>=0,
+                            client.player.isUsingItem());
+            switch(core.tick(observed)) {
+                case SELECT_HOTBAR -> {
+                    int hotbar=RealClientInventoryOps.findStack(handler,foodItem,
                             RealClientInventoryOps.PLAYER_HOTBAR_START,
                             RealClientInventoryOps.PLAYER_HOTBAR_START+9);
-                    if(empty<0)empty=
-                            RealClientInventoryOps.PLAYER_HOTBAR_START;
-                    RealClientInventoryOps.click(client,handler,
-                            empty,0,SlotActionType.PICKUP);
-                    selectCooldown=3;
-                    return;
+                    inv.selectedSlot=
+                            hotbar-RealClientInventoryOps.PLAYER_HOTBAR_START;
                 }
-                if(!cursor.isEmpty()) {
+                case PLACE_CURSOR_TO_HOTBAR -> {
+                    // R2:不默认占据0号槽——优先空位,无空位与最小堆叠槽
+                    // 交换,换出的他物下一 tick 由 RETURN_FOREIGN_CURSOR
+                    // 放回主包(保留可能受保护的工具)。
+                    int slot=smallestHotbarStack(handler);
+                    RealClientInventoryOps.click(client,handler,
+                            slot,0,SlotActionType.PICKUP);
+                    selectCooldown=3;
+                }
+                case RETURN_FOREIGN_CURSOR -> {
                     int back=RealClientInventoryOps.findEmpty(handler,
                             RealClientInventoryOps.PLAYER_MAIN_START,
                             RealClientInventoryOps.PLAYER_MAIN_START+27);
                     RealClientInventoryOps.click(client,handler,
                             back<0?36:back,0,SlotActionType.PICKUP);
                     selectCooldown=3;
-                    return;
                 }
-                int main=RealClientInventoryOps.findStack(
-                        handler,foodItem,
-                        RealClientInventoryOps.PLAYER_MAIN_START,
-                        RealClientInventoryOps.PLAYER_MAIN_START+27);
-                if(main<0) {
-                    fail("client_food_not_found");
-                    return;
-                }
-                RealClientInventoryOps.click(client,handler,main,0,
-                        SlotActionType.PICKUP);
-                selectCooldown=3;
-            }
-            if(phase==1) {
-                // 抬头再吃:准星对可交互方块(如刚放的工作台)时 use 会变成
-                // 开屏而非进食(实测 A08 超时根因之二)
-                client.player.setPitch(-85F);
-                boolean using=client.player.isUsingItem();
-                // R1-I5/V04:claimed=真实完成的进食轮次。isUsingItem
-                // true→false 一次=吃完一块;外部清物不会触发该转换。
-                if(wasUsing&&!using)consumedRounds++;
-                wasUsing=using;
-                if(using&&!windowStarted)windowStarted=true;
-                if(!windowStarted) {
-                    // 窗口起点=服务器确认开始使用(调槽/网络延迟后)。
-                    // 窗口前不计时:找物+选中可耗时>1s,固定 48tick 上限
-                    // 会在真正开吃前耗尽(client_eat_no_effect 根因)。
-                    client.options.useKey.setPressed(true);
-                    eatTicks++; // 总防呆
-                    if(eatTicks>20*10)fail("client_eat_timeout");
-                    return;
-                }
-                windowTicks++;
-                if(windowTicks<48)
-                    client.options.useKey.setPressed(true);
-                else {
-                    client.options.useKey.setPressed(false);
-                    if(!client.player.isUsingItem()) {
-                        phase=2;
+                case PICKUP_MAIN -> {
+                    int main=RealClientInventoryOps.findStack(handler,foodItem,
+                            RealClientInventoryOps.PLAYER_MAIN_START,
+                            RealClientInventoryOps.PLAYER_MAIN_START+27);
+                    if(main<0) {
+                        fail("client_food_not_found");
                         return;
                     }
+                    // R03 修复:主包 PICKUP 后必须返回,等待该槽位/cursor
+                    // 实际变化;旧代码在此贯穿到消费核验,consumedRounds
+                    // 与 heldStart 均为默认零 → 确定性 client_eat_no_effect。
+                    RealClientInventoryOps.click(client,handler,main,0,
+                            SlotActionType.PICKUP);
+                    selectCooldown=3;
                 }
-                send(executionId,"running",
-                        Math.min(.9D,windowTicks/160D),"client_eating");
-                return;
+                case PRESS_USE,HOLD_USE -> {
+                    // 抬头再吃:准星对可交互方块(如刚放的工作台)时 use 会
+                    // 变成开屏而非进食(实测 A08 超时根因之二)
+                    client.player.setPitch(-85F);
+                    client.options.useKey.setPressed(true);
+                }
+                case RELEASE_AND_VERIFY ->
+                        client.options.useKey.setPressed(false);
+                case COMPLETE -> {
+                    client.options.useKey.setPressed(false);
+                    complete(core.reason());
+                }
+                case FAIL_NO_FOOD,FAIL_TIMEOUT,FAIL_NO_EFFECT -> {
+                    client.options.useKey.setPressed(false);
+                    fail(core.reason());
+                }
+                default -> {}
             }
-            // R1-I5/V04 收尾:claimed=手持数量真实减少量。held<64 之类
-            // 布尔不能证明本次消费;外部取走与自然变化由服务端用
-            // claimed 核对(after==before-claimed)。
-            client.options.useKey.setPressed(false);
-            var held=inv.getMainHandStack();
-            int heldNow=RealClientInventoryOps.is(held,foodItem)
-                    ?held.getCount():0;
-            int claimed=Math.min(consumedRounds,heldStart-heldNow);
-            if(claimed>0)
-                complete("client_food_consumed:"
-                        +"client_consumed="+claimed);
-            else
-                fail("client_eat_no_effect");
         }
+    }
+
+    /** R2:热键栏投放槽——空位优先,否则最小堆叠槽(交换语义),
+     * 绝不默认 0 号槽。 */
+    private static int smallestHotbarStack(
+            net.minecraft.screen.ScreenHandler handler) {
+        int best=RealClientInventoryOps.PLAYER_HOTBAR_START;
+        int bestCount=Integer.MAX_VALUE;
+        for(int slot=RealClientInventoryOps.PLAYER_HOTBAR_START;
+                slot<RealClientInventoryOps.PLAYER_HOTBAR_START+9;slot++) {
+            var stack=handler.slots.get(slot).getStack();
+            int count=stack.isEmpty()?0:stack.getCount();
+            if(count<bestCount) {
+                bestCount=count;
+                best=slot;
+            }
+        }
+        return best;
     }
 
     private final class MoveItemsAction extends Action {
@@ -1563,6 +1465,7 @@ final class RealClientActionController {
         final double radius;
         final BlockPos faceTarget;
         int stableTicks,facingTicks;
+        boolean navStopped;
 
         GotoAction(
                 String executionId,double x,double y,double z,
@@ -1578,6 +1481,14 @@ final class RealClientActionController {
                     client.player.getPos().distanceTo(target);
             if(distance<=radius) {
                 clearInputs(client);
+                if(!navStopped) {
+                    // R2:到点先停库一次——Baritone 到达后的残留转向行为
+                    // 会持续打偏 lookAt(实测 goto face 后视角漂移、
+                    // yaw 非目标向)。停库后视角只由本动作的 lookAt 写入,
+                    // 完成后的帧才能通过服务端准星重建校验。
+                    navStopped=true;
+                    RealClientNavigation.stop(client);
+                }
                 if(faceTarget==null) {
                     complete("client_arrival_reported");
                     return;

@@ -13,17 +13,24 @@ final class RealClientMvpSourceTest {
     private static final Path CLIENT=Path.of(
             "src/client/java/io/github/zoyluo/aibot/client/realclient");
 
+    /** R2:仓库文件 CRLF/LF 混存,断言必须与行尾无关。 */
     private static String main(String relative)throws Exception {
-        return Files.readString(MAIN.resolve(relative));
+        return Files.readString(MAIN.resolve(relative))
+                .replace("\r\n","\n");
     }
 
     @Test void realClientBackendSupportsOnlyTheBoundedVerticalSlice()
             throws Exception {
         String driver=main("realclient/RealClientExecutionDriver.java");
+        // R1 起核心链操作集(say/goto/mine/deposit + craft/eat/place/
+        // move_items/container_transfer);smelt 仍然拒绝。
         assertTrue(driver.contains(
-                "Set.of(\"say\",\"goto\",\"mine_opportunity\",\"deposit\")"));
+                "Set.of(\"say\",\"goto\",\"mine_opportunity\",\"deposit\",\"craft\",\n"
+                        +"                    \"eat\",\"place\",\"move_items\",\"container_transfer\")"));
         assertFalse(driver.contains("ServerFakePlayerExecutionDriver"));
         assertFalse(driver.contains("TaskManager.INSTANCE.assign"));
+        assertTrue(driver.contains(
+                "\"smelt_not_available_unvalidated\""));
     }
 
     @Test void realClientUsesNormalPlayerAndSingleAuthority()

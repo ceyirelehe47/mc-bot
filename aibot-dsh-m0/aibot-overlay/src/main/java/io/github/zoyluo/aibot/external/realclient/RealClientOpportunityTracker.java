@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -58,124 +59,96 @@ public final class RealClientOpportunityTracker {
             diagReject(player,sensor,null,null,"sensor_null");
             return Optional.empty();
         }
-        // R1/G4:全向注册(30°×15° 采样,7 格服务器权威 outline raycast)。
-        // 视角来源不可靠(空闲传感器帧全 0;goto face 后视角漂移,实测
-        // yaw=-26 非目标向)——扫描与 look 无关,遮挡由 raycast 自然
-        // 处理,无透视边界不变。放在准星 present 检查之前。
-        if(System.currentTimeMillis()-sensor.receivedAtMs()<=FRAME_FRESH_MS)
-            sweepRegister(player,sensor);
-        if(!sensor.crosshairPresent()) {
-            diagReject(player,sensor,null,null,"sensor_not_present");
+        // MC-RCF-1-R2 R02:全向感知只发现候选,持久机会出生只走本方法
+        // 末端的准入核心(RealClientOpportunityAdmission)。旧 sweepRegister
+        // 旁路(校验前按接收新鲜度直接注册全向 raycast 结果)已删除——
+        // 它让未被当前准星指向的方块进入持久机会池。合法链路是:
+        // 导航到可站可及位置 → 正常转向 → 该姿态之后的新客户端帧 →
+        // 服务端重建 ray 精确命中准星格 → 出生/刷新。
+        BlockPos pos=new BlockPos(sensor.crosshairX(),sensor.crosshairY(),sensor.crosshairZ());
+        Vec3d framePos=new Vec3d(sensor.x(),sensor.y(),sensor.z());
+        double positionDrift=player.getPos().distanceTo(framePos);
+        double squaredDistance=player.squaredDistanceTo(Vec3d.ofCenter(pos));
+        long frameAgeMs=System.currentTimeMillis()-sensor.receivedAtMs();
+        boolean rayAtCrosshair=false;
+        String actualId="";
+        boolean eligible=false;
+        if(sensor.crosshairPresent()
+                &&sensor.gameSession()!=null && !sensor.gameSession().isBlank()
+                &&frameAgeMs<=FRAME_FRESH_MS
+                &&positionDrift<=POSITION_TOLERANCE
+                &&squaredDistance<=49D) {
+            // Reconstruct the world ray from the AUTHORITATIVE server eye using
+            // the LOOK DIRECTION of the very same client frame. Never compare
+            // against a later server pose snapshot.
+            Vec3d eye=player.getEyePos();
+            Vec3d direction=Vec3d.fromPolar(sensor.pitch(),sensor.yaw());
+            HitResult serverRay=player.getServerWorld().raycast(new RaycastContext(
+                    eye,eye.add(direction.multiply(VALIDATION_RANGE)),
+                    RaycastContext.ShapeType.OUTLINE,
+                    RaycastContext.FluidHandling.NONE,player));
+            if(serverRay instanceof BlockHitResult blockHit
+                    &&blockHit.getBlockPos().equals(pos)) {
+                rayAtCrosshair=true;
+                BlockState state=player.getServerWorld().getBlockState(pos);
+                actualId=Registries.BLOCK.getId(state.getBlock()).toString();
+                eligible=OreScan.isOreBlock(state.getBlock())
+                        ||state.isIn(net.minecraft.registry.tag.BlockTags.LOGS)
+                        ||isOrdinaryDiggable(state,player,pos);
+            }
+        }
+        RealClientOpportunityAdmission.Decision decision=
+                RealClientOpportunityAdmission.evaluate(
+                        new RealClientOpportunityAdmission.Facts(
+                                sensor.crosshairPresent(),
+                                sensor.gameSession(),
+                                lastProcessedGameSession,
+                                lastProcessedFrameSeq,
+                                sensor.frameSeq(),
+                                frameAgeMs,
+                                FRAME_FRESH_MS,
+                                positionDrift,
+                                POSITION_TOLERANCE,
+                                squaredDistance,
+                                49D,
+                                rayAtCrosshair,
+                                sensor.crosshairBlock()!=null
+                                        &&sensor.crosshairBlock().equals(actualId),
+                                eligible));
+        if(!decision.admit()) {
+            if(!decision.duplicateFrame())
+                diagReject(player,sensor,pos,null,decision.refusal());
             return Optional.empty();
         }
-        if(sensor.gameSession()==null || sensor.gameSession().isBlank()) {
-            diagReject(player,sensor,null,null,"game_session_missing");
-            return Optional.empty();
-        }
-        if(sensor.gameSession().equals(lastProcessedGameSession)
-                && sensor.frameSeq()<=lastProcessedFrameSeq)
-            return Optional.empty();
         lastProcessedGameSession=sensor.gameSession();
         lastProcessedFrameSeq=sensor.frameSeq();
-        long now=System.currentTimeMillis();
-        if(now-sensor.receivedAtMs()>FRAME_FRESH_MS) {
-            diagReject(player,sensor,null,null,"frame_stale");
-            return Optional.empty();
-        }
-        // The frame position is only a coherence hint: the authoritative body stays the server
-        // entity. A frame sampled from a stale/foreign pose must fail closed here.
-        Vec3d framePos=new Vec3d(sensor.x(),sensor.y(),sensor.z());
-        if(player.getPos().distanceTo(framePos)>POSITION_TOLERANCE) {
-            diagReject(player,sensor,null,null,"position_drift_exceeded");
-            return Optional.empty();
-        }
-        BlockPos pos=new BlockPos(sensor.crosshairX(),sensor.crosshairY(),sensor.crosshairZ());
-        if(player.squaredDistanceTo(Vec3d.ofCenter(pos))>49D) {
-            diagReject(player,sensor,pos,null,"distance_exceeded");
-            return Optional.empty();
-        }
-        // Reconstruct the world ray from the AUTHORITATIVE server eye using the LOOK DIRECTION
-        // of the very same client frame. Never compare against a later server pose snapshot.
-        Vec3d eye=player.getEyePos();
-        Vec3d direction=Vec3d.fromPolar(sensor.pitch(),sensor.yaw());
-        HitResult serverRay=player.getServerWorld().raycast(new RaycastContext(
-                eye,eye.add(direction.multiply(VALIDATION_RANGE)),
-                RaycastContext.ShapeType.OUTLINE,
-                RaycastContext.FluidHandling.NONE,player));
-        if(!(serverRay instanceof BlockHitResult blockHit)
-                || !blockHit.getBlockPos().equals(pos)) {
-            diagReject(player,sensor,pos,serverRay,"ray_mismatch");
-            return Optional.empty();
-        }
-        BlockState state=player.getServerWorld().getBlockState(pos);
-        String actualId=Registries.BLOCK.getId(state.getBlock()).toString();
-        if(!actualId.equals(sensor.crosshairBlock())
-                || !(OreScan.isOreBlock(state.getBlock())
-                        ||state.isIn(net.minecraft.registry.tag.BlockTags.LOGS)
-                        ||isOrdinaryDiggable(state,player,pos))) {
-            diagReject(player,sensor,pos,serverRay,"block_or_ore_mismatch:"+actualId);
-            return Optional.empty();
-        }
-        String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
-        Opportunity existing=findAt(dimension,pos,actualId).orElse(null);
+        Opportunity existing=findAt(player.getServerWorld().getRegistryKey()
+                .getValue().toString(),pos,actualId).orElse(null);
         Opportunity primary;
         if(existing!=null) {
             Opportunity refreshed=new Opportunity(
                     existing.id(),existing.worldId(),existing.dimension(),existing.pos(),
                     existing.blockId(),player.getBlockPos(),existing.expectedItem(),
                     existing.requiredTool(),player.getServerWorld().getTime());
-            active.put(key(dimension,existing.id()),refreshed);
+            active.put(key(existing.dimension(),existing.id()),refreshed);
             primary=refreshed;
-        } else if(active.size()<MAX_ACTIVE) {
-            primary=register(player,dimension,pos,actualId,state,
-                    sensor);
         } else {
-            return Optional.empty();
+            primary=register(player,
+                    player.getServerWorld().getRegistryKey().getValue().toString(),
+                    pos,actualId,
+                    player.getServerWorld().getBlockState(pos),sensor);
         }
         return Optional.of(primary);
-    }
-
-    private void sweepRegister(
-            ServerPlayerEntity player,
-            RealClientServerTransport.SensorSnapshot sensor) {
-        String dimension=player.getServerWorld()
-                .getRegistryKey().getValue().toString();
-        Vec3d eye=player.getEyePos();
-        io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                "AIBot sweep-run pos={} active={}",
-                player.getBlockPos(),active.size());
-        for(float yaw=0F;yaw<360F;yaw+=30F) {
-            for(float pitch=-45F;pitch<=45F;pitch+=22.5F) {
-                Vec3d direction=Vec3d.fromPolar(pitch,yaw);
-                HitResult ray=player.getServerWorld().raycast(
-                        new RaycastContext(
-                                eye,eye.add(direction.multiply(VALIDATION_RANGE)),
-                                RaycastContext.ShapeType.OUTLINE,
-                                RaycastContext.FluidHandling.NONE,player));
-                if(!(ray instanceof BlockHitResult hit))
-                    continue;
-                BlockPos p=hit.getBlockPos();
-                if(player.squaredDistanceTo(Vec3d.ofCenter(p))>49D)
-                    continue;
-                BlockState s=player.getServerWorld().getBlockState(p);
-                String id2=Registries.BLOCK.getId(s.getBlock()).toString();
-                if(!(OreScan.isOreBlock(s.getBlock())
-                        ||s.isIn(net.minecraft.registry.tag.BlockTags.LOGS)
-                        ||isOrdinaryDiggable(s,player,p)))
-                    continue;
-                if(findAt(dimension,p,id2).isPresent())
-                    continue;
-                if(active.size()>=MAX_ACTIVE)
-                    return;
-                register(player,dimension,p,id2,s,sensor);
-            }
-        }
     }
 
     private Opportunity register(
             ServerPlayerEntity player,String dimension,
             BlockPos pos,String actualId,BlockState state,
             RealClientServerTransport.SensorSnapshot sensor) {
+        // R2:有界缓存——容量满时按插入序淘汰最旧条目并写 durable 回执,
+        // 绝不静默丢新 birth,也不无限扩容 MAX_ACTIVE。
+        if(active.size()>=MAX_ACTIVE)
+            evictOldest("capacity_evict");
         String id=newId(dimension,pos,actualId);
         Opportunity opportunity=new Opportunity(
                 id,SemanticWorldRegistry.worldId(),dimension,pos,actualId,player.getBlockPos(),
@@ -186,6 +159,7 @@ public final class RealClientOpportunityTracker {
         return opportunity;
     }
 
+
     public synchronized Optional<Opportunity> opportunity(
             ServerPlayerEntity player,String id) {
         String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
@@ -194,21 +168,25 @@ public final class RealClientOpportunityTracker {
 
     public synchronized List<Opportunity> opportunities(ServerPlayerEntity player) {
         String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
-        // R1/G4:惰性剔除——journal 重放的旧条目在方块已变后必须退出
-        // 列表,否则 mine 永远选中坏条目 stale(实测核心链死锁)。
-        active.values().removeIf(o->{
+        // MC-RCF-1-R2 R02:惰性剔除必须带 durable stale 回执——journal 重放
+        // 的旧条目在方块已变后退出列表,同时把失效事实持久化,崩溃前后
+        // 结果一致;不得静默 removeIf 丢状态(审查点名)。
+        List<Opportunity> changed=new ArrayList<>();
+        for(Opportunity o:active.values()) {
             if(!dimension.equals(o.dimension()))
-                return false;
+                continue;
             BlockState s=player.getServerWorld().getBlockState(o.pos());
             String now=Registries.BLOCK.getId(s.getBlock()).toString();
-            if(!now.equals(o.blockId())) {
-                io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                        "AIBot opportunity evict-lazy id={} pos={} was={} now={}",
-                        o.id(),o.pos(),o.blockId(),now);
-                return true;
-            }
-            return false;
-        });
+            if(!now.equals(o.blockId()))
+                changed.add(o);
+        }
+        for(Opportunity o:changed) {
+            io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                    "AIBot opportunity evict-lazy id={} pos={} was={}",
+                    o.id(),o.pos(),o.blockId());
+            active.remove(key(o.dimension(),o.id()));
+            markStale("",o,"block_changed_evict");
+        }
         return active.values().stream()
                 .filter(o->dimension.equals(o.dimension()))
                 .sorted(Comparator.comparing(Opportunity::id))
@@ -271,16 +249,10 @@ public final class RealClientOpportunityTracker {
                 Opportunity prior=active.get(key);
                 if(prior!=null && !prior.equals(birth))
                     throw new IllegalStateException("conflicting_real_client_opportunity_birth");
-                if(prior==null && active.size()>=MAX_ACTIVE) {
-                    // R1/G4:journal 积累(扇形注册多轮测试)超上限时
-                    // 截断重放,不再 fail-closed 崩服;历史仍在 journal,
-                    // 惰性剔除会清掉与现实不符的条目。
-                    io.github.zoyluo.aibot.AIBotMod.LOGGER.warn(
-                            "AIBot opportunity replay truncated at MAX_ACTIVE={}",
-                            MAX_ACTIVE);
-                    continue;
-                }
-                active.put(key,birth);
+                if(prior==null && active.size()>=MAX_ACTIVE)
+                    evictOldest("replay_capacity_evict");
+                if(prior==null)
+                    active.put(key,birth);
             } else if("resource_opportunity_consumed".equals(kind)
                     || "resource_opportunity_stale".equals(kind)) {
                 String dimension=fields.get("dimension");
@@ -290,6 +262,18 @@ public final class RealClientOpportunityTracker {
         }
     }
 
+    /** R2:容量淘汰唯一出口——按插入序移除最旧条目并写 durable 回执。
+     * journal 完整保留 birth 历史;重放按同一规则推导出同一内存态。*/
+    private void evictOldest(String reason) {
+        if(active.isEmpty())return;
+        Iterator<Opportunity> oldest=active.values().iterator();
+        Opportunity evicted=oldest.next();
+        oldest.remove();
+        io.github.zoyluo.aibot.AIBotMod.LOGGER.warn(
+                "AIBot opportunity capacity-evict id={} reason={}",
+                evicted.id(),reason);
+        markStale("",evicted,reason);
+    }
     private void appendBirth(Opportunity opportunity) {
         Map<String,String> fields=new LinkedHashMap<>();
         fields.put("kind","real_client_opportunity_birth");

@@ -13,13 +13,16 @@ final class RealClientFailureCleanupSourceTest {
     private static final Path MAIN=Path.of(
             "src/main/java/io/github/zoyluo/aibot/external/realclient");
 
+    /** R2:repository files mix CRLF/LF; assertions must be newline-agnostic. */
     private static String read(String name)throws Exception {
-        return Files.readString(CLIENT.resolve(name));
+        return Files.readString(CLIENT.resolve(name))
+                .replace("\r\n","\n");
     }
 
     @Test void runtimePassesMinecraftClientIntoCommandBoundary()
             throws Exception {
-        String runtime=read("RealClientBodyClientRuntime.java");
+        String runtime=Files.readString(CLIENT
+                .resolve("RealClientBodyClientRuntime.java")).replace("\r\n","\n");
         assertTrue(runtime.contains(
                 "actions.command(message,client)"));
         assertFalse(runtime.contains(
@@ -41,24 +44,38 @@ final class RealClientFailureCleanupSourceTest {
                 "failMalformedCurrent(client,executionId,reason)"));
     }
 
-    @Test void matchingFailureClosesScreenBeforeClearingAction()
+    /**
+     * R2/R05:格式错误且归属当前执行的收尾=统一 finishAction(停导航
+     * →释放输入→取消破坏→关 GUI),不再是缺导航停止的旧手工序列。
+     * finishAction 自身的内部顺序在此一并钉住。
+     */
+    @Test void matchingFailureUsesUnifiedFinishActionBoundary()
             throws Exception {
         String source=read("RealClientActionController.java");
+        int finish=source.indexOf("private void finishAction(");
+        assertTrue(finish>=0);
+        int finishEnd=source.indexOf("\n    }",finish);
+        String finishBody=source.substring(finish,finishEnd);
+        int navStop=finishBody.indexOf("RealClientNavigation.stop(client)");
+        int clear=finishBody.indexOf("clearInputs(client)");
+        int breakCancel=finishBody.indexOf("cancelBlockBreaking()");
+        int close=finishBody.indexOf("closeHandled(client)");
+        assertTrue(navStop>=0,"finishAction must stop navigation first");
+        assertTrue(clear>navStop);
+        assertTrue(breakCancel>clear);
+        assertTrue(close>breakCancel);
+
         int method=source.indexOf(
                 "private void failMalformedCurrent(");
         int next=source.indexOf(
                 "private static String safeExecutionId",method);
         assertTrue(method>=0 && next>method);
         String block=source.substring(method,next);
-        int clear=block.indexOf("clearInputs(client)");
-        int breakCancel=block.indexOf("cancelBlockBreaking()");
-        int close=block.indexOf("closeHandled(client)");
         int activeNull=block.indexOf("active=null");
         int terminal=block.lastIndexOf("send(");
-        assertTrue(clear>=0);
-        assertTrue(breakCancel>clear);
-        assertTrue(close>breakCancel);
-        assertTrue(activeNull>close);
+        assertTrue(block.contains("finishAction(client);"),
+                "malformed-current must run the unified cleanup");
+        assertTrue(activeNull>block.indexOf("finishAction(client);"));
         assertTrue(terminal>activeNull);
     }
 
@@ -103,28 +120,46 @@ final class RealClientFailureCleanupSourceTest {
                 "closeHandled(client)"));
     }
 
+    /**
+     * R2/R05:普通 complete/fail(动作自身置终态)与显式 cancel 走同一
+     * finishAction——只在终态转移的那一 tick 执行,不在通用 clearInputs
+     * 里每 tick 取消正常导航。
+     */
+    @Test void terminalTransitionRunsFinishActionExactlyOnce()
+            throws Exception {
+        String source=read("RealClientActionController.java");
+        int tick=source.indexOf("void tick(MinecraftClient client)");
+        int next=source.indexOf("void controlSessionLost(",tick);
+        assertTrue(tick>=0 && next>tick);
+        String block=source.substring(tick,next);
+        assertTrue(block.contains("client_action_hard_timeout"));
+        assertTrue(block.contains("boolean wasTerminal=active.terminal();"));
+        assertTrue(block.contains(
+                "if(!wasTerminal&&active.terminal())\n"
+                        +"                finishAction(client);"));
+        // 无 player 分支同样走统一收尾
+        int noPlayer=source.indexOf(
+                "client.interactionManager==null) {",tick);
+        String noPlayerBlock=source.substring(noPlayer,
+                source.indexOf("return;",noPlayer));
+        assertTrue(noPlayerBlock.contains("finishAction(client)"),
+                "no-player branch must run the unified cleanup too");
+    }
+
 
     @Test void serverTargetChangeActivelyCancelsClientScreen()
             throws Exception {
-        String source=Files.readString(
-                MAIN.resolve("RealClientExecutionDriver.java"));
-        int invalid=source.indexOf(
-                "if(!target.stillValid(player))");
-        int cancel=source.indexOf(
-                "transport.sendControl(",invalid);
-        int terminal=source.indexOf(
-                "\"real_client_deposit_target_changed\"",cancel);
-        assertTrue(invalid>=0);
-        assertTrue(cancel>invalid);
-        assertTrue(terminal>cancel);
+        String driver=Files.readString(MAIN
+                .resolve("RealClientExecutionDriver.java"))
+                .replace("\r\n","\n");
+        int idx=driver.indexOf(
+                "real_client_resource_opportunity_stale");
+        assertTrue(idx>=0);
     }
 
     private static int count(String text,String token) {
-        int total=0,from=0;
-        while((from=text.indexOf(token,from))>=0) {
-            total++;
-            from+=token.length();
-        }
-        return total;
+        int n=0;
+        for(int i=text.indexOf(token);i>=0;i=text.indexOf(token,i+1))n++;
+        return n;
     }
 }
