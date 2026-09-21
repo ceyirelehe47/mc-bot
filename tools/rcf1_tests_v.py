@@ -1,172 +1,167 @@
 # -*- coding: utf-8 -*-
-"""MC-RCF-1-R1 V10 + checker 反测试(H 节),离线,不需要 Minecraft。
+"""MC-RCF-1-R2 V 组反例 + 最终 checker 一致性验证。
 
-V10:避难策略负例——place 返回 failed(不抛异常)时上层不得置
-sheltered(策略单测,模拟返回值)。
-H:对脱敏证据副本的变异必须使 checker 拒绝(缺 ID/空 results/只有
-pass 布尔/NOT_RUN 计成功/数量不守恒/产物仅 cursor/五次缺一次)。
+- V10:调用真实 G5 避难策略模块 tools/rcf1_shelter.py(生产代码),
+  注入 place/mine 回执;不得在测试里重写"正确的 if"(审查 R01)。
+- checker 一致性:最终判定入口 tools/rcf1_checker.py 的 judge_ia/judge_g4
+  判定真实正例与其语义变异副本;详细反测试在 rcf1_checker_selftest.py,
+  此处验证最终报告确实由同一入口产生。
+- V01–V09:需要 LIVE 环境(注入执行结果/事件测试服务端证明函数),
+  离线运行时如实报告 NOT_RUN,不伪造通过。
+
+用法:
+  python tools/rcf1_tests_v.py            # 离线部分(V10 + checker 一致性)
+  python tools/rcf1_tests_v.py --live     # LIVE 部分(环境在线时)
 """
-import copy
 import json
+import os
 import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+
+import rcf1_checker as CK  # noqa: E402
+import rcf1_shelter as SH  # noqa: E402
 
 RESULTS = []
 
 
 def run(tid, ok, detail=""):
     RESULTS.append((tid, bool(ok)))
-    print(json.dumps({"id": tid, "pass": bool(ok), "detail": detail}))
+    print(json.dumps({"id": tid, "pass": bool(ok),
+                      "detail": str(detail)[:300]}, ensure_ascii=False))
 
 
-# ---------- checker:从原始事实重算(不读自报布尔) ----------
-
-def judge_ia(evidence):
-    """I/A 判定器:每个用例须有 results 非空、每项有 state+reason,
-    completed 必须含 server_authoritative_* 证据串;数量断言由
-    reason 中的 before->after/gained 可重算。"""
-    if not isinstance(evidence, dict):
-        return False, "not-an-object"
-    cases = evidence.get("cases")
-    if not isinstance(cases, list) or not cases:
-        return False, "empty-results"
-    for c in cases:
-        if not isinstance(c, dict) or "id" not in c:
-            return False, "missing-id"
-        r = c.get("results")
-        if r is None:
-            r = [c] if "state" in c else None
-        if not r:
-            return False, "case-%s-empty" % c.get("id")
-        for item in r:
-            st = (item.get("state") or "").lower()
-            # NOT_RUN/空 state 不得混入计分(H5)
-            if st not in ("completed", "failed", "cancelled"):
-                return False, "case-%s-state-not-scoreable:%s" % (
-                    c.get("id"), st or "empty")
-            if st == "completed" and "server_authoritative" not in (
-                    item.get("reason") or ""):
-                return False, "case-%s-completed-without-proof" % c.get("id")
-    return True, "ok"
+def not_run(tid, why):
+    RESULTS.append((tid, None))
+    print(json.dumps({"id": tid, "pass": None, "not_run": True,
+                      "why": why}, ensure_ascii=False))
 
 
-def judge_g4(runs):
-    """G4:五次同候选完整连续;缺一次/换候选即拒。"""
-    if not isinstance(runs, list) or len(runs) != 5:
-        return False, "not-five-runs"
-    candidates = {r.get("candidate") for r in runs}
-    if len(candidates) != 1 or None in candidates:
-        return False, "candidate-changed"
-    for r in runs:
-        if r.get("result") != "PASS":
-            return False, "run-%s-not-pass" % r.get("run")
-        inv = r.get("final_inventory") or {}
-        if inv.get("minecraft:wooden_pickaxe", 0) < 1 \
-                or inv.get("minecraft:stone_pickaxe", 0) < 1:
-            return False, "run-%s-missing-pickaxes" % r.get("run")
-        if not r.get("cursor_empty"):
-            return False, "run-%s-cursor-not-empty" % r.get("run")
-    return True, "ok"
+# ---------- V10:真实避难策略负例/正例 ----------
+
+def v10_real_strategy():
+    # V10a:place 返回 failed 但不抛异常 → 真实策略不得置 sheltered
+    r = SH.ShelterRun()
+    r.record_result("dig_in", {"state": "completed",
+                               "reason": "server_authoritative_block_gone"})
+    ok1 = r.record_result("seal", {"state": "failed",
+                                   "reason": "real_client_execution_timeout"})
+    sheltered = r.finalize({"solid_above": True, "open_sides": 0,
+                            "inside_enclosure": True})
+    run("V10a-place-failed-not-sheltered",
+        ok1 is False and sheltered is False)
+
+    # V10b:伪造 completed 文案但物理状态未封闭 → 不得 sheltered
+    r2 = SH.ShelterRun()
+    r2.record_result("dig_in", {"state": "completed", "reason": "ok"})
+    r2.record_result("seal", {"state": "completed",
+                              "reason": "server_authoritative_block_placed"})
+    sheltered2 = r2.finalize({"solid_above": False, "open_sides": 2,
+                              "inside_enclosure": True})
+    run("V10b-fake-completed-unsealed-not-sheltered",
+        sheltered2 is False)
+
+    # V10c:前置挖洞/走入失败 → 不得 sheltered
+    r3 = SH.ShelterRun()
+    r3.record_result("dig_in", {"state": "failed",
+                                "reason": "real_client_resource_opportunity_stale"})
+    r3.record_result("seal", {"state": "completed", "reason": "x"})
+    run("V10c-pre-dig-failed-not-sheltered",
+        r3.finalize({"solid_above": True, "open_sides": 0,
+                     "inside_enclosure": True}) is False)
+
+    # V10d:部分效果(dig 完成、封口未做)→ 不得 sheltered
+    r4 = SH.ShelterRun()
+    r4.record_result("dig_in", {"state": "completed", "reason": "ok"})
+    run("V10d-partial-effects-not-sheltered",
+        r4.finalize({"solid_above": True, "open_sides": 0,
+                     "inside_enclosure": True}) is False)
+
+    # V10e:完整正例:关键步全部真实 completed + 世界条件成立 → sheltered
+    r5 = SH.ShelterRun()
+    r5.record_result("dig_in", {"state": "completed", "reason": "ok"})
+    r5.record_result("seal", {"state": "completed", "reason": "ok"})
+    run("V10e-full-positive-sheltered",
+        r5.finalize({"solid_above": True, "open_sides": 0,
+                     "inside_enclosure": True}) is True)
+
+    # V10f:黄昏判定与计划动作来自同一策略模块
+    run("V10f-dusk-triggers-shelter-plan",
+        SH.should_start_shelter("dusk") is True
+        and SH.plan_shelter_action({"solid_above": False, "open_sides": 4,
+                                    "inside_enclosure": False})["action"]
+        == "dig_in")
 
 
-GOOD_IA = {"cases": [
-    {"id": "A01", "results": [{"state": "completed",
-                               "reason": "server_authoritative_native_craft:"
-                                         "minecraft:oak_planks:0->8:delta=8"}]},
-]}
-GOOD_G4 = [{"run": i, "candidate": "C1", "result": "PASS",
-            "final_inventory": {"minecraft:wooden_pickaxe": 1,
-                                "minecraft:stone_pickaxe": 1},
-            "cursor_empty": True} for i in range(1, 6)]
+# ---------- checker 一致性:最终入口判正例与变异 ----------
+
+def checker_consistency():
+    sys.path.insert(0, HERE)
+    import rcf1_checker_selftest as ST
+    ST.RESULTS.clear()
+    ST.historical_counterexamples()
+    ST.semantic_mutations()
+    passed = sum(1 for _, ok in ST.RESULTS if ok)
+    run("CHK-final-entry-rejects-history-and-mutations",
+        passed == len(ST.RESULTS),
+        "selftest %d/%d via judge_ia/judge_g4" % (passed, len(ST.RESULTS)))
+    # 最终入口 CLI 也可用(报告由同一入口产生)
+    import subprocess
+    doc = {"cases": [{"id": "A01", "results": [
+        {"state": "completed", "reason": "server_authoritative"}]}]}
+    tmp = os.path.join(HERE, "__chk_tmp.json")
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(doc, fh)
+    try:
+        p = subprocess.run([sys.executable, os.path.join(HERE, "rcf1_checker.py"),
+                            "judge-ia", tmp], capture_output=True, text=True)
+        out = json.loads(p.stdout)
+        run("CHK-cli-entry-rejects-counterexample",
+            p.returncode == 1 and out["accept"] is False)
+    finally:
+        os.unlink(tmp)
 
 
-def h_mutation_tests():
-    # 基线:好证据通过
-    ok, _ = judge_ia(GOOD_IA)
-    run("H0-good-passes", ok)
-    ok, _ = judge_g4(GOOD_G4)
-    run("H0-g4-good-passes", ok)
-    # 变异 1:缺必需 ID
-    bad = copy.deepcopy(GOOD_IA)
-    del bad["cases"][0]["id"]
-    run("H1-missing-id-rejected", not judge_ia(bad)[0])
-    # 变异 2:空 results
-    bad = {"cases": [{"id": "A01", "results": []}]}
-    run("H2-empty-results-rejected", not judge_ia(bad)[0])
-    # 变异 3:只有 pass 布尔(无事实)
-    bad = {"cases": [{"id": "A01", "pass": True}]}
-    run("H3-bare-boolean-rejected", not judge_ia(bad)[0])
-    # 变异 4:completed 无证据串(伪造成功文案)
-    bad = {"cases": [{"id": "A01", "results": [
-        {"state": "completed", "reason": "looks fine"}]}]}
-    run("H4-fake-completed-rejected", not judge_ia(bad)[0])
-    # 变异 5:NOT_RUN 计成功
-    bad = {"cases": [{"id": "A01", "results": [
-        {"state": "NOT_RUN"}]}]}
-    run("H5-notrun-not-pass", not judge_ia(bad)[0])
-    # 变异 6:数量不守恒(delta 与 before->after 矛盾)——
-    # 判定器可重算 reason 内数字
-    bad = {"cases": [{"id": "V01", "results": [
-        {"state": "completed",
-         "reason": "server_authoritative_native_craft:x:0->8:delta=32"}]}]}
-    run("H6-inconsistent-delta-rejected",
-        not _delta_consistent(bad["cases"][0]["results"][0]["reason"]))
-    # 变异 7:五次缺一次
-    bad = GOOD_G4[:4]
-    run("H7-four-of-five-rejected", not judge_g4(bad)[0])
-    # 变异 8:中途换候选
-    bad = copy.deepcopy(GOOD_G4)
-    bad[2]["candidate"] = "C2"
-    run("H8-candidate-changed-rejected", not judge_g4(bad)[0])
-    # 变异 9:cursor 未清
-    bad = copy.deepcopy(GOOD_G4)
-    bad[4]["cursor_empty"] = False
-    run("H9-cursor-not-empty-rejected", not judge_g4(bad)[0])
-    # 变异 10:终态缺镐
-    bad = copy.deepcopy(GOOD_G4)
-    bad[0]["final_inventory"] = {"minecraft:wooden_pickaxe": 1}
-    run("H10-missing-stone-pickaxe-rejected", not judge_g4(bad)[0])
+# ---------- V01–V09:LIVE 注入反例(需要环境在线) ----------
+
+LIVE_CASES = {
+    "V01": "craft 32 只得 8 → 拒绝 completed(单位=物品数)",
+    "V02": "移动 7 件目标已有 10 无变化 → 不算移动成功",
+    "V03": "外部抢先放块无库存消耗 → 不归 Bob 放置成功",
+    "V04": "食物外部取走/饥饿外部变化 → 不归 Bob 进食成功",
+    "V05": "错屏调用个人 move/2×2 → 无错屏点击",
+    "V06": "pathing 中 cancel/pause/timeout → 输入与路径全停",
+    "V07": "导航设置篡改/组件缺失 → 拒绝而非继续",
+    "V08": "目标已变/掉落被拿走 → 不换目标不冒充获取",
+    "V09": "工作台墙后/同类型异屏 → 无 3×3 捷径",
+}
 
 
-def _delta_consistent(reason):
-    """reason 内 before->after 与 delta=N 必须一致(A->B 则 delta=B-A)。"""
-    import re
-    m = re.search(r":(\d+)->(\d+):delta=(\d+)", reason)
-    if not m:
-        return False
-    b, a, d = map(int, m.groups())
-    return a - b == d
-
-
-def v10_shelter_negative():
-    """place failed 不抛异常时,避难策略不得置 sheltered。"""
-    def place_would_fail():
-        return {"state": "failed", "reason": "real_client_execution_timeout"}
-
-    # 策略实现(与 G5 语义一致):只有 completed 才置 sheltered
-    state = {"sheltered": False}
-    r = place_would_fail()
-    if r.get("state") == "completed" and "server_authoritative" in (
-            r.get("reason") or ""):
-        state["sheltered"] = True
-    # 关键断言:failed(即使不抛异常)不得置 sheltered
-    run("V10", state["sheltered"] is False,
-        {"note": "place 返回 failed 不抛异常:上层不置 sheltered,"
-                 "记录未完成并停止/重规划"})
-    # 反向:伪造 completed 文案也不置(需 server_authoritative 证据)
-    r2 = {"state": "completed", "reason": "ok"}
-    st2 = {"sheltered": False}
-    if r2.get("state") == "completed" and "server_authoritative" in (
-            r2.get("reason") or ""):
-        st2["sheltered"] = True
-    run("V10b-fake-completed-not-sheltered", st2["sheltered"] is False)
+def live_cases():
+    live = "--live" in sys.argv
+    for tid, desc in LIVE_CASES.items():
+        if not live:
+            not_run(tid, "需要 LIVE 环境:%s(离线不伪造通过)" % desc)
+            continue
+        # LIVE 注入实现在 rcf1_tests_live_v.py(阶段3 与 I/A 回归同场执行)
+        try:
+            import rcf1_tests_live_v as LV
+            LV.run_case(tid, run)
+        except ImportError:
+            not_run(tid, "live harness 未部署")
 
 
 def main():
-    v10_shelter_negative()
-    h_mutation_tests()
-    passed = sum(1 for _, ok in RESULTS if ok)
-    print("SUMMARY %d/%d" % (passed, len(RESULTS)))
-    return 0 if passed == len(RESULTS) else 1
+    v10_real_strategy()
+    checker_consistency()
+    live_cases()
+    scored = [ok for _, ok in RESULTS if ok is not None]
+    passed = sum(1 for ok in scored if ok)
+    print("SUMMARY %d/%d (%d NOT_RUN)"
+          % (passed, len(scored), len(RESULTS) - len(scored)))
+    return 0 if passed == len(scored) else 1
 
 
 if __name__ == "__main__":
