@@ -133,32 +133,72 @@ def arrived_3d(target, radius=2.5):
     return ((x - target[0]) ** 2 + (y - target[1]) ** 2 + (z - target[2]) ** 2) ** 0.5 <= radius
 
 
-def run_goto(target, timeout_s=120, face=None):
+def run_goto(target, timeout_s=120, face=None, sample=False):
     args = {"x": target[0], "y": target[1], "z": target[2]}
     if face:
         args.update({"face_x": face[0], "face_y": face[1], "face_z": face[2]})
     t0 = time.time()
-    r = S.do("goto", args, timeout_s=timeout_s)
-    t = r.get("terminal", {})
+    track = []
+    if not sample:
+        r = S.do("goto", args, timeout_s=timeout_s)
+        t = r.get("terminal", {})
+        return {"state": t.get("state"), "reason": t.get("reason"),
+                "seconds": round(time.time() - t0, 1), "pos": bob_pos(),
+                "track": track}
+    import threading
+    ex, err = S.submit("goto", args)
+    if ex is None:
+        return {"state": "submit-failed", "reason": err, "seconds": 0,
+                "pos": bob_pos(), "track": track}
+    stop_flag = {"stop": False}
+    def sampler():
+        while not stop_flag["stop"]:
+            track.append(bob_pos())
+            time.sleep(0.5)
+    th = threading.Thread(target=sampler, daemon=True)
+    th.start()
+    t = S.term(ex, timeout_s=timeout_s)[0]
+    stop_flag["stop"] = True
+    th.join(timeout=2)
     return {"state": t.get("state"), "reason": t.get("reason"),
-            "seconds": round(time.time() - t0, 1), "pos": bob_pos()}
+            "seconds": round(time.time() - t0, 1), "pos": bob_pos(),
+            "track": track}
 
 
 # ---------- 场景 ----------
 
 def n01_flat_and_step(i):
-    """N01:平地与一格台阶,到指定可站格;零地形改动。"""
+    """N01:平地与一格台阶,到指定可站格;零地形改动。
+    R2/R04 修复:台阶真实比地面高一格(P_FLOOR+1),并采样轨迹证明
+    路径确实经过该台阶(不是同高方块冒充)。"""
     placed = arena_reset()
-    step = (CX - 4, P_FLOOR, CZ)   # 一格台阶(平台面上的凸起)
-    rcon("setblock %d %d %d minecraft:smooth_stone" % step)
-    placed.append((step[0], step[1], step[2], "minecraft:smooth_stone"))
-    target = (CX + 10, P_STAND, CZ)   # 平台对侧
+    # R2/R04:抬高一格的平台(顶面=P_FLOOR+1,比周围地面高一整格),
+    # 目标站在平台上——到达必然经过一格台阶;台阶块本身保持原样。
+    plat = []
+    for dx in range(6, 10):
+        for dz in (-1, 0, 1):
+            plat.append((CX + dx, P_FLOOR + 1, CZ + dz))
+    for p in plat:
+        rcon("setblock %d %d %d minecraft:smooth_stone" % p)
+        placed.append((p[0], p[1], p[2], "minecraft:smooth_stone"))
+    target = (CX + 8, P_STAND + 1, CZ)   # 平台顶面站立位
     day(); tp_start()
-    res = run_goto(target)
+    res = run_goto(target, sample=True)
+    track = res.get("track") or []
+    ground_y = [p[1] for p in track if abs(p[1] - P_STAND) < 0.6]
+    plat_y = [p[1] for p in track if abs(p[1] - (P_STAND + 1)) < 0.6]
+    both_levels = bool(ground_y) and bool(plat_y)
     bad = fixture_blocks_intact(placed)
-    ok = res["state"] == "completed" and arrived_3d(target) and not bad and res["seconds"] <= 120
+    ok = (res["state"] == "completed" and arrived_3d(target) and not bad
+          and res["seconds"] <= 120 and both_levels)
     return {"id": "N01", "run": i, "pass": ok,
-            "detail": res, "world_changes": bad[:5]}
+            "detail": {"state": res.get("state"),
+                       "seconds": res.get("seconds"),
+                       "step_elevation": 1,
+                       "levels_seen": {"ground": len(ground_y),
+                                       "platform": len(plat_y)},
+                       "sampled": len(track)},
+            "world_changes": bad[:5]}
 
 
 def n02_wall_with_side_path(i):

@@ -306,26 +306,40 @@ def i05_true_full():
 
 
 def i06_cursor_injection():
-    # C06 联动:拿起物品/部分拆分/取产物三个阶段注入 cancel
+    # R2/R04:三阶段真实注入(取物/部分拆分/拿到产物各一次 cancel),
+    # 每阶段断言:终态 cancelled + 物品守恒(cursor 有界回包,不丢弃)
+    # + 下一动作可正常开屏(无残留屏)。
     safe()
-    rcon("clear Bob")
-    rcon("give Bob minecraft:oak_log 8")
-    rcon("give Bob minecraft:dirt 32")
-    time.sleep(1)
-    s = play.Session("r1i06")
-    # 阶段1:craft 进行中(mine 长动作更稳)取消——用 goto 长动作替代 GUI;
-    # 真实 GUI 中途取消需要时序:用 craft + 立即 cancel
-    ex, err = s.submit("craft", {"item": "minecraft:oak_planks", "count": 4})
-    time.sleep(1.2)  # 进入填格阶段(光标可能持物)
-    c = s.ctl(ex, "cancel")
-    term = s.term(ex, 30)[0]
-    cursor_after = None  # 终态后 1s 读包:craft 格残留/光标悬空会表现为主包异动
-    time.sleep(1)
-    counts = inv_counts()
-    ok = term.get("state") == "cancelled" and counts.get("minecraft:oak_log", 0) >= 0
-    run("I06", ok, {"cancel": c.get("ok"), "term": term.get("state"),
-                    "reason": term.get("reason"), "inv": counts,
-                    "note": "GUI 中途取消:光标/合成格去向可核验(余料回包或诚实部分)"})
+    stages = []
+    for stage, delay in (("pickup", 0.7), ("partial", 1.6),
+                         ("produced", 3.2)):
+        rcon("clear Bob")
+        rcon("give Bob minecraft:oak_log 8")
+        time.sleep(1)
+        base = inv_counts().get("minecraft:oak_log", 0)
+        s = play.Session("r1i06-%s" % stage)
+        ex, err = s.submit("craft",
+                           {"item": "minecraft:oak_planks", "count": 4})
+        if ex is None:
+            stages.append({"stage": stage, "submit_error": str(err)[:80]})
+            continue
+        time.sleep(delay)
+        c = s.ctl(ex, "cancel")
+        term = s.term(ex, 30)[0]
+        time.sleep(1.5)   # 收尾+回包+服务器同步
+        counts = inv_counts()
+        total = (counts.get("minecraft:oak_log", 0)
+                 + counts.get("minecraft:oak_planks", 0))
+        stages.append({
+            "stage": stage, "cancel_ok": bool(c.get("ok")),
+            "term": term.get("state"),
+            "reason": (term.get("reason") or "")[:60],
+            "conserved": total == base, "total": total, "base": base})
+    ok = all(st.get("term") in ("cancelled", "failed")
+             and st.get("conserved") for st in stages) and len(stages) == 3
+    run("I06", ok, {"stages": stages,
+                    "note": "三阶段注入:取物/部分拆分/取产物;"
+                            "cursor 回包守恒,无丢弃"})
 
 
 def i07_ghost_slots_readonly():
@@ -342,15 +356,43 @@ def i07_ghost_slots_readonly():
 
 
 def i08_tom_deposit_regression():
-    # I08:Tom's deposit 回归(结构性:操作仍注册且屏幕所有权语义未退化)
-    # 完整 LIVE 需 Tom's storage 终端;本轮隔离环境无该终端方块时
-    # 以'操作存在且无 screen 时正确拒绝'为回归下限。
+    # R2/R04:搭真实 Tom's 终端网络(terminal—inventory_cable—
+    # inventory_connector—chest),面向终端合法 deposit,验证回执
+    # server_authoritative_owned_screen_toms_storage_terminal_*。
     safe()
+    tx, ty, tz = 305, 120, 296
+    for cmd in (
+            "setblock %d %d %d minecraft:chest" % (tx + 3, ty, tz),
+            "setblock %d %d %d toms_storage:inventory_connector"
+            % (tx + 2, ty, tz),
+            "setblock %d %d %d toms_storage:inventory_cable"
+            % (tx + 1, ty, tz),
+            "setblock %d %d %d toms_storage:storage_terminal"
+            % (tx, ty, tz)):
+        rcon(cmd)
+    rcon("tp Bob %d.5 %d %d.5" % (tx, ty + 1, tz + 3))
     rcon("clear Bob")
-    r = do("deposit", {}, 60)
-    ok = r["state"] == "failed"
-    run("I08", ok, {"r": r.get("reason"),
-                    "note": "无终端在望时 deposit 明确拒绝(所有权语义保留)"})
+    rcon("give Bob minecraft:dirt 16")
+    time.sleep(2.5)
+    # 合法链:先面向终端(存储目标解析依赖准星),再 deposit
+    s = play.Session("r1i08")
+    pos = (s.observe().get("data", {}).get("observation")
+           .get("position") or {})
+    px, py, pz = int(pos.get("x", 0)), int(pos.get("y", 0)), int(pos.get("z", 0))
+    fg = s.do("goto", {"x": px, "y": py, "z": pz,
+                       "face_x": tx, "face_y": ty, "face_z": tz},
+              timeout_s=60).get("terminal", {})
+    if fg.get("state") != "completed":
+        run("I08", False, {"face": fg.get("reason"),
+                           "note": "面向终端失败"})
+        return
+    r = s.do("deposit", {}, timeout_s=90).get("terminal", {})
+    ok = (r.get("state") == "completed"
+          and "toms_storage_terminal" in (r.get("reason") or ""))
+    left = inv_counts().get("minecraft:dirt", 0)
+    run("I08", ok, {"r": r.get("reason"), "dirt_left": left,
+                    "terminal": [tx, ty, tz],
+                    "note": "真实终端网络 deposit:player→网络转移验证"})
 
 
 # ---------- A 组 ----------
@@ -617,31 +659,65 @@ def _all_opps():
     loc = s.inspect_local(8, "summary")
     return ((loc.get("data") or {}).get("snapshot") or {}
             .get("opportunities") or [])
-
-
 def a10_drop_not_picked():
-    # 目标挖掉但掉落没捡到→不把破坏等同获取(smooth_stone 真实机会)
+    # R2/R04:先证明 Bob 已破坏指定格且指定掉落尚未入包,再阻断掉落;
+    # 同坐标系 kill,不用任意 sleep 与原点 kill。不把目标消失等同获取。
     safe()
     rcon("clear Bob")
     rcon("give Bob minecraft:stone_pickaxe 1")
-    o = None
-    for _ in range(5):
-        time.sleep(2)
-        o = _local_opp("minecraft:smooth_stone", near=(300, 126, 305))
-        if o:
-            break
-    if not o:
-        run("A10", False, {"note": "面前 smooth_stone 机会未出现"})
-        return
+    # fixture:两格 smooth_stone 柱(先挖上格)
+    bx, by, bz = 300, 120, 305
+    rcon("setblock %d %d %d minecraft:air" % (bx, by + 1, bz))
+    rcon("setblock %d %d %d minecraft:smooth_stone" % (bx, by, bz))
+    rcon("tp Bob %d.5 %d.5 %d.5" % (bx, by + 1, bz + 3))
+    time.sleep(2)
     s = play.Session("r1a10")
-    ex, err = s.submit("mine_opportunity", {"id": o.get("object_id")})
-    time.sleep(4.0)  # 等破坏发生
-    rcon("kill @e[type=minecraft:item,distance=..12]")
+    pos = (s.observe().get("data", {}).get("observation")
+           .get("position") or {})
+    px, py, pz = int(pos.get("x", 0)), int(pos.get("y", 0)), int(pos.get("z", 0))
+    fg = s.do("goto", {"x": px, "y": py, "z": pz,
+                       "face_x": bx, "face_y": by, "face_z": bz},
+              timeout_s=60).get("terminal", {})
+    if fg.get("state") != "completed":
+        run("A10", False, {"face": fg.get("reason")})
+        return
+    opp = None
+    deadline = time.time() + 12
+    while time.time() < deadline:
+        found = [o for o in _all_opps()
+                 if (o.get("x"), o.get("y"), o.get("z")) == (bx, by, bz)]
+        if found:
+            opp = found[0]
+            break
+        time.sleep(0.8)
+    if not opp:
+        run("A10", False, {"note": "面向后 smooth_stone 机会未出生"})
+        return
+    ex, err = s.submit("mine_opportunity", {"id": opp.get("object_id")})
+    # 精确窗口:方块已空 AND smooth_stone 未入包
+    window = None
+    deadline = time.time() + 40
+    while time.time() < deadline:
+        gone = "passed" in (rcon("execute if block %d %d %d minecraft:air"
+                                 % (bx, by, bz)) or "")
+        picked = inv_counts().get("minecraft:smooth_stone", 0)
+        if gone and picked == 0:
+            window = True
+            break
+        if picked > 0:
+            window = "already-picked"
+            break
+        time.sleep(0.3)
+    if window is True:
+        rcon("kill @e[type=minecraft:item,x=%d,y=%d,z=%d,distance=..6]"
+             % (bx, by, bz))
     term = s.term(ex, 150)[0]
     n = inv_counts().get("minecraft:smooth_stone", 0)
-    run("A10", term.get("state") != "completed",
-        {"term": term.get("state"), "reason": term.get("reason"),
-         "smooth_stone": n, "note": "掉落被清:目标消失≠材料获得"})
+    ok = (window is True and term.get("state") != "completed" and n == 0)
+    run("A10", ok, {"window": window, "term": term.get("state"),
+                    "reason": (term.get("reason") or "")[:80],
+                    "smooth_stone": n,
+                    "note": "已证破坏+未拾取后才阻断;拾取失败可区分"})
 
 
 def a11_cancel_death_world_change():

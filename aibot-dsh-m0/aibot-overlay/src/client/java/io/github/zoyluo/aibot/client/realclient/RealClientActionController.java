@@ -226,16 +226,45 @@ final class RealClientActionController {
         }
     }
 
-    /** R1-C1 统一收尾:所有执行生命周期出口共用同一顺序——
-     * 停本执行调度已由调用方处理;这里停 Baritone 目标/路径任务及转向
-     * →释放移动/use/attack/sneak 输入与破坏状态 → 关 GUI(cursor 恢复
-     * 规则由各动作自己的 closeHandled 语义承载)。clearInputs 不再被
-     * 当作 Baritone cancel(实测库会继续接管按键)。 */
+    /** R1-C1 + R2/R05 统一收尾:所有执行生命周期出口共用同一顺序——
+     * 停 Baritone 目标/路径任务及转向 → 释放移动/use/attack/sneak 输入
+     * 与破坏状态 → cursor 有界回包(不无主丢弃) → 关 GUI。clearInputs
+     * 不再被当作 Baritone cancel(实测库会继续接管按键)。 */
     private void finishAction(MinecraftClient client) {
         RealClientNavigation.stop(client);
         clearInputs(client);
         if(client.interactionManager!=null)
             client.interactionManager.cancelBlockBreaking();
+        restoreCursorThenClose(client);
+    }
+
+    /** R2:有 cursor 时不能一律关屏当"安全"(关屏=原地丢弃,不可核验)。
+     * 在当前同一 Screen 内把光标内容放回主包空位(有界尝试);无空位
+     * 则保持屏幕打开并记录恢复债务,绝不跨新屏回填或静默丢物。 */
+    private void restoreCursorThenClose(MinecraftClient client) {
+        if(client.player==null)return;
+        var handler=client.player.currentScreenHandler;
+        if(handler==null)return;
+        var cursor=handler.getCursorStack();
+        if(cursor.isEmpty()) {
+            closeHandled(client);
+            return;
+        }
+        int back=RealClientInventoryOps.findEmpty(handler,
+                RealClientInventoryOps.invMainStart(handler),
+                RealClientInventoryOps.invMainStart(handler)+27);
+        if(back<0)
+            back=RealClientInventoryOps.findEmpty(handler,
+                RealClientInventoryOps.invHotbarStart(handler),
+                RealClientInventoryOps.invHotbarStart(handler)+9);
+        if(back<0) {
+            io.github.zoyluo.aibot.AIBotMod.LOGGER.warn(
+                    "AIBot cursor restore debt: no empty slot; "
+                            +"screen kept open for reconciliation");
+            return;
+        }
+        RealClientInventoryOps.click(client,handler,back,0,
+                SlotActionType.PICKUP);
         closeHandled(client);
     }
 

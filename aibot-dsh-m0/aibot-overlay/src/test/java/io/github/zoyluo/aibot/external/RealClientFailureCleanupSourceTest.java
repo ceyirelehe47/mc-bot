@@ -59,11 +59,23 @@ final class RealClientFailureCleanupSourceTest {
         int navStop=finishBody.indexOf("RealClientNavigation.stop(client)");
         int clear=finishBody.indexOf("clearInputs(client)");
         int breakCancel=finishBody.indexOf("cancelBlockBreaking()");
-        int close=finishBody.indexOf("closeHandled(client)");
+        int restore=finishBody.indexOf("restoreCursorThenClose(client)");
         assertTrue(navStop>=0,"finishAction must stop navigation first");
         assertTrue(clear>navStop);
         assertTrue(breakCancel>clear);
-        assertTrue(close>breakCancel);
+        assertTrue(restore>breakCancel,
+                "cursor restore must run before the screen closes");
+        // restoreCursorThenClose:cursor 有界回包→关屏;无空位保持开屏
+        int restoreFn=source.indexOf(
+                "private void restoreCursorThenClose(");
+        assertTrue(restoreFn>0);
+        String restoreBody=source.substring(restoreFn,
+                source.indexOf("\n    }",restoreFn));
+        assertTrue(restoreBody.contains(
+                "RealClientInventoryOps.findEmpty"));
+        assertTrue(restoreBody.contains("closeHandled(client)"));
+        assertTrue(restoreBody.contains("cursor restore debt"),
+                "no empty slot: screen kept open, debt logged");
 
         int method=source.indexOf(
                 "private void failMalformedCurrent(");
