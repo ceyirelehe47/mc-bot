@@ -141,6 +141,10 @@ public final class RealClientExecutionDriver
                         409,"craft_no_crafting_table_nearby");
         }
         int baseline=countItem(player,targetId);
+        // R2/R07:材料基线在计划期捕获,完成时核对真实消耗守恒。
+        Map<String,Integer> materialBaselines=new LinkedHashMap<>();
+        for(var e:layout.needed.entrySet())
+            materialBaselines.put(e.getKey(),countItem(player,e.getKey()));
         Map<String,Object> command=new LinkedHashMap<>();
         command.put("grid",layout.grid);
         command.put("result_item",targetId);
@@ -158,13 +162,14 @@ public final class RealClientExecutionDriver
         return ()->craftSnapshot(
                 request.executionId(),startedAt,
                 targetId,baseline,count,batches,
-                layout.outputPerBatch);
+                layout.outputPerBatch,layout.needed,materialBaselines);
     }
 
     private BodyBackend.Snapshot craftSnapshot(
             String executionId,long startedAt,
             String targetId,int baseline,int want,int batches,
-            int outputPerBatch) {
+            int outputPerBatch,Map<String,Integer> needed,
+            Map<String,Integer> materialBaselines) {
         onThread();
         ServerPlayerEntity player=body.get();
         if(player==null)
@@ -178,25 +183,49 @@ public final class RealClientExecutionDriver
         if("completed".equals(remote==null?"":remote.state())) {
             int after=countItem(player,targetId);
             int delta=after-baseline;
-            // R1-I3/V01:完成单位=物品数,不是批次数。请求新增 q、每批 p、
-            // 客户端应执行 ceil(q/p) 批;合法产出=批次的完整乘积(上限 q,
-            // 末批不足时按整批落格后的实际入包数)。delta<合法产出下限即拒绝
-            // completed,按已发生效果诚实报告(部分产出+部分消耗归上层)。
+            // R2/R07:q=5、p=4、两批应产8——completed 必须是完整批次乘积,
+            // 不是 min(want,fullOutput) 下限;delta=5 或 q=32 只有8都拒绝。
+            // delta>full 只能是外部混入,同样不可归因。
             int fullOutput=batches*outputPerBatch;
-            int minRequired=Math.min(want,fullOutput);
-            if(delta>=minRequired)
+            if(delta!=fullOutput) {
+                transport.sendControl(executionId,"cancel",
+                        "craft_full_batch_unproven");
                 return new BodyBackend.Snapshot(
-                        "completed",1D,
-                        "server_authoritative_native_craft:"
-                                +targetId+":"+baseline+"->"+after
-                                +":delta="+delta+":batches="+batches
-                                +":output_per_batch="+outputPerBatch);
+                        "failed",0D,
+                        "craft_full_batch_unproven:delta="+delta
+                                +"/"+fullOutput
+                                +"(want="+want+",batches="+batches
+                                +",per="+outputPerBatch+")");
+            }
+            // 材料守恒:每个配方材料真实消耗==needed*batches。
+            // 受并发影响不能归因时按 unknown 报告,不虚构守恒。
+            for(var e:needed.entrySet()) {
+                int before=materialBaselines.getOrDefault(
+                        e.getKey(),0);
+                int now=countItem(player,e.getKey());
+                int consumed=before-now;
+                int expected=e.getValue()*batches;
+                if(consumed!=expected)
+                    return new BodyBackend.Snapshot(
+                            "outcome_unknown",1D,
+                            "craft_material_balance_unattributable:"
+                                    +e.getKey()+":"+before+"->"+now
+                                    +":consumed="+consumed
+                                    +":expected="+expected);
+            }
+            StringBuilder materials=new StringBuilder();
+            for(var e:needed.entrySet())
+                materials.append(e.getKey()).append(':')
+                        .append(materialBaselines.get(e.getKey()))
+                        .append("->").append(countItem(player,e.getKey()))
+                        .append(',');
             return new BodyBackend.Snapshot(
-                    "failed",0D,
-                    "craft_inventory_delta_insufficient:"
-                            +delta+"/"+want
-                            +"(expected>="+minRequired
-                            +"=min(want,fullOutput))");
+                    "completed",1D,
+                    "server_authoritative_native_craft:"
+                            +targetId+":"+baseline+"->"+after
+                            +":delta="+delta+":batches="+batches
+                            +":output_per_batch="+outputPerBatch
+                            +":materials="+materials);
         }
         if(server.getTicks()-startedAt>EXECUTION_TIMEOUT_TICKS) {
             transport.sendControl(executionId,"cancel",
@@ -472,17 +501,31 @@ public final class RealClientExecutionDriver
                                 +state.getBlock());
             }
             int after=countItem(player,itemId);
-            // R1-I4/V03:块类型正确不等于 Bob 放的。completed 必须
-            // 同时证明本次库存消耗(after<before)——外部 actor 抢先放
-            // 同类型块时库存不减,不得冒充本次成功;客户端也已完成而
-            // 无消耗=外部放置,取消并诚实失败。
-            if(after<before)
+            // R1-I4/V03 + R2/R07:块类型正确+库存减少仍可能来自两件无关
+            // 事件(他人放同类型块 + 另因减少 Bob 物品)。完成归因必须
+            // 绑定服务器侧见证:执行窗口内 Bob 的方块交互命中过能产出
+            // 目标格的支撑面(UseBlockCallback 服务端记录)。
+            if(after<before) {
+                boolean witnessed=RealClientPlacementWitness
+                        .attributesPlacementTo(
+                                player.getUuidAsString(),target,
+                                startedAt-1,server.getTicks());
+                if(witnessed)
+                    return new BodyBackend.Snapshot(
+                            "completed",1D,
+                            "server_authoritative_block_placed:"
+                                    +itemId+":"+before+"->"+after
+                                    +":at="+target.toShortString()
+                                    +":consumed=true"
+                                    +":interaction_witnessed=true");
+                transport.sendControl(executionId,"cancel",
+                        "place_unwitnessed_consumption");
                 return new BodyBackend.Snapshot(
-                        "completed",1D,
-                        "server_authoritative_block_placed:"
+                        "failed",0D,
+                        "place_unwitnessed_consumption:"
                                 +itemId+":"+before+"->"+after
-                                +":at="+target.toShortString()
-                                +":consumed=true");
+                                +":at="+target.toShortString());
+            }
             var remoteNow=transport.execution(executionId).orElse(null);
             boolean clientDone=remoteNow!=null
                     &&"completed".equals(remoteNow.state());
@@ -578,6 +621,12 @@ public final class RealClientExecutionDriver
             }
         }
         final int finalMoved=moved;
+        // R2/R07:源堆叠身份基线——指定源槽时绑定具体堆叠(数量+组件
+        // 指纹),完成时核对"那一把"真实移动且组件不变(I03)。
+        final int srcBefore=sourceSlot>=0
+                ?player.getInventory().main.get(sourceSlot).getCount():-1;
+        final String srcComponentKey=sourceSlot>=0
+                ?componentKey(player.getInventory().main.get(sourceSlot)):"";
         Map<String,Object> command=new LinkedHashMap<>();
         command.put("item",itemId);
         command.put("count",finalMoved);
@@ -594,12 +643,21 @@ public final class RealClientExecutionDriver
                     503,"real_client_command_queue_unavailable");
         return ()->moveItemsSnapshot(
                 request.executionId(),startedAt,
-                itemId,finalMoved,hotbar,destBaseline);
+                itemId,finalMoved,hotbar,destBaseline,
+                sourceSlot,srcBefore,srcComponentKey);
+    }
+
+    /** 组件指纹:item id + 全部数据组件的稳定串(身份比较,非数值)。 */
+    private static String componentKey(ItemStack stack) {
+        if(stack.isEmpty())return "";
+        return Registries.ITEM.getId(stack.getItem())+"/"
+                +stack.getComponents().toString();
     }
 
     private BodyBackend.Snapshot moveItemsSnapshot(
             String executionId,long startedAt,
-            String itemId,int count,int hotbar,int destBaseline) {
+            String itemId,int count,int hotbar,int destBaseline,
+            int sourceSlot,int srcBefore,String srcComponentKey) {
         onThread();
         ServerPlayerEntity player=body.get();
         if(player==null)
@@ -618,6 +676,26 @@ public final class RealClientExecutionDriver
             boolean ok=stack.getItem()==Registries.ITEM.get(
                     Identifier.tryParse(itemId))
                     &&gained>=count;
+            String extra="";
+            if(ok&&sourceSlot>=0) {
+                // R2/R07:源净减=本次请求量;目的组件指纹=源堆叠指纹
+                //(指定那把不同组件工具真实移动,另一把留在原位)。
+                ItemStack srcNow=player.getInventory().main.get(sourceSlot);
+                int srcNowCount=srcNow.isEmpty()?0:srcNow.getCount();
+                // 源净减≥本次请求量(余量可能整取后回放到其他主包空位,
+                // 源槽清空合法);外部加料不能伪充移动。
+                boolean sourceOk=srcBefore-srcNowCount>=count;
+                boolean componentOk=componentKey(stack)
+                        .equals(srcComponentKey);
+                if(!sourceOk||!componentOk)
+                    return new BodyBackend.Snapshot(
+                            "failed",1D,
+                            "move_items_identity_unproven:"
+                                    +"src="+srcBefore+"->"+srcNowCount
+                                    +":component_match="+componentOk);
+                extra=":src="+sourceSlot+":"+srcBefore+"->"+srcNowCount
+                        +":component_verified=true";
+            }
             return ok
                     ?new BodyBackend.Snapshot(
                             "completed",1D,
@@ -625,7 +703,7 @@ public final class RealClientExecutionDriver
                                     +itemId+":hotbar="+hotbar
                                     +":baseline="+destBaseline
                                     +":after="+stack.getCount()
-                                    +":gained="+gained)
+                                    +":gained="+gained+extra)
                     :new BodyBackend.Snapshot(
                             "failed",1D,
                             "move_items_increment_unproven:"

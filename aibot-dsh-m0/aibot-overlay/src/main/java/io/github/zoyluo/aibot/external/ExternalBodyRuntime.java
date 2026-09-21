@@ -4,6 +4,7 @@ import io.github.zoyluo.aibot.AIBotMod;
 import io.github.zoyluo.aibot.entity.AIPlayerEntity;
 import io.github.zoyluo.aibot.external.realclient.RealClientBodyBackend;
 import io.github.zoyluo.aibot.external.realclient.RealClientOpportunityTracker;
+import io.github.zoyluo.aibot.external.realclient.RealClientPlacementWitness;
 import io.github.zoyluo.aibot.external.realclient.RealClientServerTransport;
 import io.github.zoyluo.aibot.manager.AIPlayerManager;
 import net.minecraft.server.MinecraftServer;
@@ -68,6 +69,8 @@ public final class ExternalBodyRuntime {
                         "AIBOT_REAL_CLIENT_PORT","8766"));
                 boolean requireOffline=!"0".equals(System.getenv().getOrDefault(
                         "AIBOT_REAL_CLIENT_REQUIRE_OFFLINE_UUID","1"));
+                // R2/R07:place 完成归因需要服务器侧"本次交互"见证。
+                RealClientPlacementWitness.register();
                 realClientTransport=new RealClientServerTransport(
                         logicalBodyId,ExternalBodyAccess.BOT_NAME,realToken,realPort);
                 RealClientOpportunityTracker tracker=new RealClientOpportunityTracker(journal);
