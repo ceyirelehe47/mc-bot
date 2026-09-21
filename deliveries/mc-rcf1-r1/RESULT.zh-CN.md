@@ -16,7 +16,7 @@
 | R1-C 收尾/导航 | PASS(代码+重跑) | finishAction 统一收尾接入 6 个出口;约束每次准入重设+读回核验;atGoal 三维;动作名 mine_opportunity 修正;C 组最终候选 **5/5**(C01-C05,live/c-group-20260921-083259.json) |
 | R1-I 事务/证明 | PASS(代码+重跑) | craft 数量门/plan 消耗归因/eat claimed 轮次/move 净增+源槽/2x2 错屏拒绝/容器双向/smelt 三层禁用/旧入口硬闸 |
 | R1-V fixture+重跑 | 大部达成 | I/A 组 **25/26**(A08 flaky:曾过 claimed=1 轮,最新轮秒败待查);N 组 **18/18**(n-group json);A09/A10 独立实测已删占位 |
-| G4 五次矩阵 | **BLOCKED** | 单次链尝试:机会池条目过期不刷新(方块变化后 stale,tracker 无重扫机制)——挖叶全部 stale。这是独立于本轮修复面的存量缺陷,需下一轮实现传感器驱动的机会失效/重注册 |
+| G4 五次矩阵 | **BLOCKED(深度推进)** | 机会系统 7 项根因修复后单环节全通:全向 sweep 注册(30°×22.5° 采样)/惰性剔除/journal 截断重放/MAX_ACTIVE 1024/inspect 驱动传感器/拾取精确站位/视线走廊。**mine 单步 3s completed(gain 0→1 实证)**;但整链编排不稳定(每轮暴露新物理细节:山脊多层遮挡/站位高差/拾取位移带离观测位/dispatch 竞态 stale)。已超三轮规则,如实记录 |
 | G5 过夜 | NOT_RUN | 依门序 |
 | fresh replay | NOT_RUN | 依门序 |
 

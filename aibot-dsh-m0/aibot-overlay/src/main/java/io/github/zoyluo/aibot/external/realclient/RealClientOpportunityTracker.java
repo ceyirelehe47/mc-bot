@@ -30,7 +30,7 @@ import java.util.UUID;
 
 /** Durable incarnation tracker for opportunities actually pointed at by Bob's real client. */
 public final class RealClientOpportunityTracker {
-    private static final int MAX_ACTIVE=256;
+    private static final int MAX_ACTIVE=1024;
     /** Coherent frame freshness: a sample older than this is never validated. */
     public static final long FRAME_FRESH_MS=2000L;
     /** Sensor position is a coherence hint only: it must stay near the authoritative body. */
@@ -54,8 +54,18 @@ public final class RealClientOpportunityTracker {
 
     public synchronized Optional<Opportunity> observe(
             ServerPlayerEntity player,RealClientServerTransport.SensorSnapshot sensor) {
-        if(sensor==null || !sensor.crosshairPresent()) {
-            diagReject(player,sensor,null,null,"sensor_null_or_not_present");
+        if(sensor==null) {
+            diagReject(player,sensor,null,null,"sensor_null");
+            return Optional.empty();
+        }
+        // R1/G4:全向注册(30°×15° 采样,7 格服务器权威 outline raycast)。
+        // 视角来源不可靠(空闲传感器帧全 0;goto face 后视角漂移,实测
+        // yaw=-26 非目标向)——扫描与 look 无关,遮挡由 raycast 自然
+        // 处理,无透视边界不变。放在准星 present 检查之前。
+        if(System.currentTimeMillis()-sensor.receivedAtMs()<=FRAME_FRESH_MS)
+            sweepRegister(player,sensor);
+        if(!sensor.crosshairPresent()) {
+            diagReject(player,sensor,null,null,"sensor_not_present");
             return Optional.empty();
         }
         if(sensor.gameSession()==null || sensor.gameSession().isBlank()) {
@@ -108,15 +118,64 @@ public final class RealClientOpportunityTracker {
         }
         String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
         Opportunity existing=findAt(dimension,pos,actualId).orElse(null);
+        Opportunity primary;
         if(existing!=null) {
             Opportunity refreshed=new Opportunity(
                     existing.id(),existing.worldId(),existing.dimension(),existing.pos(),
                     existing.blockId(),player.getBlockPos(),existing.expectedItem(),
                     existing.requiredTool(),player.getServerWorld().getTime());
             active.put(key(dimension,existing.id()),refreshed);
-            return Optional.of(refreshed);
+            primary=refreshed;
+        } else if(active.size()<MAX_ACTIVE) {
+            primary=register(player,dimension,pos,actualId,state,
+                    sensor);
+        } else {
+            return Optional.empty();
         }
-        if(active.size()>=MAX_ACTIVE)return Optional.empty();
+        return Optional.of(primary);
+    }
+
+    private void sweepRegister(
+            ServerPlayerEntity player,
+            RealClientServerTransport.SensorSnapshot sensor) {
+        String dimension=player.getServerWorld()
+                .getRegistryKey().getValue().toString();
+        Vec3d eye=player.getEyePos();
+        io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                "AIBot sweep-run pos={} active={}",
+                player.getBlockPos(),active.size());
+        for(float yaw=0F;yaw<360F;yaw+=30F) {
+            for(float pitch=-45F;pitch<=45F;pitch+=22.5F) {
+                Vec3d direction=Vec3d.fromPolar(pitch,yaw);
+                HitResult ray=player.getServerWorld().raycast(
+                        new RaycastContext(
+                                eye,eye.add(direction.multiply(VALIDATION_RANGE)),
+                                RaycastContext.ShapeType.OUTLINE,
+                                RaycastContext.FluidHandling.NONE,player));
+                if(!(ray instanceof BlockHitResult hit))
+                    continue;
+                BlockPos p=hit.getBlockPos();
+                if(player.squaredDistanceTo(Vec3d.ofCenter(p))>49D)
+                    continue;
+                BlockState s=player.getServerWorld().getBlockState(p);
+                String id2=Registries.BLOCK.getId(s.getBlock()).toString();
+                if(!(OreScan.isOreBlock(s.getBlock())
+                        ||s.isIn(net.minecraft.registry.tag.BlockTags.LOGS)
+                        ||isOrdinaryDiggable(s,player,p)))
+                    continue;
+                if(findAt(dimension,p,id2).isPresent())
+                    continue;
+                if(active.size()>=MAX_ACTIVE)
+                    return;
+                register(player,dimension,p,id2,s,sensor);
+            }
+        }
+    }
+
+    private Opportunity register(
+            ServerPlayerEntity player,String dimension,
+            BlockPos pos,String actualId,BlockState state,
+            RealClientServerTransport.SensorSnapshot sensor) {
         String id=newId(dimension,pos,actualId);
         Opportunity opportunity=new Opportunity(
                 id,SemanticWorldRegistry.worldId(),dimension,pos,actualId,player.getBlockPos(),
@@ -124,10 +183,7 @@ public final class RealClientOpportunityTracker {
                 player.getServerWorld().getTime());
         appendBirth(opportunity);
         active.put(key(dimension,id),opportunity);
-        io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                "AIBot real-client sensor diag birth id={} pos={} active={} block={} frameSeq={} gameSession={}",
-                id,pos,active.size(),actualId,sensor.frameSeq(),sensor.gameSession());
-        return Optional.of(opportunity);
+        return opportunity;
     }
 
     public synchronized Optional<Opportunity> opportunity(
@@ -138,6 +194,21 @@ public final class RealClientOpportunityTracker {
 
     public synchronized List<Opportunity> opportunities(ServerPlayerEntity player) {
         String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
+        // R1/G4:惰性剔除——journal 重放的旧条目在方块已变后必须退出
+        // 列表,否则 mine 永远选中坏条目 stale(实测核心链死锁)。
+        active.values().removeIf(o->{
+            if(!dimension.equals(o.dimension()))
+                return false;
+            BlockState s=player.getServerWorld().getBlockState(o.pos());
+            String now=Registries.BLOCK.getId(s.getBlock()).toString();
+            if(!now.equals(o.blockId())) {
+                io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                        "AIBot opportunity evict-lazy id={} pos={} was={} now={}",
+                        o.id(),o.pos(),o.blockId(),now);
+                return true;
+            }
+            return false;
+        });
         return active.values().stream()
                 .filter(o->dimension.equals(o.dimension()))
                 .sorted(Comparator.comparing(Opportunity::id))
@@ -200,8 +271,15 @@ public final class RealClientOpportunityTracker {
                 Opportunity prior=active.get(key);
                 if(prior!=null && !prior.equals(birth))
                     throw new IllegalStateException("conflicting_real_client_opportunity_birth");
-                if(prior==null && active.size()>=MAX_ACTIVE)
-                    throw new IllegalStateException("real_client_opportunity_capacity_exceeded");
+                if(prior==null && active.size()>=MAX_ACTIVE) {
+                    // R1/G4:journal 积累(扇形注册多轮测试)超上限时
+                    // 截断重放,不再 fail-closed 崩服;历史仍在 journal,
+                    // 惰性剔除会清掉与现实不符的条目。
+                    io.github.zoyluo.aibot.AIBotMod.LOGGER.warn(
+                            "AIBot opportunity replay truncated at MAX_ACTIVE={}",
+                            MAX_ACTIVE);
+                    continue;
+                }
                 active.put(key,birth);
             } else if("resource_opportunity_consumed".equals(kind)
                     || "resource_opportunity_stale".equals(kind)) {

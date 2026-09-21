@@ -149,6 +149,11 @@ public final class RealClientBodyBackend implements BodyBackend {
     @Override public String inspectLocalJson(int radius,String detail) {
         onThread();
         ServerPlayerEntity current=requirePlayer();
+        // R1/G4:inspect-local 是 LLM 的主感知入口,必须驱动传感器帧→
+        // 机会注册(sweep);否则机会池只有历史 journal 条目,新方块
+        // 永远不注册(实测树干机会缺失根因)。
+        transport.session().map(s->s.sensor())
+                .ifPresent(sn->tracker.observe(current,sn));
         if(radius<1 || radius>16)throw new BridgeFault(400,"radius_out_of_range_1_16");
         Map<String,Object> out=new LinkedHashMap<>();
         out.put("schema","mc.local_view.v0");

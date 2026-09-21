@@ -128,14 +128,39 @@ def run_b01(run_id):
 def main():
     # 简化主链(逐段断言,失败即停并记录)
     t0 = time.time()
-    # R1:机会=传感器注册的自然方块(热放不注册,实测);用出生区自然橡树
+    # R1:热放树+面向它——sweep 扇形注册(服务器权威 raycast,与方块
+    # 来源无关;旧失败是准星单点未命中,不是热放被排除)
     rcon("tp Bob 8.5 107 -0.5")
+    # 地面在 y106:树干 7 节 + 叶球;清 z5-7 视线走廊(y107-110,
+    # 自然山脊草方块挡 raycast,实测多层被挡)
+    for y in (107, 108, 109, 110):
+        for z in (5, 6, 7):
+            rcon("setblock 8 %d %d minecraft:air" % (y, z))
+    for dy in range(7):
+        rcon("setblock 8 %d 8 minecraft:oak_log" % (107 + dy))
+    for dy in (108, 109, 110, 111):
+        for dx in (-2, -1, 0, 1, 2):
+            for dz in (-2, -1, 0, 1, 2):
+                if abs(dx) + abs(dz) <= 3 and not (dx == 0 and dz == 0):
+                    rcon("setblock %d %d %d minecraft:oak_leaves"
+                         % (8 + dx, dy, 8 + dz))
+    for dx in (-1, 0, 1):
+        for dz in (-1, 0, 1):
+            rcon("setblock %d 112 %d minecraft:oak_leaves" % (8 + dx, 8 + dz))
+    rcon("setblock 8 112 8 minecraft:oak_log")
+    # 站位垫层:自然地面比树底低 1 格,视线被台阶挡(实测 sweep 命不中)
+    rcon("setblock 8 106 4 minecraft:stone")
+    rcon("tp Bob 8.5 107 4.5")
     rcon("time set day"); rcon("weather clear"); rcon("clear Bob")
+    # setup(armed 前):面向树,让 sweep 注册
+    sp = play.Session("g4setup")
+    sp.do("goto", {"x": 8, "y": 107, "z": 4, "face_x": 8, "face_y": 109,
+                   "face_z": 8}, timeout_s=120)
     time.sleep(3.5)
     s = play.Session("g4")
     # 树干被叶包裹不暴露:先挖叶暴露(log 机会随后注册——上轮 G4 实测路径)
     for i in range(8):
-        o = opp("minecraft:oak_log", near=(8, 107, -1), session=s)
+        o = opp("minecraft:oak_log", near=(8, 109, 8), session=s)
         if o:
             break
         leaf = opp("minecraft:oak_leaves", near=(8, 107, -1), session=s)
@@ -147,16 +172,21 @@ def main():
         print(json.dumps({"leaf": i, "state": r.get("state"),
                           "reason": (r.get("reason") or "")[:60]}), flush=True)
         time.sleep(1.5)
-    o = opp("minecraft:oak_log", near=(8, 107, -1), session=s)
+    o = opp("minecraft:oak_log", near=(8, 109, 8), session=s)
     if not o:
         print(json.dumps({"fail": "挖叶后树干机会未注册"}))
         return 1
     print(json.dumps({"tree": (o.get("x"), o.get("y"), o.get("z"))}))
     # 逐木挖
     for i in range(5):
-        o = opp("minecraft:oak_log", near=(8, 107, -1), session=s)
+        o = None
+        for _ in range(8):
+            o = opp("minecraft:oak_log", near=(8, 109, 8), session=s)
+            if o:
+                break
+            time.sleep(2.5)
         if not o:
-            print(json.dumps({"i": i, "fail": "无机会"}))
+            print(json.dumps({"i": i, "fail": "无机会(重试后)"}))
             return 1
         r = s.do("mine_opportunity", {"id": o.get("object_id")},
                  timeout_s=180)[0] if False else s.do(
@@ -200,7 +230,7 @@ def main():
         return 1
     # 采石:自然泥土机会挖开露 stone(泥土/石均为自然方块,机会可注册)
     for i in range(2):
-        o = opp("minecraft:dirt", near=(8, 106, -1), session=s)
+        o = opp("minecraft:dirt", near=(8, 106, 4), session=s)
         if not o:
             break
         r = s.do("mine_opportunity", {"id": o.get("object_id")},
@@ -209,9 +239,14 @@ def main():
                           "reason": (r.get("reason") or "")[:60]}), flush=True)
     time.sleep(3)
     for i in range(3):
-        o = opp("minecraft:stone", near=(8, 105, -1), session=s)
+        o = None
+        for _ in range(8):
+            o = opp("minecraft:stone", near=(8, 104, 4), session=s)
+            if o:
+                break
+            time.sleep(2.5)
         if not o:
-            print(json.dumps({"i": i, "fail": "石机会未注册"}))
+            print(json.dumps({"i": i, "fail": "石机会未注册(重试后)"}))
             return 1
         r = s.do("mine_opportunity", {"id": o.get("object_id")},
                  timeout_s=180).get("terminal", {})

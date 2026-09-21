@@ -1669,7 +1669,10 @@ final class RealClientActionController {
                             "client_block_gone_and_inventory_gain_observed");
                     return;
                 }
-                walkTo(client,target.toCenterPos());
+                // R1/G4:拾取半径 1 格——GoalNear(2) 停在 2 格外永远
+                // 捡不到掉落(实测 block_gone_without_inventory_gain
+                // 超时根因)。用精确站格走到掉落点上。
+                walkToExact(client,target.toCenterPos());
                 progress=.9D;
                 send(executionId,"running",
                         progress,
