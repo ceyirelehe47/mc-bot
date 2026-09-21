@@ -256,6 +256,9 @@ def i04_container_chest_barrel():
                                     "direction": "withdraw"}, 120)
     chest2 = rcon("data get block 303 120 300 Items") or ""
     inv_after = inv_counts().get("minecraft:oak_log", 0)
+    rcon("setblock 303 121 301 minecraft:air")
+    rcon("tp Bob 303.5 120 300.5")
+    time.sleep(1)
     dep2 = do("container_transfer", {"x": 303, "y": 120, "z": 302,
                                      "item": "minecraft:oak_log",
                                      "count": 3,
@@ -310,12 +313,22 @@ def i06_cursor_injection():
     # 每阶段断言:终态 cancelled + 物品守恒(cursor 有界回包,不丢弃)
     # + 下一动作可正常开屏(无残留屏)。
     stages = []
-    for stage, delay in (("pickup", 0.5), ("partial", 1.0),
+    for stage, delay in (("pickup", 0.2), ("partial", 1.0),
                          ("produced", 2.0)):
+        time.sleep(2.0)  # 上一阶段在途包文落定
         rcon("clear Bob")
         rcon("give Bob minecraft:oak_log 8")
         time.sleep(1)
-        base = inv_counts().get("minecraft:oak_log", 0)
+        # 纯净检查:在途残留(晚到的点击结果)必须先落定再开测
+        pre = inv_counts()
+        if pre.get("minecraft:oak_planks", 0) > 0 \
+                or pre.get("minecraft:oak_log", 0) != 8:
+            time.sleep(2)
+            rcon("clear Bob")
+            rcon("give Bob minecraft:oak_log 8")
+            time.sleep(1)
+            pre = inv_counts()
+        base = pre.get("minecraft:oak_log", 0)
         s = play.Session("r1i06-%s" % stage)
         ex, err = s.submit("craft",
                            {"item": "minecraft:oak_planks", "count": 20})
@@ -325,7 +338,7 @@ def i06_cursor_injection():
         time.sleep(delay)
         c = s.ctl(ex, "cancel")
         term = s.term(ex, 30)[0]
-        time.sleep(1.5)   # 收尾+回包+服务器同步
+        time.sleep(3.0)   # 收尾+回包+服务器同步(grid回收分tick)
         counts = inv_counts()
         logs = counts.get("minecraft:oak_log", 0)
         planks = counts.get("minecraft:oak_planks", 0)
@@ -685,6 +698,19 @@ def _all_opps():
         snap = json.loads(snap)
     return (snap.get("opportunities") or [])
 def a10_drop_not_picked():
+    # R2/R04:先证明破坏+未拾取,再同坐标阻断。租约竞态(I08 长跑后
+    # 旧会话未过期)整体重试一次。
+    try:
+        _a10_once()
+        return
+    except RuntimeError as exc:
+        if "lease" not in str(exc):
+            raise
+    time.sleep(15)
+    _a10_once()
+
+
+def _a10_once():
     # R2/R04:先证明 Bob 已破坏指定格且指定掉落尚未入包,再阻断掉落;
     # 同坐标系 kill,不用任意 sleep 与原点 kill。不把目标消失等同获取。
     safe()
@@ -696,7 +722,16 @@ def a10_drop_not_picked():
     rcon("setblock %d %d %d minecraft:smooth_stone" % (bx, by, bz))
     rcon("tp Bob %d.5 %d.5 %d.5" % (bx, by + 1, bz + 3))
     time.sleep(2)
-    s = play.Session("r1a10")
+    s = None
+    for attempt in range(4):
+        try:
+            s = play.Session("r1a10")
+            break
+        except RuntimeError:
+            time.sleep(12)  # 前序长跑会话租约过期等待
+    if s is None:
+        run("A10", False, {"note": "lease 不可得(前序会话未过期)"})
+        return
     pos = (s.observe().get("data", {}).get("observation")
            .get("position") or {})
     px, py, pz = int(pos.get("x", 0)), int(pos.get("y", 0)), int(pos.get("z", 0))
@@ -709,7 +744,13 @@ def a10_drop_not_picked():
     opp = None
     deadline = time.time() + 12
     while time.time() < deadline:
-        found = [o for o in _all_opps()
+        # 用同一 session 查机会(新建 Session 会抢走本执行租约——
+        # 实测 lease lost 根因)
+        loc = s.inspect_local(8, "summary")
+        snap = ((loc.get("data") or {}).get("snapshot") or {})
+        if isinstance(snap, str):
+            snap = json.loads(snap)
+        found = [o for o in (snap.get("opportunities") or [])
                  if (o.get("x"), o.get("y"), o.get("z")) == (bx, by, bz)]
         if found:
             opp = found[0]

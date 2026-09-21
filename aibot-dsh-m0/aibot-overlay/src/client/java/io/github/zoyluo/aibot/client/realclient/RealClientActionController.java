@@ -1899,6 +1899,17 @@ final class RealClientActionController {
                             Hand.MAIN_HAND);
                 }
             }
+            if(openTicks%20==0)
+                io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                        "[AIBot] deposit-diag openTicks={} sent={} auth={} "
+                                +"screen={} cross={} dist={}",
+                        openTicks,interactionSent,authorized,
+                        client.currentScreen==null?"none"
+                                :client.currentScreen.getClass().getSimpleName(),
+                        client.crosshairTarget instanceof BlockHitResult dx
+                                ?dx.getBlockPos():"none",
+                        String.format("%.1f",client.player.getPos().distanceTo(
+                                target.toCenterPos())));
             if(++openTicks>160) {
                 fail("client_container_open_timeout");
                 return;
