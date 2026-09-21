@@ -59,7 +59,17 @@ class Session:
         self.renewed = time.time()
         r = E.observe(self.lease)  # 死亡/重启后对账解锁
         if not r.get("ok"):
-            raise RuntimeError("observe reconcile failed: %s" % json.dumps(r)[:200])
+            # R1:会话翻转(客户端重启)瞬间拿到的旧 epoch 租约会被拒;
+            # 重新获取一次并再对账(权威转移后的新租约)
+            lease = E.acquire_lease(owner=owner, wait_s=15, reuse=False)
+            if not lease:
+                raise RuntimeError("observe reconcile failed: %s"
+                                   % json.dumps(r)[:200])
+            self.lease = lease
+            r2 = E.observe(self.lease)
+            if not r2.get("ok"):
+                raise RuntimeError("observe reconcile failed twice: %s"
+                                   % json.dumps(r2)[:200])
 
     # ---------- 租约 ----------
 

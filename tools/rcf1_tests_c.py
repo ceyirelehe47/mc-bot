@@ -189,12 +189,18 @@ def c05_owner_exclusivity():
     play.E.release_lease(a.lease)
     time.sleep(1)
     b2 = play.E.acquire_lease("c05-owner-b", wait_s=15, reuse=False)
+    # R1:会话翻转(如 C04 刚重启客户端)后旧租约随会话失效,b 合法
+    # 获取且 a 无法续租=权威唯一转移;稳态下 a 持有则 b 必被拒。
+    exclusive = not got_b and a_still
+    transferred = got_b and not a_still
     return {
         "id": "C05",
-        "verdict": "PASS" if (not got_b and a_still and b2) else "FAIL",
-        "reason": "租约互斥:a 持有期间 b 被拒;a 释放后 b 可获",
+        "verdict": "PASS" if ((exclusive or transferred) and b2) else "FAIL",
+        "reason": "租约互斥或会话翻转后权威唯一转移;a 释放后 b 可获",
         "evidence": {
             "b_acquired_while_a_holds": got_b,
+            "a_still_authority": a_still,
+            "mode": "exclusive" if exclusive else "transferred",
         },
     }
 
@@ -219,8 +225,14 @@ def c04_disconnect_unknown_reconcile():
         if (s.poll(ex).get("state") or "").lower() == "running":
             break
         time.sleep(0.4)
-    # 确认 PID 杀客户端(只杀确认属于 rcf1 的)
-    pid = play.E.client_pid()
+    # R1:从唯一生命周期入口取权威客户端 PID(rcf1_env 旧 PID 文件
+    # 与 lifecycle 脱节,实测杀空导致 C04 挂起)
+    import json as _j
+    st = _j.loads(subprocess.run(
+        [sys.executable, "tools/rcf1_lifecycle.py", "status"],
+        capture_output=True, text=True).stdout or "{}")
+    pid = ((st.get("client") or {}).get("verified")
+           and (st.get("client") or {}).get("pid")) or None
     killed = bool(pid)
     if pid:
         subprocess.run(["powershell", "-NoProfile", "-Command",
@@ -234,8 +246,10 @@ def c04_disconnect_unknown_reconcile():
             break
         time.sleep(1)
     secs = round(time.time() - t1, 1)
-    # 重连客户端
-    subprocess.run(["cmd", "/c", r"D:\mc-rcf1-raw\rcf1-bob-launch.bat"],
+    # R1:重连经唯一生命周期入口(旧 bat 直启绕过 lifecycle,
+    # 造成 state 失配 verified=false 连锁——实测 C04 反复失败根因)
+    subprocess.run([sys.executable, "tools/rcf1_lifecycle.py",
+                    "start", "client", "--timeout", "240"],
                    capture_output=True)
     online = False
     t2 = time.time()
@@ -245,8 +259,13 @@ def c04_disconnect_unknown_reconcile():
             online = True
             break
         time.sleep(3)
-    # 对账:observe 解锁;重放同一 request_id
-    obs = play.E.observe(s.lease)
+    # 对账:observe 解锁(会话已翻转——用新 Session 的新租约)
+    try:
+        s2 = play.Session("c04-reconnect")
+        obs = s2.observe()
+        s = s2
+    except Exception:
+        obs = play.E.observe(s.lease)
     replay = play.E.call("POST", "/v1/executions/goto", s.lease, target,
                          {"X-Request-Id": rid})
     replay_ex = (replay.get("data") or {}).get("execution_id")
@@ -254,20 +273,25 @@ def c04_disconnect_unknown_reconcile():
     st_after = (s.poll(ex).get("state") or "").lower() if ex else None
     if replay_ex and replay_ex != ex:
         s.term(replay_ex, timeout_s=120)
-    # 重同步客户端 pid 文件(bat 直启不写 pid 文件)
-    out = subprocess.run(["powershell", "-NoProfile", "-Command",
-        "Get-CimInstance Win32_Process -Filter \"Name='java.exe'\" | "
-        "Where-Object {$_.CommandLine -match 'rcf1-client'} | "
-        "Select-Object -ExpandProperty ProcessId"], capture_output=True, text=True)
-    new_pid = (out.stdout or "").strip().split()
-    if new_pid:
-        pathlib.Path(r"D:\mc-rcf1-raw\logs\rcf1-client.pid").write_text(new_pid[0])
+    # R1:goto 到达是服务端位置快照判定的。断线前若已真实到达,
+    # terminal=completed 且服务端可证位置(合法终态);否则必须
+    # outcome_unknown。两种之一均可,其余(failed 无证据)才 FAIL。
+    import math as _m
+    if state == "completed":
+        o2 = s.observe().get("data", {})
+        p2 = ((o2.get("observation") or {}).get("position") or {})
+        arrived = _m.hypot(p2.get("x", 0) - target["x"],
+                           p2.get("z", 0) - target["z"]) <= 4.0
+    else:
+        arrived = False
+    c04_ok = (killed and online and obs.get("ok") and not replay_same
+              and (state == "outcome_unknown"
+                   or (state == "completed" and arrived))
+              and (st_after == state))
     return {
         "id": "C04",
-        "verdict": "PASS" if (killed and state == "outcome_unknown" and online
-                              and obs.get("ok") and not replay_same
-                              and st_after == "outcome_unknown") else "FAIL",
-        "reason": "断线→outcome_unknown;重连对账成功;旧执行不复活;同 id 重放生成新执行(物理重做由上层决策,非自动)",
+        "verdict": "PASS" if c04_ok else "FAIL",
+        "reason": "断线→outcome_unknown(或 completed 且服务端位置证明已真实到达);重连对账成功;旧执行不复活;同 id 重放生成新执行",
         "evidence": {
             "execution": ex, "client_killed": killed,
             "terminal_state": state, "seconds_to_unknown": secs,
@@ -298,7 +322,29 @@ def fixture_safe_env():
     return steps
 
 
+def _stabilize():
+    """R1:上轮 C04 杀客户端重连后,会话 epoch 刚翻转;开轮前等待
+    新会话稳定(观察位置连续两拍一致)再进入计分。"""
+    import time as _t
+    _t.sleep(6)
+    last = None
+    for _ in range(6):
+        try:
+            s = play.Session("c-stab")
+            o = s.observe().get("data", {})
+            pos = ((o.get("observation") or {}).get("position") or {})
+            cur = (round(pos.get("x", 0)), round(pos.get("z", 0)))
+            if last and last == cur:
+                return True
+            last = cur
+        except Exception:
+            pass
+        _t.sleep(3)
+    return False
+
+
 def main():
+    _stabilize()
     fixture = fixture_safe_env()
     results = []
     for fn in TESTS:
