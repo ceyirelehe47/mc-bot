@@ -45,8 +45,16 @@ def _mk_ns():
     return ns
 
 
-RESULTS = []
+def _fake_prefix(ns):
+    """与 rcf1_lifecycle._marker_prefix 同算法:假进程 marker 前缀
+    由 NS_ROOT 派生,跨测试命名空间互不可见。"""
+    import hashlib
+    token = hashlib.sha1(
+        str(ns.resolve()).lower().encode("utf-8")).hexdigest()[:8]
+    return "rcf1fake%s-" % token
 
+
+RESULTS = []
 
 def check(tid, ok, detail=""):
     RESULTS.append((tid, bool(ok), str(detail)[:300]))
@@ -71,7 +79,7 @@ def _cleanup_fake_orphans():
         rows = [rows]
     for r in rows:
         cl = r.get("CommandLine") or ""
-        if "_rcf1_fake_proc" in cl and "rcf1fake-" in cl:
+        if "_rcf1_fake_proc" in cl and "rcf1.instance.marker=rcf1fake" in cl:
             subprocess.run(["powershell", "-NoProfile", "-Command",
                             "Stop-Process -Id %d -Force" % r["ProcessId"]],
                            capture_output=True)
@@ -121,7 +129,7 @@ def l03_crash_windows():
     ns = _mk_ns()
     env = _ns_env(ns)
     ns.joinpath("intents").mkdir(parents=True, exist_ok=True)
-    marker = "rcf1fake-server-abc123deadbeef"
+    marker = _fake_prefix(ns) + "server-abc123deadbeef"
     proc = subprocess.Popen(
         [PY, str(HERE / "_rcf1_fake_proc.py"), "--role", "server",
          "-Drcf1.instance.marker=%s" % marker],
@@ -143,8 +151,9 @@ def l03_crash_windows():
     # 场景B:两个未登记实例 → 冲突阻断,不选不杀
     ns2 = _mk_ns()
     env2 = _ns_env(ns2)
+    pfx = _fake_prefix(ns2)
     ps = []
-    for m in ("rcf1fake-server-1111111111111111", "rcf1fake-server-2222222222222222"):
+    for m in (pfx + "server-1111111111111111", pfx + "server-2222222222222222"):
         ps.append(subprocess.Popen(
             [PY, str(HERE / "_rcf1_fake_proc.py"), "--role", "server",
              "-Drcf1.instance.marker=%s" % m],
@@ -225,7 +234,7 @@ def l07_stop_fail_keeps_budget():
     env2["RCF1_LIFECYCLE_STOP_FAIL"] = "1"
     r = _cli(env2, "stop", "server", "--timeout", "2", timeout=45)
     st = json.loads(_cli(env, "status").stdout)
-    fails_after = st.get("consecutive_failures")
+    fails_after = (st.get("consecutive_failures") or {}).get("server", 0)
     # stop 失败后:状态 STOP_FAILED,预算≥1,start 被拒(预算或阻断)
     r2 = _cli(env, "start", "server", timeout=30)
     check("L07", "STOP_FAILED" in json.dumps(r.stdout) and fails_after >= 1
@@ -244,15 +253,16 @@ def l08_budget_bypass():
     for i in range(3):
         _cli(env, "start", "server", "--timeout", "15", timeout=60)
     st = json.loads(_cli(env, "status").stdout)
-    locked = st.get("locked")
+    locked = (st.get("locked") or {}).get("server")
     # 换 run 目录/换脚本名/stop 都不清预算
     env2 = dict(env)
     env2["RCF1_LIFECYCLE_NS_ROOT"] = str(ns)  # 同预算文件
     r_stop = _cli(env2, "stop", "all", timeout=10)
     st2 = json.loads(_cli(env2, "status").stdout)
     r_retry = _cli(env2, "start", "server", timeout=45)
-    check("L08a", locked and st2.get("locked") and r_retry.returncode != 0,
-          {"locked1": locked, "locked2": st2.get("locked"),
+    check("L08a", locked and (st2.get("locked") or {}).get("server")
+          and r_retry.returncode != 0,
+          {"locked1": locked, "locked2": (st2.get("locked") or {}).get("server"),
            "retry_rc": r_retry.returncode, "stop": r_stop.stdout.strip()[:80]})
     # unlock 无 reason 拒绝;有 reason 清零但保留 total
     r3 = _cli(env2, "unlock")
@@ -260,11 +270,11 @@ def l08_budget_bypass():
     st3 = json.loads(_cli(env2, "status").stdout)
     fails_raw = json.loads((ns / "failures.json").read_text(encoding="utf-8"))
     check("L08b", r3.returncode != 0 and r4.returncode == 0
-          and not st3.get("locked")
+          and not (st3.get("locked") or {}).get("server")
           and fails_raw.get("total_failures", 0) >= 3,
           {"unlock_no_reason_rc": r3.returncode, "unlock_rc": r4.returncode,
            "total": fails_raw.get("total_failures"),
-           "consec": st3.get("consecutive_failures")})
+           "consec": (st3.get("consecutive_failures") or {}).get("server")})
     shutil.rmtree(ns, ignore_errors=True)
 
 
@@ -315,12 +325,106 @@ def l10_real_state_untouched():
     shutil.rmtree(ns, ignore_errors=True)
 
 
+def l11_stop_no_record_with_orphan():
+    """R2/R06:state 无记录 + 命名空间有孤儿 → BLOCKED,不伪报 STOPPED。"""
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    orphan = subprocess.Popen(
+        [PY, str(HERE / "_rcf1_fake_proc.py"), "--role", "client",
+         "-Drcf1.instance.marker=%sclient-7777aaaa8888bbbb"
+         % _fake_prefix(ns)],
+        env={k: v for k, v in os.environ.items()
+             if not k.startswith("RCF1_FAKE")},
+        stdout=subprocess.DEVNULL)
+    time.sleep(1)
+    # CIM CommandLine 注册延迟不定:轮询直到命名空间扫描确实看到孤儿
+    deadline = time.time() + 20
+    seen = None
+    while time.time() < deadline:
+        st = json.loads(_cli(env, "status").stdout)
+        seen = (st.get("client") or {}).get("namespace_extras")
+        if seen:
+            break
+        time.sleep(2)
+    r = _cli(env, "stop", "client", "--timeout", "6", timeout=60)
+    alive = orphan.poll() is None
+    check("L11", "BLOCKED" in r.stdout and alive and seen,
+          {"out": r.stdout.strip()[:160], "orphan_alive": alive,
+           "extras_seen": seen})
+    orphan.kill()
+    orphan.wait(timeout=15)
+    shutil.rmtree(ns, ignore_errors=True)
+
+
+def l12_verified_plus_extra_instance():
+    """R2/R06:已验证一个合法记录后仍扫描同角色额外实例,提前返回=冲突。"""
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    _cli(env, "start", "server", timeout=60)
+    extra = subprocess.Popen(
+        [PY, str(HERE / "_rcf1_fake_proc.py"), "--role", "server",
+         "-Drcf1.instance.marker=%sserver-9999bbbbccccdddd"
+         % _fake_prefix(ns)],
+        env={k: v for k, v in os.environ.items()
+             if not k.startswith("RCF1_FAKE")},
+        stdout=subprocess.DEVNULL)
+    time.sleep(1)
+    # CIM 延迟:轮询直到 status 确实看到额外实例再断言 start 拒绝
+    deadline = time.time() + 20
+    seen = None
+    while time.time() < deadline:
+        st0 = json.loads(_cli(env, "status").stdout)
+        seen = (st0.get("server") or {}).get("namespace_extras")
+        if seen:
+            break
+        time.sleep(2)
+    r = _cli(env, "start", "server", timeout=45)
+    n, st = _count_live(env, "server")
+    check("L12", seen and r.returncode != 0
+          and "extra" in (r.stderr + r.stdout).lower(),
+          {"rc": r.returncode, "out": (r.stdout or "").strip()[:160],
+           "err": (r.stderr or "").strip()[:120], "extras_seen": seen})
+    _cli(env, "stop", "server", "--timeout", "6", timeout=60)
+    extra.kill()
+    extra.wait(timeout=15)
+    shutil.rmtree(ns, ignore_errors=True)
+
+
+def l13_cross_role_budget_isolated():
+    """R2/R06:server 连败锁死后,client start 成功不得清 server 预算。"""
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    env["RCF1_FAKE_DIE_S"] = "1"
+    for i in range(3):
+        _cli(env, "start", "server", "--timeout", "15", timeout=60)
+    st = json.loads(_cli(env, "status").stdout)
+    server_locked = (st.get("locked") or {}).get("server")
+    # 同一环境下启动 client(不受 DIE 影响——DIE 只对 fake ready 流程)
+    env2 = dict(env)
+    env2.pop("RCF1_FAKE_DIE_S", None)
+    rc = _cli(env2, "start", "client", timeout=60)
+    st2 = json.loads(_cli(env, "status").stdout)
+    check("L13", server_locked and rc.returncode == 0
+          and (st2.get("locked") or {}).get("server")
+          and (st2.get("consecutive_failures") or {}).get("server", 0) >= 3,
+          {"server_locked": server_locked, "client_rc": rc.returncode,
+           "server_fails_after": (st2.get("consecutive_failures")
+                                  or {}).get("server")})
+    _cli(env2, "stop", "client", "--timeout", "6", timeout=60)
+    shutil.rmtree(ns, ignore_errors=True)
+
+    shutil.rmtree(ns, ignore_errors=True)
+
+
 def main():
     _cleanup_fake_orphans()
     for fn in (l01_concurrent, l02_slow_start, l03_crash_windows,
                l04_corrupt_state, l05_enum_fail, l06_pid_reuse,
                l07_stop_fail_keeps_budget, l08_budget_bypass,
-               l09_no_revive, l10_real_state_untouched):
+               l09_no_revive, l10_real_state_untouched,
+               l11_stop_no_record_with_orphan,
+               l12_verified_plus_extra_instance,
+               l13_cross_role_budget_isolated):
         try:
             fn()
         except Exception as exc:  # noqa: BLE001

@@ -156,18 +156,17 @@ def scan_namespace(prefix="rcf1-%s-" % "server"):
     """R1-L L2: 全命名空间 marker 扫描。返回 {role: [ {pid, marker, created} ]}。
     发现 state 之外的实例 = 冲突(接管/清理/阻断,不重复启动)。"""
     out = {r: [] for r in ROLES}
+    pref = _marker_prefix()
     procs = _cim_processes()
-    pref = "rcf1fake-" if FAKE_BACKEND else "rcf1-"
     for pid, (created, cmdline) in procs.items():
         m = re.search(r"rcf1\.instance\.marker=%s(server|client)-([0-9a-f]+)"
                       % re.escape(pref), cmdline or "")
         if m:
             out[m.group(1)].append(
-                {"pid": pid, "marker": "%s%s-%s" % (pref, m.group(1), m.group(2)),
+                {"pid": pid,
+                 "marker": "%s%s-%s" % (pref, m.group(1), m.group(2)),
                  "created": _norm_creation(created)})
     return out
-
-
 def server_port_owner():
     raw = subprocess.run(
         ["powershell", "-NoProfile", "-Command",
@@ -202,30 +201,57 @@ def _save_json(path, obj):
     os.replace(tmp, str(path))
 
 
-def _record_failure(reason):
-    fails = _load_json_strict(FAIL_FILE) or {"consecutive": 0, "history": []}
-    fails["consecutive"] = int(fails.get("consecutive", 0)) + 1
-    fails.setdefault("history", []).append(
-        {"ts": time.time(), "reason": reason[:300]})
-    fails["total_failures"] = int(fails.get("total_failures", 0)) + 1
-    _save_json(FAIL_FILE, fails)
-    return fails["consecutive"]
+def _load_budget():
+    """R2/R06:预算按角色分账。旧全局 schema 遗留未结失败无法归因,
+    保守迁入 unattributed 桶双向阻塞;历史原样保留,不换名重记。"""
+    raw = _load_json_strict(FAIL_FILE)
+    if raw is None:
+        return {"roles": {}, "history": []}
+    if "roles" in raw:
+        return raw
+    legacy = int(raw.get("consecutive", 0) or 0)
+    migrated = {"roles": {},
+                "history": list(raw.get("history", []))}
+    if legacy > 0:
+        migrated["roles"]["unattributed"] = {"consecutive": legacy}
+    return migrated
 
 
-def _record_success():
-    fails = _load_json_strict(FAIL_FILE) or {"consecutive": 0, "history": []}
-    if fails.get("consecutive"):
-        fails["consecutive"] = 0
-        _save_json(FAIL_FILE, fails)
+def _role_consecutive(budget, role):
+    return int((budget.get("roles", {}).get(role) or {})
+               .get("consecutive", 0))
 
 
-def _check_budget():
-    fails = _load_json_strict(FAIL_FILE) or {"consecutive": 0}
-    n = int(fails.get("consecutive", 0))
+def _record_failure(role, reason):
+    """R2/R06:失败预算绑定角色+恢复链;另一角色成功不得清零。"""
+    budget = _load_budget()
+    entry = budget.setdefault("roles", {}).setdefault(
+        role, {"consecutive": 0})
+    entry["consecutive"] = int(entry.get("consecutive", 0)) + 1
+    budget.setdefault("history", []).append(
+        {"ts": time.time(), "role": role, "reason": reason[:300]})
+    budget["total_failures"] = int(budget.get("total_failures", 0)) + 1
+    _save_json(FAIL_FILE, budget)
+    return entry["consecutive"]
+
+
+def _record_success(role):
+    budget = _load_budget()
+    entry = budget.get("roles", {}).get(role)
+    if entry and entry.get("consecutive"):
+        entry["consecutive"] = 0
+        _save_json(FAIL_FILE, budget)
+
+
+def _check_budget(role):
+    budget = _load_budget()
+    n = max(_role_consecutive(budget, role),
+            _role_consecutive(budget, "unattributed"))
     if n >= MAX_CONSECUTIVE_FAILURES:
-        raise RuntimeError("BLOCKED: %d consecutive lifecycle failures; "
-                           "explicit unlock with repair evidence required"
-                           % n)
+        raise RuntimeError(
+            "BLOCKED: role %s has %d consecutive lifecycle failures; "
+            "explicit unlock with repair evidence required"
+            % (role, n))
 
 
 # ---------- 启动命令 ----------
@@ -277,8 +303,15 @@ def _fake_cmd(role, marker):
 # ---------- spawn:意图预写两阶段 ----------
 
 def _marker_prefix():
-    """R1-L L5/L10: 假后端用独立 rcf1fake- 前缀,与真实命名空间互不可见。"""
-    return "rcf1fake-" if FAKE_BACKEND else "rcf1-"
+    """R1-L L5/L10 + R2:假后端用 NS_ROOT 派生的唯一前缀——不同假测试
+    命名空间的进程互不可见(全局 rcf1fake- 前缀会让并行套件的孤儿
+    污染彼此的命名空间扫描);真实命名空间仍为 rcf1-。"""
+    if not FAKE_BACKEND:
+        return "rcf1-"
+    import hashlib
+    token = hashlib.sha1(
+        str(STATE_DIR.resolve()).lower().encode("utf-8")).hexdigest()[:8]
+    return "rcf1fake%s-" % token
 
 
 def _spawn(role, state):
@@ -295,15 +328,7 @@ def _spawn(role, state):
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     log_path = LOG_DIR / log_name
     if log_path.exists():
-        os.replace(str(log_path),
-                   str(LOG_DIR / ("%s.%d.log" % (log_name.replace(".log", ""),
-                                                 int(time.time() * 1000)))))
-    # L2/L03 阶段一:启动意图原子落盘(marker+cmd+ts)。
-    # 此后任何崩溃,后继 start 都能看到意图并按 marker 找到已/将存在的进程。
-    INTENT_DIR.mkdir(parents=True, exist_ok=True)
-    _save_json(INTENT_DIR / ("%s.json" % role),
-               {"marker": marker, "cmd": [str(c) for c in cmd],
-                "ts": time.time(), "cwd": str(cwd), "log": str(log_path)})
+        os.replace(str(log_path), str(log_path.with_suffix(".old")))
     log = open(log_path, "wb")
     merged = dict(os.environ)
     merged.update(env)
@@ -384,19 +409,35 @@ def _verified(role, state, procs=None):
     claimed = rec.get("created")
     created_n = _norm_creation(created)
     if claimed and created_n and int(claimed) != created_n:
-        return None  # PID 复用
-    return {"pid": pid, "created": created_n,
+        return None
+    return {"pid": pid,
             "claimed_created": claimed or created_n, "state": rec.get("state")}
 
 
-# ---------- 公开操作(全部持锁) ----------
-
 def _preflight(role):
-    """L2/L04/L05:启动前全命名空间核对。
+    """L2/L04/L05 + R2/R06:启动前全命名空间核对。
     返回 (state, verified)。发现未知/冲突实例时抛 InstanceConflict。"""
     state = _load_json_strict(STATE_FILE)
     if state is None:
         state = {}
+    try:
+        v = _verified(role, state)
+    except CorruptStateError:
+        raise
+    if v is not None:
+        # R2/R06:已验证一个合法记录 ≠ 配额合规——仍须扫描本轮同角色
+        # 额外实例(不同 marker = 竞争写入者),不能在 _verified 成功后
+        # 提前认为全机只有这一套(审查点名)。
+        rec_marker = (state.get(role) or {}).get("marker")
+        live = scan_namespace()
+        extra = [x for x in (live.get(role) or [])
+                 if x.get("marker") != rec_marker]
+        if extra:
+            raise InstanceConflict(
+                "extra %s instance(s) beyond verified record: %s; "
+                "stop them before starting"
+                % (role, [x["pid"] for x in extra]))
+        return state, v
     try:
         v = _verified(role, state)
     except CorruptStateError:
@@ -433,7 +474,7 @@ def start(role, timeout_s=300):
     if role not in ROLES:
         raise ValueError("role must be server|client")
     with _FileLock(LOCK_FILE):
-        _check_budget()
+        _check_budget(role)
         state, v = _preflight(role)
         if v is not None:
             rec = state[role]
@@ -446,7 +487,7 @@ def start(role, timeout_s=300):
                         "note": "stop in progress; start refused until confirmed exit"}
             if rec.get("state") == "STOP_FAILED":
                 # L7 修复:停止未确认的实例不得被 start 当作 RUNNING 复活。
-                _record_failure("start %s refused: STOP_FAILED pid=%s"
+                _record_failure(role, "start %s refused: STOP_FAILED pid=%s"
                                 % (role, v["pid"]))
                 raise RuntimeError("%s pid=%s STOP_FAILED (exit unconfirmed); "
                                    "confirm cleanup before restart" % (role, v["pid"]))
@@ -457,7 +498,7 @@ def start(role, timeout_s=300):
         if old.get("pid"):
             procs = _cim_processes()
             if int(old["pid"]) in procs and old.get("marker"):
-                _record_failure("%s identity mismatch on old pid %s"
+                _record_failure(role, "%s identity mismatch on old pid %s"
                                 % (role, old["pid"]))
                 raise RuntimeError("%s old pid %s alive but identity mismatch; "
                                    "refusing to launch" % (role, old["pid"]))
@@ -469,7 +510,7 @@ def start(role, timeout_s=300):
             state[role]["state"] = "RUNNING"
             _save_json(STATE_FILE, state)
             _clear_intent(role)
-            _record_success()
+            _record_success(role)
             return {"role": role, "status": "RUNNING", "pid": rec["pid"],
                     "marker": rec["marker"]}
         except RuntimeError as exc:
@@ -487,7 +528,7 @@ def start(role, timeout_s=300):
             state = _load_json_strict(STATE_FILE) or {}
             state[role] = {"state": "FAILED_START", "error": str(exc)[:200]}
             _save_json(STATE_FILE, state)
-            _record_failure("start %s: %s" % (role, exc))
+            _record_failure(role, "start %s: %s" % (role, exc))
             raise
 
 
@@ -504,8 +545,40 @@ def stop(role, timeout_s=90):
             marker = rec.get("marker")
             pid = rec.get("pid")
             if not marker or not pid:
-                results[r] = "STOPPED(no record)"
-                continue
+                # R2/R06:state 无记录 ≠ 全停——命名空间内仍可能有本轮
+                # 孤儿实例(旧 stop 回执不能证明零实例)。可归属(意图
+                # marker 匹配)则登记后按正常流程停;不可归属的孤儿
+                # BLOCKED,不得伪报 STOPPED,也不误杀。
+                live = scan_namespace()
+                orphans = live.get(r) or []
+                if not orphans:
+                    results[r] = "STOPPED(no record; namespace clean)"
+                    continue
+                intent_p = INTENT_DIR / ("%s.json" % r)
+                intent = (_load_json_strict(intent_p)
+                          if intent_p.exists() else None)
+                adoptable = [o for o in orphans
+                             if intent and o["marker"] == intent.get("marker")]
+                untracked = [o for o in orphans
+                             if o not in adoptable]
+                if untracked:
+                    _record_failure(
+                        r, "stop %s blocked: untracked instances %s"
+                        % (r, [o["pid"] for o in untracked]))
+                    results[r] = ("BLOCKED(untracked instances: %s; "
+                                  "adopt/clear manually)"
+                                  % [o["pid"] for o in untracked])
+                    any_failed = True
+                    continue
+                for o in adoptable:
+                    state[r] = {"pid": o["pid"], "marker": o["marker"],
+                                "created": o["created"], "state": "ADOPTED"}
+                    _save_json(STATE_FILE, state)
+                rec = state.get(r) or {}
+                marker = rec.get("marker")
+                pid = rec.get("pid")
+                if not marker or not pid:
+                    results[r] = "STOPPED(no adoptable record)"
             # L4: 先落 STOPPING 期望状态(阻止并发 start/自动复活)
             state[r] = dict(rec, state="STOPPING")
             _save_json(STATE_FILE, state)
@@ -533,7 +606,7 @@ def stop(role, timeout_s=90):
                 while time.time() < deadline and find_by_marker(marker):
                     time.sleep(1)
             if find_by_marker(marker):
-                _record_failure("stop %s unconfirmed pid=%s" % (r, found["pid"]))
+                _record_failure(r, "stop %s unconfirmed pid=%s" % (r, found["pid"]))
                 state = _load_json_strict(STATE_FILE) or state
                 state[r] = {"state": "STOP_FAILED", "pid": found["pid"],
                             "marker": marker, "error": "exit unconfirmed"}
@@ -546,9 +619,9 @@ def stop(role, timeout_s=90):
             state[r] = {"state": "STOPPED"}
             _save_json(STATE_FILE, state)
             results[r] = "STOPPED(pid=%s)" % found["pid"]
-        # L7/L08 修复:stop 永不清失败预算。清零只发生在 start 成功
-        # (新实例确证就绪=自动恢复链真正成功);显式 stop 不解除任何
-        # 角色的未结失败(审查点名:'stop 的尾部无条件清零')。
+        # L7/L08 + R2/R06:stop 永不清失败预算。清零只发生在对应角色
+        # start 成功(新实例确证就绪=该角色恢复链真正成功);另一角色
+        # 的成功、stop、换 run_id、重开脚本都不能清除未结失败。
         return results
 
 
@@ -558,14 +631,28 @@ def status():
         if state is None:
             state = {}
         out = {}
+        live = scan_namespace()
         for r in ROLES:
-            v = _verified(r, state)
-            out[r] = ({"status": state.get(r, {}).get("state", "UNKNOWN"),
-                       "verified": v is not None, "pid": v and v["pid"]}
-                      if state.get(r) else {"status": "STOPPED", "verified": False})
-        fails = _load_json_strict(FAIL_FILE) or {"consecutive": 0}
-        out["consecutive_failures"] = fails.get("consecutive", 0)
-        out["locked"] = int(fails.get("consecutive", 0)) >= MAX_CONSECUTIVE_FAILURES
+            rec = state.get(r) or {}
+            v = _verified(r, state, procs=None)
+            # R2/R06:status 汇报命名空间内超出已验证记录的同角色实例
+            extra = [x["pid"] for x in (live.get(r) or [])
+                     if x.get("marker") != rec.get("marker")]
+            entry = ({"status": rec.get("state", "UNKNOWN"),
+                      "verified": v is not None, "pid": v and v["pid"]}
+                     if rec else {"status": "STOPPED", "verified": False})
+            if extra:
+                entry["namespace_extras"] = extra
+            out[r] = entry
+        budget = _load_budget()
+        out["consecutive_failures"] = {
+            r: _role_consecutive(budget, r) for r in ROLES}
+        out["unattributed_failures"] = _role_consecutive(
+            budget, "unattributed")
+        out["locked"] = {
+            r: max(_role_consecutive(budget, r),
+                   _role_consecutive(budget, "unattributed"))
+            >= MAX_CONSECUTIVE_FAILURES for r in ROLES}
         out["intents_pending"] = sorted(
             p.name for p in INTENT_DIR.glob("*.json")) if INTENT_DIR.exists() else []
         return out
@@ -581,12 +668,14 @@ def unlock(reason):
     if not reason:
         raise ValueError("unlock requires an explicit reason")
     with _FileLock(LOCK_FILE):
-        fails = _load_json_strict(FAIL_FILE) or {"consecutive": 0, "history": []}
-        fails["consecutive"] = 0
-        fails.setdefault("history", []).append(
+        budget = _load_budget()
+        for r in list(budget.get("roles", {})):
+            budget["roles"][r] = {"consecutive": 0}
+        budget.setdefault("history", []).append(
             {"ts": time.time(), "unlocked": True, "reason": reason[:300]})
-        _save_json(FAIL_FILE, fails)
+        _save_json(FAIL_FILE, budget)
         return "UNLOCKED: %s" % reason[:120]
+
 
 
 def main(argv):
