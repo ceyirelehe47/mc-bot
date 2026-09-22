@@ -1,0 +1,81 @@
+{
+ "run": "20260920-213516",
+ "results": [
+  {
+   "id": "C01",
+   "verdict": "FAIL",
+   "reason": "坏请求被准确拒绝(路由 400/槽忙 409)且原执行不受影响",
+   "evidence": {
+    "goto_execution": "a205861a-5379-4ac4-b85a-6f44f313cd8e",
+    "goto_was_running": false,
+    "active_before": null,
+    "active_after": null,
+    "unsupported_op": {
+     "ok": null,
+     "error": "control_lease_invalid"
+    },
+    "busy_craft": {
+     "ok": null,
+     "error": "control_lease_invalid"
+    },
+    "goto_terminal": {
+     "state": "failed",
+     "reason": "real_client_goto_face_distance_limit_16"
+    },
+    "target": {
+     "x": 9,
+     "y": 109,
+     "z": 20,
+     "face_x": 11,
+     "face_y": 109,
+     "face_z": 20
+    }
+   }
+  },
+  {
+   "id": "C02",
+   "verdict": "FAIL",
+   "reason": "取消后 10s 内进入 cancelled 且执行槽释放",
+   "evidence": {
+    "execution": "a03605c6-ec05-48b1-8603-13eb68abc9bf",
+    "cancel_reply_ok": true,
+    "terminal_state": "failed",
+    "seconds_to_terminal": 0.02,
+    "pos_before_cancel": {
+     "x": -4.5,
+     "y": 108.0,
+     "z": 1.5
+    },
+    "pos_after_settle": {
+     "x": -4.5,
+     "y": 108.0,
+     "z": 1.5
+    },
+    "active_after": null
+   }
+  },
+  {
+   "id": "C03",
+   "verdict": "PASS",
+   "reason": "同 id 重放返回同一执行;同 id 不同参数被冲突拒绝",
+   "evidence": {
+    "request_id": "c03-idem-1789911302",
+    "first_execution": "8d8ecc6a-1e6d-48ba-a404-c5f5cd17054a",
+    "replay_execution": "8d8ecc6a-1e6d-48ba-a404-c5f5cd17054a",
+    "replay_same_execution": true,
+    "conflict_rejected": true,
+    "conflict_error": "idempotency_conflict"
+   }
+  },
+  {
+   "id": "C05",
+   "verdict": "PASS",
+   "reason": "租约互斥:a 持有期间 b 被拒;a 释放后 b 可获",
+   "evidence": {
+    "b_acquired_while_a_holds": false,
+    "a_still_authoritative": true,
+    "b_acquired_after_release": true
+   }
+  }
+ ]
+}

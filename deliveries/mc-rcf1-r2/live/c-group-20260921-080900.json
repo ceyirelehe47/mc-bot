@@ -1,0 +1,100 @@
+{
+ "run": "20260921-080900",
+ "fixture": {
+  "time_set_day": "\u0000\u0000\u0000\u0000Set the time to 1000",
+  "cleared": [
+   "zombie"
+  ]
+ },
+ "results": [
+  {
+   "id": "C01",
+   "verdict": "PASS",
+   "reason": "坏请求被准确拒绝(路由 400/槽忙 409)且原执行未被取消/替换",
+   "evidence": {
+    "goto_execution": "77226ed5-4fcc-40ed-8e73-e5721f1da64b",
+    "goto_was_running": true,
+    "active_before": "77226ed5-4fcc-40ed-8e73-e5721f1da64b",
+    "active_after": "77226ed5-4fcc-40ed-8e73-e5721f1da64b",
+    "unsupported_op": {
+     "ok": null,
+     "error": "unsupported_operation"
+    },
+    "busy_craft": {
+     "ok": null,
+     "error": "execution_in_progress"
+    },
+    "goto_terminal": {
+     "state": "failed",
+     "reason": "client_final_facing_timeout"
+    },
+    "target": {
+     "x": 311,
+     "y": 120,
+     "z": 304,
+     "face_x": 307,
+     "face_y": 120,
+     "face_z": 302
+    }
+   }
+  },
+  {
+   "id": "C02",
+   "verdict": "PASS",
+   "reason": "取消后 10s 内进入 cancelled 且执行槽释放",
+   "evidence": {
+    "execution": "f017ed4a-023c-4f8c-accb-081907b3c900",
+    "cancel_reply_ok": true,
+    "terminal_state": "cancelled",
+    "seconds_to_terminal": 0.53,
+    "pos_before_cancel": {
+     "x": 314.21498141151187,
+     "y": 120.0,
+     "z": 309.2133580670844
+    },
+    "pos_after_settle": {
+     "x": 314.69948398316643,
+     "y": 120.0,
+     "z": 309.6967090961056
+    },
+    "active_after": null
+   }
+  },
+  {
+   "id": "C03",
+   "verdict": "PASS",
+   "reason": "同 id 重放返回同一执行;同 id 不同参数被冲突拒绝",
+   "evidence": {
+    "request_id": "c03-idem-1789949243",
+    "first_execution": "6ec6356b-95b0-4a48-ba69-e86d17111e56",
+    "replay_execution": "6ec6356b-95b0-4a48-ba69-e86d17111e56",
+    "replay_same_execution": true,
+    "conflict_rejected": true,
+    "conflict_error": "idempotency_conflict"
+   }
+  },
+  {
+   "id": "C05",
+   "verdict": "PASS",
+   "reason": "租约互斥:a 持有期间 b 被拒;a 释放后 b 可获",
+   "evidence": {
+    "b_acquired_while_a_holds": false
+   }
+  },
+  {
+   "id": "C04",
+   "verdict": "FAIL",
+   "reason": "断线→outcome_unknown;重连对账成功;旧执行不复活;同 id 重放生成新执行(物理重做由上层决策,非自动)",
+   "evidence": {
+    "execution": "651bc233-3892-4d08-bc07-211d424e384b",
+    "client_killed": true,
+    "terminal_state": "completed",
+    "seconds_to_unknown": 0.0,
+    "reconnect_online": true,
+    "observe_after_reconnect": true,
+    "replay_same_execution": false,
+    "old_state_after_replay": "completed"
+   }
+  }
+ ]
+}

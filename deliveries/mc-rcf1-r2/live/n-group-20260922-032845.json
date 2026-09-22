@@ -1,0 +1,320 @@
+{
+ "run": "20260922-032845",
+ "results": [
+  {
+   "id": "n01_flat_and_step",
+   "run": 1,
+   "pass": false,
+   "detail": {
+    "exception": "NameError(\"name 'res' is not defined\")"
+   }
+  },
+  {
+   "id": "n01_flat_and_step",
+   "run": 2,
+   "pass": false,
+   "detail": {
+    "exception": "NameError(\"name 'res' is not defined\")"
+   }
+  },
+  {
+   "id": "n01_flat_and_step",
+   "run": 3,
+   "pass": false,
+   "detail": {
+    "exception": "NameError(\"name 'res' is not defined\")"
+   }
+  },
+  {
+   "id": "N02",
+   "run": 1,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "seconds": 7.5,
+    "pos": [
+     306.9,
+     120.0,
+     298.9
+    ],
+    "track": []
+   },
+   "world_changes": []
+  },
+  {
+   "id": "N02",
+   "run": 2,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "seconds": 7.5,
+    "pos": [
+     307.0,
+     120.0,
+     299.0
+    ],
+    "track": []
+   },
+   "world_changes": []
+  },
+  {
+   "id": "N02",
+   "run": 3,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "seconds": 7.5,
+    "pos": [
+     306.9,
+     120.0,
+     298.9
+    ],
+    "track": []
+   },
+   "world_changes": []
+  },
+  {
+   "id": "N03",
+   "run": 1,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "seconds": 6.7,
+    "pos": [
+     292.8,
+     120.0,
+     298.2
+    ],
+    "track": []
+   },
+   "world_changes": []
+  },
+  {
+   "id": "N03",
+   "run": 2,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "seconds": 6.8,
+    "pos": [
+     292.8,
+     120.0,
+     298.2
+    ],
+    "track": []
+   },
+   "world_changes": []
+  },
+  {
+   "id": "N03",
+   "run": 3,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "seconds": 6.7,
+    "pos": [
+     292.8,
+     120.0,
+     298.2
+    ],
+    "track": []
+   },
+   "world_changes": []
+  },
+  {
+   "id": "N04",
+   "run": 1,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "seconds": 5.2,
+    "pos": [
+     302.3,
+     127.0,
+     298.5
+    ],
+    "track": []
+   },
+   "world_changes": [],
+   "stance": [
+    303,
+    127,
+    297
+   ],
+   "facing_target": [
+    304,
+    127,
+    297
+   ]
+  },
+  {
+   "id": "N04",
+   "run": 2,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "seconds": 5.1,
+    "pos": [
+     302.3,
+     127.0,
+     298.5
+    ],
+    "track": []
+   },
+   "world_changes": [],
+   "stance": [
+    303,
+    127,
+    297
+   ],
+   "facing_target": [
+    304,
+    127,
+    297
+   ]
+  },
+  {
+   "id": "N04",
+   "run": 3,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "seconds": 5.1,
+    "pos": [
+     302.3,
+     127.0,
+     298.5
+    ],
+    "track": []
+   },
+   "world_changes": [],
+   "stance": [
+    303,
+    127,
+    297
+   ],
+   "facing_target": [
+    304,
+    127,
+    297
+   ]
+  },
+  {
+   "id": "N05",
+   "run": 1,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "seconds": 7.6,
+    "pos": [
+     310.3,
+     120.0,
+     300.3
+    ],
+    "track": []
+   },
+   "wall_intact": true,
+   "note": "绕行成功或诚实失败均可;挖墙即败"
+  },
+  {
+   "id": "N05",
+   "run": 2,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "seconds": 7.5,
+    "pos": [
+     310.3,
+     120.0,
+     300.3
+    ],
+    "track": []
+   },
+   "wall_intact": true,
+   "note": "绕行成功或诚实失败均可;挖墙即败"
+  },
+  {
+   "id": "N05",
+   "run": 3,
+   "pass": true,
+   "detail": {
+    "state": "completed",
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "seconds": 7.5,
+    "pos": [
+     310.3,
+     120.0,
+     300.3
+    ],
+    "track": []
+   },
+   "wall_intact": true,
+   "note": "绕行成功或诚实失败均可;挖墙即败"
+  },
+  {
+   "id": "N06",
+   "run": 1,
+   "pass": true,
+   "detail": {
+    "state": "failed",
+    "reason": "real_client_execution_timeout",
+    "seconds": 120.3,
+    "pos": [
+     303.3,
+     120.0,
+     300.5
+    ],
+    "track": []
+   },
+   "world_changes": [],
+   "note": "不可达必须诚实失败;任何挖穿=败"
+  },
+  {
+   "id": "N06",
+   "run": 2,
+   "pass": true,
+   "detail": {
+    "state": "failed",
+    "reason": "real_client_execution_timeout",
+    "seconds": 120.7,
+    "pos": [
+     303.3,
+     120.0,
+     300.5
+    ],
+    "track": []
+   },
+   "world_changes": [],
+   "note": "不可达必须诚实失败;任何挖穿=败"
+  },
+  {
+   "id": "N06",
+   "run": 3,
+   "pass": true,
+   "detail": {
+    "state": "failed",
+    "reason": "real_client_execution_timeout",
+    "seconds": 120.3,
+    "pos": [
+     303.3,
+     120.0,
+     300.5
+    ],
+    "track": []
+   },
+   "world_changes": [],
+   "note": "不可达必须诚实失败;任何挖穿=败"
+  }
+ ]
+}

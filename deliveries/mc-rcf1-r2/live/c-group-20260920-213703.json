@@ -1,0 +1,81 @@
+{
+ "run": "20260920-213703",
+ "results": [
+  {
+   "id": "C01",
+   "verdict": "FAIL",
+   "reason": "坏请求被准确拒绝(路由 400/槽忙 409)且原执行不受影响",
+   "evidence": {
+    "goto_execution": "cbe68af0-0d98-45de-bcdf-5bbd010ab48f",
+    "goto_was_running": true,
+    "active_before": "cbe68af0-0d98-45de-bcdf-5bbd010ab48f",
+    "active_after": "cbe68af0-0d98-45de-bcdf-5bbd010ab48f",
+    "unsupported_op": {
+     "ok": null,
+     "error": "unsupported_operation"
+    },
+    "busy_craft": {
+     "ok": null,
+     "error": "execution_in_progress"
+    },
+    "goto_terminal": {
+     "state": "outcome_unknown",
+     "reason": "body_session_changed"
+    },
+    "target": {
+     "x": 8,
+     "y": 113,
+     "z": 11,
+     "face_x": 4,
+     "face_y": 113,
+     "face_z": 9
+    }
+   }
+  },
+  {
+   "id": "C02",
+   "verdict": "PASS",
+   "reason": "取消后 10s 内进入 cancelled 且执行槽释放",
+   "evidence": {
+    "execution": "facf6074-2877-421b-8bc7-2ac4c9cc586c",
+    "cancel_reply_ok": true,
+    "terminal_state": "cancelled",
+    "seconds_to_terminal": 0.55,
+    "pos_before_cancel": {
+     "x": 10.910056147450044,
+     "y": 107.0,
+     "z": 2.3361550744241186
+    },
+    "pos_after_settle": {
+     "x": 11.436885128859464,
+     "y": 107.0,
+     "z": 2.1534135209108296
+    },
+    "active_after": null
+   }
+  },
+  {
+   "id": "C03",
+   "verdict": "PASS",
+   "reason": "同 id 重放返回同一执行;同 id 不同参数被冲突拒绝",
+   "evidence": {
+    "request_id": "c03-idem-1789911401",
+    "first_execution": "0ca7eacf-4e1d-40dc-8a38-65913cf290db",
+    "replay_execution": "0ca7eacf-4e1d-40dc-8a38-65913cf290db",
+    "replay_same_execution": true,
+    "conflict_rejected": true,
+    "conflict_error": "idempotency_conflict"
+   }
+  },
+  {
+   "id": "C05",
+   "verdict": "PASS",
+   "reason": "租约互斥:a 持有期间 b 被拒;a 释放后 b 可获",
+   "evidence": {
+    "b_acquired_while_a_holds": false,
+    "a_still_authoritative": true,
+    "b_acquired_after_release": true
+   }
+  }
+ ]
+}

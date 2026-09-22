@@ -1,0 +1,11 @@
+# BASELINE
+- 源码候选 C: 304da18010fa8e1ad1faa2442225ba00d59258d9 (experiment/rc-foundation-v1)
+- 权威源码树: D:\code\mc-bot\aibot-dsh-m0\aibot-overlay\src (git 跟踪)
+- 构建树: D:\code\mc-experiment\rcf1-rebuild-base (overlay 同步校验 0 differ, tools/rcf1_sync_overlay.py --check)
+- 构建命令: gradlew remapJar (D:\code\mc-experiment\rcf1-build2.bat)
+- 产物: aibot-0.0.1.jar SHA-256 fcc3e0d2a73eab0ae1dddf5397094c20dd1c5743856eafb0cf6724ff0b9bfa4
+- 部署: rcf1-server/mods 与 rcf1-client/mods 同哈希部署
+- fresh replay 树: D:\mc-rcf1-replay\rebuild-fresh (源码全量复制,非增量) 产物 SHA-256 fd479ceb42364dd0a69d3edc...(jar 时间戳差异,类/资源同源,475/475 测试)
+- 上游: fabric-loom 1.16.2 / yarn MC 1.21.3 / baritone-api-fabric-1.12.0 / toms_storage 2.1.2 / fabric-api 0.114.1+1.21.3
+- 环境: server 25599 / bridge 8799 / control 8798; 生命周期 tools/rcf1_lifecycle.py(唯一入口)
+- 单元测试: 475/475 (rcf1-rebuild-base 与 rebuild-fresh 双树)

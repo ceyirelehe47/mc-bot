@@ -1,0 +1,87 @@
+{
+ "run": "20260920-214005",
+ "fixture": {
+  "time_set_day": "\u0000\u0000\u0000\u0000Set the time to 1000",
+  "cleared": [
+   "zombie"
+  ]
+ },
+ "results": [
+  {
+   "id": "C01",
+   "verdict": "FAIL",
+   "reason": "坏请求被准确拒绝(路由 400/槽忙 409)且原执行不受影响",
+   "evidence": {
+    "goto_execution": "3d3b18a2-1faf-44c9-a044-bb9acd6f6e26",
+    "goto_was_running": true,
+    "active_before": "3d3b18a2-1faf-44c9-a044-bb9acd6f6e26",
+    "active_after": "3d3b18a2-1faf-44c9-a044-bb9acd6f6e26",
+    "unsupported_op": {
+     "ok": null,
+     "error": "unsupported_operation"
+    },
+    "busy_craft": {
+     "ok": null,
+     "error": "execution_in_progress"
+    },
+    "goto_terminal": {
+     "state": "failed",
+     "reason": "client_final_facing_timeout"
+    },
+    "target": {
+     "x": 8,
+     "y": 109,
+     "z": 6,
+     "face_x": 4,
+     "face_y": 109,
+     "face_z": 4
+    }
+   }
+  },
+  {
+   "id": "C02",
+   "verdict": "PASS",
+   "reason": "取消后 10s 内进入 cancelled 且执行槽释放",
+   "evidence": {
+    "execution": "55b3f676-82c9-409b-9325-7fced08c805d",
+    "cancel_reply_ok": true,
+    "terminal_state": "cancelled",
+    "seconds_to_terminal": 0.52,
+    "pos_before_cancel": {
+     "x": 10.058788321574909,
+     "y": 109.0,
+     "z": 8.562256146263758
+    },
+    "pos_after_settle": {
+     "x": 10.516486405102837,
+     "y": 109.0,
+     "z": 9.071106029574915
+    },
+    "active_after": null
+   }
+  },
+  {
+   "id": "C03",
+   "verdict": "PASS",
+   "reason": "同 id 重放返回同一执行;同 id 不同参数被冲突拒绝",
+   "evidence": {
+    "request_id": "c03-idem-1789911565",
+    "first_execution": "b0283058-1cf7-4759-a9c3-98c270350c69",
+    "replay_execution": "b0283058-1cf7-4759-a9c3-98c270350c69",
+    "replay_same_execution": true,
+    "conflict_rejected": true,
+    "conflict_error": "idempotency_conflict"
+   }
+  },
+  {
+   "id": "C05",
+   "verdict": "PASS",
+   "reason": "租约互斥:a 持有期间 b 被拒;a 释放后 b 可获",
+   "evidence": {
+    "b_acquired_while_a_holds": false,
+    "a_still_authoritative": true,
+    "b_acquired_after_release": true
+   }
+  }
+ ]
+}

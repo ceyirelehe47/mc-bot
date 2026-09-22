@@ -1,0 +1,70 @@
+{
+ "run": "20260920-212917",
+ "results": [
+  {
+   "id": "C01",
+   "verdict": "FAIL",
+   "reason": "参数错误被准确拒绝且原执行不受影响",
+   "evidence": {
+    "goto_execution": "e7b57871-b599-4fb2-860c-8eb9503166e5",
+    "active_before": null,
+    "active_after": "34e3b768-c248-4055-806c-e6a309911e64",
+    "bad_submit": {
+     "http": null,
+     "error": null
+    },
+    "goto_terminal": {
+     "state": "failed",
+     "reason": "real_client_goto_face_distance_limit_16"
+    },
+    "target": {
+     "x": 20,
+     "y": 109,
+     "z": -1,
+     "face_x": 20,
+     "face_y": 109,
+     "face_z": -1
+    }
+   }
+  },
+  {
+   "id": "C02",
+   "verdict": "FAIL",
+   "reason": "取消后 10s 内进入 cancelled 且执行槽释放",
+   "evidence": {
+    "execution": "c35a3d90-71e1-4084-a1bb-7fcf50db2114",
+    "cancel_reply_ok": true,
+    "terminal_state": "failed",
+    "seconds_to_terminal": 0.02,
+    "pos_before_cancel": {
+     "x": 2.5,
+     "y": 109.0,
+     "z": -1.5
+    },
+    "pos_after_settle": {
+     "x": 2.5,
+     "y": 109.0,
+     "z": -1.5
+    },
+    "active_after": null
+   }
+  },
+  {
+   "id": "C03",
+   "verdict": "FAIL",
+   "reason": "同 id 重放返回同一执行;同 id 不同参数被冲突拒绝",
+   "evidence": {
+    "request_id": "c03-idem-1789910917",
+    "first": null,
+    "replay_same_execution": null,
+    "conflict_rejected": false,
+    "conflict_error": "execution_in_progress"
+   }
+  },
+  {
+   "id": "c05_owner_exclusivity",
+   "verdict": "FAIL",
+   "reason": "exception: AttributeError(\"module 'rcf1_env' has no attribute 'release_lease'\")"
+  }
+ ]
+}

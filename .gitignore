@@ -24,4 +24,5 @@ archive/
 deliveries/*
 !deliveries/mc-rcf1/
 !deliveries/mc-rcf1-r1/
+!deliveries/mc-rcf1-r2/
 taskpacks/

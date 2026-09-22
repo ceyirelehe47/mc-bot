@@ -1,0 +1,88 @@
+{
+ "run": "20260920-214420",
+ "fixture": {
+  "time_set_day": "\u0000\u0000\u0000\u0000Set the time to 1000",
+  "cleared": [
+   "zombie",
+   "creeper"
+  ]
+ },
+ "results": [
+  {
+   "id": "C01",
+   "verdict": "PASS",
+   "reason": "坏请求被准确拒绝(路由 400/槽忙 409)且原执行未被取消/替换",
+   "evidence": {
+    "goto_execution": "9ed2caca-3179-4bd4-846e-4a42825e25aa",
+    "goto_was_running": true,
+    "active_before": "9ed2caca-3179-4bd4-846e-4a42825e25aa",
+    "active_after": "9ed2caca-3179-4bd4-846e-4a42825e25aa",
+    "unsupported_op": {
+     "ok": null,
+     "error": "unsupported_operation"
+    },
+    "busy_craft": {
+     "ok": null,
+     "error": "execution_in_progress"
+    },
+    "goto_terminal": {
+     "state": "failed",
+     "reason": "real_client_execution_timeout"
+    },
+    "target": {
+     "x": 18,
+     "y": 109,
+     "z": 13,
+     "face_x": 14,
+     "face_y": 109,
+     "face_z": 11
+    }
+   }
+  },
+  {
+   "id": "C02",
+   "verdict": "PASS",
+   "reason": "取消后 10s 内进入 cancelled 且执行槽释放",
+   "evidence": {
+    "execution": "60b773ed-ca82-486a-8258-1b5e3aacf186",
+    "cancel_reply_ok": true,
+    "terminal_state": "cancelled",
+    "seconds_to_terminal": 0.51,
+    "pos_before_cancel": {
+     "x": 18.694820068005978,
+     "y": 94.0,
+     "z": 15.544152302675608
+    },
+    "pos_after_settle": {
+     "x": 19.815352265927903,
+     "y": 94.0,
+     "z": 15.699999988079071
+    },
+    "active_after": null
+   }
+  },
+  {
+   "id": "C03",
+   "verdict": "PASS",
+   "reason": "同 id 重放返回同一执行;同 id 不同参数被冲突拒绝",
+   "evidence": {
+    "request_id": "c03-idem-1789911820",
+    "first_execution": "d6007878-9e2a-41b8-9d2f-896ae9f60dec",
+    "replay_execution": "d6007878-9e2a-41b8-9d2f-896ae9f60dec",
+    "replay_same_execution": true,
+    "conflict_rejected": true,
+    "conflict_error": "idempotency_conflict"
+   }
+  },
+  {
+   "id": "C05",
+   "verdict": "PASS",
+   "reason": "租约互斥:a 持有期间 b 被拒;a 释放后 b 可获",
+   "evidence": {
+    "b_acquired_while_a_holds": false,
+    "a_still_authoritative": true,
+    "b_acquired_after_release": true
+   }
+  }
+ ]
+}

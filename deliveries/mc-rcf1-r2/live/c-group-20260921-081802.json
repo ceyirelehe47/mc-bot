@@ -1,0 +1,55 @@
+{
+ "run": "20260921-081802",
+ "fixture": {
+  "time_set_day": "\u0000\u0000\u0000\u0000Set the time to 1000",
+  "cleared": []
+ },
+ "results": [
+  {
+   "id": "C01",
+   "verdict": "FAIL",
+   "reason": "goto submit failed: {'http': 409, 'error': 'execution_in_progress', 'preempted': False}"
+  },
+  {
+   "id": "C02",
+   "verdict": "FAIL",
+   "reason": "goto submit failed: {'http': 409, 'error': 'execution_in_progress', 'preempted': False}"
+  },
+  {
+   "id": "C03",
+   "verdict": "PASS",
+   "reason": "同 id 重放返回同一执行;同 id 不同参数被冲突拒绝",
+   "evidence": {
+    "request_id": "c03-idem-1789949746",
+    "first_execution": "de153c8f-fefb-47db-9e52-63e03ba34302",
+    "replay_execution": "de153c8f-fefb-47db-9e52-63e03ba34302",
+    "replay_same_execution": true,
+    "conflict_rejected": true,
+    "conflict_error": "idempotency_conflict"
+   }
+  },
+  {
+   "id": "C05",
+   "verdict": "PASS",
+   "reason": "租约互斥:a 持有期间 b 被拒;a 释放后 b 可获",
+   "evidence": {
+    "b_acquired_while_a_holds": false
+   }
+  },
+  {
+   "id": "C04",
+   "verdict": "FAIL",
+   "reason": "断线→outcome_unknown(或 completed 且服务端位置证明已真实到达);重连对账成功;旧执行不复活;同 id 重放生成新执行",
+   "evidence": {
+    "execution": "3c378c7a-fa64-4bb2-b965-e49b0572371b",
+    "client_killed": false,
+    "terminal_state": "running",
+    "seconds_to_unknown": 60.9,
+    "reconnect_online": true,
+    "observe_after_reconnect": true,
+    "replay_same_execution": false,
+    "old_state_after_replay": "running"
+   }
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+{
+ "run": "20260920-213308",
+ "results": [
+  {
+   "id": "C01",
+   "verdict": "FAIL",
+   "reason": "goto submit failed: {'http': 409, 'error': 'control_lease_invalid', 'preempted': False}"
+  },
+  {
+   "id": "C02",
+   "verdict": "FAIL",
+   "reason": "goto submit failed: {'http': 409, 'error': 'control_lease_invalid', 'preempted': False}"
+  },
+  {
+   "id": "C03",
+   "verdict": "FAIL",
+   "reason": "首次提交失败: control_lease_invalid"
+  },
+  {
+   "id": "C05",
+   "verdict": "FAIL",
+   "reason": "租约互斥:a 持有期间 b 被拒;a 释放后 b 可获",
+   "evidence": {
+    "b_acquired_while_a_holds": false,
+    "a_still_authoritative": null,
+    "b_acquired_after_release": false
+   }
+  }
+ ]
+}
