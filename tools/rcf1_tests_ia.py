@@ -22,6 +22,24 @@ sys.path.insert(0, "tools")
 import play  # noqa: E402
 import rcf1_env as E  # noqa: E402
 
+import rcf1_facts as F  # noqa: E402
+
+_SESSION = None
+FACTS = None      # rcf1_facts.FactsCollector(R3)
+_CASE_ID = None
+
+
+def facts_init(owner="r3ia"):
+    global _SESSION, FACTS
+    _SESSION = play.Session(owner)
+    FACTS = F.FactsCollector(_SESSION, owner)
+
+
+def facts_case(tid):
+    global _CASE_ID
+    _CASE_ID = tid
+    if FACTS is not None:
+        FACTS.case(tid)
 
 def rcon(cmd):
     return (E.rcon(cmd) or "").strip()
@@ -102,12 +120,22 @@ def stack_count_at(slot):
 
 
 def do(op, args, timeout=180):
-    s = play.Session("r1ia")
-    r = s.do(op, args, timeout_s=timeout)
-    if "terminal" not in r:
-        return {"state": "failed", "reason": json.dumps(r.get("submit"),
-                                                        ensure_ascii=False)}
-    return r["terminal"]
+    global _SESSION
+    if _SESSION is None:
+        facts_init()
+    s = _SESSION
+    ex_id, err = s.submit(op, args)
+    if ex_id is None:
+        receipt = {"state": "failed", "reason": json.dumps(
+            err, ensure_ascii=False)}
+        if FACTS is not None and _CASE_ID:
+            FACTS.record_action(_CASE_ID, op, args, err, receipt)
+        return receipt
+    res, _trail = s.term(ex_id, timeout_s=timeout)
+    if FACTS is not None and _CASE_ID:
+        FACTS.record_action(_CASE_ID, op, args,
+                            {"execution_id": ex_id}, res)
+    return res
 
 
 def check(tid, ok, detail=None):
@@ -118,10 +146,11 @@ def check(tid, ok, detail=None):
 
 RESULTS = []
 
-
 def run(tid, ok, detail=None):
     RESULTS.append((tid, bool(ok)))
     check(tid, ok, detail)
+    global _CASE_ID
+    _CASE_ID = None
 
 
 def fill_inventory(n_slots=36):
@@ -696,7 +725,14 @@ def _all_opps():
     snap = ((loc.get("data") or {}).get("snapshot") or {})
     if isinstance(snap, str):
         snap = json.loads(snap)
-    return (snap.get("opportunities") or [])
+    container = snap.get("opportunities") or []
+    if isinstance(container, dict):
+        return container.get("entries") or []
+    out = []
+    for o in container:
+        out.extend(o.get("entries") if isinstance(o, dict)
+                   and o.get("entries") else [o])
+    return out
 def a10_drop_not_picked():
     # R2/R04:先证明破坏+未拾取,再同坐标阻断。租约竞态(I08 长跑后
     # 旧会话未过期)整体重试一次。
@@ -750,7 +786,13 @@ def _a10_once():
         snap = ((loc.get("data") or {}).get("snapshot") or {})
         if isinstance(snap, str):
             snap = json.loads(snap)
-        found = [o for o in (snap.get("opportunities") or [])
+        container = snap.get("opportunities") or []
+        entries = (container.get("entries") or []
+                   if isinstance(container, dict) else [
+                       e for o in container for e in (
+                           o.get("entries") if isinstance(o, dict)
+                           and o.get("entries") else [o])])
+        found = [o for o in entries
                  if (o.get("x"), o.get("y"), o.get("z")) == (bx, by, bz)]
         if found:
             opp = found[0]
@@ -826,21 +868,45 @@ def a12_no_xray():
 
 
 def main():
-    for fn in (i01_main_pack_sources, i02_exact_counts, v02_increment_negative,
-               i03_component_identity, i04_container_chest_barrel,
-               i05_true_full, i05b if False else i06_cursor_injection,
-               i07_ghost_slots_readonly, i08_tom_deposit_regression,
-               a01_native_2x2_two_woods, v01_craft_unit_negative,
-               a02_table_3x3_pickaxes, a03_no_table_negative,
-               a04_incremental_craft, a05_insufficient, a06_precise_place,
-               a07_support_face_and_external, a08_eat_paths,
-               v04_eat_attribution_negative, a09_target_removed,
-               a10_drop_not_picked, a11_cancel_death_world_change,
-               a12_no_xray):
+    import os
+    matrix = (
+        ("I01", i01_main_pack_sources),
+        ("I02", i02_exact_counts),
+        ("V02", v02_increment_negative),
+        ("I03", i03_component_identity),
+        ("I04", i04_container_chest_barrel),
+        ("I05", i05_true_full),
+        ("I06", i06_cursor_injection),
+        ("I07", i07_ghost_slots_readonly),
+        ("I08", i08_tom_deposit_regression),
+        ("A01", a01_native_2x2_two_woods),
+        ("V01", v01_craft_unit_negative),
+        ("A02", a02_table_3x3_pickaxes),
+        ("A03", a03_no_table_negative),
+        ("A04", a04_incremental_craft),
+        ("A05", a05_insufficient),
+        ("A06", a06_precise_place),
+        ("A07", a07_support_face_and_external),
+        ("A08", a08_eat_paths),
+        ("V04", v04_eat_attribution_negative),
+        ("A09", a09_target_removed),
+        ("A10", a10_drop_not_picked),
+        ("A11", a11_cancel_death_world_change),
+        ("A12", a12_no_xray),
+    )
+    facts_init("r3ia")
+    for tid, fn in matrix:
+        facts_case(tid)
         try:
             fn()
         except Exception as exc:  # noqa: BLE001
-            run(fn.__name__, False, "EXC %r" % exc)
+            run(tid + "-EXC", False, "EXC %r" % exc)
+        global _CASE_ID
+        _CASE_ID = None
+    out = os.environ.get("RCF1_IA_FACTS",
+                         r"D:\mc-rcf1-raw\ia-facts-r3.json")
+    doc = FACTS.save(out)
+    print("FACTS_SAVED %s cases=%d" % (out, len(doc["cases"])))
     passed = sum(1 for _, ok in RESULTS if ok)
     print("SUMMARY %d/%d" % (passed, len(RESULTS)))
     return 0 if passed == len(RESULTS) else 1

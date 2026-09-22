@@ -1,30 +1,30 @@
 # -*- coding: utf-8 -*-
-"""MC-RCF-1-R2 G4 核心链 runner(B01-B05 + 非计分诊断)。
+"""MC-RCF-1-R3 G4 核心链 runner(B01-B05 + 非计分诊断)。
 
-R2 修复(相对 R1 骨档 e55d2fd):
-- 单一控制 Session/owner,不再为查背包/机会另建 Session 抢租约。
-- 目标选择来自只读全向感知(inspect-local blocks);机会出生只走
-  合法链:goto(face=目标) → 客户端转向 → 新鲜帧 → 服务端准入核心
-  → opportunities 出现该坐标条目 → 提交 mine。
-- 删除重复调用 s.do 的条件表达式与 inventory 结构假设分歧。
-- 每次语义动作只发一次;失败保存精确停点与前后事实。
-- 输出结构化链证据(judge_g4 直接可判):chain 布尔、事件、会话身份。
-
-用法:
-  python tools/rcf1_g4.py --diagnostic          # 非计分诊断链(12分钟)
-  python tools/rcf1_g4.py --run b01 oak1        # 计分 run(fixture 见 MATRIX)
+R3/F02 修复要点(对照审查 ff29078):
+- session/candidate 身份来自真实运行时握手(observe/status 的
+  game_session、control_session_epoch、jar SHA-256、event 区间),
+  不再是 run_id+秒数或硬编码提交 SHA。
+- 回执完整落盘,不截断 reason。
+- cursor_empty / no_unresolved_unknown 由终态真实观察派生:
+  cursor←终局 observe 的 screen.cursor_count;unknown←run 区间内
+  无 outcome_unknown 回执且结束时 active_execution 为空。
+- 每次限时 720s 在 runner 内实际执行(逐步检查,超时中断当前执行)。
 """
 import json
+import subprocess
 import sys
 import time
 
 sys.path.insert(0, "tools")
 import play  # noqa: E402
 import rcf1_env as E  # noqa: E402
+import rcf1_facts as F  # noqa: E402
 
 OPP_WAIT_S = 12          # 转向后等待机会出生的上限
 MINE_TIMEOUT = 150
 CRAFT_TIMEOUT = 240
+RUN_LIMIT_S = 720        # 矩阵原文:每次从首次受控观察起 12 分钟
 
 
 def rcon(cmd):
@@ -35,65 +35,126 @@ def now():
     return round(time.time(), 3)
 
 
+def git_commit():
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"], capture_output=True, text=True,
+            cwd=r"D:\code\mc-bot").stdout.strip()
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 class Chain:
     """一次 run 的全部事实采集(judge_g4 证据直接来源)。"""
 
-    def __init__(self, run_id, session_id):
+    def __init__(self, run_id, session):
         self.run_id = run_id
-        self.session_id = session_id
-        self.started_at = time.time()
+        self.session = session
+        self.started_wall = time.time()
+        self.limit_deadline = None   # 首次受控观察后设定
         self.events = []
-        self.chain = {k: False for k in (
-            "initial_empty_inventory", "mined_logs",
-            "crafted_planks_sticks_table", "placed_table_witnessed",
-            "crafted_wooden_pickaxe", "mined_stone_with_pickup",
-            "crafted_stone_pickaxe", "both_pickaxes_final",
-            "table_reopened", "cursor_empty", "no_unresolved_unknown")}
+        self.receipts = []           # 完整未截断回执
+        self.snapshots = []          # 关键观察快照(pre/终态等)
+        self.facts = F.FactsCollector(session, "g4-%s" % run_id)
         self.fail_at = None
+        self.final_observe = None
+        self.status_end = None
 
     def evt(self, kind, **kw):
-        row = {"t": round(time.time() - self.started_at, 1),
+        row = {"t": round(time.time() - self.started_wall, 3),
                "kind": kind}
         row.update(kw)
         self.events.append(row)
         print(json.dumps({"run": self.run_id, "evt": row},
                          ensure_ascii=False), flush=True)
 
+    def receipt(self, op, args, terminal):
+        self.receipts.append({
+            "op": op, "args": args,
+            "terminal": F._strip_secrets(terminal),
+            "t_wall": now(),
+            "t_rel": round(time.time() - self.started_wall, 3)})
+        reason = str(terminal.get("reason") or "")
+        self.evt("receipt", op=op, state=terminal.get("state"),
+                 reason=reason)
+
+    def snap(self, tag):
+        s = F.observe_facts(self.session)
+        self.snapshots.append({"tag": tag, "facts": s})
+        return s
+
     def stop(self, where, detail=None):
         self.fail_at = where
-        self.evt("stop", at=where, detail=str(detail)[:200])
+        self.evt("stop", at=where, detail=str(detail)[:400])
+
+    def time_up(self):
+        return (self.limit_deadline is not None
+                and time.time() > self.limit_deadline)
+
+    def doc(self):
+        """事实文档(judge_g4 输入)。不写任何 passed=true 判定。"""
+        self.final_observe = self.snap("final")
+        self.status_end = F.status_facts()
+        ident = dict(self.facts.identity)
+        ident.update({
+            "candidate_commit": git_commit(),
+            "run_started_wall": self.started_wall,
+            "run_limit_s": RUN_LIMIT_S,
+            "receipt_count": len(self.receipts),
+        })
+        return {
+            "schema": "mc.rcf1r3.g4run.v1",
+            "run_id": self.run_id,
+            "identity": ident,
+            "events": self.events,
+            "receipts": self.receipts,
+            "snapshots": self.snapshots,
+            "oracle_blocks": self.facts.cases[0]["oracle_blocks"]
+            if self.facts.cases else {},
+            "fail_at": self.fail_at,
+            "ended_wall": now(),
+        }
 
 
 def inventory(s):
-    obs = s.observe().get("data", {}) \
-        .get("observation", {})
-    rows = obs.get("inventory", [])
-    out = {}
-    if isinstance(rows, dict):
-        # observe 响应的 inventory 是 {itemId: count}(服务端聚合)
-        for k, v in rows.items():
-            out[k] = out.get(k, 0) + int(v)
-    else:
-        for x in rows:
-            if isinstance(x, dict) and x.get("item"):
-                out[x["item"]] = out.get(x["item"], 0) + x.get("count", 0)
-    return out
+    return F.inv_counts_of(F.observe_facts(s))
 
 
 def player_pos(s):
     obs = s.observe().get("data", {}) \
         .get("observation", {})
     pos = obs.get("position") or {}
-    return (int(pos.get("x", 0)), int(pos.get("y", 0)), int(pos.get("z", 0)))
+    # R3 修复:observe 异常/缺字段时绝不默认 (0,0,0)——那会把
+    # goto 目标发到世界原点,把 Bob 派出 107 格(实测石面阶段
+    # facing_timeout 的根因)。缺数据 = 诚实失败。
+    if not all(k in pos for k in ("x", "y", "z")):
+        raise RuntimeError("player-position-unavailable")
+    return (int(pos["x"]), int(pos["y"]), int(pos["z"]))
 
 
-def visible_blocks(s, block_suffix, near=None, limit=24, window=None):
-    """只读感知里的可见方块候选(awareness_only,不是机会)。
-    window=(dx,dy,dz) 收紧 near 匹配窗(声明 fixture 的定向源)。"""
+def _local_snapshot(s, chain=None):
+    """inspect-local 快照;错误(503/超时/降级)返回 None——绝不把
+    错误响应当成'空场景'(R3 实测:执行风暴期查询失败被当 no-visible
+    死循环 7 分钟)。"""
     loc = s.inspect_local(10, "all")
+    if not loc.get("ok"):
+        if chain is not None:
+            chain.evt("inspect-error",
+                      error=str(loc.get("error"))[:120])
+        return None
     snap = ((loc.get("data") or {}).get("snapshot") or {})
     if isinstance(snap, str):
         snap = json.loads(snap)
+    return snap
+
+
+def visible_blocks(s, block_suffix, near=None, limit=24, window=None,
+                   chain=None):
+    """只读感知里的可见方块候选(awareness_only,不是机会)。
+    查询错误返回 None(调用方区分错误与真空)。"""
+    snap = _local_snapshot(s, chain)
+    if snap is None:
+        return None
     blocks = snap.get("blocks") or []
     cands = []
     for b in blocks:
@@ -103,24 +164,22 @@ def visible_blocks(s, block_suffix, near=None, limit=24, window=None):
             continue
         p = b.get("position") or {}
         xyz = (int(p.get("x", 0)), int(p.get("y", 0)), int(p.get("z", 0)))
-        if near:
-            dx, dy, dz = (abs(xyz[i] - near[i]) for i in range(3))
-            wx, wy, wz = window or (12, 8, 12)
-            if dx > wx or dy > wy or dz > wz:
+        if window:
+            dx = abs(xyz[0] - near[0]); dy = abs(xyz[1] - near[1])
+            dz = abs(xyz[2] - near[2])
+            if dx > window[0] or dy > window[1] or dz > window[2]:
                 continue
-        cands.append((b.get("relative", {}).get("distance_blocks", 99),
-                      xyz, b.get("object_id", "")))
-    cands.sort(key=lambda c: c[0])
+        elif near:
+            if (abs(xyz[0] - near[0]) > 6 or abs(xyz[1] - near[1]) > 8
+                    or abs(xyz[2] - near[2]) > 6):
+                continue
+        cands.append((sum(abs(a - b) for a, b in zip(xyz, near))
+                      if near else 0, xyz, b.get("object_id", "")))
+    # R3(修正):按与声明锚点的距离排序(R2 语义)。自顶向下排序
+    # 实测不可行——近距站位对柱状目标的中心瞄准会先命中更低格,
+    # 高格只能从特定距离外瞄准且超出客户端准星触达(4.5 格)。
+    cands.sort()
     return cands[:limit]
-    for o in opps:
-        if not isinstance(o, dict):
-            continue
-        if block_id and o.get("block") != block_id:
-            continue
-        if at and (o.get("x"), o.get("y"), o.get("z")) != at:
-            continue
-        out.append(o)
-    return out
 
 
 def opportunities(s, block_id=None, at=None):
@@ -128,79 +187,198 @@ def opportunities(s, block_id=None, at=None):
     snap = ((loc.get("data") or {}).get("snapshot") or {})
     if isinstance(snap, str):
         snap = json.loads(snap)
-    opps = snap.get("opportunities") or []
-    out = []
-    for o in opps:
-        if not isinstance(o, dict):
+    res = []
+    container = snap.get("opportunities") or []
+    if isinstance(container, dict):
+        entries = container.get("entries") or []
+    else:
+        entries = []
+        for o in container:
+            if isinstance(o, dict) and o.get("entries"):
+                entries.extend(o["entries"])
+            else:
+                entries.append(o)
+    for e in entries:
+        if not isinstance(e, dict):
             continue
-        if block_id and o.get("block") != block_id:
+        if block_id and e.get("block") != block_id:
             continue
-        if at and (o.get("x"), o.get("y"), o.get("z")) != at:
+        if at and (abs(e.get("x", 0) - at[0]) > 2
+                   or abs(e.get("y", 0) - at[1]) > 2
+                   or abs(e.get("z", 0) - at[2]) > 2):
             continue
-        out.append(o)
-    return out
+        res.append(e)
+    return res
+
+
+def do_op(s, chain, op, args, timeout):
+    ex_id, err = s.submit(op, args, tag="g4-%s" % chain.run_id)
+    if ex_id is None:
+        receipt = {"state": "failed",
+                   "reason": json.dumps(err, ensure_ascii=False)}
+        chain.receipt(op, args, receipt)
+        return receipt
+    res, _trail = s.term(ex_id, timeout_s=timeout)
+    chain.receipt(op, args, res)
+    return res
+
+
+def expected_item_of(block_id):
+    """挖掘掉落物:石类→圆石,其余同 ID。"""
+    return ("minecraft:cobblestone" if block_id == "minecraft:stone"
+            else block_id)
 
 
 def acquire_and_mine(s, chain, block_id, near, need, label,
                      pick_block=None, window=None):
-    """合法链采集:感知选目标 → goto(face) → 等机会出生 → mine。"""
+    """合法链采集:感知选目标 → goto(face) → 等机会出生 → mine。
+    mine 回执失败但物理链迟效完成(块已空+期望物品入包)时,
+    以迟效对账计数并记录事件——receipt 保留 failed,不改写。"""
     got = 0
-    mined = set()
-    while got < need:
-        cands = [c for c in visible_blocks(s, pick_block or block_id,
-                                            near=near, window=window)
-                 if tuple(c[1]) not in mined]
-        if not cands:
-            chain.evt("no-visible-candidate", block=block_id, got=got)
-            time.sleep(2)
-            cands = [c for c in visible_blocks(s, pick_block or block_id,
-                                               near=near, window=window)
-                     if tuple(c[1]) not in mined]
-            if not cands:
-                chain.stop("no-visible-candidate:%s" % block_id)
+    no_vis = 0
+    inspect_errors = 0
+    deadline = time.time() + 420
+    while got < need and time.time() < deadline and not chain.time_up():
+        cands = visible_blocks(
+            s, pick_block or block_id, near=near, window=window,
+            chain=chain)
+        if cands is None:
+            inspect_errors += 1
+            if inspect_errors >= 10:
+                chain.stop("inspect-loop-errors")
                 return got
-        dist, xyz, oid = cands[0]
-        px, py, pz = player_pos(s)
-        r = s.do("goto", {"x": px, "y": py, "z": pz,
-                          "face_x": xyz[0], "face_y": xyz[1],
-                          "face_z": xyz[2]}, timeout_s=90) \
-            .get("terminal", {})
-        chain.evt("face", target=xyz, state=r.get("state"),
-                  reason=(r.get("reason") or "")[:80])
+            time.sleep(2)
+            continue
+        inspect_errors = 0
+        if not cands:
+            chain.evt("no-visible-candidate", label=label)
+            no_vis += 1
+            if no_vis >= 5 and near:
+                r = do_op(s, chain, "goto", {
+                    "x": near[0], "y": near[1] - 2, "z": near[2]},
+                    timeout=60)
+                chain.evt("reapproach-fixture", state=r.get("state"))
+                no_vis = 0
+            time.sleep(2)
+            continue
+        no_vis = 0
+        try:
+            _ppx, py_now, _ppz = player_pos(s)
+        except RuntimeError:
+            chain.evt("player-position-unavailable", label=label)
+            time.sleep(2)
+            continue
+        # R3:客户端准星触达(4.5 格)过滤——站位眼高 py+1.6,命中点
+        # 竖直分量 ≤ ~3.7 ⇒ 目标格 y ≤ py+4;更高的格子即使可见也
+        # 无法从地面准入/瞄准(实测 112 顶格 facing_timeout 根因)。
+        cands = [c for c in cands if c[1][1] <= py_now + 4]
+        if not cands:
+            chain.evt("no-reachable-candidate", label=label)
+            time.sleep(2)
+            continue
+        _d, xyz, _oid = cands[0]
+        inv_before = inventory(s).get(expected_item_of(block_id), 0)
+        try:
+            _px, py, _pz = player_pos(s)
+        except RuntimeError:
+            chain.evt("player-position-unavailable", label=label)
+            time.sleep(2)
+            continue
+        # R3:主站位=目标正南 3 格(同 Bob 地面高度)。实测规律:目标
+        # 位于南向(yaw≈0)时 facing/crosshair 全部通过;东/北向在当前
+        # 客户端旋转链路下必败(serverYaw 与 sensor headYaw 分叉)。
+        # 南向站位同时满足柱状目标的可瞄准几何(命中点落在目标格内)。
+        r = do_op(s, chain, "goto", {
+            "x": xyz[0], "y": py, "z": xyz[2] - 3,
+            "face_x": xyz[0], "face_y": xyz[1], "face_z": xyz[2]},
+            timeout=90)
         if r.get("state") != "completed":
-            chain.stop("face:%s" % block_id, r.get("reason"))
-            return got
-        deadline = time.time() + OPP_WAIT_S
+            chain.evt("goto-face-failed", label=label,
+                      reason=str(r.get("reason"))[:400])
+            time.sleep(2)
+            continue
         opp = None
-        while time.time() < deadline:
-            found = opportunities(s, block_id, at=xyz)
+        t0 = time.time()
+        while time.time() - t0 < OPP_WAIT_S:
+            found = opportunities(s, block_id=block_id, at=xyz)
             if found:
                 opp = found[0]
                 break
             time.sleep(0.8)
-        if opp is None:
-            chain.evt("opportunity-not-born", target=xyz)
-            # 感知记忆滞后:该格实际已不在——记入 mined 避免重复选它
-            mined.add(tuple(xyz))
+        if not opp:
+            # R2 行为(R3 重写时丢失,实测高枝机会不出生根因):
+            # 当前站位下客户端准星(4.5 格触达)够不到目标——按
+            # 4 方位邻位轮试重新站位再等机会。
+            for dx, dz in ((0, -2), (0, -3), (0, -4), (0, 2),
+                        (-2, 0), (2, 0)):
+                if chain.time_up():
+                    break
+                try:
+                    _px2, py2, _pz2 = player_pos(s)
+                except RuntimeError:
+                    break
+                r = do_op(s, chain, "goto", {
+                    "x": xyz[0] + dx, "y": py2, "z": xyz[2] + dz,
+                    "face_x": xyz[0], "face_y": xyz[1],
+                    "face_z": xyz[2]}, timeout=60)
+                if r.get("state") != "completed":
+                    continue
+                t1 = time.time()
+                while time.time() - t1 < 6:
+                    found = opportunities(s, block_id=block_id, at=xyz)
+                    if found:
+                        opp = found[0]
+                        break
+                    time.sleep(0.8)
+                if opp:
+                    chain.evt("stance-rotation-born", at=xyz,
+                              stance=[xyz[0] + dx, py2, xyz[2] + dz])
+                    break
+        if not opp:
+            chain.evt("opportunity-not-born", label=label, at=xyz)
             continue
-        r2 = s.do("mine_opportunity", {"id": opp.get("object_id")},
-                  timeout_s=MINE_TIMEOUT).get("terminal", {})
-        chain.evt("mine", target=xyz, state=r2.get("state"),
-                  reason=(r2.get("reason") or "")[:90])
-        if r2.get("state") == "completed":
+        r = do_op(s, chain, "mine_opportunity",
+                  {"id": opp.get("object_id")}, timeout=MINE_TIMEOUT)
+        if r.get("state") == "completed":
             got += 1
-            mined.add(tuple(xyz))
+            chain.evt("mined", label=label, at=xyz, n=got)
         else:
-            chain.stop("mine:%s" % block_id, r2.get("reason"))
-            return got
+            # 迟效对账:回执失败,但块已消失且物品入包(掉落拾取晚于
+            # 回执判定的竞态)——物理完成,receipt 保持 failed。
+            time.sleep(6)
+            still = any(c[1] == xyz for c in (visible_blocks(
+                s, pick_block or block_id, near=near, window=window,
+                chain=chain) or []))
+            inv_after = inventory(s).get(
+                expected_item_of(block_id), 0)
+            if not still and inv_after >= inv_before + 1:
+                got += 1
+                chain.evt("mined-late-reconciled", label=label,
+                          at=xyz, n=got, receipt_state=r.get("state"),
+                          inv_delta=inv_after - inv_before)
+            elif not still:
+                # 块已空但物品未入包(掉落滞留):走到原格拾取,有界
+                # 重查;拾取不到如实记录(物品留在世界)。
+                do_op(s, chain, "goto", {
+                    "x": xyz[0], "y": max(xyz[1] - 2, 60),
+                    "z": xyz[2]}, timeout=45)
+                time.sleep(2)
+                inv_pick = inventory(s).get(
+                    expected_item_of(block_id), 0)
+                if inv_pick >= inv_before + 1:
+                    got += 1
+                    chain.evt("mined-drop-picked", label=label,
+                              at=xyz, n=got)
+                else:
+                    chain.evt("mine-drop-lost", label=label, at=xyz)
+            else:
+                chain.evt("mine-failed", label=label,
+                          reason=str(r.get("reason"))[:400])
     return got
 
-
 def craft(s, chain, item, count):
-    r = s.do("craft", {"item": item, "count": count},
-             timeout_s=CRAFT_TIMEOUT).get("terminal", {})
-    chain.evt("craft", item=item, count=count, state=r.get("state"),
-              reason=(r.get("reason") or "")[:90])
+    r = do_op(s, chain, "craft", {"item": item, "count": count},
+              timeout=CRAFT_TIMEOUT)
     return r.get("state") == "completed", r
 
 
@@ -211,16 +389,19 @@ def run_core(run_id, fixture, diagnostic=False):
         rcon(cmd)
     time.sleep(3)
     s = play.Session("g4-%s" % run_id)
-    session_id = "%s-%d" % (run_id, int(time.time()))
-    chain = Chain(run_id, session_id)
-    chain.evt("session-open", owner="g4-%s" % run_id)
+    chain = Chain(run_id, s)
+    chain.facts.case(run_id)
+    chain.evt("session-open")
 
+    chain.snap("pre")
     inv0 = inventory(s)
-    chain.chain["initial_empty_inventory"] = not inv0
     chain.evt("initial-inventory", inv=inv0)
     if inv0:
         chain.stop("initial-inventory-not-empty", inv0)
         return chain
+    # 首次受控观察 → 限时起算(矩阵:从执行器取得控制并开始首次观察计时)
+    chain.limit_deadline = time.time() + RUN_LIMIT_S
+    chain.evt("armed-timer-start", limit_s=RUN_LIMIT_S)
 
     pre_logs = 0
     if fixture.get("layout_perturb"):
@@ -230,21 +411,30 @@ def run_core(run_id, fixture, diagnostic=False):
         pre_logs = 1
     wood_log = ("minecraft:oak_log" if fixture.get("wood") == "oak"
                 else "minecraft:%s_log" % fixture.get("wood"))
-    # 扰动用木已被 craft 消耗:主链仍需采满 logs_need
     need = fixture["logs_need"] - (pre_logs if not fixture.get(
         "layout_perturb") else 0)
-    # 扰动场景:扰动采 1(已消耗)+主链 4=总采 5;craft 板按 16+4=20
     if fixture.get("layout_perturb"):
         need = fixture["logs_need"] - 1
     logs = pre_logs + acquire_and_mine(s, chain, wood_log,
                                        fixture["tree_near"], need,
                                        "logs")
+    # R3:采集计数与物理库存对账——初态空包+封闭 fixture 下,库存中
+    # 的原木只能来自本次真实挖掘/拾取(迟效拾取可能晚于回执窗口)。
+    inv_logs = inventory(s).get(wood_log, 0)
+    if inv_logs >= fixture["logs_need"] and logs < fixture["logs_need"]:
+        chain.evt("logs-reconciled-from-inventory",
+                  counted=logs, inv=inv_logs,
+                  note="receipt-counted<inventory; provenance=empty-initial"
+                       "+real-mine-drops")
+        logs = inv_logs
     chain.evt("logs-collected", n=logs)
+    chain.snap("after-logs")
+    if chain.time_up():
+        chain.stop("run-time-limit")
+        return chain
     if logs < fixture["logs_need"]:
         return chain
-    chain.chain["mined_logs"] = True
 
-    # 扰动场景已有 4 板(扰动产物):主链 4 木补 craft 16 板=共 20
     ok, _ = craft(s, chain, "minecraft:%s_planks" % fixture["wood"],
                   16 if fixture.get("layout_perturb") else 20)
     if not ok:
@@ -255,71 +445,57 @@ def run_core(run_id, fixture, diagnostic=False):
     ok, _ = craft(s, chain, "minecraft:crafting_table", 1)
     if not ok:
         return chain
-    chain.chain["crafted_planks_sticks_table"] = True
 
     tx, ty, tz = fixture["table_pos"]
     px, py, pz = fixture["table_stand"]
-    r = s.do("goto", {"x": px, "y": py, "z": pz}, timeout_s=90) \
-        .get("terminal", {})
+    r = do_op(s, chain, "goto", {"x": px, "y": py, "z": pz},
+              timeout=90)
     if r.get("state") != "completed":
         chain.stop("goto-table-stand", r.get("reason"))
         return chain
-    r = s.do("place", {"x": tx, "y": ty, "z": tz,
-                       "item": "minecraft:crafting_table"},
-             timeout_s=90).get("terminal", {})
-    chain.evt("place-table", at=[tx, ty, tz], state=r.get("state"),
-              reason=(r.get("reason") or "")[:90])
+    r = do_op(s, chain, "place", {"x": tx, "y": ty, "z": tz,
+                                  "item": "minecraft:crafting_table"},
+              timeout=90)
+    chain.facts.oracle_block(run_id, "table", tx, ty, tz,
+                             rcon("execute if block %d %d %d "
+                                  "minecraft:crafting_table"
+                                  % (tx, ty, tz)))
     if r.get("state") != "completed":
         chain.stop("place-table", r.get("reason"))
         return chain
-    chain.chain["placed_table_witnessed"] = \
-        "interaction_witnessed=true" in (r.get("reason") or "")
 
     ok, _ = craft(s, chain, "minecraft:wooden_pickaxe", 1)
     if not ok:
         return chain
-    chain.chain["crafted_wooden_pickaxe"] = True
 
     stone = acquire_and_mine(s, chain, "minecraft:stone",
                              fixture["stone_near"], fixture["stone_need"],
                              "stone", window=(3, 2, 3))
+    if chain.time_up():
+        chain.stop("run-time-limit")
+        return chain
     if stone < fixture["stone_need"]:
         return chain
-    chain.chain["mined_stone_with_pickup"] = True
-    # 采石会离开工作台(自然石壁下挖)——先回到台边再 3×3;
-    # 采石坑边缘 pathing 偶发卡住:失败重试一次(先小步挪动重设 goal)
     px, py, pz = fixture["table_stand"]
     for attempt in range(2):
-        r = s.do("goto", {"x": px, "y": py, "z": pz}, timeout_s=90) \
-            .get("terminal", {})
+        r = do_op(s, chain, "goto", {"x": px, "y": py, "z": pz},
+                  timeout=90)
         if r.get("state") == "completed":
             break
-        chain.evt("goto-table-retry", attempt=attempt,
-                  reason=(r.get("reason") or "")[:60])
+        chain.evt("goto-table-retry", attempt=attempt)
     if r.get("state") != "completed":
         chain.stop("goto-table-return", r.get("reason"))
         return chain
     ok, _ = craft(s, chain, "minecraft:stone_pickaxe", 1)
     if not ok:
         return chain
-    chain.chain["crafted_stone_pickaxe"] = True
 
     # 重新打开原工作台:再合成一把木镐证明台仍在精确位置可用
     ok, _ = craft(s, chain, "minecraft:wooden_pickaxe", 1)
     if not ok:
         return chain
-    chain.chain["table_reopened"] = True
 
-    inv = inventory(s)
-    chain.chain["both_pickaxes_final"] = (
-        inv.get("minecraft:wooden_pickaxe", 0) >= 1
-        and inv.get("minecraft:stone_pickaxe", 0) >= 1)
-    blk = rcon("execute if block %d %d %d minecraft:crafting_table"
-               % (tx, ty, tz))
-    chain.evt("final", inv=inv, table_block=("passed" in blk),
-              elapsed=round(time.time() - t0, 1))
-    chain.chain["cursor_empty"] = True  # craft 收尾已关屏;终态观察另证
-    chain.chain["no_unresolved_unknown"] = True
+    chain.evt("final-begin")
     return chain
 
 
@@ -339,7 +515,7 @@ FIXTURES = {
         + ["setblock %d 114 %d minecraft:oak_leaves" % (8 + dx, 8 + dz)
            for dx in (-1, 0, 1) for dz in (-1, 0, 1)]
         + ["setblock 8 114 8 minecraft:oak_log"]
-        # 石面:受控露头——清出空气后放置 6 块自然石(armed 前声明)
+        # 石面:受控露头——清出空气后放置自然石(armed 前声明)
         + ["setblock %d %d %d minecraft:air" % (x, y, z)
            for x in (10, 11, 12) for y in (107, 108, 109)
            for z in (2, 3)]
@@ -357,10 +533,11 @@ FIXTURES = {
     },
 }
 
+
 FIXTURES["oak1"]["layout_perturb"] = False
 FIXTURES["birch1"] = dict(FIXTURES["oak1"], wood="birch")
 FIXTURES["birch1"]["pre"] = [c.replace("minecraft:oak_log",
-                                        "minecraft:birch_log")
+                                       "minecraft:birch_log")
                              for c in FIXTURES["oak1"]["pre"]]
 # 非默认快捷栏/堆叠布局:同橡木几何,armed 后先真实调槽扰动
 FIXTURES["oak-layout"] = dict(FIXTURES["oak1"], layout_perturb=True)
@@ -368,71 +545,70 @@ FIXTURES["oak-layout"] = dict(FIXTURES["oak1"], layout_perturb=True)
 
 def perturb_layout(s, chain):
     """B05 场景:空包开局后用真实事务扰动布局——先采 1 木,
-    合成 4 板,move_items 2 板到 hotbar 7 号(非常规槽)。
-    之后整条链在非默认布局下继续。"""
+    craft 4 板后 move_items 至非默认快捷栏槽,再消耗掉。"""
     got = acquire_and_mine(s, chain, "minecraft:oak_log",
-                           FIXTURES["oak1"]["tree_near"], 1, "perturb")
+                           (8, 109, 8), 1, "perturb")
     if got < 1:
         return False
-    ok, _ = craft(s, chain, "minecraft:oak_planks", 4)
-    if not ok:
+    r = do_op(s, chain, "craft",
+              {"item": "minecraft:oak_planks", "count": 4}, 240)
+    if r.get("state") != "completed":
         return False
-    r = s.do("move_items", {"item": "minecraft:oak_planks",
-                            "count": 2, "hotbar": 7},
-             timeout_s=60).get("terminal", {})
-    chain.evt("layout-perturb", state=r.get("state"),
-              reason=(r.get("reason") or "")[:80])
+    r = do_op(s, chain, "move_items",
+              {"item": "minecraft:oak_planks", "count": 4, "hotbar": 7}, 60)
     return r.get("state") == "completed"
 
 
 def main():
     diagnostic = "--diagnostic" in sys.argv
-    candidate = "304da18010fa8e1ad1faa2442225ba00d59258d9"
     if diagnostic:
         chain = run_core("diag", FIXTURES["oak1"], True)
-        result = _result_of(chain, candidate)
-        print(json.dumps({"RESULT": result}, ensure_ascii=False), flush=True)
-        return 0 if result["result"] == "PASS" else 1
+        result = chain.doc()
+        out = r"D:\mc-rcf1-raw\g4-diag-r3.json"
+        with open(out, "w", encoding="utf-8") as fh:
+            json.dump(result, fh, ensure_ascii=False, indent=1)
+        print(json.dumps({"RESULT": {"run": "diag",
+                                     "fail_at": result["fail_at"],
+                                     "saved": out}}, ensure_ascii=False),
+              flush=True)
+        return 0 if result["fail_at"] is None else 1
     # B01-B05 预写定矩阵:两橡木、两白桦、一非默认布局
     matrix = [("b01", "oak1"), ("b02", "oak1"),
               ("b03", "birch1"), ("b04", "birch1"),
               ("b05", "oak-layout")]
+    expect = {
+        "logs_need": 5, "stone_need": 3,
+        "wood_item": "minecraft:oak_log",
+        "crafts": {
+            "minecraft:stick": 8,
+            "minecraft:crafting_table": 1,
+            "minecraft:wooden_pickaxe": 2,
+            "minecraft:stone_pickaxe": 1}}
     runs = []
+    import time as _t
+    stamp = _t.strftime("%Y%m%d-%H%M%S")
     for run_id, fixture_key in matrix:
         chain = run_core(run_id, FIXTURES[fixture_key], False)
-        result = _result_of(chain, candidate)
-        runs.append(result)
-        print(json.dumps({"RESULT": result}, ensure_ascii=False), flush=True)
-        if result["result"] != "PASS":
+        doc = chain.doc()
+        runs.append(doc)
+        out = r"D:\mc-rcf1-raw\g4-%s-%s.json" % (run_id, stamp)
+        with open(out, "w", encoding="utf-8") as fh:
+            json.dump(doc, fh, ensure_ascii=False, indent=1)
+        print(json.dumps({"RESULT": {
+            "run": run_id, "fail_at": doc["fail_at"],
+            "receipts": len(doc["receipts"]), "saved": out}},
+            ensure_ascii=False), flush=True)
+        if doc["fail_at"] is not None:
             break  # 保存失败,不挑选零散成功
-    with open(r"D:\mc-rcf1-raw\g4-runs.json", "w",
+    with open(r"D:\mc-rcf1-raw\g4-runs-r3.json", "w",
               encoding="utf-8") as fh:
-        json.dump({"candidate": candidate, "runs": runs}, fh,
+        json.dump({"matrix": matrix, "expect": expect,
+                   "runs": runs}, fh,
                   ensure_ascii=False, indent=1)
-    ok = len(runs) == 5 and all(r["result"] == "PASS" for r in runs)
-    print("G4 %s" % ("5/5 PASS" if ok else "FAILED at %d/5" % len(runs)))
+    ok = len(runs) == 5 and all(r["fail_at"] is None for r in runs)
+    print("G4 %s" % ("5/5 runs complete" if ok
+                     else "FAILED at %d/5" % len(runs)))
     return 0 if ok else 1
-
-
-def _result_of(chain, candidate):
-    return {
-        "run": chain.run_id, "session_id": chain.session_id,
-        "candidate": candidate,
-        "result": "PASS" if all(chain.chain.values())
-        and not chain.fail_at else "FAIL",
-        "fail_at": chain.fail_at,
-        "duration_s": round(time.time() - chain.started_at, 1),
-        "final_inventory": dict(_last_inventory(chain)),
-        "cursor_empty": bool(chain.chain.get("cursor_empty")),
-        "chain": chain.chain, "events": chain.events,
-    }
-
-
-def _last_inventory(chain):
-    for evt in reversed(chain.events):
-        if evt.get("kind") == "final" and isinstance(evt.get("inv"), dict):
-            return evt["inv"]
-    return {}
 
 
 if __name__ == "__main__":

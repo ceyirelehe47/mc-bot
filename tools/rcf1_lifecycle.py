@@ -586,7 +586,18 @@ def stop(role, timeout_s=90):
             if found is None:
                 state[r] = {"state": "STOPPED"}
                 _save_json(STATE_FILE, state)
-                results[r] = "STOPPED(already gone)"
+                # MC-RCF-1-R3 F06:no-record path still must VERIFY the
+                # role scope is actually zero before claiming STOPPED.
+                live = scan_namespace().get(r) or []
+                if live:
+                    _record_failure(r, "stop %s already-gone but %d "
+                                    "untracked instances remain"
+                                    % (r, len(live)))
+                    results[r] = ("BLOCKED(untracked instances: %s)"
+                                  % [o["pid"] for o in live])
+                    any_failed = True
+                    continue
+                results[r] = "STOPPED(already gone; scope verified 0)"
                 continue
             if r == "server" and not FAKE_BACKEND:
                 try:
@@ -618,7 +629,21 @@ def stop(role, timeout_s=90):
             state = _load_json_strict(STATE_FILE) or state
             state[r] = {"state": "STOPPED"}
             _save_json(STATE_FILE, state)
-            results[r] = "STOPPED(pid=%s)" % found["pid"]
+            # MC-RCF-1-R3 F06:STOPPED requires the WHOLE role scope to be
+            # zero — stopping the one recorded PID while a same-role
+            # sibling keeps running must not be reported as a full stop.
+            remaining = scan_namespace().get(r) or []
+            if remaining:
+                _record_failure(r, "stop %s recorded pid gone but %d "
+                                "same-role instances remain: %s"
+                                % (r, len(remaining),
+                                   [o["pid"] for o in remaining]))
+                results[r] = ("BLOCKED(same-role instances remain: %s)"
+                              % [o["pid"] for o in remaining])
+                any_failed = True
+                continue
+            results[r] = ("STOPPED(pid=%s; scope verified 0)"
+                          % found["pid"])
         # L7/L08 + R2/R06:stop 永不清失败预算。清零只发生在对应角色
         # start 成功(新实例确证就绪=该角色恢复链真正成功);另一角色
         # 的成功、stop、换 run_id、重开脚本都不能清除未结失败。

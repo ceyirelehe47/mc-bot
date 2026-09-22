@@ -92,6 +92,15 @@ public final class RealClientNavigation {
                     .getPathingBehavior().cancelEverything();
         } catch(Throwable ignored) {
         }
+        // MC-RCF-1-R3:cancelEverything 只取消当前路径段,custom goal
+        // 进程仍持有 goal 并自发重新寻路,其旋转行为每 tick 覆写
+        // lookAt 的精确视角(实测卡在相差 ~3° 的平滑值,准星永远落
+        // 邻格 → facing_timeout)。必须把 goal 一并清掉。
+        try {
+            BaritoneAPI.getProvider().getPrimaryBaritone()
+                    .getCustomGoalProcess().setGoal(null);
+        } catch(Throwable ignored) {
+        }
         currentGoal=null;
         currentRadius=-1;
         if(client!=null&&client.options!=null) {

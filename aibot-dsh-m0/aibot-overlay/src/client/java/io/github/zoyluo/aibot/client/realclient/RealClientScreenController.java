@@ -130,6 +130,16 @@ final class RealClientScreenController {
         out.addProperty("title_origin","mod_ui");
         out.addProperty("title_trust","untrusted_data");
         out.addProperty("sync_id",handler.syncId);
+        // MC-RCF-1-R3 F02:cursor state is a real terminal-state fact for
+        // acceptance (cursor_empty must be observed, never hardcoded).
+        var cursorStack=handler.getCursorStack();
+        out.addProperty(
+                "cursor_item",cursorStack.isEmpty()
+                        ?"minecraft:air"
+                        :Registries.ITEM.getId(
+                                cursorStack.getItem()).toString());
+        out.addProperty(
+                "cursor_count",cursorStack.getCount());
 
         JsonArray capabilities=new JsonArray();
         adapter.capabilities().stream().sorted()

@@ -20,12 +20,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
 /** Server-authoritative view of Bob's normal remote Minecraft client. */
 public final class RealClientBodyBackend implements BodyBackend {
+    /** MC-RCF-1-R3 F05:hard budget for local-view opportunity entries. */
+    private static final int MAX_LOCAL_OPPORTUNITIES=24;
     private final MinecraftServer server;
     private final String playerName;
     private final String logicalBodyId;
@@ -79,6 +82,10 @@ public final class RealClientBodyBackend implements BodyBackend {
             return unavailable("body_session_changed");
         player=candidate;
         tracker.observe(player,sensor);
+        // MC-RCF-1-R3 F05:lifecycle decay (TTL expiry + capacity) runs ONLY
+        // here on the per-tick write path — never inside read endpoints.
+        if((server.getTicks()&31)==0)
+            tracker.maintain(player.getServerWorld().getTime());
         // Physical identity follows the Minecraft game-session incarnation, not the control
         // TCP epoch: a same-process game reconnect must still fence the old session.
         if(!preparedSession.equals(sensor.gameSession())) {
@@ -120,12 +127,16 @@ public final class RealClientBodyBackend implements BodyBackend {
         out.put("profile","strict_survival_real_client");
         out.put("health",current.getHealth());
         out.put("food",current.getHungerManager().getFoodLevel());
+        var session=transport.session().orElse(null);
+        out.put("client_window_mode",session==null?"unknown":session.windowMode());
+        out.put("client_mod_jar_sha256",
+                session==null?"unknown":session.modJarSha256());
+        out.put("control_session_epoch",
+                session==null?"unknown":session.sessionEpoch());
         out.put("dimension",current.getServerWorld().getRegistryKey().getValue().toString());
         out.put("position",position);
         out.put("inventory",inventory(current));
         out.put("sensor","client_crosshair_server_validated");
-        var session=transport.session().orElse(null);
-        out.put("client_window_mode",session==null?"unknown":session.windowMode());
         out.put("screen",screenWire(session==null?null:session.screen()));
         out.put("perception",perception.snapshot(current).summaryWire());
         out.put("supported_operations",supportedOperations().stream().sorted().toList());
@@ -154,15 +165,57 @@ public final class RealClientBodyBackend implements BodyBackend {
         // 传感器帧→机会出生只由服务端 tick 的 ready() 后台链驱动。
         if(radius<1 || radius>16)throw new BridgeFault(400,"radius_out_of_range_1_16");
         Map<String,Object> out=new LinkedHashMap<>();
-        out.put("schema","mc.local_view.v0");
+        out.put("schema","mc.local_view.v1");
         out.put("detail",detail==null?"summary":detail);
         out.put("radius",radius);
         out.put("body_position",Map.of(
                 "x",current.getBlockX(),"y",current.getBlockY(),"z",current.getBlockZ()));
-        out.put("opportunities",tracker.opportunities(current).stream().map(o->Map.of(
-                "object_id",o.id(),"block",o.blockId(),
-                "x",o.pos().getX(),"y",o.pos().getY(),"z",o.pos().getZ(),
-                "sensor","client_crosshair_server_validated")).toList());
+        // MC-RCF-1-R3 F05:local opportunities are HISTORY-scoped memory with
+        // provenance — never a live dimension dump. Apply the requested
+        // radius, a hard entry budget and stable (distance,id) ordering; the
+        // truncated flag covers only in-radius truncation so it cannot leak
+        // the existence of out-of-sight remembered targets.
+        long gameTime=player.getServerWorld().getTime();
+        int bx=current.getBlockX(),by=current.getBlockY(),bz=current.getBlockZ();
+        record LocalOpp(double dist2,String id,String block,int x,int y,int z,long age) {}
+        List<LocalOpp> localOpps=tracker.opportunities(current).stream()
+                .map(o->{
+                    int dx=o.pos().getX()-bx,dy=o.pos().getY()-by,dz=o.pos().getZ()-bz;
+                    double dist2=dx*(double)dx+dy*(double)dy+dz*(double)dz;
+                    long age=Math.max(0L,gameTime-o.lastSeenGameTime());
+                    return new LocalOpp(dist2,o.id(),o.blockId(),
+                            o.pos().getX(),o.pos().getY(),o.pos().getZ(),age);
+                })
+                .filter(o->Math.abs(o.x()-bx)<=radius&&Math.abs(o.y()-by)<=radius
+                        &&Math.abs(o.z()-bz)<=radius)
+                .sorted(java.util.Comparator.<LocalOpp>comparingDouble(o->o.dist2())
+                        .thenComparing(o->o.id()))
+                .limit(MAX_LOCAL_OPPORTUNITIES+1)
+                .toList();
+        boolean oppsTruncated=localOpps.size()>MAX_LOCAL_OPPORTUNITIES;
+        if(oppsTruncated)
+            localOpps=localOpps.subList(0,MAX_LOCAL_OPPORTUNITIES);
+        List<Map<String,Object>> oppWire=localOpps.stream()
+                .map(o->{
+                    Map<String,Object> m=new LinkedHashMap<>();
+                    m.put("object_id",o.id());
+                    m.put("block",o.block());
+                    m.put("x",o.x());
+                    m.put("y",o.y());
+                    m.put("z",o.z());
+                    m.put("age_ticks",o.age());
+                    m.put("freshness",o.age()<=40?"LIVE":o.age()<=2400?"RECENT":"STALE");
+                    m.put("sensor","client_crosshair_server_validated");
+                    m.put("source","remembered_observation");
+                    return m;
+                }).toList();
+        Map<String,Object> oppOut=new LinkedHashMap<>();
+        oppOut.put("entries",oppWire);
+        if(oppsTruncated)
+            oppOut.put("truncated",true);
+        oppOut.put("note","bounded_local_history_view;entries_within_radius_only;"
+                +"out_of_radius_memory_is_not_enumerated");
+        out.put("opportunities",oppOut);
         Map<String,Object> local=perception.snapshot(current)
                 .localWire(radius,detail==null?"summary":detail);
         out.put("perception",local.get("perception"));
@@ -279,11 +332,16 @@ public final class RealClientBodyBackend implements BodyBackend {
     private static Map<String,Object> screenWire(
             RealClientServerTransport.ScreenSnapshot screen) {
         if(screen==null || !screen.present())
-            return Map.of("present",false);
+            return Map.of("present",false,
+                    // No open handler ⇒ cursor stack cannot exist (vanilla
+                    // returns it on close). Vacuously empty by construction.
+                    "cursor_item","minecraft:air",
+                    "cursor_count",0);
         Map<String,Object> out=new LinkedHashMap<>();
-        out.put("present",true);
         out.put("game_session",screen.gameSession());
         out.put("screen_seq",screen.screenSeq());
+        out.put("cursor_item",screen.cursorItem());
+        out.put("cursor_count",screen.cursorCount());
         out.put("screen_epoch",screen.screenEpoch());
         out.put("adapter_id",screen.adapterId());
         out.put("screen_class",screen.screenClass());

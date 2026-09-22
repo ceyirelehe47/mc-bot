@@ -42,14 +42,16 @@ def not_run(tid, why):
 # ---------- V10:真实避难策略负例/正例 ----------
 
 def v10_real_strategy():
+    closed = {"N": "minecraft:dirt", "S": "minecraft:dirt",
+              "E": "minecraft:stone", "W": "minecraft:cobblestone"}
     # V10a:place 返回 failed 但不抛异常 → 真实策略不得置 sheltered
     r = SH.ShelterRun()
     r.record_result("dig_in", {"state": "completed",
                                "reason": "server_authoritative_block_gone"})
     ok1 = r.record_result("seal", {"state": "failed",
                                    "reason": "real_client_execution_timeout"})
-    sheltered = r.finalize({"solid_above": True, "open_sides": 0,
-                            "inside_enclosure": True})
+    sheltered = r.finalize({"body_cell": [1, 2, 3],
+                            "above": "minecraft:stone", "sides": closed})
     run("V10a-place-failed-not-sheltered",
         ok1 is False and sheltered is False)
 
@@ -58,41 +60,54 @@ def v10_real_strategy():
     r2.record_result("dig_in", {"state": "completed", "reason": "ok"})
     r2.record_result("seal", {"state": "completed",
                               "reason": "server_authoritative_block_placed"})
-    sheltered2 = r2.finalize({"solid_above": False, "open_sides": 2,
-                              "inside_enclosure": True})
+    sheltered2 = r2.finalize({"body_cell": [1, 2, 3],
+                              "above": "minecraft:stone",
+                              "sides": dict(closed, N=None)})
     run("V10b-fake-completed-unsealed-not-sheltered",
         sheltered2 is False)
 
-    # V10c:前置挖洞/走入失败 → 不得 sheltered
-    r3 = SH.ShelterRun()
-    r3.record_result("dig_in", {"state": "failed",
-                                "reason": "real_client_resource_opportunity_stale"})
-    r3.record_result("seal", {"state": "completed", "reason": "x"})
-    run("V10c-pre-dig-failed-not-sheltered",
-        r3.finalize({"solid_above": True, "open_sides": 0,
-                     "inside_enclosure": True}) is False)
+    # V10c(R3):查询误读也不安全——above/侧格 unknown → 不得 sheltered
+    run("V10c-unknown-facts-not-safe",
+        SH.assess_sheltered({"body_cell": [0, 0, 0],
+                             "above": None, "sides": closed}) is None
+        and SH.assess_sheltered({"body_cell": [0, 0, 0],
+                                 "above": "minecraft:stone",
+                                 "sides": dict(closed, S=None)}) is None)
 
-    # V10d:部分效果(dig 完成、封口未做)→ 不得 sheltered
-    r4 = SH.ShelterRun()
-    r4.record_result("dig_in", {"state": "completed", "reason": "ok"})
-    run("V10d-partial-effects-not-sheltered",
-        r4.finalize({"solid_above": True, "open_sides": 0,
-                     "inside_enclosure": True}) is False)
+    # V10d(R3):植物/液体不算围护;缺 body_cell 直接 False
+    run("V10d-unreliable-and-missing-body-fail",
+        SH.assess_sheltered({"body_cell": [0, 0, 0],
+                             "above": "minecraft:stone",
+                             "sides": dict(closed, E="minecraft:short_grass")})
+        is False
+        and SH.assess_sheltered({"above": "minecraft:stone",
+                                 "sides": closed}) is False)
 
-    # V10e:完整正例:关键步全部真实 completed + 世界条件成立 → sheltered
+    # V10e:完整正例:关键步全部真实 completed + 逐格封闭 → sheltered
     r5 = SH.ShelterRun()
     r5.record_result("dig_in", {"state": "completed", "reason": "ok"})
     r5.record_result("seal", {"state": "completed", "reason": "ok"})
     run("V10e-full-positive-sheltered",
-        r5.finalize({"solid_above": True, "open_sides": 0,
-                     "inside_enclosure": True}) is True)
+        r5.finalize({"body_cell": [1, 2, 3],
+                     "above": "minecraft:grass_block",
+                     "sides": closed}) is True)
 
-    # V10f:黄昏判定与计划动作来自同一策略模块
-    run("V10f-dusk-triggers-shelter-plan",
+    # V10f(R3):空包/缺工具清晨不通过(旧 `<0 and` 永假缺陷)
+    run("V10f-empty-morning-fails",
+        SH.morning_progress_ok({}) is False
+        and SH.morning_progress_ok(
+            {"minecraft:wooden_pickaxe": 1}) is False
+        and SH.morning_progress_ok(
+            {"minecraft:wooden_pickaxe": 1,
+             "minecraft:stone_pickaxe": 1}) is True)
+
+    # V10g:黄昏判定与计划动作来自同一策略模块
+    run("V10g-dusk-triggers-shelter-plan",
         SH.should_start_shelter("dusk") is True
-        and SH.plan_shelter_action({"solid_above": False, "open_sides": 4,
-                                    "inside_enclosure": False})["action"]
-        == "dig_in")
+        and SH.plan_shelter_action({"body_cell": [0, 0, 0],
+                                    "above": None,
+                                    "sides": closed})["action"]
+        == "observe_more")
 
 
 # ---------- checker 一致性:最终入口判正例与变异 ----------

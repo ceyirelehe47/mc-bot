@@ -227,6 +227,11 @@ public final class BridgeKernel {
     public synchronized Map<String,Object> status() {
         Map<String,Object> out=new LinkedHashMap<>();
         out.put("protocol_version",1); out.put("runtime_epoch",runtimeEpoch); out.put("event_epoch",journal.epoch);
+        // MC-RCF-1-R3 F02:runtime-loaded artifact identity (not a
+        // hardcoded candidate SHA, not a not-yet-deployed disk file).
+        out.put("server_mod_jar_sha256",
+                io.github.zoyluo.aibot.external.realclient
+                        .RealClientBuildIdentity.modJarSha256());
         out.put("event_sequence",journal.lastSequence()); out.put("body_id",bodyId);
         out.put("backend_kind",backendKind); out.put("body_instance_id",bodyInstanceId);
         out.put("body_session_epoch",bodySessionEpoch);

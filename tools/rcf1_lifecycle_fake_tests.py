@@ -416,6 +416,42 @@ def l13_cross_role_budget_isolated():
     shutil.rmtree(ns, ignore_errors=True)
 
 
+def l14_stop_with_record_scope_tail_verification():
+    """MC-RCF-1-R3 F06:有记录 stop 尾部核验——记录实例停掉后同角色
+    还有额外实例时必须 BLOCKED 且保留;额外实例消失后再 stop 才
+    报 STOPPED(scope verified 0)。"""
+    ns = _mk_ns()
+    env = _ns_env(ns)
+    _cli(env, "start", "server", timeout=60)
+    extra = subprocess.Popen(
+        [PY, str(HERE / "_rcf1_fake_proc.py"), "--role", "server",
+         "-Drcf1.instance.marker=%sserver-8888aaaabbbbcccc"
+         % _fake_prefix(ns)],
+        env={k: v for k, v in os.environ.items()
+             if not k.startswith("RCF1_FAKE")},
+        stdout=subprocess.DEVNULL)
+    time.sleep(3)
+    r = _cli(env, "stop", "server", "--timeout", "6", timeout=90)
+    out = r.stdout.strip()
+    st = json.loads(_cli(env, "status").stdout)
+    failed = (st.get("server") or {}).get("status") == "STOP_FAILED"
+    blocked_tail = ("same-role instances remain" in out
+                    and "STOPPED" not in out)
+    extra_alive = extra.poll() is None
+    extra.kill()
+    extra.wait(timeout=15)
+    r2 = _cli(env, "stop", "server", "--timeout", "6", timeout=60)
+    out2 = r2.stdout.strip()
+    clean_stop = ("scope verified 0" in out2
+                  or "namespace clean" in out2
+                  or "already gone" in out2)
+    check("L14", blocked_tail and extra_alive and not failed and clean_stop,
+          {"tail_out": out[:140], "extra_alive": extra_alive,
+           "state": (st.get("server") or {}).get("status"),
+           "restop": out2[:140]})
+    shutil.rmtree(ns, ignore_errors=True)
+
+
 def main():
     _cleanup_fake_orphans()
     for fn in (l01_concurrent, l02_slow_start, l03_crash_windows,
@@ -424,7 +460,8 @@ def main():
                l09_no_revive, l10_real_state_untouched,
                l11_stop_no_record_with_orphan,
                l12_verified_plus_extra_instance,
-               l13_cross_role_budget_isolated):
+               l13_cross_role_budget_isolated,
+               l14_stop_with_record_scope_tail_verification):
         try:
             fn()
         except Exception as exc:  # noqa: BLE001

@@ -64,6 +64,7 @@ public final class RealClientServerTransport
             boolean present,
             String screenClass,String handlerClass,
             String title,String titleOrigin,String titleTrust,int syncId,
+            String cursorItem,int cursorCount,
             List<String> capabilities,
             List<ScreenWidgetSnapshot> widgets,
             List<ScreenSlotSnapshot> slots,
@@ -77,6 +78,7 @@ public final class RealClientServerTransport
     public record SessionSnapshot(
             String bodyId,String playerName,
             String sessionEpoch,String windowMode,
+            String modJarSha256,
             boolean connected,long lastHeartbeatMs,
             String gameSession,
             SensorSnapshot sensor,ScreenSnapshot screen) {
@@ -256,6 +258,10 @@ public final class RealClientServerTransport
                     .contains(windowMode))
                 throw new IOException(
                         "real_client_window_mode_invalid");
+            String modJar=hello.has("mod_jar_sha256")
+                    ?RealClientWire.requiredString(
+                            hello,"mod_jar_sha256",80)
+                    :"unreported";
             if(!expectedBodyId.equals(bodyId))
                 throw new IOException(
                         "real_client_body_id_mismatch");
@@ -267,7 +273,7 @@ public final class RealClientServerTransport
             replacement=new Session(
                     socket,input,output,
                     bodyId,playerName,sessionEpoch,
-                    windowMode);
+                    windowMode,modJar);
             Session prior=active.get();
             if(prior!=null && prior.connected.get())
                 throw new IOException(
@@ -322,7 +328,7 @@ public final class RealClientServerTransport
         final DataInputStream input;
         final DataOutputStream output;
         final String bodyId,playerName,
-                sessionEpoch,windowMode;
+                sessionEpoch,windowMode,modJarSha256;
         final AtomicBoolean connected=
                 new AtomicBoolean(true);
         final AtomicReference<SensorSnapshot> sensor=
@@ -346,7 +352,8 @@ public final class RealClientServerTransport
                 Socket socket,DataInputStream input,
                 DataOutputStream output,
                 String bodyId,String playerName,
-                String sessionEpoch,String windowMode) {
+                String sessionEpoch,String windowMode,
+                String modJarSha256) {
             this.socket=socket;
             this.input=input;
             this.output=output;
@@ -354,6 +361,7 @@ public final class RealClientServerTransport
             this.playerName=playerName;
             this.sessionEpoch=sessionEpoch;
             this.windowMode=windowMode;
+            this.modJarSha256=modJarSha256;
         }
 
         void start() {
@@ -372,7 +380,7 @@ public final class RealClientServerTransport
         SessionSnapshot snapshot() {
             return new SessionSnapshot(
                     bodyId,playerName,sessionEpoch,
-                    windowMode,connected.get(),
+                    windowMode,modJarSha256,connected.get(),
                     lastHeartbeatMs,gameSession,
                     sensor.get(),screen.get());
         }
@@ -602,6 +610,7 @@ public final class RealClientServerTransport
                 screen.set(new ScreenSnapshot(
                         gs,screenSeq,"","",false,
                         "","","","","",-1,
+                        "minecraft:air",0,
                         List.of(),List.of(),List.of(),List.of(),
                         0,false,now));
                 return;
@@ -650,11 +659,24 @@ public final class RealClientServerTransport
             List<ScreenStorageItemSnapshot> storageItems=
                     parseStorageItems(message);
 
+            String cursorItem=
+                    message.has("cursor_item")
+                            ?RealClientWire.requiredString(
+                                    message,"cursor_item",128)
+                            :"minecraft:air";
+            int cursorCount=
+                    message.has("cursor_count")
+                            ?message.get("cursor_count").getAsInt():0;
+            if(cursorCount<0 || cursorCount>999)
+                throw new IOException(
+                        "real_client_screen_cursor_invalid");
+
             screen.set(new ScreenSnapshot(
                     gs,screenSeq,screenEpoch,
                     adapterId,true,
                     screenClass,handlerClass,title,
                     titleOrigin,titleTrust,syncId,
+                    cursorItem,cursorCount,
                     capabilities,widgets,slots,storageItems,
                     slotCount,truncated,now));
         }

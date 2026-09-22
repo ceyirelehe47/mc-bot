@@ -150,4 +150,45 @@ final class RealClientEatDecisionCoreTest {
         assertEquals(RealClientEatDecisionCore.Step.RETURN_FOREIGN_CURSOR,
                 m.tick(obs(false,0,false,false,true,true,false)));
     }
+
+    @Test void failedTerminalNeverTurnsIntoCompleteOnLaterTicks() {
+        // MC-RCF-1-R3 F04 regression: a terminal failure must stay a failure.
+        RealClientEatDecisionCore.Machine m=
+                new RealClientEatDecisionCore.Machine();
+        assertEquals(RealClientEatDecisionCore.Step.FAIL_NO_FOOD,
+                m.tick(obs(false,0,false,false,false,false,false)));
+        for(int i=0;i<10;i++)
+            assertEquals(RealClientEatDecisionCore.Step.FAIL_NO_FOOD,
+                    m.tick(obs(true,2,true,false,false,true,false)),
+                    "a failed machine must never report COMPLETE later");
+        // same for the verify-failure terminal
+        RealClientEatDecisionCore.Machine m2=
+                new RealClientEatDecisionCore.Machine();
+        m2.tick(obs(true,2,true,false,false,true,false)); // MARK_HELD
+        m2.tick(obs(true,2,true,false,false,true,true));  // PRESS/HOLD
+        for(int i=0;i<45;i++)
+            m2.tick(obs(true,2,true,false,false,true,false));
+        for(int i=0;i<5;i++)
+            assertNotEquals(RealClientEatDecisionCore.Step.COMPLETE,
+                    m2.tick(obs(true,2,true,false,false,true,false)),
+                    "verify failure is terminal");
+    }
+
+    @Test void externalRemovalStillYieldsNoWitnessEntry() {
+        // Review ff29078 counterexample timeline: held 2, use started,
+        // an external actor removes BOTH items and use stops. Whatever the
+        // client core concludes from the same inventory decrease, the
+        // authoritative gate is the server-side witness, which external
+        // removal cannot feed (no game completion processing happened).
+        RealClientEatDecisionCore.Machine m=
+                new RealClientEatDecisionCore.Machine();
+        m.tick(obs(true,2,true,false,false,true,false));   // MARK_HELD
+        m.tick(obs(true,2,true,false,false,true,true));    // window starts
+        m.tick(obs(true,0,true,false,false,true,false));   // external removal
+        assertEquals(0,io.github.zoyluo.aibot.external.realclient
+                        .RealClientEatWitness.countFor(
+                                "00000000-0000-0000-0000-000000000000",
+                                "minecraft:bread",0L),
+                "external inventory mutation never creates witness entries");
+    }
 }

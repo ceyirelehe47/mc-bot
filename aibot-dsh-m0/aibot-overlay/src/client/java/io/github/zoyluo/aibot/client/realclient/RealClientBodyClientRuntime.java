@@ -127,7 +127,7 @@ public final class RealClientBodyClientRuntime {
         actions.tick(client);
         screens.tick(client);
         autoRespawn(client);
-        if(++heartbeatTick%10==0)heartbeat(client);
+        if(++heartbeatTick%5==0)heartbeat(client);
     }
 
     private static void gameSessionStarted(

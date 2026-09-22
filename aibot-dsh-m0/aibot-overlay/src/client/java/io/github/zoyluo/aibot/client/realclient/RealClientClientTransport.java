@@ -167,6 +167,9 @@ final class RealClientClientTransport implements AutoCloseable {
                 hello.addProperty("player_name",playerName);
                 hello.addProperty("session_epoch",epoch);
                 hello.addProperty("window_mode",windowMode);
+                hello.addProperty("mod_jar_sha256",
+                        io.github.zoyluo.aibot.external.realclient
+                                .RealClientBuildIdentity.modJarSha256());
                 RealClientWire.write(output,hello);
                 JsonObject welcome=RealClientWire.read(input);
                 if(!"welcome".equals(

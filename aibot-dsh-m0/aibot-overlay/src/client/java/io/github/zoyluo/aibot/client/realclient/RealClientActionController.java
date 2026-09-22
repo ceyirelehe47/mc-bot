@@ -600,16 +600,27 @@ final class RealClientActionController {
             var world=client.world;
             // 正交邻位站位:对角站位射线无法命中目标支撑面(实测),
             // 先到目标的水平邻格再瞄准——G3c 工作站位语义
+            // MC-RCF-1-R3 F03:sealing-from-inside regression — pick the
+            // qualifying stance NEAREST the current position. The old
+            // fixed N/S/E/W order could resolve to an OUTSIDE cell and
+            // walk Bob out of the shelter through the very opening being
+            // sealed (R2 in-hole consecutive-place failure mode).
             BlockPos stand=null;
+            double bestD2=Double.MAX_VALUE;
             for(Direction f:new Direction[]{Direction.NORTH,
                     Direction.SOUTH,Direction.EAST,Direction.WEST}) {
                 BlockPos n=target.offset(f);
-                if(world.getBlockState(n).isAir()
-                        &&world.getBlockState(n.down())
-                                .isSideSolidFullSquare(
-                                        world,n.down(),Direction.UP)) {
+                if(!world.getBlockState(n).isAir())
+                    continue;
+                if(!world.getBlockState(n.down())
+                        .isSideSolidFullSquare(world,n.down(),Direction.UP))
+                    continue;
+                double dx=client.player.getX()-(n.getX()+.5D);
+                double dz=client.player.getZ()-(n.getZ()+.5D);
+                double d2=dx*dx+dz*dz;
+                if(d2<bestD2) {
+                    bestD2=d2;
                     stand=n;
-                    break;
                 }
             }
             if(stand==null) {
@@ -1648,7 +1659,8 @@ final class RealClientActionController {
         final String blockId,expectedItem;
         boolean started;
         int pickupTicks;
-
+        int approachTicks;
+        int hardTicks;
         MineAction(
                 String executionId,BlockPos target,
                 Direction face,int slot,String blockId,
@@ -1663,10 +1675,16 @@ final class RealClientActionController {
         }
 
         @Override void tick(MinecraftClient client) {
+            // MC-RCF-1-R3:own hard budget——服务端超时取消若未送达
+            // (竞态),客户端动作也不能无限 tick(实测 Baritone 自旋
+            // 10 分钟+)。finishAction 停路径/输入,不冒充完成。
+            if(++hardTicks>20*150) {
+                clearInputs(client);
+                fail("client_mine_hard_timeout");
+                return;
+            }
             int current=count(client,expectedItem);
             var state=client.world.getBlockState(target);
-            String actual=Registries.BLOCK.getId(
-                    state.getBlock()).toString();
             if(state.isAir()) {
                 if(current>baseline) {
                     clearInputs(client);
@@ -1709,6 +1727,8 @@ final class RealClientActionController {
                         "waiting_for_physical_pickup");
                 return;
             }
+            String actual=Registries.BLOCK.getId(
+                    state.getBlock()).toString();
             if(!actual.equals(blockId)) {
                 clearInputs(client);
                 fail("client_target_cell_changed");
@@ -1716,10 +1736,22 @@ final class RealClientActionController {
             }
             if(client.player.getPos().squaredDistanceTo(
                     target.toCenterPos())>24D) {
-                // R2 诊断修复:阈值=方块交互触达(≈4.9格),不是 4 格——
-                // 从树底向上挖第 5 根原木时纯垂直距离已 >4 格,旧 16D
-                // 阈值导致永远 walkTo 永不 attack(诊断链实测超时根因)。
-                walkTo(client,target.toCenterPos());
+                // MC-RCF-1-R3:高枝/悬柱目标不能用 GoalNear(目标,2)——
+                // 目标四周全是空气时 Baritone 永远搜不到路(实测 10 分钟+
+                // 路径自旋)。改为:扫描触达半径内的可站格,走向最近的一个;
+                // 没有任何合法站位就诚实失败,不无限寻路。
+                BlockPos approach=reachableStance(client,target);
+                if(approach==null) {
+                    clearInputs(client);
+                    fail("client_mine_no_reach_stance");
+                    return;
+                }
+                walkToExact(client,approach.toCenterPos());
+                if(++approachTicks>20*100) {
+                    clearInputs(client);
+                    fail("client_mine_approach_timeout");
+                    return;
+                }
                 progress=Math.max(progress,.1D);
                 return;
             }
@@ -1959,6 +1991,41 @@ final class RealClientActionController {
                 total+=stack.getCount();
         }
         return total;
+    }
+
+    /** MC-RCF-1-R3:触达半径(方块交互≈4.9格)内的可站格——身体可以
+     * 合法站进去、脚下方实心、且眼睛到目标中心 ≤ 触达。返回最近者;
+     * 无合法站位返回 null(诚实失败,不无限寻路)。 */
+    private static BlockPos reachableStance(
+            MinecraftClient client,BlockPos target) {
+        var world=client.world;
+        if(world==null)return null;
+        Vec3d center=target.toCenterPos();
+        BlockPos best=null;
+        double bestD2=Double.MAX_VALUE;
+        for(int dy=-3;dy<=1;dy++) {
+            for(int dx=-5;dx<=5;dx++) {
+                for(int dz=-5;dz<=5;dz++) {
+                    BlockPos cell=target.add(dx,dy,dz);
+                    if(cell.equals(target))continue;
+                    if(!world.getBlockState(cell).isAir())continue;
+                    if(!world.getBlockState(cell.down())
+                            .isSideSolidFullSquare(world,cell.down(),
+                                    Direction.UP))continue;
+                    Vec3d eye=client.player.getEyePos();
+                    if(eye.squaredDistanceTo(center)>24D)continue;
+                    Vec3d feet=Vec3d.ofBottomCenter(cell);
+                    if(feet.squaredDistanceTo(center)>36D)continue;
+                    double d2=client.player.getPos()
+                            .squaredDistanceTo(feet);
+                    if(d2<bestD2) {
+                        bestD2=d2;
+                        best=cell;
+                    }
+                }
+            }
+        }
+        return best;
     }
 
     // ---------- 寻路运动:MC-RCF-1 G2 起由受控 Baritone 适配器执行 ----------

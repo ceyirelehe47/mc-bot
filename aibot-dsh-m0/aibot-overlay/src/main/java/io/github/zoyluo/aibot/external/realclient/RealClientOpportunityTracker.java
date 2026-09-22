@@ -166,31 +166,46 @@ public final class RealClientOpportunityTracker {
         return Optional.ofNullable(active.get(key(dimension,id)));
     }
 
+    /** MC-RCF-1-R3 F05:PURE read. No world queries, no eviction, no journal
+     * writes. Filtering/sorting/bounding is the caller's (bounded local view)
+     * job; invalidation happens only in {@link #maintain} (background write
+     * lifecycle) or at execution admission. Repeated reads with no new frames
+     * cannot change opportunity lifecycle or the business journal. */
     public synchronized List<Opportunity> opportunities(ServerPlayerEntity player) {
         String dimension=player.getServerWorld().getRegistryKey().getValue().toString();
-        // MC-RCF-1-R2 R02:惰性剔除必须带 durable stale 回执——journal 重放
-        // 的旧条目在方块已变后退出列表,同时把失效事实持久化,崩溃前后
-        // 结果一致;不得静默 removeIf 丢状态(审查点名)。
-        List<Opportunity> changed=new ArrayList<>();
-        for(Opportunity o:active.values()) {
-            if(!dimension.equals(o.dimension()))
-                continue;
-            BlockState s=player.getServerWorld().getBlockState(o.pos());
-            String now=Registries.BLOCK.getId(s.getBlock()).toString();
-            if(!now.equals(o.blockId()))
-                changed.add(o);
-        }
-        for(Opportunity o:changed) {
-            io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                    "AIBot opportunity evict-lazy id={} pos={} was={}",
-                    o.id(),o.pos(),o.blockId());
-            active.remove(key(o.dimension(),o.id()));
-            markStale("",o,"block_changed_evict");
-        }
         return active.values().stream()
                 .filter(o->dimension.equals(o.dimension()))
                 .sorted(Comparator.comparing(Opportunity::id))
                 .toList();
+    }
+
+    /** Age after which remembered-but-unrefreshed knowledge expires (ticks). */
+    public static final long KNOWLEDGE_TTL_TICKS=12000L;
+
+    /** MC-RCF-1-R3 F05:the ONLY background write path for lifecycle decay.
+     * Called from the per-tick body readiness chain (server thread), never
+     * from read endpoints. Expiry is time-based on last SEEN game time — it
+     * never queries world blocks, so out-of-sight changes can neither create
+     * new facts nor update "now it's gone" knowledge remotely. Durable stale
+     * receipts keep crash/replay semantics; the journal write precedes the
+     * in-memory removal (no silent disappear). */
+    public synchronized int maintain(long gameTime) {
+        int evicted=0;
+        for(Opportunity o:List.copyOf(active.values())) {
+            long age=gameTime-o.lastSeenGameTime();
+            if(age>KNOWLEDGE_TTL_TICKS) {
+                io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                        "AIBot opportunity expire-ttl id={} pos={} age={}",
+                        o.id(),o.pos(),age);
+                markStale("",o,"knowledge_ttl_expired");
+                evicted++;
+            }
+        }
+        while(active.size()>MAX_ACTIVE) {
+            evictOldest("capacity_evict");
+            evicted++;
+        }
+        return evicted;
     }
 
     public synchronized boolean markConsumed(
@@ -310,6 +325,36 @@ public final class RealClientOpportunityTracker {
         journal.append(actionable);
     }
 
+    private static void diagReject(ServerPlayerEntity player,
+            RealClientServerTransport.SensorSnapshot sensor,BlockPos expected,
+            HitResult serverRay,String reason) {
+        long now=System.currentTimeMillis();
+        if(now-lastDiagMs<5000L || reason.equals(lastDiagReason) && now-lastDiagMs<30000L)return;
+        lastDiagMs=now; lastDiagReason=reason;
+        io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
+                "AIBot real-client sensor diag reject={} sensorPresent={} expected={} ray={} "
+                        +"serverPos={},{},{} sensorPos={},{},{} "
+                        +"serverYaw={} serverPitch={} sensorYaw={} sensorPitch={} sensorCross={} "
+                        +"frameAgeMs={} frameSeq={} gameSession={} dist={}",
+                reason,sensor==null?"no-sensor":sensor.crosshairPresent(),
+                expected,
+                serverRay==null?"n/a":serverRay instanceof BlockHitResult b?b.getBlockPos():serverRay.getType(),
+                String.format("%.1f",player.getX()),
+                String.format("%.1f",player.getY()),
+                String.format("%.1f",player.getZ()),
+                sensor==null?"n/a":String.format("%.1f",sensor.x()),
+                sensor==null?"n/a":String.format("%.1f",sensor.y()),
+                sensor==null?"n/a":String.format("%.1f",sensor.z()),
+                player.getYaw(),player.getPitch(),
+                sensor==null?"n/a":sensor.yaw(),sensor==null?"n/a":sensor.pitch(),
+                sensor==null?"n/a":sensor.crosshairX()+","+sensor.crosshairY()+","+sensor.crosshairZ(),
+                sensor==null?"n/a":System.currentTimeMillis()-sensor.receivedAtMs(),
+                sensor==null?"n/a":sensor.frameSeq(),
+                sensor==null?"n/a":sensor.gameSession(),
+                expected==null?"n/a":String.format("%.2f",Math.sqrt(player.squaredDistanceTo(Vec3d.ofCenter(expected)))));
+    }
+
+
     private static Map<String,String> resolutionFields(
             String kind,String executionId,Opportunity opportunity) {
         Map<String,String> fields=new LinkedHashMap<>();
@@ -323,29 +368,6 @@ public final class RealClientOpportunityTracker {
 
     private static String lastDiagReason="";
     private static long lastDiagMs;
-
-    /** LIVE 诊断:传感器验证失败时低频汇报中间值,定位 real-client 传感器链路。 */
-    private static void diagReject(ServerPlayerEntity player,
-            RealClientServerTransport.SensorSnapshot sensor,BlockPos expected,
-            HitResult serverRay,String reason) {
-        long now=System.currentTimeMillis();
-        if(now-lastDiagMs<5000L || reason.equals(lastDiagReason) && now-lastDiagMs<30000L)return;
-        lastDiagMs=now; lastDiagReason=reason;
-        io.github.zoyluo.aibot.AIBotMod.LOGGER.info(
-                "AIBot real-client sensor diag reject={} sensorPresent={} expected={} ray={} "
-                        +"serverYaw={} serverPitch={} sensorYaw={} sensorPitch={} sensorCross={} "
-                        +"frameAgeMs={} frameSeq={} gameSession={} dist={}",
-                reason,sensor==null?"no-sensor":sensor.crosshairPresent(),
-                expected,
-                serverRay==null?"n/a":serverRay instanceof BlockHitResult b?b.getBlockPos():serverRay.getType(),
-                player.getYaw(),player.getPitch(),
-                sensor==null?"n/a":sensor.yaw(),sensor==null?"n/a":sensor.pitch(),
-                sensor==null?"n/a":sensor.crosshairX()+","+sensor.crosshairY()+","+sensor.crosshairZ(),
-                sensor==null?"n/a":System.currentTimeMillis()-sensor.receivedAtMs(),
-                sensor==null?"n/a":sensor.frameSeq(),
-                sensor==null?"n/a":sensor.gameSession(),
-                expected==null?"n/a":String.format("%.2f",Math.sqrt(player.squaredDistanceTo(Vec3d.ofCenter(expected)))));
-    }
 
     private Optional<Opportunity> findAt(String dimension,BlockPos pos,String blockId) {
         return active.values().stream().filter(o->o.dimension().equals(dimension)

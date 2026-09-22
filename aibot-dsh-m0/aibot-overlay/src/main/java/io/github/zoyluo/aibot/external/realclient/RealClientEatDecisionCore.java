@@ -82,6 +82,9 @@ public final class RealClientEatDecisionCore {
         private int verifyWaitTicks;
         private boolean done;
         private String doneReason="";
+        /** Terminal step stays terminal: a FAILED machine must never
+         * report COMPLETE on a later tick (MC-RCF-1-R3 F04 regression). */
+        private Step terminalStep;
 
         public int phase() { return phase; }
         public int heldStart() { return heldStart; }
@@ -91,7 +94,7 @@ public final class RealClientEatDecisionCore {
         public String reason() { return doneReason; }
 
         public Step tick(Observed o) {
-            if(done)return Step.COMPLETE;
+            if(done)return terminalStep==null?Step.FAIL_NO_EFFECT:terminalStep;
             if(phase==0)return prepareTick(o);
             if(phase==1)return windowTick(o);
             return verifyTick(o);
@@ -143,6 +146,7 @@ public final class RealClientEatDecisionCore {
             if(claimed>0) {
                 done=true;
                 doneReason="client_food_consumed:client_consumed="+claimed;
+                terminalStep=Step.COMPLETE;
                 return Step.COMPLETE;
             }
             // isUsing 转换可能先于客户端物品数量同步:有界等待计数变化。
@@ -150,12 +154,14 @@ public final class RealClientEatDecisionCore {
                 return Step.RELEASE_AND_VERIFY;
             done=true;
             doneReason="client_eat_no_effect";
+            terminalStep=Step.FAIL_NO_EFFECT;
             return Step.FAIL_NO_EFFECT;
         }
 
         private Step fail(Step step,String reason) {
             done=true;
             doneReason=reason;
+            terminalStep=step;
             return step;
         }
 

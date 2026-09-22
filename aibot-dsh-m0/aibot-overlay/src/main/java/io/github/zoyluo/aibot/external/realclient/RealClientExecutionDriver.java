@@ -392,13 +392,14 @@ public final class RealClientExecutionDriver
             throw new BridgeFault(
                     503,"real_client_command_queue_unavailable");
         final String foodId=itemId;
+        final long startedWallMs=System.currentTimeMillis();
         return ()->eatSnapshot(
-                request.executionId(),startedAt,
+                request.executionId(),startedAt,startedWallMs,
                 foodId,before,hungerBefore);
     }
 
     private BodyBackend.Snapshot eatSnapshot(
-            String executionId,long startedAt,
+            String executionId,long startedAt,long startedWallMs,
             String itemId,int before,int hungerBefore) {
         onThread();
         ServerPlayerEntity player=body.get();
@@ -412,14 +413,8 @@ public final class RealClientExecutionDriver
                     remote.state(),remote.progress(),remote.reason());
         int after=countItem(player,itemId);
         int hunger=player.getHungerManager().getFoodLevel();
-        // R1-I5/V04:完成=客户端完成回执 AND 本次物品真实减少。
-        // 饥饿值受自然饱和/外部效果并发影响,只作记录不作证据;
-        // 物品被外部取走(after<before 但客户端未完成)不得冒充本次进食。
         boolean clientDone=remote!=null
                 &&"completed".equals(remote.state());
-        // R1-I5/V04:客户端回执携带本次真实消费数(client_consumed=N);
-        // 服务端核对 after==before-N。外部取走物品(clear/他因)造成的
-        // after<before 与 claimed 不符 → 不完成,不冒充本次进食。
         int claimed=0;
         if(clientDone&&remote.reason()!=null) {
             var m=java.util.regex.Pattern
@@ -427,12 +422,23 @@ public final class RealClientExecutionDriver
                     .matcher(remote.reason());
             if(m.find())claimed=Integer.parseInt(m.group(1));
         }
-        if(clientDone&&claimed>0&&after==before-claimed)
+        // MC-RCF-1-R3 F04:completion now requires the server-side witness
+        // of ACTUAL normal consumption-completion processing (game hook on
+        // ConsumableComponent#finishConsumption, see RealClientEatWitness).
+        // Inventory arithmetic alone (after==before-claimed) accepted
+        // external item removal as eating; the witness cannot be faked by
+        // clear/drop/move because those never run the game's completion
+        // processing. Mismatch keeps the execution running inside the
+        // bounded timeout (reconciliation window), never completes.
+        int witness=RealClientEatWitness.countFor(
+                player.getUuidAsString(),itemId,startedWallMs);
+        if(clientDone&&claimed>0&&witness>=claimed&&after==before-claimed)
             return new BodyBackend.Snapshot(
                     "completed",1D,
                     "server_authoritative_food_consumed:"
                             +itemId+":"+before+"->"+after
                             +":claimed="+claimed
+                            +":witness="+witness
                             +":hunger:"+hungerBefore+"->"+hunger);
         if(server.getTicks()-startedAt>EXECUTION_TIMEOUT_TICKS) {
             transport.sendControl(executionId,"cancel",
