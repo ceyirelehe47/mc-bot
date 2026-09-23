@@ -598,29 +598,39 @@ final class RealClientActionController {
                 return;
             }
             var world=client.world;
-            // 正交邻位站位:对角站位射线无法命中目标支撑面(实测),
-            // 先到目标的水平邻格再瞄准——G3c 工作站位语义
-            // MC-RCF-1-R3 F03:sealing-from-inside regression — pick the
-            // qualifying stance NEAREST the current position. The old
-            // fixed N/S/E/W order could resolve to an OUTSIDE cell and
-            // walk Bob out of the shelter through the very opening being
-            // sealed (R2 in-hole consecutive-place failure mode).
+            // MC-RCF-1-R3:sealing-from-inside regression — pick the
+            // qualifying stance NEAREST the current position, scanning
+            // BOTH the target-level ring and the one-below diagonal ring
+            // (a 1×2 interior offers no standable target-level neighbor;
+            // the mouth-bottom cell is excluded because standing there
+            // puts Bob's head box INSIDE the top target cell).
             BlockPos stand=null;
             double bestD2=Double.MAX_VALUE;
-            for(Direction f:new Direction[]{Direction.NORTH,
-                    Direction.SOUTH,Direction.EAST,Direction.WEST}) {
-                BlockPos n=target.offset(f);
-                if(!world.getBlockState(n).isAir())
-                    continue;
-                if(!world.getBlockState(n.down())
-                        .isSideSolidFullSquare(world,n.down(),Direction.UP))
-                    continue;
-                double dx=client.player.getX()-(n.getX()+.5D);
-                double dz=client.player.getZ()-(n.getZ()+.5D);
-                double d2=dx*dx+dz*dz;
-                if(d2<bestD2) {
-                    bestD2=d2;
-                    stand=n;
+            for(BlockPos base:new BlockPos[]{
+                    target, target.down()}) {
+                for(Direction f:new Direction[]{
+                        Direction.NORTH, Direction.SOUTH,
+                        Direction.EAST, Direction.WEST}) {
+                    BlockPos n=base.offset(f);
+                    if(n.equals(target))continue;
+                    if(!world.getBlockState(n).isAir())
+                        continue;
+                    if(!world.getBlockState(n.down())
+                            .isSideSolidFullSquare(world,n.down(),
+                                    Direction.UP))
+                        continue;
+                    if(n.getX()==target.getX()
+                            &&n.getZ()==target.getZ()
+                            &&target.getY()>=n.getY()
+                            &&target.getY()<n.getY()+2)
+                        continue; // 目标在站位头顶:身体占据目标格
+                    double dx=client.player.getX()-(n.getX()+.5D);
+                    double dz=client.player.getZ()-(n.getZ()+.5D);
+                    double d2=dx*dx+dz*dz;
+                    if(d2<bestD2) {
+                        bestD2=d2;
+                        stand=n;
+                    }
                 }
             }
             if(stand==null) {
@@ -667,7 +677,11 @@ final class RealClientActionController {
                 fail("client_place_no_support_face");
                 return;
             }
-            lookAt(client,support.toCenterPos());
+            // R3:瞄准点=支撑格中心向暴露面内缩 0.35——正对面心时射线
+            // 落在格边界,raycast 会解析到错误邻格(实测封上格卡死根因:
+            // cross=(6,107,5) 而 support=(6,107,4))。
+            lookAt(client,support.toCenterPos().add(
+                    Vec3d.of(supportFace.getVector()).multiply(.35D)));
             if(ticks%5==0) {
                 String cross=client.crosshairTarget==null?"null"
                         :client.crosshairTarget.getType()
