@@ -1,0 +1,172 @@
+{
+  "reviewed_head": "ff29078ab3cd52d6cfceb928344c90e0c25ab2a7",
+  "checker_git_blob": "8ad34b34a0d3addf69f009544d6fb57b386dc630",
+  "exact_source_blob_verified": true,
+  "scope": "Offline actual CLI execution; no Windows or Minecraft LIVE execution",
+  "invalid_probes": 7,
+  "invalid_probes_incorrectly_accepted": 7,
+  "rejection_controls": 3,
+  "rejection_controls_correctly_rejected": 3,
+  "results": [
+    {
+      "id": "IA01_no_physical_facts",
+      "input_kind": "SYNTHETIC_INVALID_EVIDENCE",
+      "description": "All required IDs, but only success text and negative booleans; no physical facts.",
+      "checker_entry": "judge-ia",
+      "expected_accept": false,
+      "actual_accept": true,
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-ia",
+        "accept": true,
+        "reason": "ok"
+      },
+      "input_file": "synthetic_inputs/IA01_no_physical_facts.json",
+      "control": false
+    },
+    {
+      "id": "IA02_receipt_conflicts_with_snapshots",
+      "input_kind": "SYNTHETIC_INVALID_EVIDENCE",
+      "description": "Reason is internally consistent, but actual supplied snapshots show no craft and request is 32.",
+      "checker_entry": "judge-ia",
+      "expected_accept": false,
+      "actual_accept": true,
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-ia",
+        "accept": true,
+        "reason": "ok"
+      },
+      "input_file": "synthetic_inputs/IA02_receipt_conflicts_with_snapshots.json",
+      "control": false
+    },
+    {
+      "id": "IA03_duplicate_id_hides_unknown",
+      "input_kind": "SYNTHETIC_INVALID_EVIDENCE",
+      "description": "An earlier A01 outcome_unknown is silently overwritten by the later same-ID case.",
+      "checker_entry": "judge-ia",
+      "expected_accept": false,
+      "actual_accept": true,
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-ia",
+        "accept": true,
+        "reason": "ok"
+      },
+      "input_file": "synthetic_inputs/IA03_duplicate_id_hides_unknown.json",
+      "control": false
+    },
+    {
+      "id": "IA04_candidate_absent",
+      "input_kind": "SYNTHETIC_INVALID_EVIDENCE",
+      "description": "Run registry has no candidate identity at all.",
+      "checker_entry": "judge-ia",
+      "expected_accept": false,
+      "actual_accept": true,
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-ia",
+        "accept": true,
+        "reason": "ok"
+      },
+      "input_file": "synthetic_inputs/IA04_candidate_absent.json",
+      "control": false
+    },
+    {
+      "id": "G401_no_action_history",
+      "input_kind": "SYNTHETIC_INVALID_EVIDENCE",
+      "description": "Five unique labels and nonce-only event lists; no observation, mining or crafting.",
+      "checker_entry": "judge-g4",
+      "expected_accept": false,
+      "actual_accept": true,
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-g4",
+        "accept": true,
+        "reason": "ok"
+      },
+      "input_file": "synthetic_inputs/G401_no_action_history.json",
+      "control": false
+    },
+    {
+      "id": "G402_history_explicitly_failed_cursor_occupied",
+      "input_kind": "SYNTHETIC_INVALID_EVIDENCE",
+      "description": "Events explicitly say mining failed and cursor still holds the stone pickaxe, contradicting summaries.",
+      "checker_entry": "judge-g4",
+      "expected_accept": false,
+      "actual_accept": true,
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-g4",
+        "accept": true,
+        "reason": "ok"
+      },
+      "input_file": "synthetic_inputs/G402_history_explicitly_failed_cursor_occupied.json",
+      "control": false
+    },
+    {
+      "id": "G403_tools_present_before_start",
+      "input_kind": "SYNTHETIC_INVALID_EVIDENCE",
+      "description": "Initial and final inventories are the same pre-given tools; chain still claims empty-start collection.",
+      "checker_entry": "judge-g4",
+      "expected_accept": false,
+      "actual_accept": true,
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-g4",
+        "accept": true,
+        "reason": "ok"
+      },
+      "input_file": "synthetic_inputs/G403_tools_present_before_start.json",
+      "control": false
+    },
+    {
+      "id": "CTRL01_reason_math_rejected",
+      "input_kind": "SYNTHETIC_INVALID_EVIDENCE",
+      "description": "Contradictory numbers inside reason.",
+      "checker_entry": "judge-ia",
+      "expected_accept": false,
+      "actual_accept": false,
+      "exit_code": 1,
+      "response": {
+        "entry": "judge-ia",
+        "accept": false,
+        "reason": "case-A01-inconsistent-numbers:server_authoritative_native_craft:x:0->8:delta=32"
+      },
+      "input_file": "synthetic_inputs/CTRL01_reason_math_rejected.json",
+      "control": true
+    },
+    {
+      "id": "CTRL02_four_runs_rejected",
+      "input_kind": "SYNTHETIC_INVALID_EVIDENCE",
+      "description": "Only four runs.",
+      "checker_entry": "judge-g4",
+      "expected_accept": false,
+      "actual_accept": false,
+      "exit_code": 1,
+      "response": {
+        "entry": "judge-g4",
+        "accept": false,
+        "reason": "not-five-runs"
+      },
+      "input_file": "synthetic_inputs/CTRL02_four_runs_rejected.json",
+      "control": true
+    },
+    {
+      "id": "CTRL03_missing_required_case_rejected",
+      "input_kind": "SYNTHETIC_INVALID_EVIDENCE",
+      "description": "Missing I08.",
+      "checker_entry": "judge-ia",
+      "expected_accept": false,
+      "actual_accept": false,
+      "exit_code": 1,
+      "response": {
+        "entry": "judge-ia",
+        "accept": false,
+        "reason": "missing-required-cases:I08"
+      },
+      "input_file": "synthetic_inputs/CTRL03_missing_required_case_rejected.json",
+      "control": true
+    }
+  ]
+}

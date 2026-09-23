@@ -1,0 +1,33 @@
+{
+  "scope": "PACKAGE_AND_OFFLINE_PROBE_VALIDATION_ONLY",
+  "tool_unittests": {
+    "run": 33,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "reference_files_verified": 46,
+  "historical_checker": {
+    "known_invalid_accepted": 7,
+    "rejection_controls_rejected": 3,
+    "execution_errors": 0,
+    "expected_probe_exit": 1
+  },
+  "historical_java": {
+    "compiled": true,
+    "main_only_fallthrough_still_fixed": true,
+    "external_clear_false_complete_reproduced": true,
+    "minecraft_live_run": false
+  },
+  "pair_harness_cli_selftest": {
+    "synthetic_tool_fixture_only": true,
+    "checks": 2,
+    "passed": 2
+  },
+  "not_run": [
+    "Minecraft/Fabric build of new production implementation",
+    "Windows process lifecycle LIVE",
+    "JUnit/GameTest of R3 implementation",
+    "G4/G5/fresh replay of R3 implementation"
+  ]
+}

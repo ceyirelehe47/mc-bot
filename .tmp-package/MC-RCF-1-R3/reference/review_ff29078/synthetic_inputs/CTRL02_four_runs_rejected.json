@@ -1,0 +1,122 @@
+[
+  {
+    "run": "synthetic-b1",
+    "session_id": "synthetic-session-1",
+    "candidate": "304da18010fa8e1ad1faa2442225ba00d59258d9",
+    "result": "PASS",
+    "duration_s": 60,
+    "chain": {
+      "initial_empty_inventory": true,
+      "mined_logs": true,
+      "crafted_planks_sticks_table": true,
+      "placed_table_witnessed": true,
+      "crafted_wooden_pickaxe": true,
+      "mined_stone_with_pickup": true,
+      "crafted_stone_pickaxe": true,
+      "both_pickaxes_final": true,
+      "table_reopened": true,
+      "cursor_empty": true,
+      "no_unresolved_unknown": true
+    },
+    "final_inventory": {
+      "minecraft:wooden_pickaxe": 1,
+      "minecraft:stone_pickaxe": 1
+    },
+    "events": [
+      {
+        "kind": "unverified-placeholder",
+        "nonce": 1
+      }
+    ]
+  },
+  {
+    "run": "synthetic-b2",
+    "session_id": "synthetic-session-2",
+    "candidate": "304da18010fa8e1ad1faa2442225ba00d59258d9",
+    "result": "PASS",
+    "duration_s": 60,
+    "chain": {
+      "initial_empty_inventory": true,
+      "mined_logs": true,
+      "crafted_planks_sticks_table": true,
+      "placed_table_witnessed": true,
+      "crafted_wooden_pickaxe": true,
+      "mined_stone_with_pickup": true,
+      "crafted_stone_pickaxe": true,
+      "both_pickaxes_final": true,
+      "table_reopened": true,
+      "cursor_empty": true,
+      "no_unresolved_unknown": true
+    },
+    "final_inventory": {
+      "minecraft:wooden_pickaxe": 1,
+      "minecraft:stone_pickaxe": 1
+    },
+    "events": [
+      {
+        "kind": "unverified-placeholder",
+        "nonce": 2
+      }
+    ]
+  },
+  {
+    "run": "synthetic-b3",
+    "session_id": "synthetic-session-3",
+    "candidate": "304da18010fa8e1ad1faa2442225ba00d59258d9",
+    "result": "PASS",
+    "duration_s": 60,
+    "chain": {
+      "initial_empty_inventory": true,
+      "mined_logs": true,
+      "crafted_planks_sticks_table": true,
+      "placed_table_witnessed": true,
+      "crafted_wooden_pickaxe": true,
+      "mined_stone_with_pickup": true,
+      "crafted_stone_pickaxe": true,
+      "both_pickaxes_final": true,
+      "table_reopened": true,
+      "cursor_empty": true,
+      "no_unresolved_unknown": true
+    },
+    "final_inventory": {
+      "minecraft:wooden_pickaxe": 1,
+      "minecraft:stone_pickaxe": 1
+    },
+    "events": [
+      {
+        "kind": "unverified-placeholder",
+        "nonce": 3
+      }
+    ]
+  },
+  {
+    "run": "synthetic-b4",
+    "session_id": "synthetic-session-4",
+    "candidate": "304da18010fa8e1ad1faa2442225ba00d59258d9",
+    "result": "PASS",
+    "duration_s": 60,
+    "chain": {
+      "initial_empty_inventory": true,
+      "mined_logs": true,
+      "crafted_planks_sticks_table": true,
+      "placed_table_witnessed": true,
+      "crafted_wooden_pickaxe": true,
+      "mined_stone_with_pickup": true,
+      "crafted_stone_pickaxe": true,
+      "both_pickaxes_final": true,
+      "table_reopened": true,
+      "cursor_empty": true,
+      "no_unresolved_unknown": true
+    },
+    "final_inventory": {
+      "minecraft:wooden_pickaxe": 1,
+      "minecraft:stone_pickaxe": 1
+    },
+    "events": [
+      {
+        "kind": "unverified-placeholder",
+        "nonce": 4
+      }
+    ]
+  }
+]

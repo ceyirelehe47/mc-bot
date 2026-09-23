@@ -1,0 +1,38 @@
+test_accept (test_tools.CliTests.test_accept) ... ok
+test_accept_all_fails_negative (test_tools.CliTests.test_accept_all_fails_negative) ... ok
+test_accept_wrong_code (test_tools.CliTests.test_accept_wrong_code) ... ok
+test_crash (test_tools.CliTests.test_crash) ... ok
+test_duplicate_json_keys (test_tools.CliTests.test_duplicate_json_keys) ... ok
+test_duplicate_pairs (test_tools.CliTests.test_duplicate_pairs) ... ok
+test_empty_pairs (test_tools.CliTests.test_empty_pairs) ... ok
+test_invalid_json (test_tools.CliTests.test_invalid_json) ... ok
+test_missing_checker (test_tools.CliTests.test_missing_checker) ... ok
+test_missing_reason (test_tools.CliTests.test_missing_reason) ... ok
+test_pair_load (test_tools.CliTests.test_pair_load) ... ok
+test_reject (test_tools.CliTests.test_reject) ... ok
+test_reject_all_fails_positive (test_tools.CliTests.test_reject_all_fails_positive) ... ok
+test_reject_wrong_code (test_tools.CliTests.test_reject_wrong_code) ... ok
+test_same_pair_file (test_tools.CliTests.test_same_pair_file) ... ok
+test_timeout (test_tools.CliTests.test_timeout) ... ok
+test_usage_not_reject (test_tools.CliTests.test_usage_not_reject) ... ok
+test_wrong_bool (test_tools.CliTests.test_wrong_bool) ... ok
+test_wrong_entry (test_tools.CliTests.test_wrong_entry) ... ok
+test_case_collision (test_tools.IntegrityTests.test_case_collision) ... ok
+test_duplicate (test_tools.IntegrityTests.test_duplicate) ... ok
+test_empty (test_tools.IntegrityTests.test_empty) ... ok
+test_extra (test_tools.IntegrityTests.test_extra) ... ok
+test_malformed (test_tools.IntegrityTests.test_malformed) ... ok
+test_missing (test_tools.IntegrityTests.test_missing) ... ok
+test_missing_manifest (test_tools.IntegrityTests.test_missing_manifest) ... ok
+test_symlink (test_tools.IntegrityTests.test_symlink) ... ok
+test_tamper (test_tools.IntegrityTests.test_tamper) ... ok
+test_traversal (test_tools.IntegrityTests.test_traversal) ... ok
+test_valid (test_tools.IntegrityTests.test_valid) ... ok
+test_legacy_count (test_tools.ReferenceTests.test_legacy_count) ... ok
+test_pinned_source_blobs (test_tools.ReferenceTests.test_pinned_source_blobs) ... ok
+test_reference_hashes (test_tools.ReferenceTests.test_reference_hashes) ... ok
+
+----------------------------------------------------------------------
+Ran 33 tests in 8.555s
+
+OK

@@ -1,0 +1,162 @@
+{
+  "scope": "OFFLINE_CHECKER_PROBE_NOT_LIVE_OR_FULL_ACCEPTANCE",
+  "checker_sha256": "2e9f54840ea72de2bc7c950ae07e0bb0da24acc8714fa29880d4cc869d48c0c7",
+  "legacy_rejection_only": true,
+  "pair_count": 0,
+  "case_count": 10,
+  "passed": 3,
+  "errors": 0,
+  "ok": false,
+  "results": [
+    {
+      "entry": "judge-ia",
+      "evidence": "reference/review_ff29078/synthetic_inputs/CTRL01_reason_math_rejected.json",
+      "status": "REJECT",
+      "exit_code": 1,
+      "response": {
+        "entry": "judge-ia",
+        "accept": false,
+        "reason": "case-A01-inconsistent-numbers:server_authoritative_native_craft:x:0->8:delta=32"
+      },
+      "expected_accept": false,
+      "ok": true,
+      "id": "CTRL01_reason_math_rejected",
+      "mode": "FROZEN_SYNTHETIC_INVALID_LEGACY"
+    },
+    {
+      "entry": "judge-g4",
+      "evidence": "reference/review_ff29078/synthetic_inputs/CTRL02_four_runs_rejected.json",
+      "status": "REJECT",
+      "exit_code": 1,
+      "response": {
+        "entry": "judge-g4",
+        "accept": false,
+        "reason": "not-five-runs"
+      },
+      "expected_accept": false,
+      "ok": true,
+      "id": "CTRL02_four_runs_rejected",
+      "mode": "FROZEN_SYNTHETIC_INVALID_LEGACY"
+    },
+    {
+      "entry": "judge-ia",
+      "evidence": "reference/review_ff29078/synthetic_inputs/CTRL03_missing_required_case_rejected.json",
+      "status": "REJECT",
+      "exit_code": 1,
+      "response": {
+        "entry": "judge-ia",
+        "accept": false,
+        "reason": "missing-required-cases:I08"
+      },
+      "expected_accept": false,
+      "ok": true,
+      "id": "CTRL03_missing_required_case_rejected",
+      "mode": "FROZEN_SYNTHETIC_INVALID_LEGACY"
+    },
+    {
+      "entry": "judge-g4",
+      "evidence": "reference/review_ff29078/synthetic_inputs/G401_no_action_history.json",
+      "status": "ACCEPT",
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-g4",
+        "accept": true,
+        "reason": "ok"
+      },
+      "expected_accept": false,
+      "ok": false,
+      "id": "G401_no_action_history",
+      "mode": "FROZEN_SYNTHETIC_INVALID_LEGACY"
+    },
+    {
+      "entry": "judge-g4",
+      "evidence": "reference/review_ff29078/synthetic_inputs/G402_history_explicitly_failed_cursor_occupied.json",
+      "status": "ACCEPT",
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-g4",
+        "accept": true,
+        "reason": "ok"
+      },
+      "expected_accept": false,
+      "ok": false,
+      "id": "G402_history_explicitly_failed_cursor_occupied",
+      "mode": "FROZEN_SYNTHETIC_INVALID_LEGACY"
+    },
+    {
+      "entry": "judge-g4",
+      "evidence": "reference/review_ff29078/synthetic_inputs/G403_tools_present_before_start.json",
+      "status": "ACCEPT",
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-g4",
+        "accept": true,
+        "reason": "ok"
+      },
+      "expected_accept": false,
+      "ok": false,
+      "id": "G403_tools_present_before_start",
+      "mode": "FROZEN_SYNTHETIC_INVALID_LEGACY"
+    },
+    {
+      "entry": "judge-ia",
+      "evidence": "reference/review_ff29078/synthetic_inputs/IA01_no_physical_facts.json",
+      "status": "ACCEPT",
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-ia",
+        "accept": true,
+        "reason": "ok"
+      },
+      "expected_accept": false,
+      "ok": false,
+      "id": "IA01_no_physical_facts",
+      "mode": "FROZEN_SYNTHETIC_INVALID_LEGACY"
+    },
+    {
+      "entry": "judge-ia",
+      "evidence": "reference/review_ff29078/synthetic_inputs/IA02_receipt_conflicts_with_snapshots.json",
+      "status": "ACCEPT",
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-ia",
+        "accept": true,
+        "reason": "ok"
+      },
+      "expected_accept": false,
+      "ok": false,
+      "id": "IA02_receipt_conflicts_with_snapshots",
+      "mode": "FROZEN_SYNTHETIC_INVALID_LEGACY"
+    },
+    {
+      "entry": "judge-ia",
+      "evidence": "reference/review_ff29078/synthetic_inputs/IA03_duplicate_id_hides_unknown.json",
+      "status": "ACCEPT",
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-ia",
+        "accept": true,
+        "reason": "ok"
+      },
+      "expected_accept": false,
+      "ok": false,
+      "id": "IA03_duplicate_id_hides_unknown",
+      "mode": "FROZEN_SYNTHETIC_INVALID_LEGACY"
+    },
+    {
+      "entry": "judge-ia",
+      "evidence": "reference/review_ff29078/synthetic_inputs/IA04_candidate_absent.json",
+      "status": "ACCEPT",
+      "exit_code": 0,
+      "response": {
+        "entry": "judge-ia",
+        "accept": true,
+        "reason": "ok"
+      },
+      "expected_accept": false,
+      "ok": false,
+      "id": "IA04_candidate_absent",
+      "mode": "FROZEN_SYNTHETIC_INVALID_LEGACY"
+    }
+  ]
+}

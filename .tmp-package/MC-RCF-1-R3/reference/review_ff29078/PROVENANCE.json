@@ -1,0 +1,26 @@
+{
+  "repository": "ceyirelehe47/mc-bot",
+  "reviewed_head": "ff29078ab3cd52d6cfceb928344c90e0c25ab2a7",
+  "reported_source_candidate": "304da18010fa8e1ad1faa2442225ba00d59258d9",
+  "source_retrieval": "Live authorized GitHub connector; text saved locally and verified by Git blob hash",
+  "scope": "Static source/evidence review plus offline Python CLI probes and Java production-core tests. No Windows process control, Minecraft, Fabric build, GameTest, G4 or G5 rerun.",
+  "sources": [
+    {
+      "local_file": "rcf1_checker.py",
+      "repository_path": "tools/rcf1_checker.py",
+      "git_blob_sha1": "8ad34b34a0d3addf69f009544d6fb57b386dc630",
+      "sha256": "2e9f54840ea72de2bc7c950ae07e0bb0da24acc8714fa29880d4cc869d48c0c7",
+      "exact_match": true,
+      "source_url": "https://github.com/ceyirelehe47/mc-bot/blob/ff29078ab3cd52d6cfceb928344c90e0c25ab2a7/tools/rcf1_checker.py"
+    },
+    {
+      "local_file": "RealClientEatDecisionCore.java",
+      "repository_path": "aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientEatDecisionCore.java",
+      "git_blob_sha1": "173269283de55e2338fd7681c089e59a0af8afc5",
+      "sha256": "313f2b02c2a6f6723378192347f37b8a706a94be71753a92085bab70467181a0",
+      "exact_match": true,
+      "source_url": "https://github.com/ceyirelehe47/mc-bot/blob/ff29078ab3cd52d6cfceb928344c90e0c25ab2a7/aibot-dsh-m0/aibot-overlay/src/main/java/io/github/zoyluo/aibot/external/realclient/RealClientEatDecisionCore.java"
+    }
+  ],
+  "java_version": "javac 21.0.11"
+}

@@ -1,0 +1,129 @@
+{
+  "source_commit": "8626013b4a829900bc001f00349e3984130f7d21",
+  "source_path": "tools/rcf1_tests_v.py",
+  "method": "Execute verbatim extracted judge_ia/judge_g4/_delta_consistent functions with invalid evidence, offline Linux Python; not Minecraft LIVE.",
+  "delta_helper_rejects_inconsistent_text": true,
+  "false_accept_count": 4,
+  "negative_case_count": 4,
+  "cases": [
+    {
+      "test": "missing_expected_cases_and_all_raw_facts",
+      "checker": "judge_ia",
+      "expected_accept": false,
+      "actual_accept": true,
+      "reason": "ok",
+      "input": {
+        "cases": [
+          {
+            "id": "A01",
+            "results": [
+              {
+                "state": "completed",
+                "reason": "server_authoritative"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "test": "contradictory_delta",
+      "checker": "judge_ia",
+      "expected_accept": false,
+      "actual_accept": true,
+      "reason": "ok",
+      "input": {
+        "cases": [
+          {
+            "id": "V01",
+            "results": [
+              {
+                "state": "completed",
+                "reason": "server_authoritative_native_craft:x:0->8:delta=32"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "test": "positive_case_only_failed",
+      "checker": "judge_ia",
+      "expected_accept": false,
+      "actual_accept": true,
+      "reason": "ok",
+      "input": {
+        "cases": [
+          {
+            "id": "A01",
+            "results": [
+              {
+                "state": "failed",
+                "reason": "action_did_not_run"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "test": "five_copies_of_one_run_no_chain_evidence",
+      "checker": "judge_g4",
+      "expected_accept": false,
+      "actual_accept": true,
+      "reason": "ok",
+      "input": [
+        {
+          "run": 1,
+          "candidate": "C1",
+          "result": "PASS",
+          "final_inventory": {
+            "minecraft:wooden_pickaxe": 1,
+            "minecraft:stone_pickaxe": 1
+          },
+          "cursor_empty": true
+        },
+        {
+          "run": 1,
+          "candidate": "C1",
+          "result": "PASS",
+          "final_inventory": {
+            "minecraft:wooden_pickaxe": 1,
+            "minecraft:stone_pickaxe": 1
+          },
+          "cursor_empty": true
+        },
+        {
+          "run": 1,
+          "candidate": "C1",
+          "result": "PASS",
+          "final_inventory": {
+            "minecraft:wooden_pickaxe": 1,
+            "minecraft:stone_pickaxe": 1
+          },
+          "cursor_empty": true
+        },
+        {
+          "run": 1,
+          "candidate": "C1",
+          "result": "PASS",
+          "final_inventory": {
+            "minecraft:wooden_pickaxe": 1,
+            "minecraft:stone_pickaxe": 1
+          },
+          "cursor_empty": true
+        },
+        {
+          "run": 1,
+          "candidate": "C1",
+          "result": "PASS",
+          "final_inventory": {
+            "minecraft:wooden_pickaxe": 1,
+            "minecraft:stone_pickaxe": 1
+          },
+          "cursor_empty": true
+        }
+      ]
+    }
+  ]
+}

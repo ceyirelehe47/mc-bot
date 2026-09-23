@@ -1,0 +1,7 @@
+# 本包工具的范围
+
+本包提供任务书、继承矩阵、独立审查原件、无效证据探针与包完整性工具。没有预制Minecraft生产补丁，也没有替Agent运行Windows/Fabric/LIVE。
+
+本轮已由ChatGPT实际完成的包QA见根目录外同名Package_QA及包内package_tests/QA_RESULTS.json。历史缺陷被再次检出不是Minecraft验收成功；完整性成功不是生产逻辑正确。
+
+在reference副本中运行旧探针可能重写其报告，因此复现必须复制到临时目录。新tools的输出写到指定仓库外/交付目录，不写回参考证据。校验器对包内多出或篡改的文件拒绝，Python测试设置PYTHONDONTWRITEBYTECODE=1。
