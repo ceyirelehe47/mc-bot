@@ -1,9 +1,0 @@
-{
-  "repository": "ceyirelehe47/mc-bot",
-  "branch": "experiment/rc-foundation-v1",
-  "reviewed_head": "ff29078ab3cd52d6cfceb928344c90e0c25ab2a7",
-  "refresh": "Live authorized GitHub connector confirmed same ref during package creation",
-  "agent_reported_candidate_not_accepted": "304da18010fa8e1ad1faa2442225ba00d59258d9",
-  "reference_scope": "read-only source locators; not a production freeze whitelist",
-  "status": "PARTIAL_WITH_BLOCKERS"
-}
