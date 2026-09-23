@@ -241,10 +241,24 @@ def g4_doc():
 
         def rc(op, args):
             ex[0] += 1
+            if op == "craft":
+                item = str(args.get("item") or "")
+                cnt = int(args.get("count") or 0)
+                reason = ("server_authoritative_native_craft:%s"
+                          ":0->%d:delta=%d:batches=1" % (item, cnt, cnt))
+            elif op == "place":
+                reason = ("server_authoritative_block_placed:%s"
+                          ":interaction_witnessed=true"
+                          % args.get("item"))
+            elif op == "mine_opportunity":
+                reason = ("server_authoritative_block_and_"
+                          "inventory_gain_verified:0->1")
+            else:
+                reason = "server_authoritative_arrival:bounded_goal"
             receipts.append({
                 "op": op, "args": args,
                 "execution_id": "%s-ex%d" % (rid, ex[0]),
-                "terminal": {"state": "completed", "reason": "ok"}})
+                "terminal": {"state": "completed", "reason": reason}})
         for i in range(5):
             rc("mine_opportunity", {"id": "log%d" % i})
         rc("craft", {"item": "minecraft:oak_planks", "count": 20})
@@ -497,6 +511,17 @@ def main():
         d["runs"][0]["receipts"][0]["execution_id"]
     ok, reason = C.judge_g4(d)
     run("ST-G4-M08-DUPLICATE-EXEC", not ok, reason)
+
+    # M07:craft args 虚抬(count 与权威 delta 矛盾)必须拒绝
+    d = copy.deepcopy(g4)
+    for rec in d["runs"][0]["receipts"]:
+        if rec.get("op") == "craft" and (
+                rec.get("args") or {}).get("item") \
+                == "minecraft:wooden_pickaxe":
+            rec["args"]["count"] = 3
+            break
+    ok, reason = C.judge_g4(d)
+    run("ST-G4-M07-CRAFT-ARGS-INFLATED", not ok, reason)
 
     d = copy.deepcopy(g4)
     d["runs"][1]["identity"]["run_started_wall"] = 1000.0

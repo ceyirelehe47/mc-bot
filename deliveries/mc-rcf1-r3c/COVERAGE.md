@@ -13,7 +13,7 @@
 | V01-V09 | PASS(继承等价) | LIVE 语义分布于 IA(V01/V02/V04/A07b/A09/A10/A03/A12)与 C02;evidence/tests-v.jsonl 逐行指针 |
 | V10 | PASS(7/7 离线真策略) | audit/tests-v-r3c.log |
 | checker 自测 | PASS(31/31) | rcf1_checker_selftest(v2 判定逻辑+M 分支) |
-| 成对变异 | G4 组 PASS(9/9 拒+正例受) | evidence/mutations-r3c/results.json;IA 组 INCONCLUSIVE(正例被 I08 阻断;语义分支由 selftest 覆盖,如实不冒充) |
+| 成对变异 | G4 组 PASS(9/9 拒+正例受;含 M07,verifier 复审后补) | evidence/mutations-r3c/results.json;IA 组 INCONCLUSIVE(正例被 I08 阻断;语义分支由 selftest 覆盖,如实不冒充) |
 | G4 B01-B05 | **PASS(5/5,accept=true)** | evidence/g4-runs-r3.json;audit/g4-runs-r3c.log |
 | G5 S01 | **BLOCKED** | evidence/g5/g5r3-r3c-s01{,b,c,d,e}.jsonl(5 次尝试全留) |
 | G5 S02 | **BLOCKED**(同源故障) | 与 S01 同因:白昼窗口 vs 链速;未启动独立 run(不重复必败条件) |

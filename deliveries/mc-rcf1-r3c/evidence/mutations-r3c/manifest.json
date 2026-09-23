@@ -93,6 +93,11 @@
    "name": "m04-needs-reconcile",
    "path": "g4-m04-needs-reconcile.json",
    "gate": "g4"
+  },
+  {
+   "name": "m07-craft-args-inflated",
+   "path": "g4-m07-craft-args-inflated.json",
+   "gate": "g4"
   }
  ]
 }

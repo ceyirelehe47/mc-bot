@@ -108,3 +108,4 @@
 - **满包场景的屏幕债务**:36 槽全满的 craft/容器失败会把内容物滞留光标/网格,下一 case 开屏瞬间倾倒污染守恒——场景末尾必须显式收口(腾槽+goto 强制关屏+清落实体)。
 - **vein_miner 蚀平台**:采矿链会连锁破坏测试平台支撑石,A02/A06 类 place fixture 必须自恢复支撑。
 - **G5 现实约束**:白昼 ~11 分钟 vs 采伐链 ~2.3min/根+合成+挖洞——链速不提速就必死于夜。下轮方向:goto-face 周期压缩(<60s/根)或场景选址贴树。
+- **Verifier 复审两 P1 均值得**:①checker 的 craft 计分只数 args 不核回执权威串——M07 类变异直通;计数类判定必须锚定回执权威数字。②"JUnit 入口不存在"是想当然——fresh 树 479 测试,首轮 15 败全因 git apply 在 Windows 产 CRLF、SourceContract 跨行 indexOf 失配(纯换行伪差);**Windows 上 patch 后必须 LF 规范化(core.autocrlf=input 重检出)**。

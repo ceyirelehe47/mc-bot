@@ -15,10 +15,10 @@ I08 如实 BLOCKED;IA 28/29 仅 I08 连带;C/N/L/V/构建/fresh 部署全过)
 | 门 | 状态 | 入口/证据 | 说明 |
 |---|---|---|---|
 | G4 五次 | **PASS** | evidence/g4-runs-r3.json;judge-g4 accept=true | b01-b05 ≤720s 同候选;每 run 带 status_end/execution_id(M03/M08 事实补齐) |
-| G4 成对变异 | **PASS** | evidence/mutations-r3c | 正例接受+9 单因素变异全拒(原因相关) |
+| G4 成对变异 | **PASS** | evidence/mutations-r3c | 正例接受+9 单因素变异全拒(含 M07 craft 权威核验,verifier 复审后补) |
 | IA 事实+判定 | 28/29 | evidence/ia-facts-r3c.json(schema v2,逐动作 pre/post) | 仅 I08 失败(Tom's 环境);judge-ia 拒绝输出 I08 专属原因 |
 | I08 Tom's | **BLOCKED** | evidence/i08-blocked.json | 屏开/授权/quick-move 全通,5 种组网箱子端零转移;上游 #381(1.21 重写丢连接器);详见 BASELINE |
-| G5 S01/S02 | **BLOCKED** | evidence/g5/(5 份尝试实录) | 同源故障:白昼 11 分钟装不下 ~2.3min/根采伐链+合成+挖洞,4 次夜亡;核心机械(采伐/事实/stall 修复)已由部分成功实录+G4 证明 |
+| G5 S01/S02 | **BLOCKED** | evidence/g5/(5 份尝试实录) | 同源故障:白昼 11 分钟装不下 ~2.3min/根采伐链+合成+挖洞,2 次夜亡(服务端日志核数:04:22 Spider/04:49 Skeleton;另两次死亡发生在旧部署诊断期);核心机械(采伐/事实/stall 修复)已由部分成功实录+G4 证明 |
 | C01-C07 | PASS | evidence/tests-c.jsonl(5 实测+2 继承等价)+audit/tests-c-r3c.log | C04 断线对账 LIVE 5/5 |
 | C08 | NOT_RUN | tests-c.jsonl not_run 行 | 无授权真人共存条件 |
 | N01-N06 ×3 | PASS | evidence/tests-n.jsonl 18/18 | 全新部署实测 |
@@ -61,3 +61,21 @@ I08 如实 BLOCKED;IA 28/29 仅 I08 连带;C/N/L/V/构建/fresh 部署全过)
 
 lifecycle stop all 两轮回执 scope verified 0(audit/stop-receipt.txt);
 无 java 进程残留;用户 PCL2 未触碰。
+
+## Verifier 复审与修正(R3C 收尾)
+
+- 独立 verifier(reviewer 子代理,无 LIVE 权限)结论:CHANGES_REQUIRED,
+  2 个 P1;均已修复并复跑:
+  - P1-1 judge-g4 M07 fail-open:craft 计分只汇总 args.count,不核回执
+    权威 delta(verifier 以 m07-craft-args-inflated 实测复现)。已修:
+    completed craft 必须匹配权威产出串且 delta≥请求数;selftest 补
+    ST-G4-M07(32/32);mutations 补 m07(G4 组 9/9 拒);真实 G4 证据
+    重判 accept=true 不变。
+  - P1-2 build-report 的 java_junit not_applicable 不实:JUnit 入口
+    存在,首轮 15 失败未报。已修:如实跑测并定位根因=git apply 的
+    CRLF 换行伪差(SourceContract 跨行 indexOf 失配);全树 LF 规范化
+    后 479/479 全过;报告与 fresh-deployment 均已如实更新。
+  - P2:mutations 计数 9/9 口径修正(原 8);G5 夜亡计数以服务端日志
+    核数 2(另 2 次在旧部署诊断期)。
+- 修正后 judge-all:8/12 门过(g4/C/N/V/L/build/fresh/…),拒:ia
+  (I08 连带)/i08(BLOCKED)/g5×2(BLOCKED)——与 BLOCKED 证据链一致。

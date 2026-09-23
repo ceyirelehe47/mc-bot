@@ -6,23 +6,22 @@
    "detail": "BUILD SUCCESSFUL in 1m19s(全新源码树)"
   },
   "checker_selftest": {
-   "total": 31,
-   "passed": 31
+   "total": 32,
+   "passed": 32
   },
   "lifecycle_fake": {
    "total": 20,
    "passed": 20
   },
   "java_junit": {
-   "total": 0,
-   "passed": 0,
-   "not_applicable": true,
-   "detail": "R3 基线未含独立 JUnit 运行器入口;覆盖由 GameTest 源集+离线自测承担(如实声明)"
+   "total": 479,
+   "passed": 479,
+   "detail": "gradlew test(fresh 树):479/479 通过。verifier 复审发现首轮 15 个 SourceContract 失败,根因=git apply 在 Windows 产出 CRLF 源文件,跨行 indexOf 契约匹配失败(纯换行符伪差,非语义);全树 LF 规范化后 479/479 全过(replay/test.log)。已部署证据 jar(d6ce2375)的 class 输出与换行符无关,绑定不受影响。"
   },
   "mutations": {
-   "total": 18,
-   "passed": 18,
-   "detail": "G4 组 9/9 拒绝+正例接受;IA 组 INCONCLUSIVE(正例被 I08 阻断,语义分支 selftest 覆盖)"
+   "total": 19,
+   "passed": 19,
+   "detail": "G4 组 9/9 拒绝+正例接受(含 M07 craft 权威核验);IA 组 INCONCLUSIVE(正例被 I08 阻断,语义分支 selftest 覆盖)"
   }
  },
  "jar_sha256": "d6ce23758ef3dfc012090960cbc86cc88ab8da49422cd3b501771809ce2a4317"

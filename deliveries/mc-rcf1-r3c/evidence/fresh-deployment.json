@@ -17,5 +17,6 @@
    "explained": true,
    "why": "与 rebuild-base 同源代码同工具链构建;入口哈希一致"
   }
- ]
+ ],
+ "notes": "verifier 复审修正:首轮 clone+patch 在 Windows 产出 CRLF 源(SourceContract 跨行契约匹配 15 例伪失败);core.autocrlf=input 重检出+全树 LF 规范化后 479/479 全过。class 语义与换行符无关,部署 jar 绑定不变。"
 }

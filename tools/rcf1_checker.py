@@ -575,8 +575,21 @@ def _judge_g4(runs_doc):
                 mines += 1
             if op == "craft":
                 item = str(args.get("item") or "")
-                crafts[item] = crafts.get(item, 0) + int(
-                    args.get("count") or 0)
+                want = int(args.get("count") or 0)
+                # M07:completed 的 craft 回执必须携带权威产出串且
+                # 权威 delta ≥ 请求数——只汇总 args.count 会放过
+                # "标签完成但实际产出矛盾"的变异(verifier 实测)。
+                m = _RX_CRAFT.search(
+                    str((rec.get("terminal") or {}).get("reason") or ""))
+                if not m or m.group(1) != item:
+                    return False, ("run-%s-craft-receipt-not-authoritative"
+                                   % rid)
+                delta = int(m.group(4))
+                if delta < want:
+                    return False, ("run-%s-craft-delta-below-args:%s"
+                                   " delta=%d<want=%d"
+                                   % (rid, item, delta, want))
+                crafts[item] = crafts.get(item, 0) + want
         if max(mines, ev_mined) < logs_need + stone_need:
             return False, ("run-%s-mines-below-chain:receipts=%d"
                            ",events=%d" % (rid, mines, ev_mined))

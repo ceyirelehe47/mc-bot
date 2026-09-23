@@ -127,6 +127,13 @@
    "expected": "REJECT",
    "reason": "run-b01-needs-reconcile-remaining",
    "rc": 1
+  },
+  {
+   "name": "m07-craft-args-inflated",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-b01-craft-delta-below-args:minecraft:wooden_pickaxe delta=1<want=2",
+   "rc": 1
   }
  ]
 }

@@ -172,6 +172,15 @@ def generate_g4_mutations(runs, outdir):
     d = copy.deepcopy(runs)
     d["runs"][0]["status_end"]["data"]["needs_reconcile"] = True
     emit("m04-needs-reconcile", d)
+
+    d = copy.deepcopy(runs)
+    for rec in d["runs"][0]["receipts"]:
+        if rec.get("op") == "craft" and (
+                rec.get("args") or {}).get("item") \
+                == "minecraft:wooden_pickaxe":
+            rec["args"]["count"] = int(rec["args"]["count"]) + 1
+            break
+    emit("m07-craft-args-inflated", d)
     return out
 
 
