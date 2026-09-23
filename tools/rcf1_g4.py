@@ -420,19 +420,27 @@ def run_core(run_id, fixture, diagnostic=False):
                                        "logs")
     # R3:采集计数与物理库存对账——初态空包+封闭 fixture 下,库存中
     # 的原木只能来自本次真实挖掘/拾取(迟效拾取可能晚于回执窗口)。
+    # 布局扰动 run:扰动用木已真实合成为 4 板,按 板/4 折算。
     inv_logs = inventory(s).get(wood_log, 0)
-    if inv_logs >= fixture["logs_need"] and logs < fixture["logs_need"]:
+    eff_logs = inv_logs
+    if fixture.get("layout_perturb"):
+        eff_logs += inventory(s).get("minecraft:oak_planks", 0) // 4
+    if eff_logs >= fixture["logs_need"] and logs < fixture["logs_need"]:
         chain.evt("logs-reconciled-from-inventory",
-                  counted=logs, inv=inv_logs,
+                  counted=logs, inv=inv_logs, effective=eff_logs,
                   note="receipt-counted<inventory; provenance=empty-initial"
                        "+real-mine-drops")
-        logs = inv_logs
+        logs = eff_logs
     chain.evt("logs-collected", n=logs)
     chain.snap("after-logs")
     if chain.time_up():
         chain.stop("run-time-limit")
         return chain
     if logs < fixture["logs_need"]:
+        # R3 诚实性修复:原木不足必须记为失败(fail_at),否则被当
+        # PASS 计入矩阵(实测 b05 4/5 原木静默通过的漏洞)。
+        chain.stop("logs-insufficient:%d/%d"
+                   % (logs, fixture["logs_need"]))
         return chain
 
     ok, _ = craft(s, chain, "minecraft:%s_planks" % fixture["wood"],
@@ -477,9 +485,16 @@ def run_core(run_id, fixture, diagnostic=False):
     if stone < fixture["stone_need"]:
         return chain
     px, py, pz = fixture["table_stand"]
-    for attempt in range(2):
+    # R3:回台重试=3 次,先小步挪动(卡位根因:采石坑边缘 pathing
+    # 偶发卡死;实测 b03 两次 90s 超时)再回站位。
+    for attempt in range(3):
+        if attempt > 0:
+            hop = [(px + 1, pz + 1), (px - 1, pz - 1),
+                   (px + 1, pz - 1)][(attempt - 1) % 3]
+            do_op(s, chain, "goto", {"x": hop[0], "y": py, "z": hop[1]},
+                  timeout=45)
         r = do_op(s, chain, "goto", {"x": px, "y": py, "z": pz},
-                  timeout=90)
+                  timeout=120)
         if r.get("state") == "completed":
             break
         chain.evt("goto-table-retry", attempt=attempt)

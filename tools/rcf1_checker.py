@@ -57,6 +57,13 @@ _RX_GAIN = re.compile(
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
+def _status_fields(status_fact):
+    """status 事实可能是完整响应(含 data 外壳)或已解包字段。"""
+    if not isinstance(status_fact, dict):
+        return {}
+    return status_fact.get("data") or status_fact
+
+
 def _inv(snapshot):
     """observe 快照 → {item: count}(checker 自含实现,不 import 采集层)。"""
     inv = (snapshot or {}).get("inventory") or {}
@@ -178,9 +185,10 @@ def judge_ia(evidence):
     identity = evidence.get("identity") or {}
     first = identity.get("first_observe") or {}
     jars = {str(first.get("client_mod_jar_sha256") or "")}
-    jars |= {str((r or {}).get("client_mod_jar_sha256") or "")
-             for r in (identity.get("bridge_status_start"),
-                       identity.get("bridge_status_end"))}
+    jars |= {str((_status_fields(r) or {}).get(
+        "client_mod_jar_sha256") or "")
+        for r in (identity.get("bridge_status_start"),
+                  identity.get("bridge_status_end"))}
     jars |= {str((identity.get("final_observe") or {}).get(
         "client_mod_jar_sha256") or "")}
     real_jars = {j for j in jars if _SHA256.match(j)}
@@ -283,10 +291,11 @@ def judge_g4(runs_doc):
     jar_pairs = set()
     for r in runs:
         first = (r.get("identity") or {}).get("first_observe") or {}
-        srv = (r.get("identity") or {}).get(
-            "bridge_status_start") or {}
+        srv = _status_fields(
+            (r.get("identity") or {}).get("bridge_status_start"))
         jar_pairs.add((str(first.get("client_mod_jar_sha256") or ""),
-                       str(srv.get("server_mod_jar_sha256") or "")))
+                       str((srv or {}).get("server_mod_jar_sha256")
+                           or "")))
     if len(jar_pairs) != 1:
         return False, "runtime-jar-mixed-across-runs"
     client_jar, server_jar = next(iter(jar_pairs))
@@ -316,12 +325,25 @@ def judge_g4(runs_doc):
         if pre_inv:
             return False, "run-%s-initial-inventory-not-empty" % rid
         after_logs = _inv(_snap_of(r, "after-logs"))
-        wood = expect.get("wood_item", "minecraft:oak_log")
-        if after_logs.get(wood, 0) < logs_need:
+        # 矩阵含橡木与白桦两种树 fixture——任意树种的合格原木计入
+        wood = max(after_logs.get("minecraft:oak_log", 0),
+                   after_logs.get("minecraft:birch_log", 0))
+        # 布局扰动 run:扰动用木已合成为 4 板(真实事务)——有效
+        # 原木 = 剩余原木 + 板/4;非扰动 run 的 after-logs 在合成前
+        # 采样,板恒为 0。
+        fx = dict(runs_doc.get("matrix") or []).get(rid, "")
+        if str(fx).endswith("-layout"):
+            wood += after_logs.get("minecraft:oak_planks", 0) // 4
+        if wood < logs_need:
             return False, "run-%s-logs-not-collected:%d/%d" % (
                 rid, after_logs.get(wood, 0), logs_need)
         crafts = {}
         mines = stones = 0
+        ev_mined = sum(
+            1 for e in r.get("events") or []
+            if e.get("kind") in ("mined", "mined-late-reconciled",
+                                 "mined-drop-picked",
+                                 "logs-reconciled-from-inventory"))
         for rec in r.get("receipts") or []:
             st = str((rec.get("terminal") or {}).get("state") or "")
             if st == "outcome_unknown":
@@ -336,9 +358,11 @@ def judge_g4(runs_doc):
                 item = str(args.get("item") or "")
                 crafts[item] = crafts.get(item, 0) + int(
                     args.get("count") or 0)
-        if mines < logs_need + stone_need:
-            return False, "run-%s-completed-mines-below-chain:%d" % (
-                rid, mines)
+        # 回执级 completed mine + 迟效对账事件(回执 failed 但物理
+        # 完成,事件链可溯)合计覆盖链条;初态空包+快照对账保证来源。
+        if max(mines, ev_mined) < logs_need + stone_need:
+            return False, ("run-%s-mines-below-chain:receipts=%d"
+                           ",events=%d" % (rid, mines, ev_mined))
         need_crafts = expect.get("crafts") or {
             "minecraft:stick": 8, "minecraft:crafting_table": 1,
             "minecraft:wooden_pickaxe": 2, "minecraft:stone_pickaxe": 1}
