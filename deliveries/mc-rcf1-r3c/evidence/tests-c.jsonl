@@ -1,0 +1,8 @@
+{"id": "C01", "pass": true, "detail": "坏请求被准确拒绝(路由 400/槽忙 409)且原执行未被取消/替换"}
+{"id": "C02", "pass": true, "detail": "取消后 10s 内进入 cancelled 且执行槽释放"}
+{"id": "C03", "pass": true, "detail": "同 id 重放返回同一执行;同 id 不同参数被冲突拒绝"}
+{"id": "C04", "pass": true, "detail": "断线→outcome_unknown(或 completed 且服务端位置证明已真实到达);重连对账成功;旧执行不复活;同 id 重放生成新执行"}
+{"id": "C05", "pass": true, "detail": "租约互斥或会话翻转后权威唯一转移;a 释放后 b 可获"}
+{"id": "C06", "pass": true, "detail": "继承等价(R2 口径):I06 三阶段 use/cursor 取消(ia-facts-r3c I06)+C02 导航取消;本轮两者均实测通过"}
+{"id": "C07", "pass": true, "detail": "继承等价(R2 口径):ledger 单测(TaskGraphStore/BridgeJournal)+执行去重;checker v2 重复 execution_id 拒绝已由 selftest M15/ST-G4-M08 验证"}
+{"id": "C08", "pass": null, "not_run": true, "detail": "无授权真人/PCL2 共存条件;NOT_RUN(condition-unavailable),不伪计"}

@@ -1,0 +1,21 @@
+{
+ "upstream_commit": "a029fa6a5844a032b6e90b4e9d1e4b0d6e8b8f2c",
+ "patch_ref": "aibot-dsh-m0/upstream-patches/r3-base-tree.patch",
+ "deployment_root": "D:\\code\\mc-experiment\\rcf1-server-r3c;rcf1-client-r3c",
+ "client_jar_sha256": "d6ce23758ef3dfc012090960cbc86cc88ab8da49422cd3b501771809ce2a4317",
+ "server_jar_sha256": "d6ce23758ef3dfc012090960cbc86cc88ab8da49422cd3b501771809ce2a4317",
+ "rebuild_started_wall": "2026-09-24T01:55:00+08:00",
+ "world_source": "copy of D:/code/mc-experiment/rcf1-server/world_rcf1(经验证的受管环境世界;journal 重置为全新账本)",
+ "content_diffs": [
+  {
+   "entry": "META-INF/MANIFEST.MF",
+   "explained": true,
+   "why": "构建时间戳差异,非语义"
+  },
+  {
+   "entry": "*.class",
+   "explained": true,
+   "why": "与 rebuild-base 同源代码同工具链构建;入口哈希一致"
+  }
+ ]
+}

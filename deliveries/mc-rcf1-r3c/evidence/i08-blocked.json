@@ -1,0 +1,22 @@
+{
+ "schema": "mc.rcf1r3c.i08-blocked.v1",
+ "cases": [],
+ "blocked": true,
+ "evidence": {
+  "attempts": 5,
+  "screen_opens": true,
+  "authorization": "works",
+  "quick_move_clicks": "sent, zero transfer",
+  "topologies_tried": [
+   "terminal-cable-inventory_connector-chest",
+   "terminal-cable-inventory_connector[facing]-chest",
+   "terminal-inventory_cable_connector[facing=east/west]-chest",
+   "wireless minimal terminal-inventory_connector-chest",
+   "pre-loaded chest variant"
+  ],
+  "chest_side_result": "zero items under all topologies",
+  "upstream_issue": "tom5454/Toms-Storage#381 (1.21 rewrite dropped cable connectors)",
+  "pinned_version": "1.21.3-2.1.2-fabric",
+  "client_jar_sha256": "d6ce23758ef3dfc012090960cbc86cc88ab8da49422cd3b501771809ce2a4317"
+ }
+}

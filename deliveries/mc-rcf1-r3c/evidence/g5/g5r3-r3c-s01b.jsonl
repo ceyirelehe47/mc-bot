@@ -1,0 +1,232 @@
+{"t_wall": 1790194178.522, "kind": "prep", "data": {"scene": "s01", "scene_decl": {"tp": "94.5 96 -67.5", "declared": "森林谷地西场景:自然橡树 (94,96,-72),谷地北坡挖避难所,南向封口", "tree": [94, 96, -72], "base": [94, 96, -67], "bounds": [[90, -78], [98, -66]]}, "cmds": [{"cmd_sha": "5596fb0bedac", "out": "\u0000\u0000\u0000\u0000Teleported Bob to 94.500000, 96.000000, -67.500000"}, {"cmd_sha": "eeaec507b22f", "out": "\u0000\u0000\u0000\u0000Set the time to 1000"}, {"cmd_sha": "435928737cac", "out": "\u0000\u0000\u0000\u0000No items were found on player Bob"}], "observe": {"runtime_epoch": "2943ce6c-cfd6-4e1e-993f-1e63562f764d", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "snapshot_age_ms": 43, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "control_session_epoch": "cac1160b-4604-4a1f-a68c-c10f7612e9af", "client_mod_jar_sha256": "d6ce23758ef3dfc012090960cbc86cc88ab8da49422cd3b501771809ce2a4317", "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "name": "Bob", "dimension": "minecraft:overworld", "position": {"z": -67.5, "y": 95.0, "x": 94.5}, "health": 20.0, "food": 12, "world_time": 2175911, "inventory": {}, "screen": {"cursor_item": "minecraft:air", "present": false, "cursor_count": 0}, "t_wall": 1790194178.521}}}
+{"t_wall": 1790194178.523, "kind": "armed", "data": {"scene": "s01"}}
+{"t_wall": 1790194199.475, "kind": "act", "data": {"model_channel": "zhipu-coding-plan/glm-5.3@omp-session", "decision_note": "走近声明橡树再采伐(基点树冠遮挡感知,R3 实测教训)", "op": "goto", "args": {"x": 93, "y": 95, "z": -69, "face_x": 94, "face_y": 94, "face_z": -72}, "submit": {"execution_id": "bb15df0d-8f3d-469a-b210-abf98dadc5e8"}, "receipt": {"execution_id": "bb15df0d-8f3d-469a-b210-abf98dadc5e8", "request_id": "rcf1-g5r3-r3c-s01b-94178800", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=block=94, 95, -70 pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "duration_s": 20.66, "pre_pos": {"z": -67.5, "y": 95.0, "x": 94.5}, "post_pos": {"z": -67.5, "y": 95.0, "x": 94.5}, "pre_inv": {}, "post_inv": {}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194231.875, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "goto-face (100, 93, -70) 南向站位", "op": "goto", "args": {"x": 100, "y": 95, "z": -73, "face_x": 100, "face_y": 93, "face_z": -70}, "submit": {"execution_id": "d016893f-956d-486c-994c-d94976497940"}, "receipt": {"execution_id": "d016893f-956d-486c-994c-d94976497940", "request_id": "rcf1-g5r3-r3c-s01b-94207068", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.9200972459493171, "reason": "client_final_facing_timeout:cross=block=98, 96, -72 pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194231.875, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -67.5, "y": 95.0, "x": 94.5}, "post_pos": {"z": -72.71693109430659, "y": 96.0, "x": 98.49445944165521}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194231.875, "kind": "skill-diag", "data": {"what": "goto-face-failed", "at": [100, 93, -70], "reason": "client_final_facing_timeout:cross=block=98, 96, -72 pathing=false"}}
+{"t_wall": 1790194232.954, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194234.998, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194237.031, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194239.099, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194241.144, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194243.202, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194245.252, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194247.294, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194249.353, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194251.405, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194253.449, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194255.491, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194257.555, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194259.597, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194261.632, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194263.681, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194265.748, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194267.79, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194269.848, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194271.88, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194273.94, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194275.992, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194278.045, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194280.103, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194282.152, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194284.192, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194286.245, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194288.303, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194290.343, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194292.4, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194294.454, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194296.49, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194298.531, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194300.592, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194302.652, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194304.697, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194306.753, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194308.841, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194310.904, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194312.951, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194314.992, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194317.043, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194319.096, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194321.152, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194323.193, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194325.255, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194327.343, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194329.38, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194331.445, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194333.492, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194335.55, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194337.594, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194339.646, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194341.68, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194343.746, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194345.803, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194347.843, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194349.891, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194351.946, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194354.003, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194356.043, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194358.103, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194360.15, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194362.206, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194364.249, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194366.292, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194368.348, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194370.405, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194372.494, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194374.542, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194376.582, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194378.639, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194380.698, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194382.742, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194384.798, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194386.849, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194388.891, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194390.948, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194392.98, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194395.041, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194397.103, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194399.144, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194401.203, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194403.306, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194405.349, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194407.393, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194409.443, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194411.49, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194413.531, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194415.59, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194417.631, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194419.699, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194421.754, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194423.792, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194425.848, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194427.881, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194429.954, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194431.98, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194434.031, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194436.1, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194438.131, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194440.18, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194442.231, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194444.297, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194446.349, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194448.393, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194450.451, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194452.494, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194454.553, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194456.598, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194458.644, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194460.704, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194462.752, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194464.794, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194466.855, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194468.902, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194470.948, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194473.002, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194475.041, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194477.1, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194479.148, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194481.191, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194483.251, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194485.298, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194487.341, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194489.396, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194491.453, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194493.496, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194495.555, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194497.599, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194499.63, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194501.696, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194503.749, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194505.805, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194507.831, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194509.897, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194511.941, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194514.004, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194516.049, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194518.08, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194520.153, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194522.196, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194524.254, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194526.291, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194528.351, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194530.393, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194532.439, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194534.501, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194536.547, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194538.603, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194540.63, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194542.698, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194544.751, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194546.781, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194548.848, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194550.89, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194552.946, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194555.003, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194557.092, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194559.15, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194561.196, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194563.251, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194565.306, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194567.355, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194569.398, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194571.455, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194573.481, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194575.552, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194577.58, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194579.63, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194581.704, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194583.749, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194585.794, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194587.83, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194589.898, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194591.939, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194593.994, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194596.03, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194598.1, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194600.145, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194602.198, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194604.242, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194606.304, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194608.348, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194610.392, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194612.444, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194614.503, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194616.591, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194618.629, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194620.704, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194622.745, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194624.795, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194626.853, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 96}}
+{"t_wall": 1790194673.793, "kind": "act", "data": {"model_channel": "zhipu-coding-plan/glm-5.3@omp-session", "decision_note": "回到声明树旁", "op": "goto", "args": {"x": 93, "y": 95, "z": -69}, "submit": {"execution_id": "eadca37d-3f8c-4b53-8d28-c1c021cd7114"}, "receipt": {"execution_id": "eadca37d-3f8c-4b53-8d28-c1c021cd7114", "request_id": "rcf1-g5r3-r3c-s01b-94671246", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "completed", "progress": 1.0, "reason": "server_authoritative_arrival_within_2_5_blocks", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "duration_s": 2.53, "pre_pos": {"z": -72.71693109430659, "y": 96.0, "x": 98.49445944165521}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "pre_inv": {}, "post_inv": {}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194674.104, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 97}}
+{"t_wall": 1790194694.895, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=0 dz=-1", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 94, "face_y": 97, "face_z": -76}, "submit": {"execution_id": "121b68c2-7594-4148-b939-7bf9cc9bd49f"}, "receipt": {"execution_id": "121b68c2-7594-4148-b939-7bf9cc9bd49f", "request_id": "rcf1-g5r3-r3c-s01b-94674120", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=block=94, 98, -71 pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194694.895, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194715.66, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=1 dz=0", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 101, "face_y": 97, "face_z": -69}, "submit": {"execution_id": "c60a4d2d-890a-4411-a806-323b560692e8"}, "receipt": {"execution_id": "c60a4d2d-890a-4411-a806-323b560692e8", "request_id": "rcf1-g5r3-r3c-s01b-94694912", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194715.66, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194736.371, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=0 dz=1", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 94, "face_y": 97, "face_z": -62}, "submit": {"execution_id": "d27adc44-ad83-4164-8624-692bbe1c6938"}, "receipt": {"execution_id": "d27adc44-ad83-4164-8624-692bbe1c6938", "request_id": "rcf1-g5r3-r3c-s01b-94715690", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194736.371, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194757.108, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=-1 dz=0", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 87, "face_y": 97, "face_z": -69}, "submit": {"execution_id": "6e576518-de2e-41ce-b28e-3fa35464716c"}, "receipt": {"execution_id": "6e576518-de2e-41ce-b28e-3fa35464716c", "request_id": "rcf1-g5r3-r3c-s01b-94736386", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194757.108, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194759.139, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 97}}
+{"t_wall": 1790194761.201, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 97}}
+{"t_wall": 1790194763.239, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 97}}
+{"t_wall": 1790194783.966, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=0 dz=-1", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 94, "face_y": 97, "face_z": -76}, "submit": {"execution_id": "02782410-8b49-4e18-b203-45707705025e"}, "receipt": {"execution_id": "02782410-8b49-4e18-b203-45707705025e", "request_id": "rcf1-g5r3-r3c-s01b-94763270", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=block=94, 98, -71 pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194783.966, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194804.6, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=1 dz=0", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 101, "face_y": 97, "face_z": -69}, "submit": {"execution_id": "e1b2556e-d322-49c8-b2c4-04a0d452cdba"}, "receipt": {"execution_id": "e1b2556e-d322-49c8-b2c4-04a0d452cdba", "request_id": "rcf1-g5r3-r3c-s01b-94783996", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194804.6, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194825.276, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=0 dz=1", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 94, "face_y": 97, "face_z": -62}, "submit": {"execution_id": "706fc3be-7730-49da-a0a2-6f3ffdee758c"}, "receipt": {"execution_id": "706fc3be-7730-49da-a0a2-6f3ffdee758c", "request_id": "rcf1-g5r3-r3c-s01b-94804630", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194825.276, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194845.945, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=-1 dz=0", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 87, "face_y": 97, "face_z": -69}, "submit": {"execution_id": "d3148b19-08fe-4a97-9167-4995b4e478fe"}, "receipt": {"execution_id": "d3148b19-08fe-4a97-9167-4995b4e478fe", "request_id": "rcf1-g5r3-r3c-s01b-94825291", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194845.945, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194848.005, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 97}}
+{"t_wall": 1790194850.052, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 97}}
+{"t_wall": 1790194852.096, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 97}}
+{"t_wall": 1790194872.847, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=0 dz=-1", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 94, "face_y": 97, "face_z": -76}, "submit": {"execution_id": "cc2894dd-c1b4-4f80-b3b7-274e88655eef"}, "receipt": {"execution_id": "cc2894dd-c1b4-4f80-b3b7-274e88655eef", "request_id": "rcf1-g5r3-r3c-s01b-94852128", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=block=94, 98, -71 pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194872.847, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194893.44, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=1 dz=0", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 101, "face_y": 97, "face_z": -69}, "submit": {"execution_id": "ad615b29-1434-4aa2-b323-5ddd059ceee6"}, "receipt": {"execution_id": "ad615b29-1434-4aa2-b323-5ddd059ceee6", "request_id": "rcf1-g5r3-r3c-s01b-94872861", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194893.44, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194914.038, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=0 dz=1", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 94, "face_y": 97, "face_z": -62}, "submit": {"execution_id": "01374a74-a1da-4899-b20d-5b963adcb236"}, "receipt": {"execution_id": "01374a74-a1da-4899-b20d-5b963adcb236", "request_id": "rcf1-g5r3-r3c-s01b-94893456", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194914.038, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194938.934, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=-1 dz=0", "op": "goto", "args": {"x": 94, "y": 97, "z": -69, "face_x": 87, "face_y": 97, "face_z": -69}, "submit": {"execution_id": "4e190e0a-fd88-46e4-90bd-b0ca2a1d3a74"}, "receipt": {"execution_id": "4e190e0a-fd88-46e4-90bd-b0ca2a1d3a74", "request_id": "rcf1-g5r3-r3c-s01b-94914068", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "outcome_unknown", "progress": 0.9207503938342582, "reason": "body_session_changed", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194938.934, "pre_inv": {}, "post_inv": null, "pre_pos": {"z": -69.29769608779397, "y": 97.0, "x": 94.35594320241904}, "post_pos": null, "game_session": null}}
+{"t_wall": 1790194940.992, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 109}}
+{"t_wall": 1790194943.05, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 109}}
+{"t_wall": 1790194945.079, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 109}}
+{"t_wall": 1790194965.879, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=0 dz=-1", "op": "goto", "args": {"x": -1, "y": 109, "z": -5, "face_x": -1, "face_y": 109, "face_z": -12}, "submit": {"execution_id": "f0ca3b27-bfda-4029-9353-9656220c9989"}, "receipt": {"execution_id": "f0ca3b27-bfda-4029-9353-9656220c9989", "request_id": "rcf1-g5r3-r3c-s01b-94945170", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=block=-1, 109, -10 pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194965.879, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "post_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790194986.621, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=1 dz=0", "op": "goto", "args": {"x": -1, "y": 109, "z": -5, "face_x": 6, "face_y": 109, "face_z": -5}, "submit": {"execution_id": "33766dd1-beec-4024-bf1e-95192c1d45f7"}, "receipt": {"execution_id": "33766dd1-beec-4024-bf1e-95192c1d45f7", "request_id": "rcf1-g5r3-r3c-s01b-94965901", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790194986.621, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "post_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790195007.271, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=0 dz=1", "op": "goto", "args": {"x": -1, "y": 109, "z": -5, "face_x": -1, "face_y": 109, "face_z": 2}, "submit": {"execution_id": "68f60832-08ef-4a2f-8b29-0583177c0a99"}, "receipt": {"execution_id": "68f60832-08ef-4a2f-8b29-0583177c0a99", "request_id": "rcf1-g5r3-r3c-s01b-94986637", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790195007.271, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "post_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790195028.051, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=-1 dz=0", "op": "goto", "args": {"x": -1, "y": 109, "z": -5, "face_x": -8, "face_y": 109, "face_z": -5}, "submit": {"execution_id": "6a853b56-62f5-45c7-9a33-531680bbd7ce"}, "receipt": {"execution_id": "6a853b56-62f5-45c7-9a33-531680bbd7ce", "request_id": "rcf1-g5r3-r3c-s01b-95007273", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790195028.051, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "post_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790195030.092, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 109}}
+{"t_wall": 1790195032.149, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 109}}
+{"t_wall": 1790195034.193, "kind": "skill-diag", "data": {"what": "no-reachable-candidate", "py": 109}}
+{"t_wall": 1790195054.843, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=0 dz=-1", "op": "goto", "args": {"x": -1, "y": 109, "z": -5, "face_x": -1, "face_y": 109, "face_z": -12}, "submit": {"execution_id": "e9860aa5-c4f7-49e4-8bdd-2f1bb0365409"}, "receipt": {"execution_id": "e9860aa5-c4f7-49e4-8bdd-2f1bb0365409", "request_id": "rcf1-g5r3-r3c-s01b-95034210", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=block=-1, 109, -10 pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790195054.843, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "post_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790195075.572, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=1 dz=0", "op": "goto", "args": {"x": -1, "y": 109, "z": -5, "face_x": 6, "face_y": 109, "face_z": -5}, "submit": {"execution_id": "f302ed55-0a88-4701-8975-221f8b9279d7"}, "receipt": {"execution_id": "f302ed55-0a88-4701-8975-221f8b9279d7", "request_id": "rcf1-g5r3-r3c-s01b-95054874", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790195075.572, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "post_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790195096.325, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=0 dz=1", "op": "goto", "args": {"x": -1, "y": 109, "z": -5, "face_x": -1, "face_y": 109, "face_z": 2}, "submit": {"execution_id": "6bebce18-4a03-4265-a7fb-5f4e7b8d4287"}, "receipt": {"execution_id": "6bebce18-4a03-4265-a7fb-5f4e7b8d4287", "request_id": "rcf1-g5r3-r3c-s01b-95075586", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790195096.325, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "post_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}
+{"t_wall": 1790195117.101, "kind": "act", "data": {"model_channel": "skill:goto", "decision_note": "扫视方位 dx=-1 dz=0", "op": "goto", "args": {"x": -1, "y": 109, "z": -5, "face_x": -8, "face_y": 109, "face_z": -5}, "submit": {"execution_id": "27db569f-2657-403b-9d0c-012d65be45bb"}, "receipt": {"execution_id": "27db569f-2657-403b-9d0c-012d65be45bb", "request_id": "rcf1-g5r3-r3c-s01b-95096340", "body_id": "bob", "backend_kind": "real_client", "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b", "body_session_epoch": "324157e2-795b-48aa-a42d-5f6dc1e2baa2", "operation": "goto", "state": "failed", "progress": 0.0, "reason": "client_final_facing_timeout:cross=MISS pathing=false", "terminal": true, "success_scope": "bounded_body_operation_not_user_goal"}, "t_wall": 1790195117.101, "pre_inv": {}, "post_inv": {}, "pre_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "post_pos": {"z": -5.5, "y": 109.0, "x": -1.5}, "game_session": "324157e2-795b-48aa-a42d-5f6dc1e2baa2"}}

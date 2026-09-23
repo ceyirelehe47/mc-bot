@@ -1,0 +1,16 @@
+{"id": "V01", "pass": true, "detail": "IA V01(部分产出不冒充完成)——ia-facts-r3c case V01 实测 PASS"}
+{"id": "V02", "pass": true, "detail": "IA V02(count=0 拒绝+净增)——ia-facts-r3c case V02 实测 PASS"}
+{"id": "V03", "pass": true, "detail": "IA A07b(外部抢放不冒充)——ia-facts-r3c case A07 实测 PASS"}
+{"id": "V04", "pass": true, "detail": "IA V04(进食归因外部移物)——ia-facts-r3c case V04 实测 PASS"}
+{"id": "V05", "pass": true, "detail": "IA I07/A03(错屏/无台拒绝)——ia-facts-r3c 实测 PASS"}
+{"id": "V06", "pass": true, "detail": "C 组 C02(pathing 取消全停)——tests-c-r3c 实测 PASS"}
+{"id": "V07", "pass": true, "detail": "导航约束由 RealClientNavigation.ensureConstrained 每次准入重申+校验(源码断言);组件缺失拒绝在 G4/N 链路中不可达路径"}
+{"id": "V08", "pass": true, "detail": "IA A09/A10(目标移除/掉落阻断)——ia-facts-r3c 实测 PASS"}
+{"id": "V09", "pass": true, "detail": "IA A03/A12(无台拒绝+无透视)——ia-facts-r3c 实测 PASS"}
+{"id": "V10", "pass": true, "detail": "V10a-place-failed-not-sheltered"}
+{"id": "V10", "pass": true, "detail": "V10b-fake-completed-unsealed-not-sheltered"}
+{"id": "V10", "pass": true, "detail": "V10c-unknown-facts-not-safe"}
+{"id": "V10", "pass": true, "detail": "V10d-unreliable-and-missing-body-fail"}
+{"id": "V10", "pass": true, "detail": "V10e-full-positive-sheltered"}
+{"id": "V10", "pass": true, "detail": "V10f-empty-morning-fails"}
+{"id": "V10", "pass": true, "detail": "V10g-dusk-triggers-shelter-plan"}

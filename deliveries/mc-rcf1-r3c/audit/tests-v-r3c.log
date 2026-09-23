@@ -1,0 +1,51 @@
+{"id": "V10a-place-failed-not-sheltered", "pass": true, "detail": ""}
+{"id": "V10b-fake-completed-unsealed-not-sheltered", "pass": true, "detail": ""}
+{"id": "V10c-unknown-facts-not-safe", "pass": true, "detail": ""}
+{"id": "V10d-unreliable-and-missing-body-fail", "pass": true, "detail": ""}
+{"id": "V10e-full-positive-sheltered", "pass": true, "detail": ""}
+{"id": "V10f-empty-morning-fails", "pass": true, "detail": ""}
+{"id": "V10g-dusk-triggers-shelter-plan", "pass": true, "detail": ""}
+{"id": "ST-IA-POS", "pass": true, "detail": "ok"}
+{"id": "ST-IA-REORDER-STILL-OK", "pass": true, "detail": "ok"}
+{"id": "ST-IA-M11-EMPTY-ACTIONS", "pass": true, "detail": "case-I01-positive-not-proven"}
+{"id": "ST-IA-M01-SNAPSHOT-REMOVED", "pass": true, "detail": "case-I01-missing-snapshots"}
+{"id": "ST-IA-M12-NEG-SIDE-EFFECT", "pass": true, "detail": "case-V02-negative-unproven:negative-with-inventory-side-effect"}
+{"id": "ST-IA-M13-CASE-LEVEL-FIXTURE-TOLERATED", "pass": true, "detail": "ok"}
+{"id": "ST-IA-M14-PRE-POST-SWAPPED", "pass": true, "detail": "case-A01-completed-unproven:craft-snapshot-delta-below-request"}
+{"id": "ST-IA-M15-DUPLICATE-IDENTITY", "pass": true, "detail": "duplicate-execution-identity:ex-001"}
+{"id": "ST-IA-M16-GAIN-NOT-REQUESTED", "pass": true, "detail": "case-I01-completed-unproven:move-gained-not-requested"}
+{"id": "ST-IA-M17-EAT-WITNESS-ZERO", "pass": true, "detail": "case-A08-completed-unproven:eat-witness-below-claim"}
+{"id": "ST-IA-M18-MALFORMED", "pass": true, "detail": ""}
+{"id": "ST-IA-M18-UNKNOWN-CASE", "pass": true, "detail": "unknown-case-id:Z99"}
+{"id": "ST-IA-UNKNOWN-UNRESOLVED", "pass": true, "detail": "case-I01-positive-not-proven"}
+{"id": "ST-IA-SNAPSHOT-ERROR-REJECTED", "pass": true, "detail": "case-I01-completed-unproven:action-snapshots-missing-or-errored"}
+{"id": "ST-G4-POS", "pass": true, "detail": "ok"}
+{"id": "ST-G4-M03-STATUS-END-REMOVED", "pass": true, "detail": "run-b01-status-end-missing"}
+{"id": "ST-G4-M02-CURSOR-PRESENT-FALSE", "pass": true, "detail": "run-b01-final-cursor-not-empty"}
+{"id": "ST-G4-M04-NEEDS-RECONCILE", "pass": true, "detail": "run-b01-needs-reconcile-remaining"}
+{"id": "ST-G4-M05-TABLE-ORACLE-REMOVED", "pass": true, "detail": "run-b01-table-oracle-facts-missing"}
+{"id": "ST-G4-M06-CANDIDATE-MIXED", "pass": true, "detail": "candidate-commit-missing-or-mixed"}
+{"id": "ST-G4-M09-EXPECT-DOWNGRADED", "pass": true, "detail": "expect-below-controlled-threshold"}
+{"id": "ST-G4-M08-DUPLICATE-EXEC", "pass": true, "detail": "run-b02-duplicate-execution:b01-ex1"}
+{"id": "ST-G4-M08-INTERVALS-OVERLAP", "pass": true, "detail": "run-b02-time-limit-exceeded:2299s"}
+{"id": "ST-G5-POS", "pass": true, "detail": "ok"}
+{"id": "ST-G5-M19-VERDICT-WITHOUT-FACTS", "pass": true, "detail": "sheltered-never-proven-from-raw-blocks"}
+{"id": "ST-G5-M20-UNKNOWN-SIDE", "pass": true, "detail": "sheltered-never-proven-from-raw-blocks"}
+{"id": "ST-G5-M21-TIME-JUMP", "pass": true, "detail": "night-world-time-jump:6400"}
+{"id": "ST-G5-M22-MORNING-NO-PICKS", "pass": true, "detail": "morning-tools-not-retained"}
+{"id": "ST-G5-M23-ALL-SKILL-CHANNEL", "pass": true, "detail": "model-decision-rows-below-minimum"}
+{"id": "ST-G5-DEATH-DURING-NIGHT", "pass": true, "detail": "death-or-position-lost-during-night"}
+{"id": "ST-ALL-M24-MISSING-GATES", "pass": true, "detail": "{}"}
+SUMMARY 31/31
+{"id": "CHK-final-entry-rejects-history-and-mutations", "pass": true, "detail": "selftest 31/31 via judge_ia/judge_g4/g5"}
+{"id": "CHK-cli-entry-rejects-counterexample", "pass": true, "detail": ""}
+{"id": "V01", "pass": null, "not_run": true, "why": "live harness 未部署"}
+{"id": "V02", "pass": null, "not_run": true, "why": "live harness 未部署"}
+{"id": "V03", "pass": null, "not_run": true, "why": "live harness 未部署"}
+{"id": "V04", "pass": null, "not_run": true, "why": "live harness 未部署"}
+{"id": "V05", "pass": null, "not_run": true, "why": "live harness 未部署"}
+{"id": "V06", "pass": null, "not_run": true, "why": "live harness 未部署"}
+{"id": "V07", "pass": null, "not_run": true, "why": "live harness 未部署"}
+{"id": "V08", "pass": null, "not_run": true, "why": "live harness 未部署"}
+{"id": "V09", "pass": null, "not_run": true, "why": "live harness 未部署"}
+SUMMARY 9/9 (9 NOT_RUN)

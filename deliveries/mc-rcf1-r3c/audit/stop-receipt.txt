@@ -1,0 +1,2 @@
+{"server": "STOPPED(no record; namespace clean)", "client": "STOPPED(already gone; scope verified 0)"}
+{"server": "STOPPED(no record; namespace clean)", "client": "STOPPED(no record; namespace clean)"}

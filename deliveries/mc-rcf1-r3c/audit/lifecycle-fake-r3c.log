@@ -1,0 +1,21 @@
+{"id": "L01", "pass": true, "detail": "{'live': 1, 'codes': [0, 0, 0, 0], 'outs': ['{\"role\": \"server\", \"status\": \"RUNNING\", \"pid\": 13308, \"marker\": \"rcf1fake1c79e2b4-server-127530e00707f8ba\"}', '{\"role\": \"server\", \"status\": \"RUNNING\", \"pid\": 13308, \"note\": \"existing verified instance; idempotent start\"}', '{\"role\": \"server\", \"status\": \"R"}
+{"id": "L01b", "pass": true, "detail": "{\"role\": \"server\", \"status\": \"RUNNING\", \"pid\": 13308, \"note\": \"existing verified instance; idempotent start\"}"}
+{"id": "L02", "pass": true, "detail": "{'live': 1, 'first': '{\"role\": \"server\", \"status\": \"RUNNING\", \"pid\": 20976, \"marker\": \"rcf1fake4043a083-server-41fece5974b51dcb\"}', 'second': '{\"role\": \"server\", \"status\": \"RUNNING\", \"pid\": 20976, \"note\": \"existing verified instance; idempotent start\"}', 'second_code': 0}"}
+{"id": "L03a", "pass": true, "detail": "{'live': 1, 'status': 'ADOPTED', 'pid': 31700, 'orig': 31700, 'rc': 0, 'out': '{\"role\": \"server\", \"status\": \"RUNNING\", \"pid\": 31700, \"note\": \"existing verified instance; idempotent start\"}'}"}
+{"id": "L03b", "pass": true, "detail": "{'rc': 1, 'live_verified': 0, 'err': 'Traceback (most recent call last):\\n  File \"D:\\\\code\\\\mc-bot\\\\tools\\\\rcf1_lifecycle.py\", line 729, in <module>\\n    sys.exit(main(sys.argv[1:]))\\n           ', 'procs_alive': 2}"}
+{"id": "L04-truncated", "pass": true, "detail": "Traceback (most recent call last):\n  File \"D:\\code\\mc-bot\\tools\\rcf1_lifecycle.py\", line 190, in _load_json_strict\n    return json.load(fh)\n          "}
+{"id": "L04-empty", "pass": true, "detail": "Traceback (most recent call last):\n  File \"D:\\code\\mc-bot\\tools\\rcf1_lifecycle.py\", line 190, in _load_json_strict\n    return json.load(fh)\n          "}
+{"id": "L04-garbage", "pass": true, "detail": "Traceback (most recent call last):\n  File \"D:\\code\\mc-bot\\tools\\rcf1_lifecycle.py\", line 190, in _load_json_strict\n    return json.load(fh)\n          "}
+{"id": "L04-failfile", "pass": true, "detail": "Traceback (most recent call last):\n  File \"D:\\code\\mc-bot\\tools\\rcf1_lifecycle.py\", line 190, in _load_json_strict\n    return json.load(fh)\n          "}
+{"id": "L05", "pass": true, "detail": "Traceback (most recent call last):\n  File \"D:\\code\\mc-bot\\tools\\rcf1_lifecycle.py\", line 729, in <module>\n    sys.exit(main(sys.argv[1:]))\n           "}
+{"id": "L06", "pass": true, "detail": "{'rc': 1, 'err': ' manually\"\\n        % (role, [x[\"pid\"] for x in role_live]))\\nInstanceConflict: untracked server instance(s) in namespace: [17224]; adopt/clear manually', 'pid': 17224, 'note': 'PID 复用→identity mismatch 或 untracked conflict 均为合法拒绝'}"}
+{"id": "L07", "pass": true, "detail": "{'stop_out': '{\"server\": \"STOP_FAILED(unconfirmed;starts blocked until cleared)\"}', 'fails': 1, 'restart_rc': 1}"}
+{"id": "L08a", "pass": true, "detail": "{'locked1': True, 'locked2': True, 'retry_rc': 1, 'stop': '{\"server\": \"STOPPED(no record; namespace clean)\", \"client\": \"STOPPED(no record; '}"}
+{"id": "L08b", "pass": true, "detail": "{'unlock_no_reason_rc': 1, 'unlock_rc': 0, 'total': 3, 'consec': 0}"}
+{"id": "L09(fake)", "pass": true, "detail": "{'revived': False, 'note': '实机 60s 段在 R1-L 实机确认中补'}"}
+{"id": "L10", "pass": true, "detail": "{'real_untouched': True, 'ns': 'C:\\\\Users\\\\15027\\\\AppData\\\\Local\\\\Temp\\\\rcf1-ltest-pzv6j6uc'}"}
+{"id": "L11", "pass": true, "detail": "{'out': '{\"client\": \"BLOCKED(untracked instances: [17128]; adopt/clear manually)\"}', 'orphan_alive': True, 'extras_seen': [17128]}"}
+{"id": "L12", "pass": true, "detail": "{'rc': 1, 'out': '', 'err': 'Traceback (most recent call last):\\n  File \"D:\\\\code\\\\mc-bot\\\\tools\\\\rcf1_lifecycle.py\", line 729, in <module>\\n    sys.exit(m', 'extras_seen': [32728]}"}
+{"id": "L13", "pass": true, "detail": "{'server_locked': True, 'client_rc': 0, 'server_fails_after': 3}"}
+{"id": "L14", "pass": true, "detail": "{'tail_out': '{\"server\": \"BLOCKED(same-role instances remain: [31288])\"}', 'extra_alive': True, 'state': 'STOPPED', 'restop': '{\"server\": \"STOPPED(no record; namespace clean)\"}'}"}
+SUMMARY 20/20
