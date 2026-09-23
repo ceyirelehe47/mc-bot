@@ -29,17 +29,49 @@ FACTS = None      # rcf1_facts.FactsCollector(R3)
 _CASE_ID = None
 
 
+# R3:录制所有场景的会话动作(场景内部直接用 play.Session 提交,
+# 也要进事实账)——包装 submit/term,自动按当前用例记录。
+_OrigSession = play.Session
+
+
+class _RecordingSession(_OrigSession):
+    # R3:全部会话共用一个 owner——多 owner 租约互抢是 EXC 根因
+    # (r1ia/r1find/r1find2 各自持有/续期,过期窗口互相踢)。
+    def __init__(self, owner="r3ia-shared"):
+        super().__init__(owner)
+
+    def submit(self, op, args, tag=None, preempt=False):
+        ex, err = super().submit(op, args, tag, preempt)
+        self._rc_pending = (op, args, ex, err)
+        return ex, err
+
+    def term(self, ex_id, timeout_s=180):
+        res, trail = super().term(ex_id, timeout_s=timeout_s)
+        pend = getattr(self, "_rc_pending", None)
+        if pend and FACTS is not None and _CASE_ID:
+            op, args, ex, err = pend
+            FACTS.record_action(_CASE_ID, op, args,
+                                {"execution_id": ex} if ex
+                                else {"error": str(err)[:120]},
+                                res)
+            self._rc_pending = None
+        return res, trail
+
+
+play.Session = _RecordingSession
+
+
 def facts_init(owner="r3ia"):
     global _SESSION, FACTS
     _SESSION = play.Session(owner)
     FACTS = F.FactsCollector(_SESSION, owner)
 
 
-def facts_case(tid):
+def facts_case(tid, attempt=1):
     global _CASE_ID
     _CASE_ID = tid
     if FACTS is not None:
-        FACTS.case(tid)
+        FACTS.case(tid, attempt=attempt)
 
 def rcon(cmd):
     return (E.rcon(cmd) or "").strip()
@@ -120,22 +152,35 @@ def stack_count_at(slot):
 
 
 def do(op, args, timeout=180):
-    global _SESSION
-    if _SESSION is None:
-        facts_init()
-    s = _SESSION
-    ex_id, err = s.submit(op, args)
-    if ex_id is None:
-        receipt = {"state": "failed", "reason": json.dumps(
-            err, ensure_ascii=False)}
-        if FACTS is not None and _CASE_ID:
-            FACTS.record_action(_CASE_ID, op, args, err, receipt)
-        return receipt
-    res, _trail = s.term(ex_id, timeout_s=timeout)
-    if FACTS is not None and _CASE_ID:
-        FACTS.record_action(_CASE_ID, op, args,
-                            {"execution_id": ex_id}, res)
-    return res
+    global _SESSION, FACTS
+    for attempt in (1, 2):
+        if _SESSION is None:
+            facts_init()
+        s = _SESSION
+        try:
+            ex_id, err = s.submit(op, args)
+            if ex_id is None:
+                receipt = {"state": "failed", "reason": json.dumps(
+                    err, ensure_ascii=False)}
+                if FACTS is not None and _CASE_ID:
+                    FACTS.record_action(_CASE_ID, op, args, err, receipt)
+                return receipt
+            res, _trail = s.term(ex_id, timeout_s=timeout)
+            if FACTS is not None and _CASE_ID:
+                FACTS.record_action(_CASE_ID, op, args,
+                                    {"execution_id": ex_id}, res)
+            return res
+        except RuntimeError as exc:  # 租约丢失:重建会话重试一次
+            if attempt == 2:
+                raise
+            print(json.dumps({"lease-retry": str(exc)[:80]}),
+                  flush=True)
+            # R3 修复:只重建会话,不重建 FACTS(实测 facts_init 会清空
+            # 已积累的用例事实,导致整轮 cases=1)。
+            _f = FACTS
+            facts_init()
+            FACTS = _f
+            FACTS.session = _SESSION
 
 
 def check(tid, ok, detail=None):
@@ -672,6 +717,10 @@ def _local_opp(block, near=None):
     loc = s.inspect_local(8, "summary")
     opps = (((loc.get("data") or {}).get("snapshot") or {})
             .get("opportunities") or [])
+    # R3:机会容器是 {entries:[...]}(F05 有界视图)
+    if isinstance(opps, dict):
+        opps = opps.get("entries") or []
+    opps = [o for o in opps if isinstance(o, dict)]
     cands = [o for o in opps if o.get("block") == block]
     if near and cands:
         cands = [o for o in cands
@@ -900,7 +949,14 @@ def main():
         try:
             fn()
         except Exception as exc:  # noqa: BLE001
-            run(tid + "-EXC", False, "EXC %r" % exc)
+            # 租约竞态类瞬时失败:整体重试一次(会话重建)
+            run(tid + "-EXC1", False, "EXC %r" % exc)
+            try:
+                facts_case(tid, attempt=2)
+                fn()
+                run(tid + "-RETRY", True, "recovered after lease race")
+            except Exception as exc2:  # noqa: BLE001
+                run(tid + "-EXC", False, "EXC %r" % exc2)
         global _CASE_ID
         _CASE_ID = None
     out = os.environ.get("RCF1_IA_FACTS",

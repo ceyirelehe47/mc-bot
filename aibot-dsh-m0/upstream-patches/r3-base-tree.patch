@@ -1,0 +1,1387 @@
+diff --git a/build.gradle b/build.gradle
+index cbfe3efd..8a309149 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -104,6 +104,9 @@ dependencies {
+     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
++    // MC-RCF-1 G2: Baritone 受控导航(API 编译期依赖;运行时由客户端 mods 提供)。
++    // 锁定官方 release 资产,sha256 校验见 scripts/fetch_baritone.py 与交付 BASELINE。
++    modCompileOnly files(rootProject.findProperty('baritone_jar') ?: 'D:/mc-rcf1-raw/deps/baritone-api-fabric-1.12.0.jar')
+ 
+     testImplementation platform('org.junit:junit-bom:6.1.0')
+     testImplementation 'org.junit.jupiter:junit-jupiter'
+diff --git a/src/client/java/io/github/zoyluo/aibot/client/AIBotClient.java b/src/client/java/io/github/zoyluo/aibot/client/AIBotClient.java
+index d9476d8f..3cf8b6a7 100644
+--- a/src/client/java/io/github/zoyluo/aibot/client/AIBotClient.java
++++ b/src/client/java/io/github/zoyluo/aibot/client/AIBotClient.java
+@@ -12,6 +12,7 @@ public final class AIBotClient implements ClientModInitializer {
+         AIPayloads.register();
+         AIBotKeyBindings.register();
+         AIBotClientNetworking.register();
++        io.github.zoyluo.aibot.client.realclient.RealClientBodyClientRuntime.register();
+         ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
+     }
+ 
+diff --git a/src/gametest/resources/fabric.mod.json b/src/gametest/resources/fabric.mod.json
+index 25ecb31c..82196da6 100644
+--- a/src/gametest/resources/fabric.mod.json
++++ b/src/gametest/resources/fabric.mod.json
+@@ -11,6 +11,17 @@
+     ],
+     "fabric-gametest": [
+       "io.github.zoyluo.aibot.gametest.AIBotDeterministicGameTests",
++            "io.github.zoyluo.aibot.gametest.MC1CASemanticsGameTests",
++            "io.github.zoyluo.aibot.gametest.MC1CAR2GameTests",
++            "io.github.zoyluo.aibot.gametest.MC1CAR21GameTests",
++            "io.github.zoyluo.aibot.gametest.MC2A0CognitiveViewGameTests",
++            "io.github.zoyluo.aibot.gametest.MC2A01CognitiveBoundaryGameTests",
++            "io.github.zoyluo.aibot.gametest.MC2A01FClosureGameTests",
++            "io.github.zoyluo.aibot.gametest.MC2A02TreeHarvestGameTests",
++            "io.github.zoyluo.aibot.gametest.MC2A03OpportunityIncarnationGameTests",
++            "io.github.zoyluo.aibot.gametest.MC2A03ASessionBoundaryGameTests",
++            "io.github.zoyluo.aibot.gametest.MC2A04RealClientTrackerGameTests",
++            "io.github.zoyluo.aibot.gametest.MC2A08OmnidirectionalPerceptionGameTests",
+       "io.github.zoyluo.aibot.command.AIBotVerifyFailFastGameTests",
+       "io.github.zoyluo.aibot.goal.GoalPlannerMiningGameTests",
+       "io.github.zoyluo.aibot.goal.DeathRecoveryMissionGameTests",
+diff --git a/src/main/java/io/github/zoyluo/aibot/AIBotMod.java b/src/main/java/io/github/zoyluo/aibot/AIBotMod.java
+index 0a9c0f25..63c12bdf 100644
+--- a/src/main/java/io/github/zoyluo/aibot/AIBotMod.java
++++ b/src/main/java/io/github/zoyluo/aibot/AIBotMod.java
+@@ -60,12 +60,17 @@ public class AIBotMod implements ModInitializer {
+         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+             BotLog.lifecycle("server_started", "motd", server.getServerMotd());
+             RuntimeLifecycleCoordinator.INSTANCE.onServerStarted(server, config);
++            io.github.zoyluo.aibot.external.ExternalBodyRuntime.start(server);
++        });
++        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
++            io.github.zoyluo.aibot.external.ExternalBodyRuntime.stop();
++            RuntimeLifecycleCoordinator.INSTANCE.onServerStopping(server);
+         });
+-        ServerLifecycleEvents.SERVER_STOPPING.register(RuntimeLifecycleCoordinator.INSTANCE::onServerStopping);
+         ServerTickEvents.END_SERVER_TICK.register(server -> {
+             TpsGuard.INSTANCE.tick(server);
+             TaskManager.INSTANCE.tickAll(server);
+             BotTickCoordinator.INSTANCE.tick(server);
++            io.github.zoyluo.aibot.external.ExternalBodyRuntime.tick(server);
+             AIBotServerNetworking.INSTANCE.tick(server);
+             io.github.zoyluo.aibot.log.DiagnosticLogger.INSTANCE.tick(server);
+             if (server.getTicks() > 0 && server.getTicks() % 6000 == 0) {
+diff --git a/src/main/java/io/github/zoyluo/aibot/action/BlockMiner.java b/src/main/java/io/github/zoyluo/aibot/action/BlockMiner.java
+index 9daf9977..988aa323 100644
+--- a/src/main/java/io/github/zoyluo/aibot/action/BlockMiner.java
++++ b/src/main/java/io/github/zoyluo/aibot/action/BlockMiner.java
+@@ -131,7 +131,14 @@ public final class BlockMiner {
+                 ToolSelector.equipBestTool(bot, equipTarget);
+             }
+             Direction face = faceToward(bot, target);
+-            MiningAction.startMining(bot, target, face);
++            ActionResult startResult = MiningAction.startMining(bot, target, face);
++            if (startResult.isFailed()) {
++                bot.getActionPack().stopMining();
++                failureReason = startResult.reason();
++                target = null;
++                started = false;
++                return Status.FAILED;
++            }
+             started = true;
+         }
+         return Status.MINING;
+diff --git a/src/main/java/io/github/zoyluo/aibot/action/FarmAction.java b/src/main/java/io/github/zoyluo/aibot/action/FarmAction.java
+index b9ecd3f9..c7132513 100644
+--- a/src/main/java/io/github/zoyluo/aibot/action/FarmAction.java
++++ b/src/main/java/io/github/zoyluo/aibot/action/FarmAction.java
+@@ -20,6 +20,12 @@ public final class FarmAction {
+     }
+ 
+     public static ActionResult till(AIPlayerEntity bot, BlockPos ground) {
++        // R2.1: reserved external bodies may only till inside a registered exact farm mask.
++        String denial = io.github.zoyluo.aibot.external.SemanticWorldRegistry.farmMutationDenial(bot, ground, "till");
++        if (denial != null) {
++            BotLog.action(bot, "farm_mutation_denied", "pos", ground, "reason", denial);
++            return ActionResult.failed(denial);
++        }
+         ServerWorld world = bot.getServerWorld();
+         if (!isTillable(world.getBlockState(ground)) || !world.getBlockState(ground.up()).isAir()) {
+             return ActionResult.failed("not_tillable");
+@@ -35,6 +41,12 @@ public final class FarmAction {
+     }
+ 
+     public static ActionResult plant(AIPlayerEntity bot, BlockPos farmland, Item seed, Block crop) {
++        // R2.1: reserved external bodies may only plant on registered exact farm cells.
++        String denial = io.github.zoyluo.aibot.external.SemanticWorldRegistry.farmMutationDenial(bot, farmland, "plant");
++        if (denial != null) {
++            BotLog.action(bot, "farm_mutation_denied", "pos", farmland, "reason", denial);
++            return ActionResult.failed(denial);
++        }
+         ServerWorld world = bot.getServerWorld();
+         if (!world.getBlockState(farmland).isOf(Blocks.FARMLAND) || !world.getBlockState(farmland.up()).isAir()) {
+             return ActionResult.failed("not_empty_farmland");
+@@ -53,6 +65,13 @@ public final class FarmAction {
+     }
+ 
+     public static ActionResult harvest(AIPlayerEntity bot, BlockPos cropPos) {
++        // R2.1: reserved external bodies may only harvest crops standing on registered farm cells
++        // (the crop cell resolves to its farmland through cell.down()).
++        String denial = io.github.zoyluo.aibot.external.SemanticWorldRegistry.farmMutationDenial(bot, cropPos, "harvest");
++        if (denial != null) {
++            BotLog.action(bot, "farm_mutation_denied", "pos", cropPos, "reason", denial);
++            return ActionResult.failed(denial);
++        }
+         ServerWorld world = bot.getServerWorld();
+         if (!isMature(world, cropPos)) {
+             return ActionResult.failed("not_mature");
+diff --git a/src/main/java/io/github/zoyluo/aibot/action/HarvestCore.java b/src/main/java/io/github/zoyluo/aibot/action/HarvestCore.java
+index 582535c1..dc478106 100644
+--- a/src/main/java/io/github/zoyluo/aibot/action/HarvestCore.java
++++ b/src/main/java/io/github/zoyluo/aibot/action/HarvestCore.java
+@@ -44,6 +44,7 @@ public final class HarvestCore {
+                 BlockPos.stream(origin.add(-horizontalRadius, -down, -horizontalRadius), origin.add(horizontalRadius, up, horizontalRadius))
+                         .filter(pos -> ObservableWorldQuery.canObserveBlock(bot, pos))
+                         .filter(pos -> bot.getServerWorld().getBlockState(pos).isOf(targetBlock))
++                        .filter(pos -> io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos))
+                         .map(BlockPos::toImmutable)
+                         .map(pos -> targetChoice(bot, pos))
+                         .filter(choice -> choice != null));
+@@ -64,6 +65,7 @@ public final class HarvestCore {
+                 BlockPos.stream(origin.add(-horizontalRadius, -down, -horizontalRadius), origin.add(horizontalRadius, up, horizontalRadius))
+                         .filter(pos -> ObservableWorldQuery.canObserveBlock(bot, pos))
+                         .filter(pos -> targetBlocks.contains(bot.getServerWorld().getBlockState(pos).getBlock()))
++                        .filter(pos -> io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos))
+                         .filter(pos -> posFilter == null || posFilter.test(pos))
+                         .map(BlockPos::toImmutable)
+                         .map(pos -> targetChoice(bot, pos))
+diff --git a/src/main/java/io/github/zoyluo/aibot/action/MiningAction.java b/src/main/java/io/github/zoyluo/aibot/action/MiningAction.java
+index 5316998b..f3289d01 100644
+--- a/src/main/java/io/github/zoyluo/aibot/action/MiningAction.java
++++ b/src/main/java/io/github/zoyluo/aibot/action/MiningAction.java
+@@ -11,6 +11,8 @@ public final class MiningAction {
+     }
+ 
+     public static ActionResult startMining(AIPlayerEntity player, BlockPos pos, Direction face) {
++        var decision = io.github.zoyluo.aibot.external.BreakPolicy.decide(player, pos);
++        if (!decision.allowed()) return ActionResult.failed(decision.reason());
+         return player.getActionPack().startMining(pos, face);
+     }
+ 
+@@ -20,6 +22,8 @@ public final class MiningAction {
+     }
+ 
+     public static ActionResult mineOnceInstant(AIPlayerEntity player, BlockPos pos, Direction face) {
++        var decision = io.github.zoyluo.aibot.external.BreakPolicy.decide(player, pos);
++        if (!decision.allowed()) return ActionResult.failed(decision.reason());
+         player.interactionManager.processBlockBreakingAction(
+                 pos,
+                 PlayerActionC2SPacket.Action.START_DESTROY_BLOCK,
+diff --git a/src/main/java/io/github/zoyluo/aibot/action/MiningController.java b/src/main/java/io/github/zoyluo/aibot/action/MiningController.java
+index 2bdc648d..996ad97e 100644
+--- a/src/main/java/io/github/zoyluo/aibot/action/MiningController.java
++++ b/src/main/java/io/github/zoyluo/aibot/action/MiningController.java
+@@ -35,6 +35,11 @@ public final class MiningController {
+             resetProgress(player);
+             return ActionResult.SUCCESS;
+         }
++        var bodyBreakDecision = io.github.zoyluo.aibot.external.BreakPolicy.decide(player, pos);
++        if (!bodyBreakDecision.allowed()) {
++            abort(player);
++            return ActionResult.failed(bodyBreakDecision.reason());
++        }
+         if (targetState != null && !state.equals(targetState)) {
+             resetProgress(player);
+         }
+diff --git a/src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java b/src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java
+index 43e1c1b2..6c6d10ad 100644
+--- a/src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java
++++ b/src/main/java/io/github/zoyluo/aibot/auth/BotAuthorizationGate.java
+@@ -69,7 +69,7 @@ public final class BotAuthorizationGate {
+         if (!decision.allowed()) {
+             auditDenied(actor, source.getName(), bot, operation, channel, decision);
+         }
+-        return decision.allowed();
++        return decision.allowed() && io.github.zoyluo.aibot.external.ExternalBodyAccess.permitsLegacyOperation(bot, operation.name(), channel);
+     }
+ 
+     public boolean authorize(ServerPlayerEntity player,
+@@ -81,7 +81,7 @@ public final class BotAuthorizationGate {
+         if (!decision.allowed()) {
+             auditDenied(actor, player.getGameProfile().getName(), bot, operation, channel, decision);
+         }
+-        return decision.allowed();
++        return decision.allowed() && io.github.zoyluo.aibot.external.ExternalBodyAccess.permitsLegacyOperation(bot, operation.name(), channel);
+     }
+ 
+     public boolean authorizeBot(AIPlayerEntity actorBot,
+@@ -93,7 +93,7 @@ public final class BotAuthorizationGate {
+         if (!decision.allowed()) {
+             auditDenied(actor, actorBot.getGameProfile().getName(), targetBot, operation, channel, decision);
+         }
+-        return decision.allowed();
++        return decision.allowed() && io.github.zoyluo.aibot.external.ExternalBodyAccess.permitsLegacyOperation(targetBot, operation.name(), channel);
+     }
+ 
+     public boolean requireGlobalAdmin(ServerCommandSource source, String channel) {
+diff --git a/src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java b/src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java
+index 140280e3..552dec30 100644
+--- a/src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/brain/BrainCoordinator.java
+@@ -51,6 +51,10 @@ public final class BrainCoordinator {
+     }
+ 
+     public boolean handleMessage(AIPlayerEntity bot, String senderName, String text) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++            io.github.zoyluo.aibot.external.ExternalBodyAccess.message(bot, senderName, text);
++            return true;
++        }
+         ensureConfigured();
+         BotConversation conversation = conversations.computeIfAbsent(bot.getUuid(), BotConversation::new);
+         boolean supersededDecision = conversation.decision.busy();
+@@ -85,6 +89,7 @@ public final class BrainCoordinator {
+     }
+ 
+     private void onResponse(AIPlayerEntity bot, DecisionLease lease, ChatResponse response) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return;
+         BotConversation conversation = conversations.get(lease.botId());
+         if (conversation == null || !conversation.decision.tryAcceptResponse(lease)) {
+             logStaleDecision(lease, "response");
+@@ -263,6 +268,7 @@ public final class BrainCoordinator {
+     }
+ 
+     public boolean maybeWakeForFailureOrGoal(AIPlayerEntity bot) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false;
+         // GOALFIX-GF1 P0-A:bot 有活跃的确定性目标计划时,自动唤醒(FLOW-2/失败注入)一律让位给
+         // GoalExecutor,避免两个编排器在步骤间隙抢 assign。awaitingTask 不清除:目标计划自身完成、
+         // 从 activePlans 移除后,下一次本方法才会据 awaitingTask 唤醒大脑判断整体意图是否达成。
+@@ -352,6 +358,10 @@ public final class BrainCoordinator {
+     }
+ 
+     private void submit(AIPlayerEntity bot, BotConversation conversation, DecisionLease lease) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++            invalidateDecision(bot, "external_mode");
++            return;
++        }
+         try {
+             List<ChatMessage> historySnapshot = MemoryStore.INSTANCE.prepareHistory(bot, List.copyOf(conversation.history));
+             AIBotConfig.Brain brainConfig = AIBotConfig.get().brain();
+diff --git a/src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java b/src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java
+index 87775610..54f35f01 100644
+--- a/src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java
++++ b/src/main/java/io/github/zoyluo/aibot/brain/ChatCaptureListener.java
+@@ -19,6 +19,19 @@ public final class ChatCaptureListener {
+             String text = message.getContent().getString();
+             var matcher = MENTION.matcher(text);
+             if (!matcher.find()) {
++                // 无 @ 前缀:对保留身体(外部大脑控制)放宽为免 @ 直聊;授权门与控制短语语义不变
++                String plainSender = sender.getGameProfile().getName();
++                for (var bot : AIPlayerManager.INSTANCE.all()) {
++                    if (!io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) continue;
++                    if (!BotAuthorizationGate.INSTANCE.authorize(
++                            sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:plain_external")) {
++                        return;
++                    }
++                    BotLog.comm(bot, "chat_in", "sender", plainSender, "text", text);
++                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
++                            bot, sender.getUuid(), plainSender, "chat:plain", true, text);
++                    return;
++                }
+                 return;
+             }
+             String targetName = matcher.group(1);
+@@ -28,12 +41,18 @@ public final class ChatCaptureListener {
+                         sender, bot, BotAuthorizationPolicy.Operation.COMMAND, "chat:@bot")) {
+                     return;
+                 }
+-                BotLog.comm(bot, "chat_in", "sender", sender.getGameProfile().getName(), "text", body);
++                String senderName = sender.getGameProfile().getName();
++                BotLog.comm(bot, "chat_in", "sender", senderName, "text", body);
++                if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
++                            bot, sender.getUuid(), senderName, "chat:@bot", true, body);
++                    return;
++                }
+                 if (io.github.zoyluo.aibot.runtime.IntentController.INSTANCE.routePlayerControlPhrase(
+                         bot, io.github.zoyluo.aibot.runtime.IntentController.ControlOrigin.PLAYER_COMMAND, body)) {
+                     return;
+                 }
+-                BrainCoordinator.INSTANCE.handleMessage(bot, sender.getGameProfile().getName(), body);
++                BrainCoordinator.INSTANCE.handleMessage(bot, senderName, body);
+             });
+         });
+     }
+diff --git a/src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java b/src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java
+index 2ef8ee3f..6954aca7 100644
+--- a/src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java
++++ b/src/main/java/io/github/zoyluo/aibot/brain/ToolRegistry.java
+@@ -83,7 +83,11 @@ public final class ToolRegistry {
+     }
+ 
+     public Optional<ToolDefinition> get(String name) {
+-        return Optional.ofNullable(tools.get(name));
++        return Optional.ofNullable(tools.get(name)).map(tool -> new ToolDefinition(
++                tool.name(), tool.description(), tool.parametersSchema(), (bot, args) -> {
++                    io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
++                    return tool.handler().invoke(bot, args);
++                }, tool.group()));
+     }
+ 
+     public List<ToolDefinition> allTools() {
+diff --git a/src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java b/src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java
+index 50e04e05..431eb5bc 100644
+--- a/src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/coordination/IdleCoordinator.java
+@@ -45,6 +45,7 @@ public final class IdleCoordinator {
+     }
+ 
+     public boolean tickBot(AIPlayerEntity bot) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false;
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+         }
+diff --git a/src/main/java/io/github/zoyluo/aibot/craft/CraftingHelper.java b/src/main/java/io/github/zoyluo/aibot/craft/CraftingHelper.java
+index c0d97817..e01ddde1 100644
+--- a/src/main/java/io/github/zoyluo/aibot/craft/CraftingHelper.java
++++ b/src/main/java/io/github/zoyluo/aibot/craft/CraftingHelper.java
+@@ -1,6 +1,6 @@
+ package io.github.zoyluo.aibot.craft;
+ 
+-import io.github.zoyluo.aibot.entity.AIPlayerEntity;
++import net.minecraft.server.network.ServerPlayerEntity;
+ import net.minecraft.item.Item;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.registry.Registries;
+@@ -45,13 +45,13 @@ public final class CraftingHelper {
+         }
+     }
+ 
+-    public static CraftPlan plan(AIPlayerEntity bot, Item target, int targetCount) {
++    public static CraftPlan plan(ServerPlayerEntity bot, Item target, int targetCount) {
+         Planner planner = new Planner(inventoryCounts(bot), target, Math.max(1, targetCount));
+         planner.ensureItem(target, Math.max(1, targetCount), new HashSet<>());
+         return new CraftPlan(target, Math.max(1, targetCount), List.copyOf(planner.steps), List.copyOf(planner.missing), planner.needsCraftingTable);
+     }
+ 
+-    private static Map<Item, Integer> inventoryCounts(AIPlayerEntity bot) {
++    private static Map<Item, Integer> inventoryCounts(ServerPlayerEntity bot) {
+         Map<Item, Integer> counts = new HashMap<>();
+         for (ItemStack stack : bot.getInventory().main) {
+             add(counts, stack);
+diff --git a/src/main/java/io/github/zoyluo/aibot/craft/RecipeRegistry.java b/src/main/java/io/github/zoyluo/aibot/craft/RecipeRegistry.java
+index e118ce2c..b9a57de1 100644
+--- a/src/main/java/io/github/zoyluo/aibot/craft/RecipeRegistry.java
++++ b/src/main/java/io/github/zoyluo/aibot/craft/RecipeRegistry.java
+@@ -25,6 +25,17 @@ public final class RecipeRegistry {
+             Items.MANGROVE_LOG,
+             Items.CHERRY_LOG);
+ 
++    /** 去皮原木同样 1->4 木板(原版配方;实测 stripped_oak_log 挖到却无法合成)。 */
++    public static final List<Item> STRIPPED_LOGS = List.of(
++            Items.STRIPPED_OAK_LOG,
++            Items.STRIPPED_SPRUCE_LOG,
++            Items.STRIPPED_BIRCH_LOG,
++            Items.STRIPPED_JUNGLE_LOG,
++            Items.STRIPPED_ACACIA_LOG,
++            Items.STRIPPED_DARK_OAK_LOG,
++            Items.STRIPPED_MANGROVE_LOG,
++            Items.STRIPPED_CHERRY_LOG);
++
+     public static final List<Item> PLANKS = List.of(
+             Items.OAK_PLANKS,
+             Items.SPRUCE_PLANKS,
+@@ -72,7 +83,10 @@ public final class RecipeRegistry {
+ 
+     private static void registerAll() {
+         for (int index = 0; index < LOGS.size(); index++) {
+-            put(new Recipe(PLANKS.get(index), 4, List.of(new Ingredient(List.of(LOGS.get(index)), 1)), false));
++            // 单配方 anyOf 两种原木:分开两条会让 find() 无序二选一,实测选中 stripped
++            // 却要求手里是 stripped 造成 craft_missing 误报。
++            put(new Recipe(PLANKS.get(index), 4, List.of(new Ingredient(
++                    List.of(LOGS.get(index), STRIPPED_LOGS.get(index)), 1)), false));
+         }
+         put(new Recipe(Items.STICK, 4, List.of(new Ingredient(PLANKS, 2)), false));
+         put(new Recipe(Items.CRAFTING_TABLE, 1, List.of(new Ingredient(PLANKS, 4)), false));
+diff --git a/src/main/java/io/github/zoyluo/aibot/mode/ObservableWorldQuery.java b/src/main/java/io/github/zoyluo/aibot/mode/ObservableWorldQuery.java
+index e10b86a4..d6c2f5c7 100644
+--- a/src/main/java/io/github/zoyluo/aibot/mode/ObservableWorldQuery.java
++++ b/src/main/java/io/github/zoyluo/aibot/mode/ObservableWorldQuery.java
+@@ -144,6 +144,29 @@ public final class ObservableWorldQuery {
+         return canObserveCellWithinAfterPolicy(bot, pos, 0);
+     }
+ 
++    /**
++     * R2.1 planner variant of {@link #canObserveCell(AIPlayerEntity, BlockPos)}: the same strict
++     * cell-observation rule (capability gate, perception radius, collider/fluid raycast, MISS or
++     * exact hit on the target cell) evaluated from a hypothetical eye position, so work-pose
++     * selection can prove the bot will see the target AFTER walking to a candidate stand. No
++     * observation rule is relaxed; only the eye the planner evaluates from is substituted.
++     */
++    public static boolean canObserveCellFrom(AIPlayerEntity bot, Vec3d eye, BlockPos pos) {
++        if (CapabilityRuntime.decide(bot, PrivilegedCapability.HIDDEN_BLOCK_SCAN,
++                "observable_cell_query").allowed()) {
++            return true;
++        }
++        int radius = Math.max(1, AIBotConfig.get().perception().radius());
++        if (eye.squaredDistanceTo(pos.toCenterPos()) > (double) radius * radius) {
++            return false;
++        }
++        BlockHitResult hit = bot.getServerWorld().raycast(new RaycastContext(
++                eye, pos.toCenterPos(),
++                RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.ANY, bot));
++        return hit.getType() == HitResult.Type.MISS
++                || (hit.getType() == HitResult.Type.BLOCK && hit.getBlockPos().equals(pos));
++    }
++
+     /**
+      * Prey-grounding cell observation at surface-search range; see
+      * {@link #canObserveBlockWithin(AIPlayerEntity, BlockPos, int)} for the fairness rationale.
+diff --git a/src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java b/src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java
+index baa72f57..fc045b2c 100644
+--- a/src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java
++++ b/src/main/java/io/github/zoyluo/aibot/network/AIBotServerNetworking.java
+@@ -303,6 +303,10 @@ public final class AIBotServerNetworking {
+ 
+     private void dispatch(ServerPlayerEntity player, AIPlayerEntity bot, BotCommandC2S payload) {
+         String action = payload.action().toLowerCase(Locale.ROOT);
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot) && !"chat".equals(action)) {
++            sendSystem(player, bot.getGameProfile().getName(), "External body: use DSH controls; legacy panel mutation is disabled.");
++            return;
++        }
+         switch (action) {
+             case "move" -> assign(bot, new MoveTask(bot, parseBlockPos(payload.arg1())));
+             case "mine" -> assign(bot, new MineTask(requiredBlock(payload.arg1()), count(payload)));
+@@ -315,7 +319,11 @@ public final class AIBotServerNetworking {
+             }
+             case "chat" -> {
+                 sendBotChat(bot, "user", payload.arg1());
+-                if (!IntentController.INSTANCE.routePlayerControlPhrase(
++                if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++                    io.github.zoyluo.aibot.external.ExternalBodyAccess.playerMessage(
++                            bot, player.getUuid(), player.getGameProfile().getName(),
++                            "network:panel_chat", true, payload.arg1());
++                } else if (!IntentController.INSTANCE.routePlayerControlPhrase(
+                         bot, IntentController.ControlOrigin.PLAYER_PANEL, payload.arg1())) {
+                     BrainCoordinator.INSTANCE.handleMessage(bot, player.getGameProfile().getName(), payload.arg1());
+                 }
+diff --git a/src/main/java/io/github/zoyluo/aibot/perception/PerceptionCollector.java b/src/main/java/io/github/zoyluo/aibot/perception/PerceptionCollector.java
+index aed2328a..05224cb5 100644
+--- a/src/main/java/io/github/zoyluo/aibot/perception/PerceptionCollector.java
++++ b/src/main/java/io/github/zoyluo/aibot/perception/PerceptionCollector.java
+@@ -109,7 +109,7 @@ public final class PerceptionCollector {
+                             pos.getY(),
+                             pos.getZ(),
+                             round(distance)));
+-                    addHighlights(highlights, state, pos, round(distance), water);
++                    addHighlights(bot, highlights, state, pos, round(distance), water);
+                 }
+             }
+         }
+@@ -160,7 +160,8 @@ public final class PerceptionCollector {
+                 .toList();
+     }
+ 
+-    private static void addHighlights(Map<String, List<PerceptionSnapshot.NearbyBlock>> highlights,
++    private static void addHighlights(AIPlayerEntity bot,
++                                      Map<String, List<PerceptionSnapshot.NearbyBlock>> highlights,
+                                       BlockState state,
+                                       BlockPos pos,
+                                       double distance,
+@@ -168,9 +169,11 @@ public final class PerceptionCollector {
+         if (water) {
+             addHighlight(highlights, "nearest_water", "minecraft:water", pos, distance);
+         }
+-        if (state.isIn(BlockTags.LOGS)) {
++        if (state.isIn(BlockTags.LOGS)
++                && io.github.zoyluo.aibot.external.NaturalTreeClassifier.isNaturalTreeLog(bot, pos)) {
+             addHighlight(highlights, "nearest_tree", Registries.BLOCK.getId(state.getBlock()).toString(), pos, distance);
+         }
++        io.github.zoyluo.aibot.external.SemanticWorldRegistry.observeVisibleBlock(bot, pos, state);
+         if (state.isOf(Blocks.STONE) || state.isOf(Blocks.COBBLESTONE) || state.isOf(Blocks.DEEPSLATE)) {
+             addHighlight(highlights, "nearest_stone", Registries.BLOCK.getId(state.getBlock()).toString(), pos, distance);
+         }
+diff --git a/src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java b/src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java
+index 69878ada..69c31af8 100644
+--- a/src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java
++++ b/src/main/java/io/github/zoyluo/aibot/runtime/IntentController.java
+@@ -63,6 +63,7 @@ public final class IntentController {
+ 
+     public boolean pause(AIPlayerEntity bot, ControlOrigin origin, String reason) {
+         requireServerThread(bot);
++        if (origin != ControlOrigin.SYSTEM) io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
+         String normalized = normalizeReason(origin, reason);
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+@@ -85,6 +86,7 @@ public final class IntentController {
+ 
+     public boolean resume(AIPlayerEntity bot, ControlOrigin origin, String reason) {
+         requireServerThread(bot);
++        if (origin != ControlOrigin.SYSTEM) io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
+         String normalized = normalizeReason(origin, reason);
+         if (!TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+@@ -125,6 +127,7 @@ public final class IntentController {
+                                                     String reason,
+                                                     IntentControlTransaction.Scope scope) {
+         Objects.requireNonNull(origin, "origin");
++        if (origin != ControlOrigin.SYSTEM) io.github.zoyluo.aibot.external.ExternalBodyAccess.checkTool(bot);
+         String normalizedReason = reason == null || reason.isBlank() ? origin.name().toLowerCase() : reason;
+         IntentControlTransaction.Port port = new MinecraftPort(bot, origin, normalizedReason);
+         return IntentControlTransaction.cancel(port, scope, origin.invalidatesDecision());
+diff --git a/src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java b/src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java
+index 4bf50391..c24e374d 100644
+--- a/src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/runtime/RuntimeLifecycleCoordinator.java
+@@ -73,6 +73,7 @@ public final class RuntimeLifecycleCoordinator {
+     }
+ 
+     public void onBotDeath(AIPlayerEntity bot) {
++        io.github.zoyluo.aibot.external.ExternalBodyRuntime.death(bot);
+         BrainCoordinator.INSTANCE.invalidateDecision(bot, "bot_death");
+         BrainCoordinator.INSTANCE.clearIntentWakeSources(bot);
+         // A death interrupts but does not erase a long-running Mission. GoalExecutor persists the
+diff --git a/src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java b/src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java
+index 0a6bfc2f..23d33624 100644
+--- a/src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/BotTickCoordinator.java
+@@ -25,7 +25,7 @@ public final class BotTickCoordinator {
+             }
+             StuckWatcher.INSTANCE.tickBot(server, bot);
+             boolean handled = runDanger && DangerWatcher.INSTANCE.scanBot(server, bot);
+-            if (!handled && GoalExecutor.INSTANCE.tickBot(server, bot)) {
++            if (!handled && !io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot) && GoalExecutor.INSTANCE.tickBot(server, bot)) {
+                 continue;
+             }
+             if (!handled && runBackground) {
+diff --git a/src/main/java/io/github/zoyluo/aibot/task/BuildTask.java b/src/main/java/io/github/zoyluo/aibot/task/BuildTask.java
+index 9a2e3704..6773c426 100644
+--- a/src/main/java/io/github/zoyluo/aibot/task/BuildTask.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/BuildTask.java
+@@ -21,6 +21,7 @@ import net.minecraft.server.world.ServerWorld;
+ import net.minecraft.util.Identifier;
+ import net.minecraft.util.math.BlockPos;
+ import net.minecraft.util.math.Direction;
++import net.minecraft.util.math.Vec3d;
+ 
+ import java.util.ArrayDeque;
+ import java.util.Deque;
+@@ -55,6 +56,11 @@ public final class BuildTask extends AbstractTask {
+     private int skippedBlocks;
+     private boolean flattenMiningStarted;
+     private boolean buildMiningStarted;
++    private BlockPos cachedStand;          // R2.1: stand 搜索含 raycast,同目标短窗口缓存
++    private BlockPos cachedStandTarget;
++    private int cachedStandTick = -100;
++    private int workPoseDiagTick = -100;   // 诊断行节流:独立计数器(与 retryTicks 解耦)
++    private int pathHoldTicks;             // 因 path 活跃而顺延的累计 tick(防无限顺延)
+     private String note = "";
+ 
+     public BuildTask(BlueprintSchema blueprint, BlockPos anchor) {
+@@ -190,6 +196,7 @@ public final class BuildTask extends AbstractTask {
+             flattenMiningStarted = false;
+             flattenTargetTick = elapsed;
+             retryTicks = 0;
++            pathHoldTicks = 0;
+             if (currentFlattenTarget == null) {
+                 phase = Phase.BUILD;
+                 return;
+@@ -198,9 +205,15 @@ public final class BuildTask extends AbstractTask {
+         // 整地格预算:够不到的格(nearbyStand 无落脚点会退化成 startPathTo 自己→原地死循环,real_build 实测
+         // path_idle 0 进度 build_timeout)→ 50t 内没搞定就跳过,best-effort 继续整地/盖房,站不到的格不强求。
+         if (elapsed - flattenTargetTick > 50) {
+-            note = "flatten_skip=" + compact(currentFlattenTarget.pos()); // 够不到的整地格跳过(防原地死循环)
+-            currentFlattenTarget = null;
+-            return;
++            if (!bot.getActionPack().isPathExecutorIdle() && pathHoldTicks < 600) {
++                // R2.1: 走向整地格途中顺延预算,正常路途不算空转;与 build 相位同款上限,防长期顺延。
++                flattenTargetTick = elapsed;
++                pathHoldTicks++;
++            } else {
++                note = "flatten_skip=" + compact(currentFlattenTarget.pos()); // 够不到的整地格跳过(防原地死循环)
++                currentFlattenTarget = null;
++                return;
++            }
+         }
+         if (currentFlattenTarget.kind() == FlattenKind.CLEAR) {
+             clearFlattenBlock(bot);
+@@ -298,10 +311,20 @@ public final class BuildTask extends AbstractTask {
+             buildTargetIndex = nextIndex;
+             buildTargetTick = elapsed;
+             retryTicks = 0;
++            pathHoldTicks = 0;
+             buildMiningStarted = false;
+         } else if (elapsed - buildTargetTick > 80) {
+-            skipBuildTarget(bot, pos, "target_timeout");
+-            return;
++            // R2.1: 走向工作位是进展而非空转。HOME repair 的工作位常在结构另一侧,绕行 10+ 格的
++            // 正常路途会吃满 80t 预算被误判 target_timeout(R2-7 残留)。path executor 活跃时顺延
++            // 预算;真正的空转(path idle 且无放置)仍由 80t 窗口兜底。
++            if (!bot.getActionPack().isPathExecutorIdle() && pathHoldTicks < 600) {
++                // 走向工作位算进展,但顺延有上限:path 若长期不 idle(反复重规划),600t 后仍按空转处理。
++                buildTargetTick = elapsed;
++                pathHoldTicks++;
++            } else {
++                skipBuildTarget(bot, pos, "target_timeout");
++                return;
++            }
+         }
+         if (!ensureObservableWorkPose(bot, pos, "build")) {
+             return;
+@@ -376,16 +399,49 @@ public final class BuildTask extends AbstractTask {
+ 
+     private boolean ensureObservableWorkPose(AIPlayerEntity bot, BlockPos pos, String reason) {
+         double reach = bot.getBlockInteractionRange();
+-        if (ObservableWorldQuery.canObserveCell(bot, pos)
+-                && moveWithinReach(bot, pos, reason, reach * reach)) {
++        boolean observable = ObservableWorldQuery.canObserveCell(bot, pos);
++        if (observable && moveWithinReach(bot, pos, reason, reach * reach)) {
+             return true;
+         }
++        if (!observable && elapsed - workPoseDiagTick >= 40) {
++            workPoseDiagTick = elapsed;
++            BotLog.action(bot, "build_target_not_observable", "pos", compact(pos), "phase", reason,
++                    "bot", compact(bot.getBlockPos()), "retry", retryTicks);
++        }
+         if (bot.getActionPack().isPathExecutorIdle()) {
+             BlockPos stand = nearbyStand(bot, pos);
++            if (elapsed - workPoseDiagTick >= 40) {
++                workPoseDiagTick = elapsed;
++                BotLog.action(bot, "build_work_pose_state",
++                        "pos", compact(pos), "phase", reason,
++                        "stand", stand == null ? "none" : compact(stand),
++                        "retry", retryTicks);
++            }
+             if (stand != null) {
+                 ActionResult path = bot.getActionPack().startPathTo(stand);
+                 if (path.isFailed() && "pathfinding_throttled".equals(path.reason())) {
+                     placeDelayTicks = 4;
++                } else if (path.isFailed()) {
++                    // R2.1: fallback 寻路失败不再被静默丢弃——typed 计数,与 moveWithinReach 同预算判死。
++                    retryTicks++;
++                    if (retryTicks > 12) {
++                        fail("path_to_" + reason + "_failed:" + path.reason());
++                    }
++                }
++            } else {
++                // R2.1: 无可观察工作位不再 80t 静默空转——节流 typed 诊断(L0/L1 journal,不 wake DSH),
++                // 40t 预算内仍无工作位则快速失败,替代事后才出现的 target_timeout。
++                retryTicks++;
++                if (elapsed - workPoseDiagTick >= 40) {
++                    workPoseDiagTick = elapsed;
++                    BotLog.action(bot, "build_work_pose_blocked",
++                            "pos", compact(pos),
++                            "reason", reason,
++                            "bot", compact(bot.getBlockPos()),
++                            "retry", retryTicks);
++                }
++                if (retryTicks > 40) {
++                    fail("no_observable_work_pose_for_" + reason + ":" + compact(pos));
+                 }
+             }
+         }
+@@ -494,9 +550,24 @@ public final class BuildTask extends AbstractTask {
+     }
+ 
+     private BlockPos nearbyStand(AIPlayerEntity bot, BlockPos pos) {
++        return nearbyStand(bot, pos, bot.getBlockInteractionRange() * bot.getBlockInteractionRange());
++    }
++
++    private BlockPos nearbyStand(AIPlayerEntity bot, BlockPos pos, double reachSquared) {
++        if (cachedStandTarget != null && cachedStandTarget.equals(pos) && elapsed - cachedStandTick < 20) {
++            return cachedStand; // includes null: a fruitless scan stays fruitless for a short window
++        }
++        BlockPos found = nearbyStandUncached(bot, pos, reachSquared);
++        cachedStand = found;
++        cachedStandTarget = pos;
++        cachedStandTick = elapsed;
++        return found;
++    }
++
++    private BlockPos nearbyStandUncached(AIPlayerEntity bot, BlockPos pos, double reachSquared) {
+         Standability.clearCache();
+         BlockPos current = bot.getBlockPos();
+-        BlockPos exterior = preferredExteriorStand(bot, pos, current);
++        BlockPos exterior = preferredExteriorStand(bot, pos, current, reachSquared);
+         if (exterior != null) {
+             return exterior;
+         }
+@@ -519,7 +590,7 @@ public final class BuildTask extends AbstractTask {
+                         if (candidate.equals(current)
+                                 || pathAlreadyConsidersArrived
+                                 || candidate.getSquaredDistance(pos) > 100.0D
+-                                || !isObservableStandable(bot, candidate)) {
++                                || !isWorkPoseUsable(bot, candidate, pos, reachSquared)) {
+                             continue;
+                         }
+                         double score = candidate.getSquaredDistance(current)
+@@ -540,7 +611,8 @@ public final class BuildTask extends AbstractTask {
+      * from slowly walling itself into the structure and gives it a clear angle to the nearest
+      * facade without inspecting hidden terrain inside the footprint.
+      */
+-    private BlockPos preferredExteriorStand(AIPlayerEntity bot, BlockPos target, BlockPos current) {
++    private BlockPos preferredExteriorStand(AIPlayerEntity bot, BlockPos target, BlockPos current,
++                                            double reachSquared) {
+         if (anchor == null) {
+             return null;
+         }
+@@ -570,7 +642,7 @@ public final class BuildTask extends AbstractTask {
+                 BlockPos candidate = new BlockPos(horizontal.getX(), y, horizontal.getZ());
+                 if (!pathAlreadyConsidersArrived(current, candidate)
+                         && candidate.getSquaredDistance(target) <= 100.0D
+-                        && isObservableStandable(bot, candidate)) {
++                        && isWorkPoseUsable(bot, candidate, target, reachSquared)) {
+                     return candidate.toImmutable();
+                 }
+             }
+@@ -579,16 +651,28 @@ public final class BuildTask extends AbstractTask {
+     }
+ 
+     /**
+-     * Work-pose selection is part of planning, not the pathfinder's local collision adapter. In
+-     * strict survival it therefore has to prove the ground, feet, and head cells observable before
+-     * consulting raw standability. Operator mode passes these queries through its explicit hidden
+-     * scan capability.
++     * R2.1: a work pose is chosen by what the bot can see AFTER arriving there, not by whether the
++     * stand cells happen to be visible from the CURRENT eye position. The old rule (ground/feet/
++     * head observable from here) dead-locked HOME repair: with a missing cell on the far facade of
++     * a closed cabin every candidate — inside the cabin and behind the far wall alike — was
++     * "unobservable from here", nearbyStand returned null forever, and the build budget burned
++     * down as a silent 80t target_timeout with zero placement and zero diagnostics (LIVE-R2-7).
++     * The strict observation policy itself is NOT relaxed: the candidate is accepted only if the
++     * same strict raycast proves the TARGET cell observable from the candidate's eye height and
++     * within interaction reach once the bot stands there.
+      */
+-    private static boolean isObservableStandable(AIPlayerEntity bot, BlockPos candidate) {
+-        return ObservableWorldQuery.canObserveBlock(bot, candidate.down())
+-                && ObservableWorldQuery.canObserveCell(bot, candidate)
+-                && ObservableWorldQuery.canObserveCell(bot, candidate.up())
+-                && Standability.isStandable(bot.getServerWorld(), candidate);
++    private static boolean isWorkPoseUsable(AIPlayerEntity bot, BlockPos candidate, BlockPos target,
++                                            double reachSquared) {
++        Vec3d eye = new Vec3d(candidate.getX() + 0.5D, candidate.getY() + 1.62D, candidate.getZ() + 0.5D);
++        if (eye.squaredDistanceTo(target.toCenterPos()) > reachSquared) {
++            return false;
++        }
++        // Observe first: the strict raycast is the boundary that must gate any later raw world read
++        // (upstream rule), so raw standability is consulted only after the target is proven visible.
++        if (!ObservableWorldQuery.canObserveCellFrom(bot, eye, target)) {
++            return false;
++        }
++        return Standability.isStandable(bot.getServerWorld(), candidate);
+     }
+ 
+     private static boolean pathAlreadyConsidersArrived(BlockPos current, BlockPos candidate) {
+diff --git a/src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java b/src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java
+index 16b7aeb0..145fe60a 100644
+--- a/src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/DangerWatcher.java
+@@ -464,6 +464,7 @@ public final class DangerWatcher {
+     }
+ 
+     private boolean maybeResupply(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响
+         boolean criticalStarvation = bot.getHungerManager().getFoodLevel()
+                 <= AIBotConfig.get().survival().hungerCriticalThreshold();
+         if (TaskManager.INSTANCE.isUserPaused(bot) && !criticalStarvation) {
+@@ -563,6 +564,7 @@ public final class DangerWatcher {
+         }
+         boolean critical = foodLevel <= survival.hungerCriticalThreshold();
+         boolean urgent = critical || healingEmergency;
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot) && !urgent) return false; // 外部身体只保留 critical hunger / healing 的 SAFETY EatTask
+         if (TaskManager.INSTANCE.isUserPaused(bot) && !urgent) {
+             return false;
+         }
+@@ -585,6 +587,11 @@ public final class DangerWatcher {
+             return false;
+         }
+         if (InventoryAction.findFoodSlot(bot) < 0) {
++            if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) {
++                io.github.zoyluo.aibot.external.ExternalBodyRuntime.survivalAlert(bot, "critical_hunger_no_food");
++                nextEatAttemptTick.put(bot.getUuid(), now + 100);
++                return false;
++            }
+             // 第2层 饥饿链:没有任何食物 → 若周围有可猎动物,主动猎杀获取生肉,而非干等饿死。
+             if (huntForFood(server, bot, active)) {
+                 return true;
+@@ -837,6 +844,7 @@ public final class DangerWatcher {
+     }
+ 
+     private boolean maybeStartNightTask(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+         }
+@@ -883,6 +891,7 @@ public final class DangerWatcher {
+     // 规避加固:地下/黑暗处(方块光照<8)只要 idle 且有火把,就先点亮——从源头减少怪物在身边刷新。
+     // 不限夜晚(地下白天 light=0 同样刷怪)。仅 active 为空(idle/目标步骤间隙)时派,避免打断挖矿。
+     private boolean maybeLightDarkArea(MinecraftServer server, AIPlayerEntity bot, Optional<Task> active) {
++        if (io.github.zoyluo.aibot.external.ExternalBodyAccess.reserved(bot)) return false; // 外部身体:后台维持任务交给 DSH;SAFETY 路径(threat/lava/recover 等)不受影响
+         if (TaskManager.INSTANCE.isUserPaused(bot)) {
+             return false;
+         }
+diff --git a/src/main/java/io/github/zoyluo/aibot/task/FarmTask.java b/src/main/java/io/github/zoyluo/aibot/task/FarmTask.java
+index ce82c371..2b8c8291 100644
+--- a/src/main/java/io/github/zoyluo/aibot/task/FarmTask.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/FarmTask.java
+@@ -149,8 +149,8 @@ public final class FarmTask extends AbstractTask {
+         boolean hasSeeds = !harvestOnly && InventoryAction.countItem(bot, seed) > 0;
+         BlockPos.stream(areaCenter.add(-radius, -1, -radius), areaCenter.add(radius, 1, radius))
+                 .map(BlockPos::toImmutable)
+-                .filter(pos -> io.github.zoyluo.aibot.mode.ObservableWorldQuery.canObserveBlock(bot, pos)
+-                        || io.github.zoyluo.aibot.mode.ObservableWorldQuery.canObserveBlock(bot, pos.up()))
++                .filter(pos -> io.github.zoyluo.aibot.external.SemanticWorldRegistry
++                        .farmSurveyCellObservable(bot, areaCenter, radius, crop, pos))
+                 .forEach(pos -> addTargetIfUseful(world, pos, hasSeeds));
+         targets.sort(Comparator.comparingDouble(pos -> pos.ground().getSquaredDistance(bot.getBlockPos())));
+         if (targets.isEmpty()) {
+diff --git a/src/main/java/io/github/zoyluo/aibot/task/GatherQuotaTask.java b/src/main/java/io/github/zoyluo/aibot/task/GatherQuotaTask.java
+index f3b4d483..0e913d75 100644
+--- a/src/main/java/io/github/zoyluo/aibot/task/GatherQuotaTask.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/GatherQuotaTask.java
+@@ -61,11 +61,13 @@ public final class GatherQuotaTask extends AbstractTask {
+         DEPOSIT,
+         ROAM,
+         EXPLORE,
++        TREE_CLEANUP,
+         DONE
+     }
+ 
+     private final Item targetItem;
+     private final int targetCount;
++    private final String externalExecutionId;
+     // Fix C:目标是原木时,接受/采集**任意**树种(生物群系不一定有橡木)。进度按整族原木总数计。
+     private final Set<Item> acceptItems;
+     private final Set<Block> harvestBlocks;
+@@ -111,10 +113,18 @@ public final class GatherQuotaTask extends AbstractTask {
+     private boolean treeDigTried; // 当前目标是否已升级过挖掘接近(崖壁/下方树走不到时下沉掘进)
+     private BlockPos gotoStuckPos; // R1:GOTO 上次记录的坐标(久不动判悬空死锁)
+     private int gotoStuckTick;
++    private io.github.zoyluo.aibot.external.TreeHarvestWorkset treeWorkset;
++    private String treeTerminalReason = "";
+ 
+     public GatherQuotaTask(Item targetItem, int targetCount) {
++        this(targetItem, targetCount, "");
++    }
++
++    /** Exact external execution identity is optional so every internal/upstream caller stays source-compatible. */
++    public GatherQuotaTask(Item targetItem, int targetCount, String externalExecutionId) {
+         this.targetItem = targetItem;
+         this.targetCount = Math.max(1, targetCount);
++        this.externalExecutionId = externalExecutionId == null ? "" : externalExecutionId;
+         this.acceptItems = acceptItemsFor(targetItem);
+         this.harvestBlocks = harvestBlocksFor(this.acceptItems);
+         this.probabilisticDrop = harvestBlocks.contains(Blocks.SHORT_GRASS)
+@@ -133,7 +143,15 @@ public final class GatherQuotaTask extends AbstractTask {
+ 
+     @Override
+     public double progress() {
+-        return Math.min(1.0D, (double) countSoFar / targetCount);
++        double quotaProgress = Math.min(1.0D, (double) countSoFar / targetCount);
++        // A satisfied inventory quota is not terminal while this execution still owes the current tree.
++        if (treeWorkset != null && quotaProgress >= 1.0D && !treeWorkset.treeComplete()) return 0.99D;
++        return quotaProgress;
++    }
++
++    /** Read-only diagnostic seam used by GameTests/evidence; no mutation or controller authority. */
++    public io.github.zoyluo.aibot.external.TreeHarvestWorkset.Snapshot treeWorksetSnapshot() {
++        return treeWorkset == null ? null : treeWorkset.snapshot();
+     }
+ 
+     @Override
+@@ -158,7 +176,8 @@ public final class GatherQuotaTask extends AbstractTask {
+     @Override
+     protected void onResume(AIPlayerEntity bot) {
+         countSoFar = countAccepted(bot);
+-        if (countSoFar >= targetCount) {
++        if (treeWorkset != null) treeWorkset.onResume();
++        if (countSoFar >= targetCount && treeWorkset == null) {
+             clearPickupLedger();
+             phase = Phase.DONE;
+             return;
+@@ -197,23 +216,31 @@ public final class GatherQuotaTask extends AbstractTask {
+         // 工作记忆:记录走过的轨迹(4 格去抖),roam 选点避开已搜过的区域(不再盲目转圈)。
+         EpisodeMemory.INSTANCE.recordTrail(bot.getUuid(), "gather", bot.getBlockPos());
+         countSoFar = countAccepted(bot);
+-        if (countSoFar >= targetCount) {
++        if (countSoFar >= targetCount && treeWorkset == null) {
+             bot.getActionPack().stopAll();
+             clearPickupLedger();
+             phase = Phase.DONE;
+         }
+-        if (elapsed > 6000) {
+-            fail("gather_timeout");
++        if (elapsed > 6000 && phase != Phase.TREE_CLEANUP) {
++            if (treeWorkset != null) {
++                treeTerminalReason = "gather_timeout";
++                bot.getActionPack().stopAll();
++                phase = Phase.TREE_CLEANUP;
++            } else {
++                fail("gather_timeout");
++            }
+             return;
+         }
+         // Do not re-enter SURVEY/EXPLORE every tick while swimming. That used to burn all eight
+         // exploration hops in place before NavSafetyNet's low-air threshold could take control.
++        // Cleanup pauses the same way: the workset/support ledger lives on the task instance, so
++        // waiting for the shared water rescue cannot discard owned supports (TREE-5 semantics).
+         if (waitForDryGround(bot)) {
+             return;
+         }
+         // A:采集自愈——只看"是否采到新木"(count 是否增长),不看位置。GOTO 缓慢挪动但久采不到(走不到树/
+         // 砍不动)也算卡 → 及时漫游换片,而非缓慢耗到 gather_timeout(实测:采到 5 根后走不到剩下的、5min 超时被秒)。
+-        if (phase == Phase.SURVEY || phase == Phase.GOTO) {
++        if (treeWorkset == null && (phase == Phase.SURVEY || phase == Phase.GOTO)) {
+             if (countSoFar != selfStuckCount) {
+                 selfStuckCount = countSoFar;
+                 selfStuckTick = elapsed;
+@@ -231,6 +258,7 @@ public final class GatherQuotaTask extends AbstractTask {
+             case DEPOSIT -> deposit(bot);
+             case ROAM -> roamMove(bot);
+             case EXPLORE -> exploreMove(bot);
++            case TREE_CLEANUP -> treeCleanup(bot);
+             case DONE -> complete();
+         }
+     }
+@@ -283,7 +311,8 @@ public final class GatherQuotaTask extends AbstractTask {
+         var world = bot.getServerWorld();
+         BlockPos found = OreProspector.nearest(bot, PROSPECT_RANGE,
+                 state -> harvestBlocks.contains(state.getBlock()),
+-                pos -> !EpisodeMemory.INSTANCE.isExcluded(botId, pos, now));
++                pos -> !EpisodeMemory.INSTANCE.isExcluded(botId, pos, now)
++                        && io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos));
+         if (found == null) {
+             // 观测:静默 false 无法区分"96 格内真没该资源"和"扫描/黑名单 bug"(实测 21t 速死无从取证)。
+             BotLog.action(bot, "gather_prospect_empty",
+@@ -575,7 +604,8 @@ public final class GatherQuotaTask extends AbstractTask {
+         if (now - lastExploreScanTick >= EXPLORE_SCAN_INTERVAL) {
+             lastExploreScanTick = now;
+             BlockPos seen = OreProspector.nearest(bot, 16,
+-                    state -> harvestBlocks.contains(state.getBlock()));
++                    state -> harvestBlocks.contains(state.getBlock()),
++                    pos -> io.github.zoyluo.aibot.external.NaturalTreeClassifier.isHarvestCandidate(bot, pos));
+             if (seen != null) {
+                 bot.getActionPack().stopAll();
+                 exploreTarget = null;
+@@ -618,6 +648,10 @@ public final class GatherQuotaTask extends AbstractTask {
+     }
+ 
+     private void survey(AIPlayerEntity bot) {
++        if (treeWorkset != null) {
++            surveyCommittedTree(bot);
++            return;
++        }
+         if (harvestBlocks.isEmpty()) {
+             fail("unsupported_resource_type");
+             return;
+@@ -784,10 +818,13 @@ public final class GatherQuotaTask extends AbstractTask {
+ 
+     private void harvest(AIPlayerEntity bot) {
+         if (targetPos == null || !isHarvestBlock(bot, targetPos)) {
++            BlockPos harvested = targetPos == null ? null : targetPos.toImmutable();
++            if (treeWorkset != null && harvested != null) treeWorkset.noteHarvested(bot, harvested);
+             invalidateConsumedResource(bot);
+             bot.getActionPack().stopAll(); // 砍倒后停稳,别带移动惯性漂离掉落物(实测砍完从树位漂走→捡不到)
+             pickupTicks = probabilisticDrop ? 30 : 120; // 概率掉落资源(种子/浆果)掉脚边、捡得快,少等
+-            phase = Phase.PICKUP;
++            phase = treeWorkset != null && treeWorkset.hasTemporarySupports()
++                    ? Phase.TREE_CLEANUP : Phase.PICKUP;
+             return;
+         }
+         if (elapsed - harvestStartedTick > HARVEST_LIMIT) {
+@@ -795,10 +832,18 @@ public final class GatherQuotaTask extends AbstractTask {
+             EpisodeMemory.INSTANCE.exclude(bot.getUuid(), targetPos,
+                     bot.getServer().getTicks(), EpisodeMemory.TTL_UNREACHABLE);
+             BotLog.action(bot, "gather_harvest_timeout", "pos", targetPos.toShortString());
+-            targetPos = null;
+-            clearPickupLedger();
+-            resetSurveyWatchdog();
+-            phase = Phase.SURVEY;
++            if (treeWorkset != null) {
++                treeWorkset.markBlocked(targetPos, "harvest_timeout");
++                treeTerminalReason = "committed_log_harvest_timeout:" + targetPos.toShortString();
++                targetPos = null;
++                clearPickupLedger();
++                phase = Phase.TREE_CLEANUP;
++            } else {
++                targetPos = null;
++                clearPickupLedger();
++                resetSurveyWatchdog();
++                phase = Phase.SURVEY;
++            }
+             return;
+         }
+         if (bot.getActionPack().isMiningIdle() && elapsed % 200 == 0) {
+@@ -849,6 +894,14 @@ public final class GatherQuotaTask extends AbstractTask {
+             pickupStatNow = pickedUpAccepted(bot);
+             if (confirmPickup(bot, pickupStatNow)) {
+                 return;
++            } else if (treeWorkset != null && pickupOrigin != null) {
++                // Exact tree pickup debt expired after the bounded physical chase. Reconcile as an
++                // explicit loss instead of silently forgetting this tree transaction.
++                BlockPos lost = pickupOrigin.toImmutable();
++                treeWorkset.resolvePickupLoss(lost, "bounded_pickup_not_recovered");
++                clearPickupLedger();
++                pickupMisses = 0;
++                continueAfterTreePickup(bot);
+             } else if (probabilisticDrop) {
+                 // 概率掉落(割草取种子/采浆果丛):这次破坏没掉是常态,不算"采不到",回 SURVEY 继续采下一个;
+                 // 靠 survey 找不到方块(→roam)与 gather_timeout(6000t)兜底,避免被 pickup_miss 误判超时
+@@ -894,6 +947,13 @@ public final class GatherQuotaTask extends AbstractTask {
+         }
+         bot.getActionPack().stopAll();
+         pickupMisses = 0;
++        if (treeWorkset != null && pickupOrigin != null) {
++            treeWorkset.resolvePickup(pickupOrigin,
++                    inventoryGain ? "inventory_delta" : "vanilla_pickup_stat_delta");
++            clearPickupLedger();
++            continueAfterTreePickup(bot);
++            return true;
++        }
+         clearPickupLedger();
+         if (countSoFar >= targetCount) {
+             phase = Phase.DONE;
+@@ -907,6 +967,134 @@ public final class GatherQuotaTask extends AbstractTask {
+         return true;
+     }
+ 
++    /** Drive only the frozen log cells of an already acquired natural tree. */
++    private void surveyCommittedTree(AIPlayerEntity bot) {
++        treeWorkset.reconcile(bot);
++        if (treeWorkset.hasCleanupDebt()) {
++            fail("tree_cleanup_debt:" + treeWorkset.cleanupDebt());
++            return;
++        }
++        if (treeWorkset.hasPendingPickup()) {
++            phase = Phase.PICKUP;
++            return;
++        }
++        if (treeWorkset.hasBlockedLogs()) {
++            treeTerminalReason = "committed_log_blocked:" + treeWorkset.blockedSummary();
++            phase = Phase.TREE_CLEANUP;
++            return;
++        }
++        if (treeWorkset.logsResolved()) {
++            finishOrContinueTree(bot);
++            return;
++        }
++        if (HarvestCore.isInventoryFull(bot)) {
++            phase = Phase.DEPOSIT;
++            return;
++        }
++        BlockPos next = treeWorkset.nextRemaining(bot);
++        if (next == null) {
++            treeTerminalReason = "committed_tree_has_no_runnable_log";
++            phase = Phase.TREE_CLEANUP;
++            return;
++        }
++        var access = treeWorkset.tickAccess(bot, next);
++        switch (access.state()) {
++            case READY -> {
++                targetPos = next;
++                startHarvest(bot);
++            }
++            case IN_PROGRESS -> { }
++            case BLOCKED -> {
++                treeWorkset.markBlocked(next, access.reason());
++                treeTerminalReason = "committed_log_access_blocked:" + access.reason();
++                bot.getActionPack().stopAll();
++                phase = Phase.TREE_CLEANUP;
++            }
++            case DEBT -> fail("tree_cleanup_debt:" + access.reason());
++            case COMPLETE -> { }
++        }
++    }
++
++    /** Reverse-clean exact TREE_ACCESS receipts before pickup or terminal failure. */
++    private void treeCleanup(AIPlayerEntity bot) {
++        var cleanup = treeWorkset == null
++                ? io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepResult.complete()
++                : treeWorkset.tickCleanup(bot);
++        if (cleanup.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepState.IN_PROGRESS) return;
++        if (cleanup.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepState.DEBT) {
++            fail("tree_cleanup_debt:" + cleanup.reason());
++            return;
++        }
++        if (cleanup.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.StepState.BLOCKED) {
++            fail("tree_cleanup_blocked:" + cleanup.reason());
++            return;
++        }
++        if (!treeTerminalReason.isBlank()) {
++            fail(treeTerminalReason);
++            return;
++        }
++        if (treeWorkset != null && treeWorkset.hasPendingPickup()) {
++            phase = Phase.PICKUP;
++            return;
++        }
++        finishOrContinueTree(bot);
++    }
++
++    private void continueAfterTreePickup(AIPlayerEntity bot) {
++        if (treeWorkset == null) {
++            resetSurveyWatchdog();
++            phase = countSoFar >= targetCount ? Phase.DONE : Phase.SURVEY;
++            return;
++        }
++        if (treeWorkset.hasTemporarySupports()) {
++            phase = Phase.TREE_CLEANUP;
++            return;
++        }
++        finishOrContinueTree(bot);
++    }
++
++    private void finishOrContinueTree(AIPlayerEntity bot) {
++        if (treeWorkset == null) {
++            phase = countSoFar >= targetCount ? Phase.DONE : Phase.SURVEY;
++            return;
++        }
++        treeWorkset.reconcile(bot);
++        if (treeWorkset.hasCleanupDebt()) {
++            fail("tree_cleanup_debt:" + treeWorkset.cleanupDebt());
++            return;
++        }
++        if (treeWorkset.hasBlockedLogs()) {
++            fail("tree_committed_log_blocked:" + treeWorkset.blockedSummary());
++            return;
++        }
++        if (!treeWorkset.logsResolved()) {
++            resetSurveyWatchdog();
++            phase = Phase.SURVEY;
++            return;
++        }
++        if (treeWorkset.hasTemporarySupports()) {
++            phase = Phase.TREE_CLEANUP;
++            return;
++        }
++        if (treeWorkset.hasPendingPickup()) {
++            phase = Phase.PICKUP;
++            return;
++        }
++        if (!treeWorkset.treeComplete()) {
++            fail("tree_transaction_not_complete");
++            return;
++        }
++        BotLog.action(bot, "tree_workset_complete",
++                "tree", treeWorkset.treeId(),
++                "execution", treeWorkset.ownerExecution(),
++                "have", countSoFar + "/" + targetCount);
++        treeWorkset = null;
++        treeTerminalReason = "";
++        targetPos = null;
++        resetSurveyWatchdog();
++        phase = countSoFar >= targetCount ? Phase.DONE : Phase.SURVEY;
++    }
++
+     private void clearPickupLedger() {
+         pickupOrigin = null;
+         pickupOriginApproachLogged = false;
+@@ -998,6 +1186,16 @@ public final class GatherQuotaTask extends AbstractTask {
+     }
+ 
+     private void startHarvest(AIPlayerEntity bot) {
++        if (treeWorkset == null) {
++            if (!externalExecutionId.isBlank()) {
++                treeWorkset = io.github.zoyluo.aibot.external.TreeHarvestWorkset
++                        .acquire(bot, targetPos, externalExecutionId).orElse(null);
++            } else {
++                // Preserve the R2 lease for legacy/internal gathers; only external bounded executions
++                // opt into the stronger MC-2A0.2 transaction semantics.
++                io.github.zoyluo.aibot.external.NaturalTreeClassifier.acquireHarvestCluster(bot, targetPos);
++            }
++        }
+         countBeforeHarvest = countAccepted(bot);
+         pickupSweepAttempted = false;
+         harvestStartedTick = elapsed;
+@@ -1008,6 +1206,22 @@ public final class GatherQuotaTask extends AbstractTask {
+         phase = Phase.HARVEST;
+     }
+ 
++    @Override
++    protected void onAbort(AIPlayerEntity bot) {
++        if (treeWorkset != null) {
++            int supports = (int) treeWorkset.snapshot().supports().stream()
++                    .filter(s -> s.state() == io.github.zoyluo.aibot.external.TreeHarvestWorkset.SupportState.PLACED)
++                    .count();
++            treeWorkset.abandon(failureReason == null || failureReason.isBlank() ? "task_aborted" : failureReason);
++            if (supports > 0) {
++                String base = failureReason == null || failureReason.isBlank() ? "aborted" : failureReason;
++                failureReason = base + ":tree_cleanup_debt_supports=" + supports
++                        + ":" + treeWorkset.unresolvedSupportSummary();
++            }
++        }
++        super.onAbort(bot);
++    }
++
+     private int countAccepted(AIPlayerEntity bot) {
+         return acceptedInventoryCount(bot, targetItem);
+     }
+diff --git a/src/main/java/io/github/zoyluo/aibot/task/TaskManager.java b/src/main/java/io/github/zoyluo/aibot/task/TaskManager.java
+index 1d27e8dd..e233a8e7 100644
+--- a/src/main/java/io/github/zoyluo/aibot/task/TaskManager.java
++++ b/src/main/java/io/github/zoyluo/aibot/task/TaskManager.java
+@@ -46,6 +46,7 @@ public final class TaskManager {
+ 
+     private void assign(AIPlayerEntity bot, Task task, TaskOrigin origin,
+                         boolean publishStatus) {
++        io.github.zoyluo.aibot.external.ExternalBodyAccess.checkAssignment(bot, origin);
+         if (isUserPaused(bot) && !origin.safety()) {
+             throw new IllegalStateException("mission_user_paused");
+         }
+diff --git a/src/main/resources/aibot.mixins.json b/src/main/resources/aibot.mixins.json
+index 35d8e9c3..f74d6edd 100644
+--- a/src/main/resources/aibot.mixins.json
++++ b/src/main/resources/aibot.mixins.json
+@@ -9,11 +9,16 @@
+     "PlayerManagerFakePlayerMixin",
+     "MerchantEntityInvokerMixin",
+     "ServerWorldEntityManagerAccessorMixin",
+-    "ServerEntityManagerCacheAccessorMixin"
++    "ServerEntityManagerCacheAccessorMixin",
++    "ConsumableComponentEatWitnessMixin"
++  ],
++  "client": [
++    "client.RealClientMouseMixin",
++    "client.RealClientKeyboardMixin",
++    "client.RealClientFrameRateMixin"
+   ],
+-  "client": [],
+   "server": [],
+   "injectors": {
+     "defaultRequire": 1
+   }
+-}
++}
+\ No newline at end of file
+diff --git a/src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java b/src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java
+index 07d61c3c..e05d11dd 100644
+--- a/src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java
++++ b/src/test/java/io/github/zoyluo/aibot/mode/PrivilegedBoundarySourceTest.java
+@@ -141,10 +141,15 @@ class PrivilegedBoundarySourceTest {
+         assertTrue(buildTask.contains("StructureVerifier.verify"));
+         assertTrue(buildTask.contains("structure_incomplete"),
+                 "a best-effort blueprint must not report completion without exact verification");
+-        assertEquals(2, occurrences(buildTask, "isObservableStandable(bot, candidate)"),
+-                "both work-pose scans must cross the observable-world boundary");
++        // R2.1: work-pose selection proves the TARGET cell observable through the strict boundary
++        // (ObservableWorldQuery.canObserveCellFrom) evaluated from the candidate stand eye — the
++        // old "stand visible from the CURRENT eye" rule dead-locked HOME repair (LIVE-R2-7).
++        assertEquals(2, occurrences(buildTask, "isWorkPoseUsable(bot, candidate,"),
++                "both work-pose scans must prove the target observable through the strict boundary");
+         assertEquals(1, occurrences(buildTask, "Standability.isStandable"),
+                 "raw standability must stay inside the observable work-pose adapter");
++        assertTrue(buildTask.contains("ObservableWorldQuery.canObserveCellFrom"),
++                "work-pose acceptance must run the strict observation raycast, not raw reads");
+         assertFalse(StructureVerifier.matches(
+                         null,
+                         BlockPos.ORIGIN,
+@@ -201,6 +206,112 @@ class PrivilegedBoundarySourceTest {
+         assertFalse(Files.exists(MAIN.resolve("command/AIBotVerifySubcommand.java")));
+     }
+ 
++    @Test
++    void cognitiveViewStaysAReadModel() throws IOException {
++        // MC-2A0 (VIEW-1/READ-1): the cognitive view reports evidence only. Builders must not
++        // mutate the world, the registry ledger or the body inventory from the query path.
++        String[] cognitionSources = {
++                "external/cognition/CognitiveViewBuilder.java",
++                "external/cognition/CognitiveInspector.java",
++                "external/cognition/CanonicalJson.java",
++                "external/cognition/EvidenceRef.java",
++                "external/cognition/CognitiveSnapshot.java",
++                "external/cognition/StructureKnowledge.java"};
++        for (String relative : cognitionSources) {
++            String source = read(relative);
++            assertFalse(source.contains(".setBlockState("), relative + " must not place blocks");
++            assertFalse(source.contains(".breakBlock("), relative + " must not break blocks");
++            assertFalse(source.contains(".insertStack("), relative + " must not inject inventory");
++            assertFalse(source.contains(".assign("), relative + " must not assign tasks");
++        }
++        String backend = read("external/MinecraftBodyBackend.java");
++        // MC-2A0.3: 调用点改为 FQN 前缀+换行布局,匹配串放宽为方法调用尾部(语义不变)。
++        assertTrue(backend.contains(".build(bot,journal,semanticSnapshot)"),
++                "the view must reuse the observe semantic cache, never run a second full scan");
++    }
++
++    @Test
++    void cognitiveLocalScanProvesObservabilityBeforeBlockRead() throws IOException {
++        // MC-2A0.1 (BOUND-1/SEC-2): raw block reads in the cognition local-scan path may only
++        // happen after the strict-survival observability proof. The SOURCE ORDER itself is the
++        // contract — a black-box no-leak test cannot prove the read boundary.
++        String inspector = read("external/cognition/CognitiveInspector.java");
++        int scan = inspector.indexOf("inspectLocalJson");
++        assertTrue(scan >= 0, "inspectLocalJson must exist");
++        int proof = inspector.indexOf("canObserveBlock", scan);
++        int read = inspector.indexOf("getBlockState", scan);
++        assertTrue(proof >= 0, "inspectLocalJson must gate through canObserveBlock");
++        assertTrue(read >= 0, "inspectLocalJson must read block state");
++        assertTrue(proof < read,
++                "canObserveBlock proof must occur BEFORE the first getBlockState read in inspectLocalJson");
++        String knowledge = read("external/cognition/StructureKnowledge.java");
++        int verifyProof = knowledge.indexOf("canObserveBlock");
++        int verifyRead = knowledge.indexOf("getBlockState");
++        assertTrue(verifyProof >= 0 && verifyRead >= 0 && verifyProof < verifyRead,
++                "structure verification must prove all cells before reading any cell");
++    }
++
++    @Test
++    void cognitiveInspectIsLazyAndStaysInsideEvidenceScope() throws IOException {
++        // MC-2A0.1 (LAZY-1/2, SCOPE-1): the periodic view snapshot must not materialize inspect
++        // details; homeRepairPlan may only run inside the explicit baseline materialization; no
++        // autonomy runtime symbols may appear in the cognition package.
++        String builder = read("external/cognition/CognitiveViewBuilder.java");
++        assertFalse(builder.contains("CognitiveInspector.buildIndex"),
++                "view build must not precompute the inspect detail index");
++        assertFalse(builder.contains("homeRepairPlan"),
++                "a periodic cognitive snapshot refresh must never trigger homeRepairPlan (LAZY-2)");
++        assertTrue(builder.contains("EvidenceDescriptor"),
++                "the snapshot must carry lightweight evidence descriptors instead of detail JSON");
++        String inspector = read("external/cognition/CognitiveInspector.java");
++        assertTrue(inspector.indexOf("private static Map<String, Object> structureBaselineDetail") >= 0
++                        && inspector.indexOf("SemanticWorldRegistry.homeRepairPlan")
++                        > inspector.indexOf("private static Map<String, Object> structureBaselineDetail"),
++                "homeRepairPlan may only be reached from the explicit baseline detail path");
++        String backend = read("external/MinecraftBodyBackend.java");
++        // MC-2A0.3: 调用点改为 FQN 前缀+换行布局,匹配串放宽为方法调用尾部(语义不变)。
++        assertTrue(backend.contains(".materialize(bot,semanticSnapshot,gameTime,ref,detail)"),
++                "on-demand materialization must reuse the same cached semantic snapshot");
++        for (String banned : new String[]{"AgendaItem", "TaskGraphStore", "GraphFragment", "GraphProducer", "AutonomyScheduler"}) {
++            for (String relative : new String[]{
++                    "external/cognition/CognitiveViewBuilder.java",
++                    "external/cognition/CognitiveInspector.java",
++                    "external/cognition/CognitiveSnapshot.java",
++                    "external/cognition/StructureKnowledge.java",
++                    "external/cognition/CanonicalJson.java",
++                    "external/cognition/EvidenceRef.java"}) {
++                assertFalse(read(relative).contains(banned),
++                        relative + " must not contain autonomy runtime symbol " + banned);
++            }
++        }
++    }
++
++    @Test
++    void structureKnowledgeCacheKeyIncludesWorldId() throws IOException {
++        // MC-2A0.1F (COG-AQ-6/SPATIAL-CACHE-1): LAST_KNOWN verification identity must never
++        // alias across saves/worlds. The CACHE has no lifecycle eviction, so only binding the
++        // per-save world_id into the key can keep two same-named structures in different
++        // worlds from sharing a verification.
++        String knowledge = read("external/cognition/StructureKnowledge.java");
++        assertTrue(knowledge.contains("SemanticWorldRegistry.worldId() + \"/\" + structure.dimension() + \"/\" + structure.id()"),
++                "StructureKnowledge cache key must be world_id/dimension/object-id scoped");
++    }
++
++    @Test
++    void automaticObservationUsesBoundedSemanticSnapshot() throws IOException {
++        // MC-2A0.1F (AUTO-OBS-1..3/COG-AQ-1): the automatic refresh path must take the bounded
++        // registry entry — the omniscient observe() variant remote-scans registered structure
++        // baselines with no observability proof and may only serve EXPLICIT operations.
++        String backend = read("external/MinecraftBodyBackend.java");
++        assertTrue(backend.contains("SemanticWorldRegistry.observeBounded(bot)"),
++                "automatic semantic cache refresh must use observeBounded, never omniscient observe");
++        assertFalse(backend.contains("SemanticWorldRegistry.observe(bot)"),
++                "the automatic backend must not call the omniscient observe variant at all");
++        String builder = read("external/cognition/CognitiveViewBuilder.java");
++        assertTrue(builder.contains("SemanticWorldRegistry.observeBounded(bot)"),
++                "the cognitive view fallback must use the bounded semantic snapshot");
++    }
++
+     private static Map<String, String> matchingSources(Pattern pattern) throws IOException {
+         Map<String, String> result = new LinkedHashMap<>();
+         try (var paths = Files.walk(MAIN)) {

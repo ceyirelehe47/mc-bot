@@ -100,6 +100,12 @@ def generate_ia_mutations(ia, outdir):
 
 def generate_g4_mutations(runs, outdir):
     out = []
+
+    def add(name, doc):
+        p = os.path.join(outdir, "g4-%s.json" % name)
+        _save(p, doc)
+        out.append((name, p))
+
     m = copy.deepcopy(runs)
     first = m["runs"][0]
     m["runs"] = [dict(first, run_id="x%d" % i) for i in range(5)]
@@ -158,8 +164,8 @@ def cmd_generate(ia_path, g4_path, outdir):
     _save(os.path.join(outdir, "manifest.json"), {
         "ia_original": os.path.abspath(ia_path),
         "g4_original": os.path.abspath(g4_path),
-        "ia_mutations": [n for n, _ in pairs if n.startswith("ia-")],
-        "g4_mutations": [n for n, _ in pairs if n.startswith("g4-")],
+        "ia_mutations": [n for n, _ in pairs[:5]],
+        "g4_mutations": [n for n, _ in pairs[5:]],
     })
     print(json.dumps({"generated": len(pairs),
                       "outdir": outdir}, ensure_ascii=False))
