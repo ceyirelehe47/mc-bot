@@ -17,21 +17,30 @@ OVERLAY = REPO / "aibot-dsh-m0" / "aibot-overlay" / "src"
 BUILD = pathlib.Path(r"D:\code\mc-experiment\rcf1-rebuild-base\src")
 
 
+def _build_arg():
+    """--build <dir>:目标构建树(R3C fresh replay 用全新源码树)。"""
+    for i, a in enumerate(sys.argv):
+        if a == "--build" and i + 1 < len(sys.argv):
+            return pathlib.Path(sys.argv[i + 1]) / "src"
+    return BUILD
+
+
 def overlay_files():
     return sorted(p for p in OVERLAY.rglob("*") if p.is_file())
 
 
 def main():
     check_only = "--check" in sys.argv
+    build = _build_arg()
     if not OVERLAY.is_dir():
         print("overlay missing: %s" % OVERLAY)
         return 2
-    if not BUILD.is_dir():
-        print("build tree missing: %s" % BUILD)
+    if not build.is_dir():
+        print("build tree missing: %s" % build)
         return 2
     changed = []
     for src in overlay_files():
-        dst = BUILD / src.relative_to(OVERLAY)
+        dst = build / src.relative_to(OVERLAY)
         if not dst.exists() or not filecmp.cmp(src, dst, shallow=False):
             changed.append((src, dst))
     if check_only:

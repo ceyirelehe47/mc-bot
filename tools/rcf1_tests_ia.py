@@ -29,8 +29,10 @@ FACTS = None      # rcf1_facts.FactsCollector(R3)
 _CASE_ID = None
 
 
-# R3:录制所有场景的会话动作(场景内部直接用 play.Session 提交,
-# 也要进事实账)——包装 submit/term,自动按当前用例记录。
+# R3C:录制所有场景的会话动作——pre 在 submit 前采、post 在终态
+# 落定后采、单一计分身份(execution_id 去重)。场景内部直接用
+# play.Session 提交的路径(i06/v01/i08/a09/a10/a11/a07b/v04)同样
+# 经此包装录制。
 _OrigSession = play.Session
 
 
@@ -39,22 +41,40 @@ class _RecordingSession(_OrigSession):
     # (r1ia/r1find/r1find2 各自持有/续期,过期窗口互相踢)。
     def __init__(self, owner="r3ia-shared"):
         super().__init__(owner)
+        self._rc_pending = None
 
     def submit(self, op, args, tag=None, preempt=False):
+        # R3C/B2:真正的 pre——准备完成(场景函数已 sleep 同步)后、
+        # submit 前采集。旧实现在首个动作终态后才懒采 pre。
+        pre = None
+        if FACTS is not None and _CASE_ID:
+            pre = F.observe_facts(self)
         ex, err = super().submit(op, args, tag, preempt)
-        self._rc_pending = (op, args, ex, err)
+        self._rc_pending = (op, args, ex, err, pre)
         return ex, err
 
     def term(self, ex_id, timeout_s=180):
         res, trail = super().term(ex_id, timeout_s=timeout_s)
-        pend = getattr(self, "_rc_pending", None)
+        pend = self._rc_pending
+        self._rc_pending = None
         if pend and FACTS is not None and _CASE_ID:
-            op, args, ex, err = pend
-            FACTS.record_action(_CASE_ID, op, args,
-                                {"execution_id": ex} if ex
-                                else {"error": str(err)[:120]},
-                                res)
-            self._rc_pending = None
+            op, args, ex, err, pre = pend
+            if ex == ex_id:
+                # R3C/B2:终态后短暂落定再采 post(服务器 tick/掉落
+                # 回收的最后一拍),准备期与动作效果逐动作分账。
+                time.sleep(F.POST_SETTLE_S)
+                post = F.observe_facts(self)
+                try:
+                    FACTS.record_action(
+                        _CASE_ID, op, args,
+                        {"execution_id": ex} if ex
+                        else {"error": str(err)[:120]},
+                        res, pre=pre, post=post)
+                except ValueError:
+                    # 重复计分身份(录制链回归信号)——保留事实并打印,
+                    # 不静默吞掉。
+                    print(json.dumps({
+                        "record-duplicate-identity": ex}), flush=True)
         return res, trail
 
 
@@ -144,13 +164,6 @@ def stack_count_at(slot):
     return None, 0, None
 
 
-def stack_count_at(slot):
-    for iid, cnt, s, dmg in _parse_inv(inv_raw()):
-        if s == slot:
-            return iid, cnt, dmg
-    return None, 0, None
-
-
 def do(op, args, timeout=180):
     global _SESSION, FACTS
     for attempt in (1, 2):
@@ -165,10 +178,10 @@ def do(op, args, timeout=180):
                 if FACTS is not None and _CASE_ID:
                     FACTS.record_action(_CASE_ID, op, args, err, receipt)
                 return receipt
+            # R3C:记录在 _RecordingSession.term 内完成(pre 在 submit
+            # 前已采)——此处不再二次 record_action(旧实现同一逻辑
+            # 动作计分两次)。
             res, _trail = s.term(ex_id, timeout_s=timeout)
-            if FACTS is not None and _CASE_ID:
-                FACTS.record_action(_CASE_ID, op, args,
-                                    {"execution_id": ex_id}, res)
             return res
         except RuntimeError as exc:  # 租约丢失:重建会话重试一次
             if attempt == 2:
@@ -194,8 +207,10 @@ RESULTS = []
 def run(tid, ok, detail=None):
     RESULTS.append((tid, bool(ok)))
     check(tid, ok, detail)
-    global _CASE_ID
-    _CASE_ID = None
+    # R3C/B2:_CASE_ID 不在此清空——多检查场景(A07a/b、V02/V02b、
+    # I05/I05b)在 run() 之后还有计分动作;case 边界由 runner 的
+    # facts_case 切换(实测清空导致 A07b/V02b/I05b 动作未被录制,
+    # judge 报 negative-not-proven)。
 
 
 def fill_inventory(n_slots=36):
@@ -235,7 +250,10 @@ def i01_main_pack_sources():
                     "note": "前置:工具/食物/方块全部初始在主包>=9 且快捷栏无同款"})
 
 
-def i02_exact_counts():
+def i02a_counts_1_7_31():
+    # R3C/B1:拆分后的 I02a——1/7/31 三档移动,单一守恒区间。
+    # 准备(clear+give 38)在本 case 首个计分动作前完成并 sleep 同步;
+    # 不再有 case 中途 give。
     safe()
     rcon("clear Bob")
     rcon("give Bob minecraft:cobblestone 38")
@@ -243,21 +261,76 @@ def i02_exact_counts():
     base = inv_counts().get("minecraft:cobblestone", 0)
     r1 = do("move_items", {"item": "minecraft:cobblestone", "count": 1,
                            "hotbar": 3}, 60)
-    # 目标已有 1 再移 7:净增 7(终 8)
     r2 = do("move_items", {"item": "minecraft:cobblestone", "count": 7,
-                           "hotbar": 3}, 60)
-    # 目标槽 4 从 0 净增 31
+                           "hotbar": 4}, 60)
     r3 = do("move_items", {"item": "minecraft:cobblestone", "count": 31,
-                           "hotbar": 4}, 90)
-    # 满堆:整堆 64
-    rcon("give Bob minecraft:cobblestone 26")  # 总 64
-    time.sleep(1)
-    r4 = do("move_items", {"item": "minecraft:cobblestone", "count": -1,
                            "hotbar": 5}, 90)
-    ok = all(r["state"] == "completed" for r in (r1, r2, r3, r4)) and base == 38
-    run("I02", ok, {"r1": r1.get("reason"), "r2": r2.get("reason"),
-                    "r3": r3.get("reason"), "r4": r4.get("reason"),
-                    "note": "1/7/31/整堆;目标已有再移=净增语义"})
+    ok = (base == 38
+          and all(r["state"] == "completed" for r in (r1, r2, r3)))
+    run("I02a", ok, {"r1": r1.get("reason"), "r2": r2.get("reason"),
+                     "r3": r3.get("reason"),
+                     "note": "1/7/31 三档;无中途 fixture,逐动作守恒"})
+
+
+def i02b_net_gain_existing():
+    # R3C/B1:I02b——目标槽已有物品后的净增语义。
+    # 准备期(give 10+move 10 到 hb1)在计分动作(再移 7)之前结束。
+    safe()
+    rcon("clear Bob")
+    rcon("give Bob minecraft:cobblestone 30")
+    time.sleep(1)
+    r0 = do("move_items", {"item": "minecraft:cobblestone", "count": 10,
+                           "hotbar": 1}, 60)
+    time.sleep(1)
+    _, before_n, _ = stack_count_at(1)
+    r = do("move_items", {"item": "minecraft:cobblestone", "count": 7,
+                          "hotbar": 1}, 60)
+    _, after_n, _ = stack_count_at(1)
+    ok = (r0["state"] == "completed" and r["state"] == "completed"
+          and before_n == 10 and after_n - before_n == 7)
+    run("I02b", ok, {"before": before_n, "after": after_n,
+                     "r": r.get("reason"),
+                     "note": "目标已有 10 再移 7=净增 7(终 17)"})
+
+
+def i02c_full_stack():
+    # R3C/B1:I02c——整堆(-1)移动。准备(give 64)先行结束。
+    safe()
+    rcon("clear Bob")
+    rcon("give Bob minecraft:cobblestone 64")
+    time.sleep(1)
+    base = inv_counts().get("minecraft:cobblestone", 0)
+    r = do("move_items", {"item": "minecraft:cobblestone", "count": -1,
+                          "hotbar": 5}, 90)
+    _, dest_n, _ = stack_count_at(5)
+    ok = (base == 64 and r["state"] == "completed" and dest_n == 64)
+    run("I02c", ok, {"dest": dest_n, "r": r.get("reason"),
+                     "note": "整堆 64:count=-1 全量到 hb5"})
+
+
+def i02d_source_retention():
+    # R3C/B1:I02d——源保留与保护项:移动指定数量后源余量正确,
+    # 无关保护物品(铁镐)原槽原样。
+    safe()
+    rcon("clear Bob")
+    # give 会先进快捷栏——主包源槽用 item replace 直写(R1 同法)
+    rcon("item replace entity Bob inventory.9 with "
+         "minecraft:cobblestone 30")
+    rcon("item replace entity Bob inventory.0 with minecraft:iron_pickaxe 1")
+    time.sleep(1)
+    src0 = slot_of("minecraft:cobblestone")
+    r = do("move_items", {"item": "minecraft:cobblestone", "count": 12,
+                          "hotbar": 2, "source_slot": src0}, 90)
+    _, dest_n, _ = stack_count_at(2)
+    iid, src_left, _ = stack_count_at(src0)
+    total = inv_counts().get("minecraft:cobblestone", 0)
+    pick_n = inv_counts().get("minecraft:iron_pickaxe", 0)
+    ok = (r["state"] == "completed" and dest_n == 12 and total == 30
+          and pick_n == 1)
+    run("I02d", ok, {"src": src0, "total": total, "dest": dest_n,
+                     "pick_n": pick_n, "r": r.get("reason"),
+                     "note": "30 移 12:总量守恒/目标 12/余 18 在包内;"
+                             "保护镐数量不变"})
 
 
 def v02_increment_negative():
@@ -369,6 +442,10 @@ def i05_true_full():
                     "logs": logs, "planks": planks,
                     "note": "36 槽真满:产物不可入包,不假成功不丢物"})
     # 满容器
+    # R3C:先腾一格——容器满失败后光标物品需要回位槽,否则屏幕恢复
+    # 债务会让守恒不可证(实测 63 logs 滞留光标,post 读不到)。
+    rcon("item replace entity Bob inventory.0 with minecraft:air")
+    time.sleep(0.8)
     rcon("setblock 303 120 300 minecraft:chest")
     for i in range(27):
         rcon("data modify block 303 120 300 Items append value "
@@ -380,6 +457,14 @@ def i05_true_full():
                                    "direction": "deposit"}, 120)
     run("I05b", r2["state"] == "failed" or "partial" in (r2.get("reason") or ""),
         {"r": r2.get("reason"), "note": "容器满:拒绝或诚实部分"})
+    # R3C/B2+A3:满包场景的屏幕恢复债务显式收口——清包腾槽后用一次
+    # goto 强制关屏(finishAction 走 restoreCursorThenClose 有位可回),
+    # 残留掉落实体清除。否则债务屏会被下一 case 的开屏动作顶掉,
+    # 迟效内容物污染下一 case 的守恒区间(实测 I06 pickup 段根因)。
+    rcon("clear Bob")
+    do("goto", {"x": 300, "y": 120, "z": 301}, 60)
+    rcon("kill @e[type=minecraft:item,distance=..24]")
+    time.sleep(1)
 
 
 def i06_cursor_injection():
@@ -391,17 +476,26 @@ def i06_cursor_injection():
                          ("produced", 2.0)):
         time.sleep(2.0)  # 上一阶段在途包文落定
         rcon("clear Bob")
+        time.sleep(2.5)
+        # R3C/B2:二次清场——上一 case(I05 满包 craft)的迟效产物
+        # (结果槽/光标回包)会在首清后继续落包,只清一次吞不干净。
+        rcon("clear Bob")
         rcon("give Bob minecraft:oak_log 8")
-        time.sleep(1)
-        # 纯净检查:在途残留(晚到的点击结果)必须先落定再开测
+        time.sleep(1.2)
+
+        def _clean(v):
+            return (v.get("minecraft:oak_planks", 0) == 0
+                    and v.get("minecraft:oak_log", 0) == 8)
+
+        # R3C/B2:稳定双读必须带时间间隔——背靠背双读对迟效落包
+        # 无分辨力(两次读到同一旧状态)。
         pre = inv_counts()
-        if pre.get("minecraft:oak_planks", 0) > 0 \
-                or pre.get("minecraft:oak_log", 0) != 8:
-            time.sleep(2)
-            rcon("clear Bob")
-            rcon("give Bob minecraft:oak_log 8")
-            time.sleep(1)
-            pre = inv_counts()
+        for _ in range(3):
+            time.sleep(1.5)
+            nxt = inv_counts()
+            if _clean(pre) and _clean(nxt):
+                break
+            pre = nxt
         base = pre.get("minecraft:oak_log", 0)
         s = play.Session("r1i06-%s" % stage)
         ex, err = s.submit("craft",
@@ -449,13 +543,12 @@ def i07_ghost_slots_readonly():
 
 
 def i08_tom_deposit_regression():
-    # R2/R04:搭真实 Tom's 终端网络(terminal—inventory_cable—
-    # inventory_connector—chest),面向终端合法 deposit,验证回执
-    # server_authoritative_owned_screen_toms_storage_terminal_*。
+    # R3C:真实 Tom's 终端网络 deposit+withdraw 双向。
+    # 已证根因:①连接器必须面向箱子(facing=east)否则网络未链接,
+    # shift-click 空操作;②deposit 快捷移动排除选中槽,可存物必须
+    # 放在主包非选中槽(give 会先进快捷栏,用 item replace 直写)。
     safe()
     tx, ty, tz = 305, 120, 296
-    # 站位地面与视线走廊:Bob 站 (306,121,297) 面向终端;
-    # 眼(306.5,122.6,297.5)→终端中心(305.5,120.5,296.5) 通道保持空气
     for cmd in (
             ["setblock 306 120 297 minecraft:dirt",
              "setblock 305 121 296 minecraft:air",
@@ -470,20 +563,20 @@ def i08_tom_deposit_regression():
              "setblock 306 123 296 minecraft:air",
              "setblock 306 123 297 minecraft:air",
              "setblock 306 120 296 minecraft:air",
-             "setblock 307 120 296 minecraft:air"]
-            + ["setblock %d %d %d minecraft:chest" % (tx + 3, ty, tz),
-               "setblock %d %d %d toms_storage:inventory_connector"
-               % (tx + 2, ty, tz),
-               "setblock %d %d %d toms_storage:inventory_cable"
-               % (tx + 1, ty, tz),
-               "setblock %d %d %d toms_storage:storage_terminal"
-               % (tx, ty, tz)]):
+             "setblock 307 120 296 minecraft:air",
+             "setblock %d %d %d minecraft:chest" % (tx + 3, ty, tz),
+             "setblock %d %d %d toms_storage:inventory_connector"
+             "[facing=east]" % (tx + 2, ty, tz),
+             "setblock %d %d %d toms_storage:inventory_cable"
+             % (tx + 1, ty, tz),
+             "setblock %d %d %d toms_storage:storage_terminal"
+             % (tx, ty, tz)]):
         rcon(cmd)
     rcon("tp Bob 306.5 121 297.5")
     rcon("clear Bob")
-    rcon("give Bob minecraft:dirt 16")
+    # 可存物放主包(数据槽 18=item 指令槽 9),避开选中槽保留语义
+    rcon("item replace entity Bob inventory.9 with minecraft:dirt 16")
     time.sleep(2.5)
-    # 合法链:先面向终端(存储目标解析依赖准星),再 deposit
     s = play.Session("r1i08")
     pos = (s.observe().get("data", {}).get("observation")
            .get("position") or {})
@@ -497,12 +590,26 @@ def i08_tom_deposit_regression():
                            "note": "面向终端失败"})
         return
     r = s.do("deposit", {}, timeout_s=90).get("terminal", {})
-    ok = (r.get("state") == "completed"
-          and "toms_storage_terminal" in (r.get("reason") or ""))
     left = inv_counts().get("minecraft:dirt", 0)
-    run("I08", ok, {"r": r.get("reason"), "dirt_left": left,
-                    "terminal": [tx, ty, tz],
-                    "note": "真实终端网络 deposit:player→网络转移验证"})
+    chest = rcon("data get block %d %d %d Items"
+                 % (tx + 3, ty, tz)) or ""
+    ok_dep = (r.get("state") == "completed"
+              and "toms_storage_terminal" in (r.get("reason") or "")
+              and left == 0 and "minecraft:dirt" in chest)
+    # 取回:terminal 网络 withdraw(存/取双向核验)
+    w = s.do("container_transfer", {"x": tx, "y": ty, "z": tz,
+                                    "item": "minecraft:dirt",
+                                    "count": 4,
+                                    "direction": "withdraw"},
+             timeout_s=90).get("terminal", {})
+    after_w = inv_counts().get("minecraft:dirt", 0)
+    ok_wdr = (w.get("state") == "completed" and after_w == 4)
+    run("I08", ok_dep and ok_wdr,
+        {"dep": r.get("reason"), "dep_left": left,
+         "wdr": w.get("state"), "wdr_reason": str(w.get("reason"))[:90],
+         "after_withdraw": after_w,
+         "terminal": [tx, ty, tz],
+         "note": "真实终端网络:存16入网络(箱子端核验)+取4回包"})
 
 
 # ---------- A 组 ----------
@@ -557,6 +664,9 @@ def a02_table_3x3_pickaxes():
     rcon("give Bob minecraft:birch_log 6")
     rcon("give Bob minecraft:cobblestone 20")
     time.sleep(1)
+    # R3C:支撑自恢复——采矿链(vein_miner)蚀掉平台支撑石会让
+    # place 无支撑面而超时(实测两轮 A02 根因)。
+    rcon("setblock 302 119 302 minecraft:stone")
     rcon("setblock 302 120 302 minecraft:air")
     p = do("craft", {"item": "minecraft:birch_planks", "count": 24}, 150)
     st = do("craft", {"item": "minecraft:stick", "count": 8}, 150)
@@ -620,6 +730,8 @@ def a05_insufficient():
 def a06_precise_place():
     safe()
     rcon("clear Bob")
+    # R3C:支撑自恢复(同 A02)
+    rcon("setblock 301 119 302 minecraft:stone")
     rcon("setblock 301 120 302 minecraft:air")
     rcon("give Bob minecraft:crafting_table 1")
     rcon("give Bob minecraft:dirt 16")
@@ -920,7 +1032,10 @@ def main():
     import os
     matrix = (
         ("I01", i01_main_pack_sources),
-        ("I02", i02_exact_counts),
+        ("I02a", i02a_counts_1_7_31),
+        ("I02b", i02b_net_gain_existing),
+        ("I02c", i02c_full_stack),
+        ("I02d", i02d_source_retention),
         ("V02", v02_increment_negative),
         ("I03", i03_component_identity),
         ("I04", i04_container_chest_barrel),

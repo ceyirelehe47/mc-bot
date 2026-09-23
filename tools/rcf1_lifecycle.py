@@ -27,7 +27,11 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-ROOT = r"D:\code\mc-experiment"
+# R3C/D2:RCF1_ROOT 切换 fresh replay 部署目录;默认既有受管环境。
+ROOT = os.environ.get("RCF1_ROOT", r"D:\code\mc-experiment")
+_R3C = bool(os.environ.get("RCF1_ROOT"))
+_SUFFIX = "rcf1-server-r3c" if _R3C else "rcf1-server"
+_CSUFFIX = "rcf1-client-r3c" if _R3C else "rcf1-client"
 
 NS_ROOT = os.environ.get("RCF1_LIFECYCLE_NS_ROOT") or r"D:\mc-rcf1-raw\lifecycle"
 STATE_DIR = pathlib.Path(NS_ROOT)
@@ -37,8 +41,8 @@ FAIL_FILE = STATE_DIR / "failures.json"
 INTENT_DIR = STATE_DIR / "intents"
 LOG_DIR = STATE_DIR / "logs"
 
-SERVER_DIR = os.path.join(ROOT, "rcf1-server")
-CLIENT_DIR = os.path.join(ROOT, "rcf1-client")
+SERVER_DIR = os.path.join(ROOT, _SUFFIX)
+CLIENT_DIR = os.path.join(ROOT, _CSUFFIX)
 JAVA = r"D:\mc-server\jdk-21.0.12.1+1\bin\java.exe"
 CMD_TEMPLATE = os.path.join(ROOT, "mc2a07a-work", "drivers", "prod_client_cmd.json")
 SECRETS = os.path.join(REPO, ".secrets")
@@ -283,7 +287,7 @@ def _client_cmd(marker):
         "AIBOT_REAL_CLIENT_WINDOW_MODE": "background",
     }
     base = json.load(open(CMD_TEMPLATE, encoding="utf-8"))
-    cmd = [c.replace("mc2a07-prod-client", "rcf1-client") for c in base]
+    cmd = [c.replace("mc2a07-prod-client", _CSUFFIX) for c in base]
     cmd = [c if c != JAVA else JAVA for c in cmd]
     # marker 注入到第一个 -D 参数位(java -D 在 classpath 前)
     for i, c in enumerate(cmd):

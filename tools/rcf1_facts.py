@@ -1,19 +1,36 @@
 # -*- coding: utf-8 -*-
-"""MC-RCF-1-R3 事实采集层(F01/F02)。
+"""MC-RCF-1-R3C 事实采集层 v2(F01/F02 + R3C B1/B2 收口)。
 
-采集器记录实际发生的请求、完整未截断回执、前后观察快照与运行身份;
-主 checker(tools/rcf1_checker.py)从这些原始事实派生结论——本层
-绝不写 passed/true 之类的判定字段。
+采集器记录实际发生的请求、完整未截断回执、动作级前后观察快照与
+运行身份;主 checker(tools/rcf1_checker.py)从这些原始事实派生
+结论——本层绝不写 passed/true 之类的判定字段。
 
-结构(schema=mc.rcf1r3.facts.v1):
+R3C 相对 R3 的关键变化(对照 TASKBOOK B1/B2):
+- 每个计分动作自带 pre_action/post_action 快照:pre 在 submit 前
+  采(准备期已由场景函数完成并同步),post 在终态+短暂落定后采。
+  准备期加物与动作效果的守恒区间从此逐动作成立,case 中途的
+  fixture 调整不再污染守恒判定。
+- 单一计分身份:同一 execution_id 的重复 record_action 被拒绝
+  (term/do 双路径实测存在重复计分漏洞)。
+- observe 增加 world_time(G5 夜晚连续性核验需要原始世界时间)。
+
+结构(schema=mc.rcf1r3c.facts.v2):
   identity : 运行身份(status/observe 的真实运行时事实,非自报字符串)
-  cases[]  : {id, attempt, actions[]{op,args,submit,terminal},
-              pre_snapshot, post_snapshot, oracle_blocks{}}
+  cases[]  : {id, attempt, actions[]{op,args,submit,terminal,
+              pre_action,post_action}, pre_snapshot, post_snapshot,
+              oracle_blocks{}}
+  case 级 pre/post 仍保留(取自首个动作 pre / 用例收口),用作整体
+  对账边界;checker 的守恒判定以动作级为准。
 """
 import json
 import time
 
 import rcf1_env as E
+
+SCHEMA = "mc.rcf1r3c.facts.v2"
+
+# 终态后的落定等待:服务器 tick 同步/掉落回收的最后一拍。
+POST_SETTLE_S = 0.6
 
 
 def _strip_secrets(obj):
@@ -27,10 +44,11 @@ def _strip_secrets(obj):
 
 
 def observe_facts(session):
-    """一次 observe 的可用事实(身份/库存/光标/位置/生命/饥饿)。
+    """一次 observe 的可用事实(身份/库存/光标/位置/生命/饥饿/世界时间)。
 
     game_session 来自 body_session_epoch(= Minecraft JOIN incarnation,
     由 Binding.sessionEpoch 携带),不是自报字符串。
+    world_time 是服务端世界 tick 原始值(G5 夜晚连续性判定依据)。
     """
     try:
         data = session.observe().get("data", {})
@@ -51,6 +69,7 @@ def observe_facts(session):
         "position": obs.get("position"),
         "health": obs.get("health"),
         "food": obs.get("food"),
+        "world_time": obs.get("world_time"),
         "inventory": obs.get("inventory"),
         "screen": obs.get("screen"),
         "t_wall": round(time.time(), 3),
@@ -69,8 +88,15 @@ def status_facts():
     return st
 
 
+def _action_identity(submit_echo):
+    """动作的计分身份:execution_id(无提交则为错误串)。"""
+    if isinstance(submit_echo, dict) and submit_echo.get("execution_id"):
+        return str(submit_echo["execution_id"])
+    return "nosubmit:" + json.dumps(submit_echo, ensure_ascii=False)[:80]
+
+
 class FactsCollector:
-    """按用例聚拢原始事实;自动在首个动作前取 pre、结束取 post。"""
+    """按用例聚拢原始事实;动作级 pre/post 由录制会话在正确时点供给。"""
 
     def __init__(self, session, owner):
         self.session = session
@@ -82,6 +108,7 @@ class FactsCollector:
         }
         self.cases = []
         self._current = None
+        self._recorded_ids = set()
 
     def case(self, case_id, attempt=1):
         """结束上一用例(补 post 快照),开启新用例。"""
@@ -97,19 +124,30 @@ class FactsCollector:
             self.case(case_id)
         return self._current
 
-    def pre_snapshot_if_needed(self):
-        cur = self._current
-        if cur is not None and cur["pre_snapshot"] is None \
-                and not cur["actions"]:
-            cur["pre_snapshot"] = observe_facts(self.session)
+    def record_action(self, case_id, op, args, submit_echo, terminal,
+                      pre=None, post=None):
+        """记录一个逻辑动作(单一计分身份:execution_id 去重)。
 
-    def record_action(self, case_id, op, args, submit_echo, terminal):
+        pre/post 由调用方在正确时点采集:pre=submit 前,post=终态落定后。
+        同一 execution_id 重复记录 → ValueError(录制链回归须暴露,
+        不静默吞掉重复计分)。
+        """
         cur = self._ensure(case_id)
-        self.pre_snapshot_if_needed()
+        ident = _action_identity(submit_echo)
+        if ident in self._recorded_ids:
+            raise ValueError(
+                "duplicate-action-identity:%s:%s" % (case_id, ident))
+        self._recorded_ids.add(ident)
+        # case 级 pre = 首个动作的 pre(准备期结束后、首个 submit 前)
+        if cur["pre_snapshot"] is None and pre is not None:
+            cur["pre_snapshot"] = pre
         cur["actions"].append({
             "op": op, "args": args,
+            "execution_id": ident,
             "submit": _strip_secrets(submit_echo),
             "terminal": _strip_secrets(terminal),
+            "pre_action": pre,
+            "post_action": post,
             "t_wall": round(time.time(), 3),
         })
 
@@ -129,7 +167,7 @@ class FactsCollector:
         self._close_case()
         self.identity["bridge_status_end"] = status_facts()
         self.identity["final_observe"] = observe_facts(self.session)
-        return {"schema": "mc.rcf1r3.facts.v1",
+        return {"schema": SCHEMA,
                 "identity": self.identity, "cases": self.cases}
 
     def save(self, path):
@@ -144,10 +182,10 @@ def inv_counts_of(snapshot):
     if isinstance(inv, dict):
         return {k: int(v) for k, v in inv.items() if v}
     out = {}
-    for row in inv:
-        if isinstance(row, dict) and row.get("item"):
-            out[row["item"]] = out.get(row["item"], 0) + int(
-                row.get("count", 0))
+    for entry in inv or []:
+        if isinstance(entry, dict) and entry.get("id"):
+            out[entry["id"]] = out.get(entry["id"], 0) + int(
+                entry.get("count") or 1)
     return out
 
 

@@ -134,6 +134,8 @@ public final class RealClientBodyBackend implements BodyBackend {
         out.put("control_session_epoch",
                 session==null?"unknown":session.sessionEpoch());
         out.put("dimension",current.getServerWorld().getRegistryKey().getValue().toString());
+        // R3C:原始世界 tick(G5 夜晚连续性判定依据;只读)
+        out.put("world_time",current.getServerWorld().getTime());
         out.put("position",position);
         out.put("inventory",inventory(current));
         out.put("sensor","client_crosshair_server_validated");

@@ -324,11 +324,12 @@ final class RealClientActionController {
                                 :"external_cancel");
             }
         }
-    
     }
 
     void tick(MinecraftClient client) {
         if(active==null)return;
+
+
         if(client.player==null
                 ||client.world==null
                 ||client.interactionManager==null) {
@@ -1580,12 +1581,20 @@ final class RealClientActionController {
         private static final int ARRIVAL_STABLE_TICKS=8;
         private static final int MAX_FACING_TICKS=400;
         private static final double VELOCITY_EPSILON_SQUARED=.0025D;
+        // R3C/S01:行走相停滞检测——站位目标不可达(嵌坡/悬空)时
+        // Baritone 搜索失败后 pathing=false 且位置永不改善,旧实现
+        // 无限站立直到外部超时(S01 实录:站立 20s+ 被僵尸击杀→
+        // 重生→body_session_changed)。单调无改善达阈值 → 明确失败
+        // 并释放输入/导航,不无限等待。
+        private static final int STALL_FAIL_TICKS=20*15;
 
         final Vec3d target;
         final double radius;
         final BlockPos faceTarget;
         int stableTicks,facingTicks;
         boolean navStopped;
+        double bestDistance=Double.MAX_VALUE;
+        int stallTicks;
 
         GotoAction(
                 String executionId,double x,double y,double z,
@@ -1639,8 +1648,19 @@ final class RealClientActionController {
                             "client_arrival_and_facing_reported");
                     return;
                 }
-                if(++facingTicks>MAX_FACING_TICKS)
-                    fail("client_final_facing_timeout");
+                if(++facingTicks>MAX_FACING_TICKS) {
+                    // R3C/S01:超时不再裸报——带上准星实际命中的方块,
+                    // 上层(站位轮试/换目标)可据此区分"被更低格遮挡"
+                    // 与"视线完全 miss"。
+                    String cross=client.crosshairTarget
+                            instanceof BlockHitResult b2
+                            &&b2.getType()==HitResult.Type.BLOCK
+                            ?"block="+b2.getBlockPos().toShortString()
+                            :String.valueOf(client.crosshairTarget==null
+                            ?"none":client.crosshairTarget.getType());
+                    fail("client_final_facing_timeout:cross="+cross
+                            +" pathing="+RealClientNavigation.pathing());
+                }
                 else
                     send(executionId,"running",
                             progress,"client_final_facing");
@@ -1649,6 +1669,19 @@ final class RealClientActionController {
 
             stableTicks=0;
             facingTicks=0;
+            // R3C/S01:单调无改善停滞检测(见类头注释)。改善阈值
+            // 0.05 格:小于它的抖动不算进展。
+            if(distance<bestDistance-.05D) {
+                bestDistance=distance;
+                stallTicks=0;
+            } else if(++stallTicks>STALL_FAIL_TICKS) {
+                clearInputs(client);
+                RealClientNavigation.stop(client);
+                fail("client_goto_no_progress_stall:dist="
+                        +String.format("%.2f",distance)
+                        +" pathing="+RealClientNavigation.pathing());
+                return;
+            }
             // 移动统一走 walkTo → 受控 Baritone 适配器(G2 起)
             walkTo(client,target);
             progress=Math.max(
@@ -1796,6 +1829,7 @@ final class RealClientActionController {
      * 3. mutate only that owned ScreenHandler.
      */
     private final class DepositAction extends Action {
+        int clicksSent;
         final BlockPos target;
         final Direction face;
         final long baselineScreenSeq;
@@ -1893,6 +1927,7 @@ final class RealClientActionController {
                 }
                 Slot next=nextDepositable(client,handled);
                 if(next!=null) {
+                    clicksSent++;
                     client.interactionManager.clickSlot(
                             handled.getScreenHandler().syncId,
                             next.id,0,
@@ -1913,6 +1948,13 @@ final class RealClientActionController {
                     return;
                 }
                 closeHandled(client);
+                // R3C/I08:零 quick-move(可存物全在保护槽)却宣称
+                // 完成是假成功——服务端会永远等库存证明。诚实失败。
+                if(clicksSent==0) {
+                    fail("client_deposit_nothing_depositable"
+                            +"(selected-slot-retained)");
+                    return;
+                }
                 complete(
                         "client_owned_screen_quick_move_finished");
                 return;
@@ -1951,7 +1993,7 @@ final class RealClientActionController {
                                 +"screen={} cross={} dist={}",
                         openTicks,interactionSent,authorized,
                         client.currentScreen==null?"none"
-                                :client.currentScreen.getClass().getSimpleName(),
+                                :client.currentScreen.getClass().getName(),
                         client.crosshairTarget instanceof BlockHitResult dx
                                 ?dx.getBlockPos():"none",
                         String.format("%.1f",client.player.getPos().distanceTo(

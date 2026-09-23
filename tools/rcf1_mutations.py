@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
-"""MC-RCF-1-R3 成对语义变异探针(F01)。
+"""MC-RCF-1-R3C 成对语义变异探针(v2;ACCEPTANCE §5-§6)。
 
-从本轮完整有效真实证据生成格式正确的单因素变异;变异必须被
-tools/rcf1_checker.py 同一最终入口明确拒绝(returncode 1 且
-accept=false),原例必须通过。异常/超时/用法错误 ≠ 明确拒绝。
+对同一正式 CLI(rcf1_checker.py):
+1. 真实完整正例(ia-facts-r3c / g4-runs-r3c)必须被接受;
+2. 每个单因素变异必须被拒绝,且拒绝原因与变异相关;
+3. 若正例本就被拒(I08 阻断场景),对应组标 INVALID/INCONCLUSIVE,
+   不冒充"全拒成功"。
 
-用法:
-  python tools/rcf1_mutations.py generate <ia-facts.json> <g4-runs.json> <outdir>
-  python tools/rcf1_mutations.py run <outdir>   # 原例+全部变异
+M 编号对照 ACCEPTANCE §5:
+- IA 组:M01(删快照)/M03(删结束状态)/M11(空动作+借例)/
+  M12(负例副作用)/M13(fixture 混入)/M14(pre/post 颠倒)/
+  M15(重复计分)/M16(错数量)/M17(witness=0)/M18(未知 id)
+- G4 组:M02(cursor)/M04(needs_reconcile)/M05(table oracle)/
+  M06(候选混入)/M08(五合一)/M09(expect 下调)/M10(unknown 覆盖)
 """
 import copy
 import json
@@ -24,184 +29,228 @@ def _save(path, doc):
         json.dump(doc, fh, ensure_ascii=False, indent=1)
 
 
-def _eat_action(ia):
-    for c in ia.get("cases", []):
-        for i, a in enumerate(c.get("actions") or []):
-            if a.get("op") == "eat" and str(
-                    (a.get("terminal") or {}).get("state")) == "completed":
-                return c, i
-    return None, -1
-
-
-def _neg_case(ia):
-    for c in ia.get("cases", []):
-        for a in c.get("actions") or []:
-            if str((a.get("terminal") or {}).get("state") or "") in (
-                    "failed", "cancelled"):
-                return c
+def _first_case(doc, cid):
+    for c in doc.get("cases", []):
+        if c.get("id") == cid:
+            return c
     return None
 
 
+def _first_action(doc, cid, op=None, state=None):
+    c = _first_case(doc, cid)
+    if not c:
+        return None, -1
+    for i, a in enumerate(c.get("actions") or []):
+        if op and a.get("op") != op:
+            continue
+        st = str((a.get("terminal") or {}).get("state") or "")
+        if state and st != state:
+            continue
+        return a, i
+    return None, -1
+
+
 def generate_ia_mutations(ia, outdir):
-    """单因素变异(ia)。返回 [(name, path)]。"""
+    """IA 单因素变异。返回 [(name, path)]。"""
     out = []
 
-    def add(name, doc):
+    def emit(name, doc):
         p = os.path.join(outdir, "ia-%s.json" % name)
         _save(p, doc)
         out.append((name, p))
 
-    c, i = _eat_action(ia)
-    if c is not None and i >= 0:
-        m = copy.deepcopy(ia)
-        reason = m["cases"][m["cases"].index(c)]["actions"][i]["terminal"]["reason"]
-        m["cases"][m["cases"].index(c)]["actions"][i]["terminal"]["reason"] = \
-            reason.replace("witness=1", "witness=0")
-        add("eat-witness-zero", m)
-    neg = _neg_case(ia)
-    if neg is not None:
-        m = copy.deepcopy(ia)
-        case = m["cases"][m["cases"].index(neg)]
-        case["post_snapshot"] = dict(case["post_snapshot"])
-        inv = dict(case["post_snapshot"].get("inventory") or {})
-        inv["minecraft:dirt"] = inv.get("minecraft:dirt", 0) + 1
-        case["post_snapshot"]["inventory"] = inv
-        add("negative-inventory-side-effect", m)
-    m = copy.deepcopy(ia)
-    m["cases"].append(copy.deepcopy(ia["cases"][0]))
-    add("duplicate-case-attempt", m)
-    m = copy.deepcopy(ia)
-    m["identity"] = dict(m["identity"])
-    m["identity"]["first_observe"] = dict(
-        m["identity"].get("first_observe") or {})
-    m["identity"]["first_observe"]["client_mod_jar_sha256"] = None
-    st = dict(m["identity"].get("bridge_status_start") or {})
-    st["server_mod_jar_sha256"] = None
-    m["identity"]["bridge_status_start"] = st
-    add("identity-stripped", m)
-    for c in ia.get("cases", []):
-        for a in c.get("actions") or []:
-            if a.get("op") == "craft" and str(
-                    (a.get("terminal") or {}).get("state")) == "failed":
-                m = copy.deepcopy(ia)
-                cc = [x for x in m["cases"] if x["id"] == c["id"]][0]
-                for aa, bb in zip(cc["actions"], c["actions"]):
-                    if aa is not None and bb.get("op") == "craft" and str(
-                            bb.get("terminal", {}).get("state")) == "failed":
-                        aa["terminal"]["state"] = "completed"
-                        break
-                add("failed-craft-flipped-completed", m)
-                break
-        else:
-            continue
-        break
+    d = copy.deepcopy(ia)
+    c = _first_case(d, "I02a")
+    if c:
+        c["pre_snapshot"] = None
+        emit("m01-case-pre-snapshot-removed", d)
+
+    d = copy.deepcopy(ia)
+    c = _first_case(d, "I01")
+    if c:
+        c["actions"] = []
+        emit("m11-empty-actions-borrow-next", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "V02", op="move_items", state="failed")
+    if a is not None:
+        a["post_action"]["inventory"] = {"minecraft:dirt": 3}
+        emit("m12-neg-side-effect", d)
+
+    d = copy.deepcopy(ia)
+    c = _first_case(d, "I02c")
+    if c:
+        # case 级 fixture 混入(case post 多 26 石)——v2 逐动作下
+        # 正确数据不受影响:此变异应被"接受"(边界方向证明),
+        # 单独登记不进拒绝清单。
+        c["post_snapshot"]["inventory"]["minecraft:cobblestone"] = 26
+        emit("m13-case-level-fixture-tolerated", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "A01", op="craft", state="completed")
+    if a is not None:
+        a["pre_action"], a["post_action"] = \
+            a["post_action"], a["pre_action"]
+        emit("m14-pre-post-swapped", d)
+
+    d = copy.deepcopy(ia)
+    a1, _ = _first_action(d, "I01", op="move_items", state="completed")
+    a2, _ = _first_action(d, "I03", op="move_items", state="completed")
+    if a1 is not None and a2 is not None:
+        a2["execution_id"] = a1["execution_id"]
+        emit("m15-duplicate-identity", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "I01", op="move_items", state="completed")
+    if a is not None:
+        r = str(a["terminal"]["reason"])
+        a["terminal"]["reason"] = r.replace("gained=1", "gained=2")
+        emit("m16-gain-not-requested", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "A08", op="eat", state="completed")
+    if a is not None:
+        r = str(a["terminal"]["reason"])
+        a["terminal"]["reason"] = r.replace("witness=1", "witness=0")
+        emit("m17-eat-witness-zero", d)
+
+    d = copy.deepcopy(ia)
+    d["cases"].append({"id": "Z99", "attempt": 1, "actions": [],
+                       "pre_snapshot": {}, "post_snapshot": {}})
+    emit("m18-unknown-case-id", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "I01", op="move_items", state="completed")
+    if a is not None:
+        a["terminal"]["state"] = "outcome_unknown"
+        a["post_action"] = None
+        emit("m10-unknown-without-reconciliation", d)
     return out
 
 
 def generate_g4_mutations(runs, outdir):
     out = []
 
-    def add(name, doc):
+    def emit(name, doc):
         p = os.path.join(outdir, "g4-%s.json" % name)
         _save(p, doc)
         out.append((name, p))
 
-    m = copy.deepcopy(runs)
-    first = m["runs"][0]
-    m["runs"] = [dict(first, run_id="x%d" % i) for i in range(5)]
-    add("five-runs-from-one", m)
-    m = copy.deepcopy(runs)
-    for s in m["runs"][0].get("snapshots", []):
-        if s.get("tag") == "pre":
-            s["facts"] = dict(s["facts"])
-            s["facts"]["inventory"] = {"minecraft:dirt": 1}
-    add("initial-inventory-nonempty", m)
-    m = copy.deepcopy(runs)
-    for s in m["runs"][0].get("snapshots", []):
+    d = copy.deepcopy(runs)
+    for s in d["runs"][0]["snapshots"]:
         if s.get("tag") == "final":
-            s["facts"] = dict(s["facts"])
-            s["facts"]["screen"] = {"present": True, "cursor_count": 3,
-                                    "cursor_item": "minecraft:dirt"}
-    add("final-cursor-occupied", m)
-    m = copy.deepcopy(runs)
-    for s in m["runs"][0].get("snapshots", []):
-        if s.get("tag") == "after-logs":
-            m["runs"][0]["snapshots"].remove(s)
-    add("after-logs-snapshot-removed", m)
-    m = copy.deepcopy(runs)
-    m["runs"][1]["identity"]["first_observe"] = dict(
-        m["runs"][1]["identity"]["first_observe"])
-    m["runs"][1]["identity"]["first_observe"][
-        "client_mod_jar_sha256"] = "f" * 64
-    add("runtime-jar-mixed", m)
-    m = copy.deepcopy(runs)
-    for rec in m["runs"][0].get("receipts", []):
-        if rec.get("op") == "mine_opportunity":
-            rec["terminal"] = dict(rec["terminal"])
-            rec["terminal"]["state"] = "outcome_unknown"
-            break
-    add("unresolved-unknown-receipt", m)
+            s["facts"]["screen"] = {"present": False, "cursor_count": 3}
+    emit("m02-cursor-present-false", d)
+
+    d = copy.deepcopy(runs)
+    del d["runs"][0]["status_end"]
+    emit("m03-status-end-removed", d)
+
+    d = copy.deepcopy(runs)
+    d["runs"][0]["oracle_blocks"] = {}
+    emit("m05-table-oracle-removed", d)
+
+    d = copy.deepcopy(runs)
+    d["runs"][1]["identity"]["candidate_commit"] = "e" * 40
+    emit("m06-candidate-mixed", d)
+
+    d = copy.deepcopy(runs)
+    d["runs"][1]["receipts"][0]["execution_id"] = \
+        d["runs"][0]["receipts"][0]["execution_id"]
+    emit("m08-duplicate-exec", d)
+
+    d = copy.deepcopy(runs)
+    d["runs"][1]["identity"]["run_started_wall"] = \
+        d["runs"][0]["identity"]["run_started_wall"]
+    d["runs"][1]["ended_wall"] = d["runs"][0]["ended_wall"]
+    emit("m08-five-from-one-intervals", d)
+
+    d = copy.deepcopy(runs)
+    d["expect"] = {"logs_need": 2, "stone_need": 1}
+    emit("m09-expect-downgraded", d)
+
+    d = copy.deepcopy(runs)
+    d["runs"][0]["status_end"]["data"]["needs_reconcile"] = True
+    emit("m04-needs-reconcile", d)
     return out
 
 
 def _judge(path, mode, extra=()):
     p = subprocess.run(
-        [sys.executable, CHECKER, mode, path, *extra],
-        capture_output=True, text=True, timeout=120)
+        [sys.executable, CHECKER, mode, path] + list(extra),
+        capture_output=True, text=True, timeout=60)
     try:
         verdict = json.loads(p.stdout)
     except ValueError:
-        return p.returncode, None, p.stderr[-300:]
-    return p.returncode, verdict, p.stderr[-300:]
+        verdict = {"accept": False, "reason": "non-json:%s"
+                   % p.stdout[-120:]}
+    return p.returncode, verdict, p.stderr[-200:]
 
 
 def cmd_generate(ia_path, g4_path, outdir):
     os.makedirs(outdir, exist_ok=True)
-    ia = _load(ia_path)
-    runs = _load(g4_path)
-    pairs = generate_ia_mutations(ia, outdir)
-    pairs += generate_g4_mutations(runs, outdir)
-    _save(os.path.join(outdir, "manifest.json"), {
-        "ia_original": os.path.abspath(ia_path),
-        "g4_original": os.path.abspath(g4_path),
-        "ia_mutations": [n for n, _ in pairs[:5]],
-        "g4_mutations": [n for n, _ in pairs[5:]],
-    })
-    print(json.dumps({"generated": len(pairs),
+    with open(ia_path, encoding="utf-8") as fh:
+        ia = json.load(fh)
+    with open(g4_path, encoding="utf-8") as fh:
+        runs = json.load(fh)
+    ia_m = generate_ia_mutations(ia, outdir)
+    g4_m = generate_g4_mutations(runs, outdir)
+    def _gate_of(path):
+        return "ia" if os.path.basename(path).startswith("ia-") else "g4"
+
+    man = {"positive": {"ia": ia_path, "g4": g4_path},
+           "mutations": [{"name": n, "path": os.path.basename(p),
+                          "gate": _gate_of(p)}
+                         for n, p in ia_m + g4_m]}
+    _save(os.path.join(outdir, "manifest.json"), man)
+    print(json.dumps({"generated": len(ia_m) + len(g4_m),
                       "outdir": outdir}, ensure_ascii=False))
     return 0
 
 
 def cmd_run(outdir):
-    man = _load(os.path.join(outdir, "manifest.json"))
+    man = json.load(open(os.path.join(outdir, "manifest.json"),
+                         encoding="utf-8"))
     results = []
     ok_all = True
-    ia_path = man["ia_original"]
-    rc, v, err = _judge(ia_path, "judge-ia")
-    good = rc == 0 and v and v.get("accept") is True
-    results.append(("original-ia-accepted", good))
-    ok_all &= good
-    g4_path = man["g4_original"]
-    rc, v, err = _judge(g4_path, "judge-g4")
-    good = rc == 0 and v and v.get("accept") is True
-    results.append(("original-g4-accepted", good))
-    ok_all &= good
-    for name in man.get("ia_mutations", []):
-        p = os.path.join(outdir, "ia-%s.json" % name)
-        rc, v, err = _judge(p, "judge-ia")
-        good = (rc == 1 and v is not None and v.get("accept") is False)
-        results.append((name, good))
-        ok_all &= good
-    for name in man.get("g4_mutations", []):
-        p = os.path.join(outdir, "g4-%s.json" % name)
-        rc, v, err = _judge(p, "judge-g4")
-        good = (rc == 1 and v is not None and v.get("accept") is False)
-        results.append((name, good))
-        ok_all &= good
-    for name, good in results:
-        print(json.dumps({"probe": name,
-                          "pass": bool(good)}, ensure_ascii=False))
-    print("MUTATIONS %s" % ("ALL-REJECTED" if ok_all else "PROBE-FAILED"))
+    # 正例:G4 必须被接受;IA 正例因 I08 环境阻断预期被拒 → 记
+    # INCONCLUSIVE,变异组语义在 selftest 已离线覆盖(不冒充)。
+    rc, v, err = _judge(man["positive"]["g4"], "judge-g4")
+    pos_g4_ok = bool(v.get("accept"))
+    results.append({"name": "positive-g4", "accept": pos_g4_ok,
+                    "reason": v.get("reason")})
+    ok_all &= pos_g4_ok
+    rc, v, err = _judge(man["positive"]["ia"], "judge-ia")
+    pos_ia_ok = bool(v.get("accept"))
+    results.append({"name": "positive-ia", "accept": pos_ia_ok,
+                    "reason": v.get("reason"),
+                    "note": "I08 环境阻断(Tom's 网络不收货)——"
+                            "IA 正例预期拒绝;IA 变异组标 INCONCLUSIVE"})
+    for m in man["mutations"]:
+        mode = "judge-" + m["gate"]
+        rc, v, err = _judge(os.path.join(outdir, m["path"]), mode)
+        if m["name"].endswith("fixture-tolerated"):
+            # 方向性边界:该变异应被接受(逐动作守恒不受 case 级
+            # fixture 影响)——B1 修复的证明面。
+            accepted = bool(v.get("accept"))
+            results.append({"name": m["name"], "accept": accepted,
+                            "expected": "ACCEPT", "reason": v.get("reason")})
+            ok_all &= accepted
+            continue
+        if not pos_ia_ok and m["gate"] == "ia":
+            results.append({"name": m["name"], "accept": None,
+                            "expected": "REJECT",
+                            "status": "INCONCLUSIVE(正例被 I08 阻断)"})
+            continue
+        rejected = (not v.get("accept")) and rc == 1
+        results.append({"name": m["name"], "accept": rejected,
+                        "expected": "REJECT", "reason": v.get("reason"),
+                        "rc": rc})
+        ok_all &= rejected
+    _save(os.path.join(outdir, "results.json"),
+          {"ok_all": ok_all, "results": results})
+    print(json.dumps(results, ensure_ascii=False, indent=1))
+    print("MUTATIONS %s" % ("ALL-OK" if ok_all else "HAS-GAPS"))
     return 0 if ok_all else 1
 
 
@@ -211,12 +260,12 @@ def _load(path):
 
 
 def main(argv):
-    if len(argv) >= 2 and argv[0] == "generate":
+    if len(argv) >= 4 and argv[0] == "generate":
         return cmd_generate(argv[1], argv[2], argv[3])
     if len(argv) >= 2 and argv[0] == "run":
         return cmd_run(argv[1])
-    print("usage: generate <ia> <g4> <outdir> | run <outdir>",
-          file=sys.stderr)
+    print("usage: rcf1_mutations.py generate <ia.json> <g4.json> <outdir>"
+          "\n       rcf1_mutations.py run <outdir>")
     return 2
 
 

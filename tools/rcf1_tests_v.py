@@ -116,12 +116,13 @@ def checker_consistency():
     sys.path.insert(0, HERE)
     import rcf1_checker_selftest as ST
     ST.RESULTS.clear()
-    ST.historical_counterexamples()
-    ST.semantic_mutations()
+    # R3C:selftest 重写为 v2 判定逻辑(main 全量跑一遍再取结果)
+    ST.main()
     passed = sum(1 for _, ok in ST.RESULTS if ok)
     run("CHK-final-entry-rejects-history-and-mutations",
         passed == len(ST.RESULTS),
-        "selftest %d/%d via judge_ia/judge_g4" % (passed, len(ST.RESULTS)))
+        "selftest %d/%d via judge_ia/judge_g4/g5" % (
+            passed, len(ST.RESULTS)))
     # 最终入口 CLI 也可用(报告由同一入口产生)
     import subprocess
     doc = {"cases": [{"id": "A01", "results": [

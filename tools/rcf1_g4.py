@@ -68,9 +68,10 @@ class Chain:
         print(json.dumps({"run": self.run_id, "evt": row},
                          ensure_ascii=False), flush=True)
 
-    def receipt(self, op, args, terminal):
+    def receipt(self, op, args, terminal, execution_id=None):
         self.receipts.append({
             "op": op, "args": args,
+            "execution_id": execution_id,
             "terminal": F._strip_secrets(terminal),
             "t_wall": now(),
             "t_rel": round(time.time() - self.started_wall, 3)})
@@ -113,8 +114,9 @@ class Chain:
             if self.facts.cases else {},
             "fail_at": self.fail_at,
             "ended_wall": now(),
+            # R3C/M03:结束 status 是必需事实(缺 ≠ 无未决动作)
+            "status_end": self.status_end,
         }
-
 
 def inventory(s):
     return F.inv_counts_of(F.observe_facts(s))
@@ -216,10 +218,10 @@ def do_op(s, chain, op, args, timeout):
     if ex_id is None:
         receipt = {"state": "failed",
                    "reason": json.dumps(err, ensure_ascii=False)}
-        chain.receipt(op, args, receipt)
+        chain.receipt(op, args, receipt, execution_id=None)
         return receipt
     res, _trail = s.term(ex_id, timeout_s=timeout)
-    chain.receipt(op, args, res)
+    chain.receipt(op, args, res, execution_id=ex_id)
     return res
 
 
@@ -615,7 +617,10 @@ def main():
             ensure_ascii=False), flush=True)
         if doc["fail_at"] is not None:
             break  # 保存失败,不挑选零散成功
-    with open(r"D:\mc-rcf1-raw\g4-runs-r3.json", "w",
+    import os as _os
+    g4_out = _os.path.join(_os.environ.get(
+        "RCF1_RAW", r"D:\mc-rcf1-raw"), "g4-runs-r3.json")
+    with open(g4_out, "w",
               encoding="utf-8") as fh:
         json.dump({"matrix": matrix, "expect": expect,
                    "runs": runs}, fh,

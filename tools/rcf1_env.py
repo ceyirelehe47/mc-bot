@@ -20,10 +20,18 @@ import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-ROOT = r"D:\code\mc-experiment"
-SERVER = os.path.join(ROOT, "rcf1-server")
-CLIENT = os.path.join(ROOT, "rcf1-client")
-RUNLOG = pathlib.Path(r"D:\mc-rcf1-raw")  # 仓库外原始日志,脱敏后才进交付
+# R3C/D2:部署根可经 RCF1_ROOT 切换(fresh replay 用全新部署目录;
+# 默认仍是既有受管环境)。世界/配置来源在 BASELINE.md 声明。
+ROOT = os.environ.get(
+    "RCF1_ROOT", r"D:\code\mc-experiment")
+SERVER = os.path.join(ROOT, "rcf1-server-r3c"
+                      if os.environ.get("RCF1_ROOT")
+                      else "rcf1-server")
+CLIENT = os.path.join(ROOT, "rcf1-client-r3c"
+                      if os.environ.get("RCF1_ROOT")
+                      else "rcf1-client")
+RUNLOG = pathlib.Path(os.environ.get(
+    "RCF1_RAW", r"D:\mc-rcf1-raw"))  # 仓库外原始日志,脱敏后才进交付
 JAVA = r"D:\mc-server\jdk-21.0.12.1+1\bin\java.exe"
 SECRETS = os.path.join(REPO, ".secrets")
 CMD_TEMPLATE = os.path.join(ROOT, "mc2a07a-work", "drivers", "prod_client_cmd.json")

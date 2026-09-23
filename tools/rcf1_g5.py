@@ -31,7 +31,7 @@ import rcf1_env as E  # noqa: E402
 import rcf1_facts as F  # noqa: E402
 import rcf1_shelter as SH  # noqa: E402
 
-RAW = r"D:\mc-rcf1-raw"
+RAW = __import__("os").environ.get("RCF1_RAW", r"D:\mc-rcf1-raw")
 SCENES_PATH = r"D:\code\mc-bot\tools\rcf1_g5_scenes.json"
 MODEL_CHANNEL = "zhipu-coding-plan/glm-5.3@omp-session"
 
@@ -215,11 +215,13 @@ def cmd_night(run_id, max_s=2700):
         except Exception as exc:  # noqa: BLE001
             _append(run_id, "night-obs-error", {"error": repr(exc)[:200]})
             time.sleep(10)
-            continue
         pos = obs.get("position") or {}
         row = {"phase": phase, "health": obs.get("health"),
                "pos": pos, "food": obs.get("food"),
-               "elapsed": round(time.time() - t0, 1)}
+               "elapsed": round(time.time() - t0, 1),
+               # R3C/M21:原始世界时间与游戏会话(checker 连续性重算依据)
+               "world_time": obs.get("world_time"),
+               "game_session": obs.get("game_session")}
         _append(run_id, "night", row)
         if anchor is None:
             anchor = (pos.get("x"), pos.get("z"))
@@ -232,7 +234,9 @@ def cmd_night(run_id, max_s=2700):
             dawn_streak += 1
             if dawn_streak >= 3:
                 _append(run_id, "night-end", {"dawn": True,
-                                              "elapsed": row["elapsed"]})
+                                              "elapsed": row["elapsed"],
+                                              "world_time":
+                                                  row["world_time"]})
                 print(json.dumps({"night": "dawn", "elapsed":
                                   row["elapsed"]}))
                 return 0
