@@ -1,0 +1,19 @@
+{
+ "ia_original": "D:\\mc-rcf1-raw\\ia-facts-r3.json",
+ "g4_original": "D:\\mc-rcf1-raw\\g4-runs-r3.json",
+ "ia_mutations": [
+  "eat-witness-zero",
+  "negative-inventory-side-effect",
+  "duplicate-case-attempt",
+  "identity-stripped",
+  "failed-craft-flipped-completed"
+ ],
+ "g4_mutations": [
+  "five-runs-from-one",
+  "initial-inventory-nonempty",
+  "final-cursor-occupied",
+  "after-logs-snapshot-removed",
+  "runtime-jar-mixed",
+  "unresolved-unknown-receipt"
+ ]
+}

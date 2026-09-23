@@ -1,0 +1,4 @@
+  File "D:\code\mc-bot\tools\rcf1_tests_ia.py", line 180
+    global FACTS
+    ^^^^^^^^^^^^
+SyntaxError: name 'FACTS' is used prior to global declaration

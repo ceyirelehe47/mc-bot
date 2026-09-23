@@ -1,0 +1,1 @@
+{"stopped_at": "2026-09-23T13:00:35+08:00", "final": {"server": "STOPPED(pid=22888; scope verified 0)", "client": "STOPPED(already gone; scope verified 0 after force-kill of hung pid 17820)"}, "scan_namespace_zero": true, "note": "client process hung after server stop (disconnect screen loop); force-killed by exact PID then scope verified 0 via lifecycle stop"}

@@ -1,0 +1,3873 @@
+{
+ "schema": "mc.rcf1r3.facts.v1",
+ "identity": {
+  "collected_for": "r3ia",
+  "bridge_status_start": {
+   "data": {
+    "protocol_version": 1,
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "event_epoch": "52cde25c-843f-47a4-a086-8ec6fa9ac9d2",
+    "server_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "event_sequence": 17712,
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "body_ready": true,
+    "needs_reconcile": false,
+    "control_active": true,
+    "fault": "",
+    "stopped": false,
+    "active_execution": null,
+    "operations": [
+     "container_transfer",
+     "craft",
+     "deposit",
+     "eat",
+     "goto",
+     "mine_opportunity",
+     "move_items",
+     "place",
+     "say"
+    ]
+   },
+   "ok": true,
+   "t_wall": 1790137752.172,
+   "server_mod_jar_sha256": null
+  },
+  "first_observe": {
+   "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+   "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+   "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+   "snapshot_age_ms": 48,
+   "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+   "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+   "client_mod_jar_sha256": null,
+   "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+   "name": "Bob",
+   "dimension": "minecraft:overworld",
+   "position": {
+    "z": 300.5,
+    "x": 300.5,
+    "y": 120.0
+   },
+   "health": 20.0,
+   "food": 20,
+   "inventory": {},
+   "screen": {
+    "cursor_item": "minecraft:air",
+    "cursor_count": 0,
+    "present": false
+   },
+   "t_wall": 1790137752.187
+  },
+  "bridge_status_end": {
+   "data": {
+    "protocol_version": 1,
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "event_epoch": "52cde25c-843f-47a4-a086-8ec6fa9ac9d2",
+    "server_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "event_sequence": 17956,
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "body_ready": true,
+    "needs_reconcile": false,
+    "control_active": true,
+    "fault": "",
+    "stopped": false,
+    "active_execution": null,
+    "operations": [
+     "container_transfer",
+     "craft",
+     "deposit",
+     "eat",
+     "goto",
+     "mine_opportunity",
+     "move_items",
+     "place",
+     "say"
+    ]
+   },
+   "ok": true,
+   "t_wall": 1790138805.943
+  },
+  "final_observe": {
+   "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+   "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+   "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+   "snapshot_age_ms": 19,
+   "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+   "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+   "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+   "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+   "name": "Bob",
+   "dimension": "minecraft:overworld",
+   "position": {
+    "z": 300.5,
+    "x": 300.5,
+    "y": 120.0
+   },
+   "health": 20.0,
+   "food": 20,
+   "inventory": {},
+   "screen": {
+    "cursor_item": "minecraft:air",
+    "cursor_count": 0,
+    "present": false
+   },
+   "t_wall": 1790138805.959
+  }
+ },
+ "cases": [
+  {
+   "id": "I01",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:iron_pickaxe",
+      "count": -1,
+      "hotbar": 0
+     },
+     "submit": {
+      "execution_id": "5fbb040a-753d-49d8-88d4-8cd554377d7e"
+     },
+     "terminal": {
+      "execution_id": "5fbb040a-753d-49d8-88d4-8cd554377d7e",
+      "request_id": "rcf1-play-move_items-37753319",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:iron_pickaxe:hotbar=0:baseline=0:after=1:gained=1",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137754.192
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:iron_pickaxe",
+      "count": -1,
+      "hotbar": 0
+     },
+     "submit": {
+      "execution_id": "5fbb040a-753d-49d8-88d4-8cd554377d7e"
+     },
+     "terminal": {
+      "execution_id": "5fbb040a-753d-49d8-88d4-8cd554377d7e",
+      "request_id": "rcf1-play-move_items-37753319",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:iron_pickaxe:hotbar=0:baseline=0:after=1:gained=1",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137754.192
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cooked_beef",
+      "count": 3,
+      "hotbar": 1
+     },
+     "submit": {
+      "execution_id": "625cc888-c432-4766-90bf-9f330fb2755b"
+     },
+     "terminal": {
+      "execution_id": "625cc888-c432-4766-90bf-9f330fb2755b",
+      "request_id": "rcf1-play-move_items-37754191",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cooked_beef:hotbar=1:baseline=0:after=3:gained=3",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137755.049
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cooked_beef",
+      "count": 3,
+      "hotbar": 1
+     },
+     "submit": {
+      "execution_id": "625cc888-c432-4766-90bf-9f330fb2755b"
+     },
+     "terminal": {
+      "execution_id": "625cc888-c432-4766-90bf-9f330fb2755b",
+      "request_id": "rcf1-play-move_items-37754191",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cooked_beef:hotbar=1:baseline=0:after=3:gained=3",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137755.049
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:dirt",
+      "count": 8,
+      "hotbar": 2
+     },
+     "submit": {
+      "execution_id": "ff70e856-1da9-4f2a-93bc-cf605f64bbaf"
+     },
+     "terminal": {
+      "execution_id": "ff70e856-1da9-4f2a-93bc-cf605f64bbaf",
+      "request_id": "rcf1-play-move_items-37755049",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:dirt:hotbar=2:baseline=0:after=8:gained=8",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137756.703
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:dirt",
+      "count": 8,
+      "hotbar": 2
+     },
+     "submit": {
+      "execution_id": "ff70e856-1da9-4f2a-93bc-cf605f64bbaf"
+     },
+     "terminal": {
+      "execution_id": "ff70e856-1da9-4f2a-93bc-cf605f64bbaf",
+      "request_id": "rcf1-play-move_items-37755049",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:dirt:hotbar=2:baseline=0:after=8:gained=8",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137756.703
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 3,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:cooked_beef": 3,
+     "minecraft:dirt": 16,
+     "minecraft:iron_pickaxe": 1
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137754.192
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 25,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:cooked_beef": 3,
+     "minecraft:dirt": 16,
+     "minecraft:iron_pickaxe": 1
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137756.714
+   },
+   "opened_wall": 1790137752.187,
+   "closed_wall": 1790137756.714
+  },
+  {
+   "id": "I02",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": 1,
+      "hotbar": 3
+     },
+     "submit": {
+      "execution_id": "3a5267c6-1f1f-4d43-a403-302d5b5a5733"
+     },
+     "terminal": {
+      "execution_id": "3a5267c6-1f1f-4d43-a403-302d5b5a5733",
+      "request_id": "rcf1-play-move_items-37757834",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=3:baseline=0:after=1:gained=1",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137758.703
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": 1,
+      "hotbar": 3
+     },
+     "submit": {
+      "execution_id": "3a5267c6-1f1f-4d43-a403-302d5b5a5733"
+     },
+     "terminal": {
+      "execution_id": "3a5267c6-1f1f-4d43-a403-302d5b5a5733",
+      "request_id": "rcf1-play-move_items-37757834",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=3:baseline=0:after=1:gained=1",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137758.703
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": 7,
+      "hotbar": 3
+     },
+     "submit": {
+      "execution_id": "030e6362-989a-4ed7-9b08-2a7c5e74079e"
+     },
+     "terminal": {
+      "execution_id": "030e6362-989a-4ed7-9b08-2a7c5e74079e",
+      "request_id": "rcf1-play-move_items-37758703",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=3:baseline=1:after=8:gained=7",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137760.378
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": 7,
+      "hotbar": 3
+     },
+     "submit": {
+      "execution_id": "030e6362-989a-4ed7-9b08-2a7c5e74079e"
+     },
+     "terminal": {
+      "execution_id": "030e6362-989a-4ed7-9b08-2a7c5e74079e",
+      "request_id": "rcf1-play-move_items-37758703",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=3:baseline=1:after=8:gained=7",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137760.378
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": 31,
+      "hotbar": 4
+     },
+     "submit": {
+      "execution_id": "dd33bde4-b5a0-4b83-a657-d1ce352e17f0"
+     },
+     "terminal": {
+      "execution_id": "dd33bde4-b5a0-4b83-a657-d1ce352e17f0",
+      "request_id": "rcf1-play-move_items-37760378",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=4:baseline=0:after=31:gained=31",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137766.201
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": 31,
+      "hotbar": 4
+     },
+     "submit": {
+      "execution_id": "dd33bde4-b5a0-4b83-a657-d1ce352e17f0"
+     },
+     "terminal": {
+      "execution_id": "dd33bde4-b5a0-4b83-a657-d1ce352e17f0",
+      "request_id": "rcf1-play-move_items-37760378",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=4:baseline=0:after=31:gained=31",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137766.201
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": -1,
+      "hotbar": 5
+     },
+     "submit": {
+      "execution_id": "ab71b8b3-02e2-4771-9116-4a8600d36eed"
+     },
+     "terminal": {
+      "execution_id": "ab71b8b3-02e2-4771-9116-4a8600d36eed",
+      "request_id": "rcf1-play-move_items-37767225",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=5:baseline=0:after=7:gained=7",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137768.063
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": -1,
+      "hotbar": 5
+     },
+     "submit": {
+      "execution_id": "ab71b8b3-02e2-4771-9116-4a8600d36eed"
+     },
+     "terminal": {
+      "execution_id": "ab71b8b3-02e2-4771-9116-4a8600d36eed",
+      "request_id": "rcf1-play-move_items-37767225",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=5:baseline=0:after=7:gained=7",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137768.063
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 14,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:cobblestone": 38
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137758.703
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 5,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:cobblestone": 64
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137768.094
+   },
+   "opened_wall": 1790137756.714,
+   "closed_wall": 1790137768.094
+  },
+  {
+   "id": "V02",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": 10,
+      "hotbar": 1
+     },
+     "submit": {
+      "execution_id": "f6a524ce-90d9-4418-86b5-3c40dff18285"
+     },
+     "terminal": {
+      "execution_id": "f6a524ce-90d9-4418-86b5-3c40dff18285",
+      "request_id": "rcf1-play-move_items-37769189",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=1:baseline=0:after=10:gained=10",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137771.719
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": 10,
+      "hotbar": 1
+     },
+     "submit": {
+      "execution_id": "f6a524ce-90d9-4418-86b5-3c40dff18285"
+     },
+     "terminal": {
+      "execution_id": "f6a524ce-90d9-4418-86b5-3c40dff18285",
+      "request_id": "rcf1-play-move_items-37769189",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=1:baseline=0:after=10:gained=10",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137771.719
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": 7,
+      "hotbar": 1
+     },
+     "submit": {
+      "execution_id": "755b464d-8853-4241-a5ac-4e92ece4be7f"
+     },
+     "terminal": {
+      "execution_id": "755b464d-8853-4241-a5ac-4e92ece4be7f",
+      "request_id": "rcf1-play-move_items-37771743",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=1:baseline=10:after=17:gained=7",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137773.438
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:cobblestone",
+      "count": 7,
+      "hotbar": 1
+     },
+     "submit": {
+      "execution_id": "755b464d-8853-4241-a5ac-4e92ece4be7f"
+     },
+     "terminal": {
+      "execution_id": "755b464d-8853-4241-a5ac-4e92ece4be7f",
+      "request_id": "rcf1-play-move_items-37771743",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:cobblestone:hotbar=1:baseline=10:after=17:gained=7",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137773.438
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 31,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:cobblestone": 40
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137771.719
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 6,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:cobblestone": 40
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137774.297
+   },
+   "opened_wall": 1790137768.094,
+   "closed_wall": 1790137774.297
+  },
+  {
+   "id": "I03",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:iron_pickaxe",
+      "count": 1,
+      "hotbar": 5,
+      "source_slot": 0
+     },
+     "submit": {
+      "execution_id": "67104651-6311-4cd6-ac81-d5bcc2595dae"
+     },
+     "terminal": {
+      "execution_id": "67104651-6311-4cd6-ac81-d5bcc2595dae",
+      "request_id": "rcf1-play-move_items-37775409",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:iron_pickaxe:hotbar=5:baseline=0:after=1:gained=1:src=0:1->0:component_verified=true",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137776.289
+    },
+    {
+     "op": "move_items",
+     "args": {
+      "item": "minecraft:iron_pickaxe",
+      "count": 1,
+      "hotbar": 5,
+      "source_slot": 0
+     },
+     "submit": {
+      "execution_id": "67104651-6311-4cd6-ac81-d5bcc2595dae"
+     },
+     "terminal": {
+      "execution_id": "67104651-6311-4cd6-ac81-d5bcc2595dae",
+      "request_id": "rcf1-play-move_items-37775409",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "move_items",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_items_moved:minecraft:iron_pickaxe:hotbar=5:baseline=0:after=1:gained=1:src=0:1->0:component_verified=true",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137776.289
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 50,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:iron_pickaxe": 2
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137776.289
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 44,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:iron_pickaxe": 2
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137776.336
+   },
+   "opened_wall": 1790137774.297,
+   "closed_wall": 1790137776.336
+  },
+  {
+   "id": "I04",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "container_transfer",
+     "args": {
+      "x": 303,
+      "y": 120,
+      "z": 300,
+      "item": "minecraft:oak_log",
+      "count": 4,
+      "direction": "deposit"
+     },
+     "submit": {
+      "execution_id": "9c694d3e-eb0d-4e3a-859d-7e286fdfae77"
+     },
+     "terminal": {
+      "execution_id": "9c694d3e-eb0d-4e3a-859d-7e286fdfae77",
+      "request_id": "rcf1-play-container_transfer-37777433",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "container_transfer",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_container_transfer:minecraft:oak_log:deposit:player:10->6:container:0->4",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137779.189
+    },
+    {
+     "op": "container_transfer",
+     "args": {
+      "x": 303,
+      "y": 120,
+      "z": 300,
+      "item": "minecraft:oak_log",
+      "count": 4,
+      "direction": "deposit"
+     },
+     "submit": {
+      "execution_id": "9c694d3e-eb0d-4e3a-859d-7e286fdfae77"
+     },
+     "terminal": {
+      "execution_id": "9c694d3e-eb0d-4e3a-859d-7e286fdfae77",
+      "request_id": "rcf1-play-container_transfer-37777433",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "container_transfer",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_container_transfer:minecraft:oak_log:deposit:player:10->6:container:0->4",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137779.189
+    },
+    {
+     "op": "container_transfer",
+     "args": {
+      "x": 303,
+      "y": 120,
+      "z": 300,
+      "item": "minecraft:oak_log",
+      "count": 2,
+      "direction": "withdraw"
+     },
+     "submit": {
+      "execution_id": "65d3e136-fe5f-4e7a-887b-859302803d07"
+     },
+     "terminal": {
+      "execution_id": "65d3e136-fe5f-4e7a-887b-859302803d07",
+      "request_id": "rcf1-play-container_transfer-37779204",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "container_transfer",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_container_transfer:minecraft:oak_log:withdraw:player:6->8:container:4->2",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137780.914
+    },
+    {
+     "op": "container_transfer",
+     "args": {
+      "x": 303,
+      "y": 120,
+      "z": 300,
+      "item": "minecraft:oak_log",
+      "count": 2,
+      "direction": "withdraw"
+     },
+     "submit": {
+      "execution_id": "65d3e136-fe5f-4e7a-887b-859302803d07"
+     },
+     "terminal": {
+      "execution_id": "65d3e136-fe5f-4e7a-887b-859302803d07",
+      "request_id": "rcf1-play-container_transfer-37779204",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "container_transfer",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_container_transfer:minecraft:oak_log:withdraw:player:6->8:container:4->2",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137780.914
+    },
+    {
+     "op": "container_transfer",
+     "args": {
+      "x": 303,
+      "y": 120,
+      "z": 302,
+      "item": "minecraft:oak_log",
+      "count": 3,
+      "direction": "deposit"
+     },
+     "submit": {
+      "execution_id": "3912640e-13a4-4b8b-8bcf-0b6dc3f3d9d6"
+     },
+     "terminal": {
+      "execution_id": "3912640e-13a4-4b8b-8bcf-0b6dc3f3d9d6",
+      "request_id": "rcf1-play-container_transfer-37781975",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "container_transfer",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_container_transfer:minecraft:oak_log:deposit:player:8->5:container:0->3",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137783.648
+    },
+    {
+     "op": "container_transfer",
+     "args": {
+      "x": 303,
+      "y": 120,
+      "z": 302,
+      "item": "minecraft:oak_log",
+      "count": 3,
+      "direction": "deposit"
+     },
+     "submit": {
+      "execution_id": "3912640e-13a4-4b8b-8bcf-0b6dc3f3d9d6"
+     },
+     "terminal": {
+      "execution_id": "3912640e-13a4-4b8b-8bcf-0b6dc3f3d9d6",
+      "request_id": "rcf1-play-container_transfer-37781975",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "container_transfer",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_container_transfer:minecraft:oak_log:deposit:player:8->5:container:0->3",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137783.648
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 50,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_log": 6
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137779.189
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 47,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 303.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_log": 5
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137783.686
+   },
+   "opened_wall": 1790137776.336,
+   "closed_wall": 1790137783.686
+  },
+  {
+   "id": "I05",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "bb2d21ea-d790-46d2-bb76-a51000cb29ee"
+     },
+     "terminal": {
+      "execution_id": "bb2d21ea-d790-46d2-bb76-a51000cb29ee",
+      "request_id": "rcf1-play-craft-37790608",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "client_craft_inventory_full",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137792.323
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "bb2d21ea-d790-46d2-bb76-a51000cb29ee"
+     },
+     "terminal": {
+      "execution_id": "bb2d21ea-d790-46d2-bb76-a51000cb29ee",
+      "request_id": "rcf1-play-craft-37790608",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "client_craft_inventory_full",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137792.323
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 34,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:chainmail_boots": 35,
+     "minecraft:oak_log": 63
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137792.323
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 2,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:chainmail_boots": 35
+    },
+    "screen": {
+     "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+     "screen_seq": 8265,
+     "cursor_item": "minecraft:oak_log",
+     "cursor_count": 63,
+     "screen_epoch": "395f7fda-8794-4bcf-a23a-1da6229879d5",
+     "adapter_id": "vanilla_generic_storage_v1",
+     "screen_class": "net.minecraft.class_476",
+     "handler_class": "net.minecraft.class_1707",
+     "title": {
+      "origin": "mod_ui",
+      "text": "箱子",
+      "trust": "untrusted_data"
+     },
+     "sync_id": 4,
+     "capabilities": [
+      "deposit_quick_move"
+     ],
+     "widget_count": 0,
+     "storage_item_count": 0,
+     "slot_count": 63,
+     "truncated": false
+    },
+    "t_wall": 1790137794.592
+   },
+   "opened_wall": 1790137783.686,
+   "closed_wall": 1790137794.592
+  },
+  {
+   "id": "I06",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 20
+     },
+     "submit": {
+      "execution_id": "fad9fdb3-04df-4582-ac19-71c9aac38f21"
+     },
+     "terminal": {
+      "execution_id": "fad9fdb3-04df-4582-ac19-71c9aac38f21",
+      "request_id": "rcf1-play-craft-37824048",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "cancelled",
+      "progress": 0.0,
+      "reason": "external_cancel",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137824.311
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 20
+     },
+     "submit": {
+      "execution_id": "60ade05a-9bd1-43ae-b7b0-edf67c6ba666"
+     },
+     "terminal": {
+      "execution_id": "60ade05a-9bd1-43ae-b7b0-edf67c6ba666",
+      "request_id": "rcf1-play-craft-37854763",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "cancelled",
+      "progress": 0.0,
+      "reason": "external_cancel",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137856.643
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 20
+     },
+     "submit": {
+      "execution_id": "b468c1c3-9967-4caa-b571-f95f9b3ae810"
+     },
+     "terminal": {
+      "execution_id": "b468c1c3-9967-4caa-b571-f95f9b3ae810",
+      "request_id": "rcf1-play-craft-37887118",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "cancelled",
+      "progress": 0.0,
+      "reason": "external_cancel",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137889.163
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 21,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_log": 8,
+     "minecraft:oak_planks": 4
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137824.311
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 45,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_log": 7,
+     "minecraft:oak_planks": 4
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137892.184
+   },
+   "opened_wall": 1790137794.592,
+   "closed_wall": 1790137892.184
+  },
+  {
+   "id": "I07",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "container_transfer",
+     "args": {
+      "x": 305,
+      "y": 120,
+      "z": 300,
+      "item": "minecraft:dirt",
+      "count": 1,
+      "direction": "deposit"
+     },
+     "submit": {
+      "execution_id": "f815f6c0-aab4-4711-98ff-3ea6ea243c39"
+     },
+     "terminal": {
+      "execution_id": "f815f6c0-aab4-4711-98ff-3ea6ea243c39",
+      "request_id": "rcf1-play-container_transfer-37917165",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "container_transfer",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "container_not_an_inventory",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137917.228
+    },
+    {
+     "op": "container_transfer",
+     "args": {
+      "x": 305,
+      "y": 120,
+      "z": 300,
+      "item": "minecraft:dirt",
+      "count": 1,
+      "direction": "deposit"
+     },
+     "submit": {
+      "execution_id": "f815f6c0-aab4-4711-98ff-3ea6ea243c39"
+     },
+     "terminal": {
+      "execution_id": "f815f6c0-aab4-4711-98ff-3ea6ea243c39",
+      "request_id": "rcf1-play-container_transfer-37917165",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "container_transfer",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "container_not_an_inventory",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137917.228
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 39,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_log": 7,
+     "minecraft:oak_planks": 4
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137917.228
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 5,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_log": 7,
+     "minecraft:oak_planks": 4
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137917.245
+   },
+   "opened_wall": 1790137892.184,
+   "closed_wall": 1790137917.245
+  },
+  {
+   "id": "I08",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "goto",
+     "args": {
+      "x": 306,
+      "y": 121,
+      "z": 297,
+      "face_x": 305,
+      "face_y": 120,
+      "face_z": 296
+     },
+     "submit": {
+      "execution_id": "4981cefa-8d0f-4c17-944f-7eb7495ed41f"
+     },
+     "terminal": {
+      "execution_id": "4981cefa-8d0f-4c17-944f-7eb7495ed41f",
+      "request_id": "rcf1-play-goto-37948516",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "goto",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_arrival_and_facing_verified",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790137949.367
+    },
+    {
+     "op": "deposit",
+     "args": {},
+     "submit": {
+      "execution_id": "09b012e7-215a-4d69-aa20-418c35d690a0"
+     },
+     "terminal": {
+      "execution_id": "09b012e7-215a-4d69-aa20-418c35d690a0",
+      "request_id": "rcf1-play-deposit-37949366",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "deposit",
+      "state": "cancelled",
+      "progress": 0.99,
+      "reason": "external_cancel",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138039.756
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 28,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 297.5,
+     "x": 306.5,
+     "y": 121.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:dirt": 16
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790137949.367
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 48,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 297.5,
+     "x": 306.5,
+     "y": 121.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:dirt": 16
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138039.787
+   },
+   "opened_wall": 1790137917.245,
+   "closed_wall": 1790138039.787
+  },
+  {
+   "id": "A01",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 8
+     },
+     "submit": {
+      "execution_id": "b57dd364-cbd9-4ad1-bf39-4234356cb6e5"
+     },
+     "terminal": {
+      "execution_id": "b57dd364-cbd9-4ad1-bf39-4234356cb6e5",
+      "request_id": "rcf1-play-craft-38069262",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->8:delta=8:batches=2:output_per_batch=4:materials=minecraft:oak_log:2->0,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138072.654
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 8
+     },
+     "submit": {
+      "execution_id": "b57dd364-cbd9-4ad1-bf39-4234356cb6e5"
+     },
+     "terminal": {
+      "execution_id": "b57dd364-cbd9-4ad1-bf39-4234356cb6e5",
+      "request_id": "rcf1-play-craft-38069262",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->8:delta=8:batches=2:output_per_batch=4:materials=minecraft:oak_log:2->0,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138072.654
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:birch_planks",
+      "count": 12
+     },
+     "submit": {
+      "execution_id": "75a7b43d-e2ac-4db8-8b89-4dd4a23f0775"
+     },
+     "terminal": {
+      "execution_id": "75a7b43d-e2ac-4db8-8b89-4dd4a23f0775",
+      "request_id": "rcf1-play-craft-38072653",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:birch_planks:0->12:delta=12:batches=3:output_per_batch=4:materials=minecraft:birch_log:3->0,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138077.622
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:birch_planks",
+      "count": 12
+     },
+     "submit": {
+      "execution_id": "75a7b43d-e2ac-4db8-8b89-4dd4a23f0775"
+     },
+     "terminal": {
+      "execution_id": "75a7b43d-e2ac-4db8-8b89-4dd4a23f0775",
+      "request_id": "rcf1-play-craft-38072653",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:birch_planks:0->12:delta=12:batches=3:output_per_batch=4:materials=minecraft:birch_log:3->0,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138077.622
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stick",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "a716cdc9-8981-4a4f-980a-89cbe8a48d11"
+     },
+     "terminal": {
+      "execution_id": "a716cdc9-8981-4a4f-980a-89cbe8a48d11",
+      "request_id": "rcf1-play-craft-38077622",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:stick:0->4:delta=4:batches=1:output_per_batch=4:materials=minecraft:oak_planks:8->6,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138080.173
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stick",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "a716cdc9-8981-4a4f-980a-89cbe8a48d11"
+     },
+     "terminal": {
+      "execution_id": "a716cdc9-8981-4a4f-980a-89cbe8a48d11",
+      "request_id": "rcf1-play-craft-38077622",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:stick:0->4:delta=4:batches=1:output_per_batch=4:materials=minecraft:oak_planks:8->6,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138080.173
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:crafting_table",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "9040c30b-4abf-44b3-93d4-d3e2e7f6bb60"
+     },
+     "terminal": {
+      "execution_id": "9040c30b-4abf-44b3-93d4-d3e2e7f6bb60",
+      "request_id": "rcf1-play-craft-38080173",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:crafting_table:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:oak_planks:6->2,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138082.708
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:crafting_table",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "9040c30b-4abf-44b3-93d4-d3e2e7f6bb60"
+     },
+     "terminal": {
+      "execution_id": "9040c30b-4abf-44b3-93d4-d3e2e7f6bb60",
+      "request_id": "rcf1-play-craft-38080173",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:crafting_table:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:oak_planks:6->2,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138082.708
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 15,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:birch_log": 3,
+     "minecraft:oak_planks": 8
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138072.654
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 36,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:birch_planks": 12,
+     "minecraft:crafting_table": 1,
+     "minecraft:oak_planks": 2,
+     "minecraft:stick": 4
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138082.725
+   },
+   "opened_wall": 1790138039.787,
+   "closed_wall": 1790138082.725
+  },
+  {
+   "id": "V01",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 32
+     },
+     "submit": {
+      "execution_id": "610fff1f-f3fd-4916-bd6e-85c78ca3f8a1"
+     },
+     "terminal": {
+      "execution_id": "610fff1f-f3fd-4916-bd6e-85c78ca3f8a1",
+      "request_id": "rcf1-play-craft-38112321",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "client_craft_material_missing:minecraft:oak_log",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138116.682
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 42,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_planks": 8
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138116.682
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 9,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_planks": 8
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138116.698
+   },
+   "opened_wall": 1790138082.725,
+   "closed_wall": 1790138116.698
+  },
+  {
+   "id": "A02",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:birch_planks",
+      "count": 24
+     },
+     "submit": {
+      "execution_id": "9a414d50-3531-4bf5-b6e4-04c7af171744"
+     },
+     "terminal": {
+      "execution_id": "9a414d50-3531-4bf5-b6e4-04c7af171744",
+      "request_id": "rcf1-play-craft-38146199",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:birch_planks:0->24:delta=24:batches=6:output_per_batch=4:materials=minecraft:birch_log:6->0,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138156.142
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:birch_planks",
+      "count": 24
+     },
+     "submit": {
+      "execution_id": "9a414d50-3531-4bf5-b6e4-04c7af171744"
+     },
+     "terminal": {
+      "execution_id": "9a414d50-3531-4bf5-b6e4-04c7af171744",
+      "request_id": "rcf1-play-craft-38146199",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:birch_planks:0->24:delta=24:batches=6:output_per_batch=4:materials=minecraft:birch_log:6->0,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138156.142
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stick",
+      "count": 8
+     },
+     "submit": {
+      "execution_id": "567dd611-979e-4663-b95d-165fcc9a546b"
+     },
+     "terminal": {
+      "execution_id": "567dd611-979e-4663-b95d-165fcc9a546b",
+      "request_id": "rcf1-play-craft-38156141",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:stick:0->8:delta=8:batches=2:output_per_batch=4:materials=minecraft:birch_planks:24->20,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138160.333
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stick",
+      "count": 8
+     },
+     "submit": {
+      "execution_id": "567dd611-979e-4663-b95d-165fcc9a546b"
+     },
+     "terminal": {
+      "execution_id": "567dd611-979e-4663-b95d-165fcc9a546b",
+      "request_id": "rcf1-play-craft-38156141",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:stick:0->8:delta=8:batches=2:output_per_batch=4:materials=minecraft:birch_planks:24->20,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138160.333
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:crafting_table",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "da1b09d3-c294-4fd2-a000-912e59baf553"
+     },
+     "terminal": {
+      "execution_id": "da1b09d3-c294-4fd2-a000-912e59baf553",
+      "request_id": "rcf1-play-craft-38160332",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:crafting_table:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:birch_planks:20->16,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138162.859
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:crafting_table",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "da1b09d3-c294-4fd2-a000-912e59baf553"
+     },
+     "terminal": {
+      "execution_id": "da1b09d3-c294-4fd2-a000-912e59baf553",
+      "request_id": "rcf1-play-craft-38160332",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:crafting_table:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:birch_planks:20->16,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138162.859
+    },
+    {
+     "op": "place",
+     "args": {
+      "x": 302,
+      "y": 120,
+      "z": 302,
+      "item": "minecraft:crafting_table"
+     },
+     "submit": {
+      "execution_id": "ac6110d3-df30-448a-82d8-9e960c258b7a"
+     },
+     "terminal": {
+      "execution_id": "ac6110d3-df30-448a-82d8-9e960c258b7a",
+      "request_id": "rcf1-play-place-38162874",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "place",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_block_placed:minecraft:crafting_table:1->0:at=302, 120, 302:consumed=true:interaction_witnessed=true",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138163.746
+    },
+    {
+     "op": "place",
+     "args": {
+      "x": 302,
+      "y": 120,
+      "z": 302,
+      "item": "minecraft:crafting_table"
+     },
+     "submit": {
+      "execution_id": "ac6110d3-df30-448a-82d8-9e960c258b7a"
+     },
+     "terminal": {
+      "execution_id": "ac6110d3-df30-448a-82d8-9e960c258b7a",
+      "request_id": "rcf1-play-place-38162874",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "place",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_block_placed:minecraft:crafting_table:1->0:at=302, 120, 302:consumed=true:interaction_witnessed=true",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138163.746
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:wooden_pickaxe",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "3c122759-b38c-4e1d-a539-ae7da39f2193"
+     },
+     "terminal": {
+      "execution_id": "3c122759-b38c-4e1d-a539-ae7da39f2193",
+      "request_id": "rcf1-play-craft-38163746",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:birch_planks:16->13,minecraft:stick:8->6,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138167.976
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:wooden_pickaxe",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "3c122759-b38c-4e1d-a539-ae7da39f2193"
+     },
+     "terminal": {
+      "execution_id": "3c122759-b38c-4e1d-a539-ae7da39f2193",
+      "request_id": "rcf1-play-craft-38163746",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:birch_planks:16->13,minecraft:stick:8->6,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138167.976
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stone_pickaxe",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "46ae0fae-e4c0-4af5-9407-6b92fe761166"
+     },
+     "terminal": {
+      "execution_id": "46ae0fae-e4c0-4af5-9407-6b92fe761166",
+      "request_id": "rcf1-play-craft-38167975",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:stone_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:cobblestone:20->17,minecraft:stick:6->4,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138171.357
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stone_pickaxe",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "46ae0fae-e4c0-4af5-9407-6b92fe761166"
+     },
+     "terminal": {
+      "execution_id": "46ae0fae-e4c0-4af5-9407-6b92fe761166",
+      "request_id": "rcf1-play-craft-38167975",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:stone_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:cobblestone:20->17,minecraft:stick:6->4,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138171.357
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 2,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:birch_planks": 24,
+     "minecraft:cobblestone": 20
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138156.142
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 49,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 301.3767944059763,
+     "x": 302.4269910284376,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:birch_planks": 13,
+     "minecraft:cobblestone": 17,
+     "minecraft:stick": 4,
+     "minecraft:stone_pickaxe": 1,
+     "minecraft:wooden_pickaxe": 1
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138171.388
+   },
+   "opened_wall": 1790138116.698,
+   "closed_wall": 1790138171.388
+  },
+  {
+   "id": "A03",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:birch_planks",
+      "count": 24
+     },
+     "submit": {
+      "execution_id": "e2d9e416-2c01-4070-a0e4-423be8516282"
+     },
+     "terminal": {
+      "execution_id": "e2d9e416-2c01-4070-a0e4-423be8516282",
+      "request_id": "rcf1-play-craft-38172544",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:birch_planks:0->24:delta=24:batches=6:output_per_batch=4:materials=minecraft:birch_log:6->0,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138182.549
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:birch_planks",
+      "count": 24
+     },
+     "submit": {
+      "execution_id": "e2d9e416-2c01-4070-a0e4-423be8516282"
+     },
+     "terminal": {
+      "execution_id": "e2d9e416-2c01-4070-a0e4-423be8516282",
+      "request_id": "rcf1-play-craft-38172544",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:birch_planks:0->24:delta=24:batches=6:output_per_batch=4:materials=minecraft:birch_log:6->0,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138182.549
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stick",
+      "count": 8
+     },
+     "submit": {
+      "execution_id": "2916306a-a55d-4d08-a6ba-46d2400c6b2c"
+     },
+     "terminal": {
+      "execution_id": "2916306a-a55d-4d08-a6ba-46d2400c6b2c",
+      "request_id": "rcf1-play-craft-38182562",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:stick:0->8:delta=8:batches=2:output_per_batch=4:materials=minecraft:birch_planks:24->20,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138186.702
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stick",
+      "count": 8
+     },
+     "submit": {
+      "execution_id": "2916306a-a55d-4d08-a6ba-46d2400c6b2c"
+     },
+     "terminal": {
+      "execution_id": "2916306a-a55d-4d08-a6ba-46d2400c6b2c",
+      "request_id": "rcf1-play-craft-38182562",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:stick:0->8:delta=8:batches=2:output_per_batch=4:materials=minecraft:birch_planks:24->20,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138186.702
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stone_pickaxe",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "db9ed7d1-7d96-4db5-8555-17b3d84d2d98"
+     },
+     "terminal": {
+      "execution_id": "db9ed7d1-7d96-4db5-8555-17b3d84d2d98",
+      "request_id": "rcf1-play-craft-38186702",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "craft_missing:minecraft:cobblestonehave=0need=3",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138186.747
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stone_pickaxe",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "db9ed7d1-7d96-4db5-8555-17b3d84d2d98"
+     },
+     "terminal": {
+      "execution_id": "db9ed7d1-7d96-4db5-8555-17b3d84d2d98",
+      "request_id": "rcf1-play-craft-38186702",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "craft_missing:minecraft:cobblestonehave=0need=3",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138186.747
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 9,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:birch_planks": 24
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138182.549
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 23,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:birch_planks": 20,
+     "minecraft:stick": 8
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138186.762
+   },
+   "opened_wall": 1790138171.388,
+   "closed_wall": 1790138186.762
+  },
+  {
+   "id": "A04",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "5b0511a3-6f17-40ed-a6e2-d6a3228b8379"
+     },
+     "terminal": {
+      "execution_id": "5b0511a3-6f17-40ed-a6e2-d6a3228b8379",
+      "request_id": "rcf1-play-craft-38187810",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->4:delta=4:batches=1:output_per_batch=4:materials=minecraft:oak_log:4->3,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138189.524
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "5b0511a3-6f17-40ed-a6e2-d6a3228b8379"
+     },
+     "terminal": {
+      "execution_id": "5b0511a3-6f17-40ed-a6e2-d6a3228b8379",
+      "request_id": "rcf1-play-craft-38187810",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->4:delta=4:batches=1:output_per_batch=4:materials=minecraft:oak_log:4->3,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138189.524
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "e2a1fa0d-d757-40af-9963-50ecdfa7c6d1"
+     },
+     "terminal": {
+      "execution_id": "e2a1fa0d-d757-40af-9963-50ecdfa7c6d1",
+      "request_id": "rcf1-play-craft-38189523",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:oak_planks:4->8:delta=4:batches=1:output_per_batch=4:materials=minecraft:oak_log:3->2,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138191.189
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "e2a1fa0d-d757-40af-9963-50ecdfa7c6d1"
+     },
+     "terminal": {
+      "execution_id": "e2a1fa0d-d757-40af-9963-50ecdfa7c6d1",
+      "request_id": "rcf1-play-craft-38189523",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:oak_planks:4->8:delta=4:batches=1:output_per_batch=4:materials=minecraft:oak_log:3->2,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138191.189
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 35,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_log": 3,
+     "minecraft:oak_planks": 4
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138189.524
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 30,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_log": 2,
+     "minecraft:oak_planks": 8
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138191.22
+   },
+   "opened_wall": 1790138186.762,
+   "closed_wall": 1790138191.22
+  },
+  {
+   "id": "A05",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "feff2179-ff13-40dd-8a13-456c63c6bc80"
+     },
+     "terminal": {
+      "execution_id": "feff2179-ff13-40dd-8a13-456c63c6bc80",
+      "request_id": "rcf1-play-craft-38192266",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->4:delta=4:batches=1:output_per_batch=4:materials=minecraft:oak_log:1->0,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138193.945
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "feff2179-ff13-40dd-8a13-456c63c6bc80"
+     },
+     "terminal": {
+      "execution_id": "feff2179-ff13-40dd-8a13-456c63c6bc80",
+      "request_id": "rcf1-play-craft-38192266",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->4:delta=4:batches=1:output_per_batch=4:materials=minecraft:oak_log:1->0,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138193.945
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stick",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "3619680c-4b83-415a-8d0d-ce49c8f11156"
+     },
+     "terminal": {
+      "execution_id": "3619680c-4b83-415a-8d0d-ce49c8f11156",
+      "request_id": "rcf1-play-craft-38193944",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:stick:0->4:delta=4:batches=1:output_per_batch=4:materials=minecraft:oak_planks:4->2,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138196.473
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:stick",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "3619680c-4b83-415a-8d0d-ce49c8f11156"
+     },
+     "terminal": {
+      "execution_id": "3619680c-4b83-415a-8d0d-ce49c8f11156",
+      "request_id": "rcf1-play-craft-38193944",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_native_craft:minecraft:stick:0->4:delta=4:batches=1:output_per_batch=4:materials=minecraft:oak_planks:4->2,",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138196.473
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:crafting_table",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "e5e5d54c-c7b3-4a9d-998e-80072d8f9698"
+     },
+     "terminal": {
+      "execution_id": "e5e5d54c-c7b3-4a9d-998e-80072d8f9698",
+      "request_id": "rcf1-play-craft-38196472",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "craft_missing:minecraft:oak_plankshave=2need=4",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138197.315
+    },
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:crafting_table",
+      "count": 1
+     },
+     "submit": {
+      "execution_id": "e5e5d54c-c7b3-4a9d-998e-80072d8f9698"
+     },
+     "terminal": {
+      "execution_id": "e5e5d54c-c7b3-4a9d-998e-80072d8f9698",
+      "request_id": "rcf1-play-craft-38196472",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "craft_missing:minecraft:oak_plankshave=2need=4",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138197.315
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 4,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_planks": 4
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138193.945
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 0,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_planks": 2,
+     "minecraft:stick": 4
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138197.339
+   },
+   "opened_wall": 1790138191.22,
+   "closed_wall": 1790138197.339
+  },
+  {
+   "id": "A06",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "place",
+     "args": {
+      "x": 301,
+      "y": 120,
+      "z": 302,
+      "item": "minecraft:crafting_table"
+     },
+     "submit": {
+      "execution_id": "087eed71-a385-45e9-b6c3-3584a719fafb"
+     },
+     "terminal": {
+      "execution_id": "087eed71-a385-45e9-b6c3-3584a719fafb",
+      "request_id": "rcf1-play-place-38198417",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "place",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_block_placed:minecraft:crafting_table:1->0:at=301, 120, 302:consumed=true:interaction_witnessed=true",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138199.277
+    },
+    {
+     "op": "place",
+     "args": {
+      "x": 301,
+      "y": 120,
+      "z": 302,
+      "item": "minecraft:crafting_table"
+     },
+     "submit": {
+      "execution_id": "087eed71-a385-45e9-b6c3-3584a719fafb"
+     },
+     "terminal": {
+      "execution_id": "087eed71-a385-45e9-b6c3-3584a719fafb",
+      "request_id": "rcf1-play-place-38198417",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "place",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_block_placed:minecraft:crafting_table:1->0:at=301, 120, 302:consumed=true:interaction_witnessed=true",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138199.277
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 36,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 301.2930775870246,
+     "x": 301.28257735157763,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:dirt": 16
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138199.277
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 34,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 301.2930775870246,
+     "x": 301.28257735157763,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:dirt": 16
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138199.323
+   },
+   "opened_wall": 1790138197.339,
+   "closed_wall": 1790138199.323
+  },
+  {
+   "id": "A07",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "place",
+     "args": {
+      "x": 304,
+      "y": 121,
+      "z": 300,
+      "item": "minecraft:dirt"
+     },
+     "submit": {
+      "execution_id": "18e5b8b0-6c1f-4900-823f-44758e425b50"
+     },
+     "terminal": {
+      "execution_id": "18e5b8b0-6c1f-4900-823f-44758e425b50",
+      "request_id": "rcf1-play-place-38200467",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "place",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_block_placed:minecraft:dirt:4->3:at=304, 121, 300:consumed=true:interaction_witnessed=true",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138201.36
+    },
+    {
+     "op": "place",
+     "args": {
+      "x": 304,
+      "y": 121,
+      "z": 300,
+      "item": "minecraft:dirt"
+     },
+     "submit": {
+      "execution_id": "18e5b8b0-6c1f-4900-823f-44758e425b50"
+     },
+     "terminal": {
+      "execution_id": "18e5b8b0-6c1f-4900-823f-44758e425b50",
+      "request_id": "rcf1-play-place-38200467",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "place",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_block_placed:minecraft:dirt:4->3:at=304, 121, 300:consumed=true:interaction_witnessed=true",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138201.36
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 20,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5047551625352,
+     "x": 303.3314297985095,
+     "y": 121.17675927506424
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:dirt": 3
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138201.36
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 36,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5047551625352,
+     "x": 303.69999998807907,
+     "y": 121.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:oak_planks": 2
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138321.786
+   },
+   "opened_wall": 1790138199.323,
+   "closed_wall": 1790138321.786
+  },
+  {
+   "id": "A08",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "eat",
+     "args": {},
+     "submit": {
+      "execution_id": "43e4700e-c0fe-4873-9cba-e47613ce264e"
+     },
+     "terminal": {
+      "execution_id": "43e4700e-c0fe-4873-9cba-e47613ce264e",
+      "request_id": "rcf1-play-eat-38351219",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "eat",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_food_consumed:minecraft:cooked_beef:3->2:claimed=1:witness=1:hunger:0->8",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138353.769
+    },
+    {
+     "op": "eat",
+     "args": {},
+     "submit": {
+      "execution_id": "43e4700e-c0fe-4873-9cba-e47613ce264e"
+     },
+     "terminal": {
+      "execution_id": "43e4700e-c0fe-4873-9cba-e47613ce264e",
+      "request_id": "rcf1-play-eat-38351219",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "eat",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_food_consumed:minecraft:cooked_beef:3->2:claimed=1:witness=1:hunger:0->8",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138353.769
+    },
+    {
+     "op": "eat",
+     "args": {},
+     "submit": {
+      "execution_id": "a9f5b6a2-50cf-46a1-9239-46b0a9c78e03"
+     },
+     "terminal": {
+      "execution_id": "a9f5b6a2-50cf-46a1-9239-46b0a9c78e03",
+      "request_id": "rcf1-play-eat-38354799",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "eat",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "eat_not_hungry",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138354.843
+    },
+    {
+     "op": "eat",
+     "args": {},
+     "submit": {
+      "execution_id": "a9f5b6a2-50cf-46a1-9239-46b0a9c78e03"
+     },
+     "terminal": {
+      "execution_id": "a9f5b6a2-50cf-46a1-9239-46b0a9c78e03",
+      "request_id": "rcf1-play-eat-38354799",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "eat",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "eat_not_hungry",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138354.843
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 29,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 14.0,
+    "food": 8,
+    "inventory": {
+     "minecraft:cooked_beef": 2
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138353.769
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 20,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 16.0,
+    "food": 20,
+    "inventory": {
+     "minecraft:cooked_beef": 2
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138354.859
+   },
+   "opened_wall": 1790138321.786,
+   "closed_wall": 1790138354.859
+  },
+  {
+   "id": "V04",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "eat",
+     "args": {},
+     "submit": {
+      "execution_id": "af898cc8-23fe-4bda-a14a-08ceadb593e4"
+     },
+     "terminal": {
+      "execution_id": "af898cc8-23fe-4bda-a14a-08ceadb593e4",
+      "request_id": "rcf1-play-eat-38384327",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "eat",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "client_eat_timeout",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138399.032
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 42,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 6,
+    "inventory": {},
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138399.032
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 43,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 6,
+    "inventory": {},
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138399.034
+   },
+   "opened_wall": 1790138354.859,
+   "closed_wall": 1790138399.034
+  },
+  {
+   "id": "A09",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "mine_opportunity",
+     "args": {
+      "id": "rcore_9c1e9c3516ff_6a48439e8c4b47a7"
+     },
+     "submit": {
+      "execution_id": "0305da91-215b-4d61-9f5a-6966f371a560"
+     },
+     "terminal": {
+      "execution_id": "0305da91-215b-4d61-9f5a-6966f371a560",
+      "request_id": "rcf1-play-mine_opportunity-38460009",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "mine_opportunity",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "real_client_resource_opportunity_stale",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138580.844
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 4,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 6,
+    "inventory": {
+     "minecraft:stone_pickaxe": 1
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138580.844
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 19,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 6,
+    "inventory": {
+     "minecraft:stone_pickaxe": 1
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138580.86
+   },
+   "opened_wall": 1790138399.034,
+   "closed_wall": 1790138580.86
+  },
+  {
+   "id": "A10",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "goto",
+     "args": {
+      "x": 300,
+      "y": 120,
+      "z": 308,
+      "face_x": 300,
+      "face_y": 120,
+      "face_z": 305
+     },
+     "submit": {
+      "execution_id": "11c459d4-4274-412b-b44e-aaeadc6e7398"
+     },
+     "terminal": {
+      "execution_id": "11c459d4-4274-412b-b44e-aaeadc6e7398",
+      "request_id": "rcf1-play-goto-38611423",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "goto",
+      "state": "completed",
+      "progress": 1.0,
+      "reason": "server_authoritative_arrival_and_facing_verified",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138612.282
+    },
+    {
+     "op": "mine_opportunity",
+     "args": {
+      "id": "rcore_40b41f89af81_a545d4c50d9a4fc9"
+     },
+     "submit": {
+      "execution_id": "f649fa50-bfb8-4836-a490-88a161fc1f3d"
+     },
+     "terminal": {
+      "execution_id": "f649fa50-bfb8-4836-a490-88a161fc1f3d",
+      "request_id": "rcf1-play-mine_opportunity-38612290",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "mine_opportunity",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "real_client_resource_opportunity_stale",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138733.007
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 42,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 308.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 6,
+    "inventory": {
+     "minecraft:stone_pickaxe": 1
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138612.282
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 8,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 305.70398653307495,
+     "x": 300.4990322809994,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 6,
+    "inventory": {
+     "minecraft:stone_pickaxe": 1
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138733.046
+   },
+   "opened_wall": 1790138580.86,
+   "closed_wall": 1790138733.046
+  },
+  {
+   "id": "A11",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "craft",
+     "args": {
+      "item": "minecraft:oak_planks",
+      "count": 4
+     },
+     "submit": {
+      "execution_id": "11646501-ded3-414c-bf91-191cabf64545"
+     },
+     "terminal": {
+      "execution_id": "11646501-ded3-414c-bf91-191cabf64545",
+      "request_id": "rcf1-play-craft-38762574",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "craft",
+      "state": "outcome_unknown",
+      "progress": 0.0,
+      "reason": "body_session_changed",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138764.447
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": null,
+    "body_instance_id": null,
+    "body_session_epoch": null,
+    "snapshot_age_ms": null,
+    "game_session": null,
+    "control_session_epoch": null,
+    "client_mod_jar_sha256": null,
+    "minecraft_profile_uuid": null,
+    "name": null,
+    "dimension": null,
+    "position": null,
+    "health": null,
+    "food": null,
+    "inventory": null,
+    "screen": null,
+    "t_wall": 1790138764.447
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 23,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 1.5,
+     "x": -6.5,
+     "y": 108.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {},
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138772.462
+   },
+   "opened_wall": 1790138733.046,
+   "closed_wall": 1790138772.462
+  },
+  {
+   "id": "A12",
+   "attempt": 1,
+   "actions": [
+    {
+     "op": "place",
+     "args": {
+      "x": 300,
+      "y": 130,
+      "z": 340,
+      "item": "minecraft:dirt"
+     },
+     "submit": {
+      "execution_id": "2f33f96e-b0f4-4041-89ec-2337b482b9e2"
+     },
+     "terminal": {
+      "execution_id": "2f33f96e-b0f4-4041-89ec-2337b482b9e2",
+      "request_id": "rcf1-play-place-38805038",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "place",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "place_target_too_far",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138805.911
+    },
+    {
+     "op": "place",
+     "args": {
+      "x": 300,
+      "y": 130,
+      "z": 340,
+      "item": "minecraft:dirt"
+     },
+     "submit": {
+      "execution_id": "2f33f96e-b0f4-4041-89ec-2337b482b9e2"
+     },
+     "terminal": {
+      "execution_id": "2f33f96e-b0f4-4041-89ec-2337b482b9e2",
+      "request_id": "rcf1-play-place-38805038",
+      "body_id": "bob",
+      "backend_kind": "real_client",
+      "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+      "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+      "operation": "place",
+      "state": "failed",
+      "progress": 0.0,
+      "reason": "place_target_too_far",
+      "terminal": true,
+      "success_scope": "bounded_body_operation_not_user_goal"
+     },
+     "t_wall": 1790138805.911
+    }
+   ],
+   "oracle_blocks": {},
+   "pre_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 23,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {},
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138805.911
+   },
+   "post_snapshot": {
+    "runtime_epoch": "bb2c240b-23f6-47e0-95c0-91bf46f2c91a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "e79db745-f92a-4ed0-b097-900635c46166",
+    "snapshot_age_ms": 39,
+    "game_session": "e79db745-f92a-4ed0-b097-900635c46166",
+    "control_session_epoch": "61fe5156-c0ce-4499-9071-bfb6558d2dfe",
+    "client_mod_jar_sha256": "033ba71d2f6c8805165a1a374ae7c2452dcbff944606a6ff2d3c5d0091030814",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 300.5,
+     "x": 300.5,
+     "y": 120.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "inventory": {},
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "cursor_count": 0,
+     "present": false
+    },
+    "t_wall": 1790138805.927
+   },
+   "opened_wall": 1790138772.462,
+   "closed_wall": 1790138805.927
+  }
+ ]
+}

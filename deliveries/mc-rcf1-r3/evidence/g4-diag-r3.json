@@ -1,0 +1,1728 @@
+{
+ "schema": "mc.rcf1r3.g4run.v1",
+ "run_id": "diag",
+ "identity": {
+  "collected_for": "g4-diag",
+  "bridge_status_start": {
+   "data": {
+    "protocol_version": 1,
+    "runtime_epoch": "202cdee1-ec67-4555-8e79-9e98d87c324a",
+    "event_epoch": "52cde25c-843f-47a4-a086-8ec6fa9ac9d2",
+    "server_mod_jar_sha256": "efaa2197e73194edad4223693cf82746d63af1b125a7c7f1617aa7f9b3023d9d",
+    "event_sequence": 14505,
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "body_ready": true,
+    "needs_reconcile": false,
+    "control_active": true,
+    "fault": "",
+    "stopped": false,
+    "active_execution": null,
+    "operations": [
+     "container_transfer",
+     "craft",
+     "deposit",
+     "eat",
+     "goto",
+     "mine_opportunity",
+     "move_items",
+     "place",
+     "say"
+    ]
+   },
+   "ok": true,
+   "t_wall": 1790120979.261
+  },
+  "first_observe": {
+   "runtime_epoch": "202cdee1-ec67-4555-8e79-9e98d87c324a",
+   "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+   "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+   "snapshot_age_ms": 39,
+   "game_session": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+   "control_session_epoch": "e4ad822b-ce05-4062-8a3e-a8c776fa05f1",
+   "client_mod_jar_sha256": "efaa2197e73194edad4223693cf82746d63af1b125a7c7f1617aa7f9b3023d9d",
+   "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+   "name": "Bob",
+   "dimension": "minecraft:overworld",
+   "position": {
+    "z": 4.5,
+    "y": 107.0,
+    "x": 8.5
+   },
+   "health": 17.0,
+   "food": 17,
+   "inventory": {},
+   "screen": {
+    "cursor_item": "minecraft:air",
+    "present": false,
+    "cursor_count": 0
+   },
+   "t_wall": 1790120979.276
+  },
+  "candidate_commit": "ff29078ab3cd52d6cfceb928344c90e0c25ab2a7",
+  "run_started_wall": 1790120979.2448194,
+  "run_limit_s": 720,
+  "receipt_count": 28
+ },
+ "events": [
+  {
+   "t": 0.031,
+   "kind": "session-open"
+  },
+  {
+   "t": 0.049,
+   "kind": "initial-inventory",
+   "inv": {}
+  },
+  {
+   "t": 0.049,
+   "kind": "armed-timer-start",
+   "limit_s": 720
+  },
+  {
+   "t": 1.004,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 121.694,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "failed",
+   "reason": "real_client_resource_opportunity_stale"
+  },
+  {
+   "t": 129.443,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_within_2_5_blocks"
+  },
+  {
+   "t": 131.444,
+   "kind": "mine-drop-lost",
+   "label": "logs",
+   "at": [
+    8,
+    109,
+    8
+   ]
+  },
+  {
+   "t": 132.422,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 136.614,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:0->1"
+  },
+  {
+   "t": 136.614,
+   "kind": "mined",
+   "label": "logs",
+   "at": [
+    8,
+    108,
+    8
+   ],
+   "n": 1
+  },
+  {
+   "t": 157.426,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "failed",
+   "reason": "client_final_facing_timeout"
+  },
+  {
+   "t": 157.426,
+   "kind": "goto-face-failed",
+   "label": "logs",
+   "reason": "client_final_facing_timeout"
+  },
+  {
+   "t": 160.326,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 164.477,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:2->3"
+  },
+  {
+   "t": 164.477,
+   "kind": "mined",
+   "label": "logs",
+   "at": [
+    8,
+    110,
+    8
+   ],
+   "n": 2
+  },
+  {
+   "t": 165.397,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 169.526,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:3->4"
+  },
+  {
+   "t": 169.526,
+   "kind": "mined",
+   "label": "logs",
+   "at": [
+    8,
+    107,
+    8
+   ],
+   "n": 3
+  },
+  {
+   "t": 190.294,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "failed",
+   "reason": "client_final_facing_timeout"
+  },
+  {
+   "t": 190.294,
+   "kind": "goto-face-failed",
+   "label": "logs",
+   "reason": "client_final_facing_timeout"
+  },
+  {
+   "t": 193.252,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 197.472,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:4->5"
+  },
+  {
+   "t": 197.472,
+   "kind": "mined",
+   "label": "logs",
+   "at": [
+    8,
+    111,
+    8
+   ],
+   "n": 4
+  },
+  {
+   "t": 197.52,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 199.607,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 201.644,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 203.717,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 205.761,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 207.809,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 209.866,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 211.912,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 213.967,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 215.997,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 218.058,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 220.113,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 222.167,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 224.194,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 226.261,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 228.302,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 230.359,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 232.395,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 234.462,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 236.52,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 238.565,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 240.606,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 242.644,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 244.692,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 246.771,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 248.809,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 250.861,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 252.965,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 255.021,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 257.055,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 259.093,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 261.168,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 263.202,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 265.273,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 267.294,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 269.365,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 271.41,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 273.466,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 275.523,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 277.564,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 279.604,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 281.655,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 283.712,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 285.769,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 287.844,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 289.894,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 291.959,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 294.022,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 296.057,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 298.093,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 300.165,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 302.218,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 304.264,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 306.313,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 308.343,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 310.414,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 312.454,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 314.509,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 316.563,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 318.604,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 320.663,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 322.705,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 324.761,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 326.815,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 328.858,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 330.892,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 332.946,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 335.014,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 337.056,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 339.092,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 341.168,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 343.273,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 345.355,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 347.408,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 349.444,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 351.523,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 353.608,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 355.655,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 357.714,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 359.761,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 361.818,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 363.86,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 365.915,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 368.021,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 370.041,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 372.112,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 374.162,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 376.204,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 378.247,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 380.306,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 382.367,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 384.393,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 386.459,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 388.514,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 390.557,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 392.613,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 394.656,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 396.709,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 398.766,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 400.817,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 402.867,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 404.906,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 406.962,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 409.021,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 411.068,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 413.154,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 415.193,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 417.247,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 419.316,
+   "kind": "no-reachable-candidate",
+   "label": "logs"
+  },
+  {
+   "t": 421.329,
+   "kind": "logs-reconciled-from-inventory",
+   "counted": 4,
+   "inv": 5,
+   "note": "receipt-counted<inventory; provenance=empty-initial+real-mine-drops"
+  },
+  {
+   "t": 421.329,
+   "kind": "logs-collected",
+   "n": 5
+  },
+  {
+   "t": 429.702,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->20:delta=20:batches=5:output_per_batch=4:materials=minecraft:oak_log:5->0,"
+  },
+  {
+   "t": 433.878,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:stick:0->8:delta=8:batches=2:output_per_batch=4:materials=minecraft:oak_planks:20->16,"
+  },
+  {
+   "t": 436.395,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:crafting_table:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:oak_planks:16->12,"
+  },
+  {
+   "t": 437.286,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_within_2_5_blocks"
+  },
+  {
+   "t": 438.937,
+   "kind": "receipt",
+   "op": "place",
+   "state": "completed",
+   "reason": "server_authoritative_block_placed:minecraft:crafting_table:1->0:at=8, 107, 2:consumed=true:interaction_witnessed=true"
+  },
+  {
+   "t": 443.152,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:stick:8->6,minecraft:oak_planks:12->9,"
+  },
+  {
+   "t": 445.727,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 448.289,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:0->1"
+  },
+  {
+   "t": 448.289,
+   "kind": "mined",
+   "label": "stone",
+   "at": [
+    11,
+    107,
+    2
+   ],
+   "n": 1
+  },
+  {
+   "t": 449.214,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 451.765,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:1->2"
+  },
+  {
+   "t": 451.765,
+   "kind": "mined",
+   "label": "stone",
+   "at": [
+    11,
+    107,
+    2
+   ],
+   "n": 2
+  },
+  {
+   "t": 452.671,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 455.299,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:2->3"
+  },
+  {
+   "t": 455.299,
+   "kind": "mined",
+   "label": "stone",
+   "at": [
+    11,
+    107,
+    3
+   ],
+   "n": 3
+  },
+  {
+   "t": 456.148,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_within_2_5_blocks"
+  },
+  {
+   "t": 459.499,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:stone_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:cobblestone:3->0,minecraft:stick:6->4,"
+  },
+  {
+   "t": 463.66,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:1->2:delta=1:batches=1:output_per_batch=1:materials=minecraft:stick:4->2,minecraft:oak_planks:9->6,"
+  },
+  {
+   "t": 463.66,
+   "kind": "final-begin"
+  }
+ ],
+ "receipts": [
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 109,
+    "face_z": 8
+   },
+   "terminal": {
+    "execution_id": "b143d786-c124-412f-844e-7fa7a675e8eb",
+    "request_id": "rcf1-g4-diag-20979384",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790120980.248,
+   "t_rel": 1.004
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_4b14e3f5e0d2_3b25e694958a4214"
+   },
+   "terminal": {
+    "execution_id": "46bd26d9-0a9f-4c21-ac39-65e9feaf0bcd",
+    "request_id": "rcf1-g4-diag-20980287",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "mine_opportunity",
+    "state": "failed",
+    "progress": 0.0,
+    "reason": "real_client_resource_opportunity_stale",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121100.939,
+   "t_rel": 121.694
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 8
+   },
+   "terminal": {
+    "execution_id": "df0d678d-73d8-4a58-82e8-7913aae29e25",
+    "request_id": "rcf1-g4-diag-21107031",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121108.687,
+   "t_rel": 129.443
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 108,
+    "face_z": 8
+   },
+   "terminal": {
+    "execution_id": "8c44ba89-62e0-4f3c-885e-c94643c74bdf",
+    "request_id": "rcf1-g4-diag-21110779",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121111.666,
+   "t_rel": 132.422
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_3b4a2cd41b80_f9174e2f163f4a69"
+   },
+   "terminal": {
+    "execution_id": "0d1b6ae0-5b21-49d3-b716-4d7dbbc5186c",
+    "request_id": "rcf1-g4-diag-21111687",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:0->1",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121115.859,
+   "t_rel": 136.614
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 108,
+    "face_z": 8
+   },
+   "terminal": {
+    "execution_id": "aeedf3f2-0a1d-4ba5-bd54-c664f97622d3",
+    "request_id": "rcf1-g4-diag-21115935",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "failed",
+    "progress": 0.0,
+    "reason": "client_final_facing_timeout",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121136.67,
+   "t_rel": 157.426
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 110,
+    "face_z": 8
+   },
+   "terminal": {
+    "execution_id": "cc9be17d-26dd-4cbf-afdd-90a976d71954",
+    "request_id": "rcf1-g4-diag-21138722",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121139.57,
+   "t_rel": 160.326
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_d6f4046ce117_a86749f7d0a54158"
+   },
+   "terminal": {
+    "execution_id": "101cbda5-ff7a-4c9b-8a14-0fe50452786c",
+    "request_id": "rcf1-g4-diag-21139636",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:2->3",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121143.722,
+   "t_rel": 164.477
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 107,
+    "face_z": 8
+   },
+   "terminal": {
+    "execution_id": "8e81a90a-6f3c-44f8-8647-6953018d34bd",
+    "request_id": "rcf1-g4-diag-21143771",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121144.642,
+   "t_rel": 165.397
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_17aa98795523_bce81da615f24b9f"
+   },
+   "terminal": {
+    "execution_id": "557f3490-29f5-44a8-b17c-aa27cf5d1a55",
+    "request_id": "rcf1-g4-diag-21144685",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:3->4",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121148.771,
+   "t_rel": 169.526
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 107,
+    "face_z": 8
+   },
+   "terminal": {
+    "execution_id": "1c347bf8-565e-42a5-ad25-eb2ceda8ee00",
+    "request_id": "rcf1-g4-diag-21148817",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "failed",
+    "progress": 0.0,
+    "reason": "client_final_facing_timeout",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121169.538,
+   "t_rel": 190.294
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 111,
+    "face_z": 8
+   },
+   "terminal": {
+    "execution_id": "60c16c80-82f7-4df2-b523-5d14fb7fe02b",
+    "request_id": "rcf1-g4-diag-21171624",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121172.497,
+   "t_rel": 193.252
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_a2e816ea02d6_39cc6d89827b4d80"
+   },
+   "terminal": {
+    "execution_id": "b9e1b5dc-d685-4ce3-ad5e-e78d1d9bc1d2",
+    "request_id": "rcf1-g4-diag-21172535",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:4->5",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121176.717,
+   "t_rel": 197.472
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:oak_planks",
+    "count": 20
+   },
+   "terminal": {
+    "execution_id": "b5ee7c03-6179-4dc0-8008-1291608986c1",
+    "request_id": "rcf1-g4-diag-21400620",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->20:delta=20:batches=5:output_per_batch=4:materials=minecraft:oak_log:5->0,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121408.947,
+   "t_rel": 429.702
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:stick",
+    "count": 8
+   },
+   "terminal": {
+    "execution_id": "44d32d91-110d-4705-9118-9c32fb5c52cf",
+    "request_id": "rcf1-g4-diag-21408946",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:stick:0->8:delta=8:batches=2:output_per_batch=4:materials=minecraft:oak_planks:20->16,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121413.123,
+   "t_rel": 433.878
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:crafting_table",
+    "count": 1
+   },
+   "terminal": {
+    "execution_id": "13fdc660-ed87-4b4a-a9d7-feac73a23e01",
+    "request_id": "rcf1-g4-diag-21413122",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:crafting_table:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:oak_planks:16->12,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121415.639,
+   "t_rel": 436.395
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 3
+   },
+   "terminal": {
+    "execution_id": "3f100839-e011-4fbb-8ec3-3627b1ab5e2e",
+    "request_id": "rcf1-g4-diag-21415659",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121416.531,
+   "t_rel": 437.286
+  },
+  {
+   "op": "place",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 2,
+    "item": "minecraft:crafting_table"
+   },
+   "terminal": {
+    "execution_id": "be2158ae-7d94-447b-8b2d-4f73e99e543a",
+    "request_id": "rcf1-g4-diag-21416530",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "place",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_placed:minecraft:crafting_table:1->0:at=8, 107, 2:consumed=true:interaction_witnessed=true",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121418.182,
+   "t_rel": 438.937
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:wooden_pickaxe",
+    "count": 1
+   },
+   "terminal": {
+    "execution_id": "b051781a-5c61-4fe8-87b3-93a950c1871c",
+    "request_id": "rcf1-g4-diag-21418186",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:stick:8->6,minecraft:oak_planks:12->9,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121422.397,
+   "t_rel": 443.152
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 11,
+    "y": 107,
+    "z": -1,
+    "face_x": 11,
+    "face_y": 107,
+    "face_z": 2
+   },
+   "terminal": {
+    "execution_id": "7f138eb9-a94e-4e31-9b8b-41dc3cb67ffb",
+    "request_id": "rcf1-g4-diag-21422458",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121424.972,
+   "t_rel": 445.727
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_54c652bc0697_69c2275fd2544906"
+   },
+   "terminal": {
+    "execution_id": "83c8d21c-5995-4db5-853c-5e4c21ecc77a",
+    "request_id": "rcf1-g4-diag-21425037",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:0->1",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121427.534,
+   "t_rel": 448.289
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 11,
+    "y": 107,
+    "z": -1,
+    "face_x": 11,
+    "face_y": 107,
+    "face_z": 2
+   },
+   "terminal": {
+    "execution_id": "2d01aa86-48ab-4df7-99b5-f0024a37fdce",
+    "request_id": "rcf1-g4-diag-21427590",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121428.459,
+   "t_rel": 449.214
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_7f05c26311c8_fe3dbf6689494912"
+   },
+   "terminal": {
+    "execution_id": "8b6ee344-bb39-458e-a9a3-842b5818a5db",
+    "request_id": "rcf1-g4-diag-21428490",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:1->2",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121431.01,
+   "t_rel": 451.765
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 11,
+    "y": 107,
+    "z": 0,
+    "face_x": 11,
+    "face_y": 107,
+    "face_z": 3
+   },
+   "terminal": {
+    "execution_id": "a4b210a0-fc36-4436-a7f3-0c95f882b5be",
+    "request_id": "rcf1-g4-diag-21431081",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121431.916,
+   "t_rel": 452.671
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_b9d27d4139ff_2a17eeefca454633"
+   },
+   "terminal": {
+    "execution_id": "a3a3e419-1899-48d3-b3bf-af2c64500b81",
+    "request_id": "rcf1-g4-diag-21431992",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:2->3",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121434.544,
+   "t_rel": 455.299
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 3
+   },
+   "terminal": {
+    "execution_id": "d12f3a69-5db3-486c-b7be-4c7555f5b55d",
+    "request_id": "rcf1-g4-diag-21434544",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121435.393,
+   "t_rel": 456.148
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:stone_pickaxe",
+    "count": 1
+   },
+   "terminal": {
+    "execution_id": "d3ba846e-710e-4406-8c98-27fe3bd0a1ad",
+    "request_id": "rcf1-g4-diag-21435392",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:stone_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:cobblestone:3->0,minecraft:stick:6->4,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121438.744,
+   "t_rel": 459.499
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:wooden_pickaxe",
+    "count": 1
+   },
+   "terminal": {
+    "execution_id": "ed9979bb-6c5e-449d-bbf7-8ea6bc4ad68c",
+    "request_id": "rcf1-g4-diag-21438743",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:1->2:delta=1:batches=1:output_per_batch=1:materials=minecraft:stick:4->2,minecraft:oak_planks:9->6,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790121442.904,
+   "t_rel": 463.66
+  }
+ ],
+ "snapshots": [
+  {
+   "tag": "pre",
+   "facts": {
+    "runtime_epoch": "202cdee1-ec67-4555-8e79-9e98d87c324a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "snapshot_age_ms": 4,
+    "game_session": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "control_session_epoch": "e4ad822b-ce05-4062-8a3e-a8c776fa05f1",
+    "client_mod_jar_sha256": "efaa2197e73194edad4223693cf82746d63af1b125a7c7f1617aa7f9b3023d9d",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 4.5,
+     "y": 107.0,
+     "x": 8.5
+    },
+    "health": 17.0,
+    "food": 17,
+    "inventory": {},
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "present": false,
+     "cursor_count": 0
+    },
+    "t_wall": 1790120979.292
+   }
+  },
+  {
+   "tag": "after-logs",
+   "facts": {
+    "runtime_epoch": "202cdee1-ec67-4555-8e79-9e98d87c324a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "snapshot_age_ms": 38,
+    "game_session": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "control_session_epoch": "e4ad822b-ce05-4062-8a3e-a8c776fa05f1",
+    "client_mod_jar_sha256": "efaa2197e73194edad4223693cf82746d63af1b125a7c7f1617aa7f9b3023d9d",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 7.699999988079071,
+     "y": 107.0,
+     "x": 8.490259610783188
+    },
+    "health": 17.0,
+    "food": 17,
+    "inventory": {
+     "minecraft:oak_log": 5
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "present": false,
+     "cursor_count": 0
+    },
+    "t_wall": 1790121400.575
+   }
+  },
+  {
+   "tag": "final",
+   "facts": {
+    "runtime_epoch": "202cdee1-ec67-4555-8e79-9e98d87c324a",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "snapshot_age_ms": 32,
+    "game_session": "5c0e68ea-5ad5-4ab9-92dd-e81af05840e6",
+    "control_session_epoch": "e4ad822b-ce05-4062-8a3e-a8c776fa05f1",
+    "client_mod_jar_sha256": "efaa2197e73194edad4223693cf82746d63af1b125a7c7f1617aa7f9b3023d9d",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "z": 2.5006741361597085,
+     "y": 107.0,
+     "x": 10.228922826187949
+    },
+    "health": 17.0,
+    "food": 17,
+    "inventory": {
+     "minecraft:oak_planks": 6,
+     "minecraft:stick": 2,
+     "minecraft:stone_pickaxe": 1,
+     "minecraft:wooden_pickaxe": 2
+    },
+    "screen": {
+     "cursor_item": "minecraft:air",
+     "present": false,
+     "cursor_count": 0
+    },
+    "t_wall": 1790121442.92
+   }
+  }
+ ],
+ "oracle_blocks": {
+  "table@8,107,2": {
+   "result": "\u0000\u0000\u0000\u0000Test passed",
+   "t_wall": 1790121418.186
+  }
+ },
+ "fail_at": null,
+ "ended_wall": 1790121442.976
+}
