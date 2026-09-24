@@ -1,0 +1,18 @@
+{
+ "schema": "mc.rcf1r3d.mutations.v1",
+ "groups": {
+  "g4": {
+   "accepted": 1,
+   "rejected": 12,
+   "inconclusive": 0,
+   "required": 1
+  },
+  "ia": {
+   "accepted": 0,
+   "rejected": 0,
+   "inconclusive": 16,
+   "required": 1
+  }
+ },
+ "raw": "mutations-r3d/results.json"
+}

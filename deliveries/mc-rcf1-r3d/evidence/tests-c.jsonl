@@ -1,0 +1,8 @@
+{"id": "C01", "attempt": 1, "pass": true, "reason": "坏请求被准确拒绝(路由 400/槽忙 409)且原执行未被取消/替换"}
+{"id": "C02", "attempt": 1, "pass": true, "reason": "取消后 10s 内进入 cancelled 且执行槽释放"}
+{"id": "C03", "attempt": 1, "pass": true, "reason": "同 id 重放返回同一执行;同 id 不同参数被冲突拒绝"}
+{"id": "C05", "attempt": 1, "pass": true, "reason": "租约互斥或会话翻转后权威唯一转移;a 释放后 b 可获"}
+{"id": "C04", "attempt": 1, "pass": true, "reason": "断线→outcome_unknown(或 completed 且服务端位置证明已真实到达);重连对账成功;旧执行不复活;同 id 重放生成新执行"}
+{"id": "C06", "attempt": 1, "pass": true, "reason": "未受理提交:无执行/账序不变/后续提交正常 (err=unsupported_operation, seq 3955->3955, after=completed)"}
+{"id": "C07", "attempt": 1, "pass": true, "reason": "同 id 重放=同一执行(d4aff9f4==d4aff9f4);轮换后旧账可查(state=completed)"}
+{"id": "C08", "not_run": true, "reason": "无授权真人共存条件(PCL2 属用户,不触碰);条件未满足按 NOT_RUN 显式单列"}

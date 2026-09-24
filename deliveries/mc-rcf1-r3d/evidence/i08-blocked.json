@@ -1,0 +1,26 @@
+{
+ "schema": "mc.rcf1r3d.i08-blocked.v1",
+ "blocked": true,
+ "evidence": {
+  "attempts": 8,
+  "topologies_tried": [
+   "terminal-cable-connector[facing=east]-chest(R3C 原样,根因:[facing=east] 非法块态→连接器从未放置)",
+   "terminal-cable-connector(合法裸放)-chest",
+   "terminal-connector-chest(无缆直贴)",
+   "terminal-chest(直接相邻)",
+   "connector-barrel / connector-hopper / connector-filing_cabinet",
+   "全新区域按'箱→连接器→线→终端'顺序重建+重启后"
+  ],
+  "screen_opens": true,
+  "authorization": "works(toms_storage_terminal_v1 owned screen)",
+  "quick_move_clicks": "sent(client_owned_screen_quick_move 29s), zero transfer",
+  "connector_side_facts": "toms_diag 反射:has_connected_inventories=true,connected_blocks=[chest],connected_inventories_size=1(连接器→箱子链路已证)",
+  "terminal_side_facts": "storage_item_count=0 / getStacks 聚合恒 0(惰性两段式已排除:多次调用+等待后仍 0)",
+  "upstream_issue": "tom5454/Toms-Storage#381:作者确认 1.21 重写版缺 inventory cable connector,'will be added back in a future update'(2024-06-17)",
+  "pinned_version": "1.21.3-2.1.2-fabric (Modrinth XZNI4Cpy h9IMZ6BE)",
+  "client_jar_sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+  "scope": "仅 Tom's 网络终端;vanilla 箱/桶 container_transfer(I04)不受影响——不扩大归因"
+ },
+ "cases": [],
+ "t_wall": 1790284445.7617636
+}

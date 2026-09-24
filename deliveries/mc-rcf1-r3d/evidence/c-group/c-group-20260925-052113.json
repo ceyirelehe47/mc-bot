@@ -1,0 +1,110 @@
+{
+ "run": "20260925-052113",
+ "fixture": {
+  "time_set_day": "\u0000\u0000\u0000\u0000Set the time to 1000",
+  "cleared": []
+ },
+ "results": [
+  {
+   "id": "C01",
+   "verdict": "PASS",
+   "reason": "坏请求被准确拒绝(路由 400/槽忙 409)且原执行未被取消/替换",
+   "evidence": {
+    "goto_execution": "16fc16f4-3494-4f6c-a7d0-75f91b14d8bf",
+    "goto_was_running": true,
+    "active_before": "16fc16f4-3494-4f6c-a7d0-75f91b14d8bf",
+    "active_after": "16fc16f4-3494-4f6c-a7d0-75f91b14d8bf",
+    "unsupported_op": {
+     "ok": null,
+     "error": "unsupported_operation"
+    },
+    "busy_craft": {
+     "ok": null,
+     "error": "execution_in_progress"
+    },
+    "goto_terminal": {
+     "state": "outcome_unknown",
+     "reason": "body_session_changed"
+    },
+    "target": {
+     "x": 85,
+     "y": 105,
+     "z": -124,
+     "face_x": 81,
+     "face_y": 105,
+     "face_z": -126
+    }
+   }
+  },
+  {
+   "id": "C02",
+   "verdict": "PASS",
+   "reason": "取消后 10s 内进入 cancelled 且执行槽释放",
+   "evidence": {
+    "execution": "d22348d7-b887-43a5-bf53-f67348b7a389",
+    "cancel_reply_ok": true,
+    "terminal_state": "cancelled",
+    "seconds_to_terminal": 0.5,
+    "pos_before_cancel": {
+     "x": -3.3852487732133447,
+     "z": 7.281834415626037,
+     "y": 114.0
+    },
+    "pos_after_settle": {
+     "x": -4.068222520175086,
+     "z": 7.445580795686558,
+     "y": 114.0
+    },
+    "active_after": null
+   }
+  },
+  {
+   "id": "C03",
+   "verdict": "PASS",
+   "reason": "同 id 重放返回同一执行;同 id 不同参数被冲突拒绝",
+   "evidence": {
+    "request_id": "c03-idem-1790284677",
+    "first_execution": "b5a3681d-5e6d-4f82-bd35-0d6ab5876cfe",
+    "replay_execution": "b5a3681d-5e6d-4f82-bd35-0d6ab5876cfe",
+    "replay_same_execution": true,
+    "conflict_rejected": true,
+    "conflict_error": "idempotency_conflict"
+   }
+  },
+  {
+   "id": "C05",
+   "verdict": "PASS",
+   "reason": "租约互斥或会话翻转后权威唯一转移;a 释放后 b 可获",
+   "evidence": {
+    "b_acquired_while_a_holds": false,
+    "a_still_authority": true,
+    "mode": "exclusive"
+   }
+  },
+  {
+   "id": "C04",
+   "verdict": "PASS",
+   "reason": "断线→outcome_unknown(或 completed 且服务端位置证明已真实到达);重连对账成功;旧执行不复活;同 id 重放生成新执行",
+   "evidence": {
+    "execution": "229201c4-d5da-4de2-8125-91798a2eca76",
+    "client_killed": true,
+    "terminal_state": "outcome_unknown",
+    "seconds_to_unknown": 1.0,
+    "reconnect_online": true,
+    "observe_after_reconnect": true,
+    "replay_same_execution": false,
+    "old_state_after_replay": "outcome_unknown"
+   }
+  },
+  {
+   "id": "c06_unaccepted_submit_no_execution",
+   "verdict": "FAIL",
+   "reason": "exception: NameError(\"name 'check' is not defined\")"
+  },
+  {
+   "id": "c07_journal_preserve_and_dedup",
+   "verdict": "FAIL",
+   "reason": "exception: NameError(\"name 'check' is not defined\")"
+  }
+ ]
+}

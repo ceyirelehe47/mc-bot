@@ -1,0 +1,153 @@
+{
+ "positive": {
+  "ia": "D:/mc-rcf1-raw-r3d/ia-facts-r3d.json",
+  "g4": "D:/mc-rcf1-raw-r3d/g4-runs-r3.json"
+ },
+ "mutations": [
+  {
+   "name": "m01-case-pre-snapshot-removed",
+   "path": "ia-m01-case-pre-snapshot-removed.json",
+   "gate": "ia"
+  },
+  {
+   "name": "m11-empty-actions-borrow-next",
+   "path": "ia-m11-empty-actions-borrow-next.json",
+   "gate": "ia"
+  },
+  {
+   "name": "m12-neg-side-effect",
+   "path": "ia-m12-neg-side-effect.json",
+   "gate": "ia"
+  },
+  {
+   "name": "m13-case-level-fixture-tolerated",
+   "path": "ia-m13-case-level-fixture-tolerated.json",
+   "gate": "ia"
+  },
+  {
+   "name": "m14-pre-post-swapped",
+   "path": "ia-m14-pre-post-swapped.json",
+   "gate": "ia"
+  },
+  {
+   "name": "m15-duplicate-identity",
+   "path": "ia-m15-duplicate-identity.json",
+   "gate": "ia"
+  },
+  {
+   "name": "m16-gain-not-requested",
+   "path": "ia-m16-gain-not-requested.json",
+   "gate": "ia"
+  },
+  {
+   "name": "m17-eat-witness-zero",
+   "path": "ia-m17-eat-witness-zero.json",
+   "gate": "ia"
+  },
+  {
+   "name": "m18-unknown-case-id",
+   "path": "ia-m18-unknown-case-id.json",
+   "gate": "ia"
+  },
+  {
+   "name": "m10-unknown-without-reconciliation",
+   "path": "ia-m10-unknown-without-reconciliation.json",
+   "gate": "ia"
+  },
+  {
+   "name": "f01-inv-key-removed",
+   "path": "ia-f01-inv-key-removed.json",
+   "gate": "ia"
+  },
+  {
+   "name": "f01-status-end-error-object",
+   "path": "ia-f01-status-end-error-object.json",
+   "gate": "ia"
+  },
+  {
+   "name": "f02-session-flip",
+   "path": "ia-f02-session-flip.json",
+   "gate": "ia"
+  },
+  {
+   "name": "f02-terminal-jar-swapped",
+   "path": "ia-f02-terminal-jar-swapped.json",
+   "gate": "ia"
+  },
+  {
+   "name": "f03-move-hotbar-mismatch",
+   "path": "ia-f03-move-hotbar-mismatch.json",
+   "gate": "ia"
+  },
+  {
+   "name": "f04-unknown-reconciliation-removed",
+   "path": "ia-f04-unknown-reconciliation-removed.json",
+   "gate": "ia"
+  },
+  {
+   "name": "f04-craft-protected-vanish",
+   "path": "ia-f04-craft-protected-vanish.json",
+   "gate": "ia"
+  },
+  {
+   "name": "m02-cursor-present-false",
+   "path": "g4-m02-cursor-present-false.json",
+   "gate": "g4"
+  },
+  {
+   "name": "m03-status-end-removed",
+   "path": "g4-m03-status-end-removed.json",
+   "gate": "g4"
+  },
+  {
+   "name": "m05-table-oracle-removed",
+   "path": "g4-m05-table-oracle-removed.json",
+   "gate": "g4"
+  },
+  {
+   "name": "m06-candidate-mixed",
+   "path": "g4-m06-candidate-mixed.json",
+   "gate": "g4"
+  },
+  {
+   "name": "m08-duplicate-exec",
+   "path": "g4-m08-duplicate-exec.json",
+   "gate": "g4"
+  },
+  {
+   "name": "m08-five-from-one-intervals",
+   "path": "g4-m08-five-from-one-intervals.json",
+   "gate": "g4"
+  },
+  {
+   "name": "m09-expect-downgraded",
+   "path": "g4-m09-expect-downgraded.json",
+   "gate": "g4"
+  },
+  {
+   "name": "m04-needs-reconcile",
+   "path": "g4-m04-needs-reconcile.json",
+   "gate": "g4"
+  },
+  {
+   "name": "m07-craft-args-inflated",
+   "path": "g4-m07-craft-args-inflated.json",
+   "gate": "g4"
+  },
+  {
+   "name": "f02-ended-before-armed",
+   "path": "g4-f02-ended-before-armed.json",
+   "gate": "g4"
+  },
+  {
+   "name": "f01-final-screen-removed",
+   "path": "g4-f01-final-screen-removed.json",
+   "gate": "g4"
+  },
+  {
+   "name": "f05-oracle-not-passed",
+   "path": "g4-f05-oracle-not-passed.json",
+   "gate": "g4"
+  }
+ ]
+}

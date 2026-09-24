@@ -1,0 +1,30 @@
+{
+ "schema": "mc.rcf1r3d.build.v1",
+ "candidate_note": "全部命令在本仓库候选 HEAD 执行",
+ "sections": {
+  "junit": {
+   "total": 479,
+   "passed": 479,
+   "command": "gradlew.bat test --no-daemon -g D:/code/mc-experiment/.gradle-rcf1 (rcf1-rebuild-base, overlay=repo candidate)",
+   "log": "D:/mc-rcf1-raw-r3d/junit-summary.txt",
+   "note": "RealClientMvpSourceTest 期望集纳入 toms_diag(候选操作集变更)"
+  },
+  "python": {
+   "total": 82,
+   "passed": 82,
+   "command": "python tools/rcf1_mine_skill_tests.py (12/12); python tools/rcf1_checker_selftest.py (50/50); python tools/rcf1_lifecycle_fake_tests.py (20/20)",
+   "log": "D:/mc-rcf1-raw-r3d/build-report.json:python_offline",
+   "note": "82=12+50+20;离线核验于候选 HEAD"
+  }
+ },
+ "python_offline": {
+  "mine-skill-core": {
+   "rc": 0,
+   "summary": "== 12/12 passed =="
+  },
+  "checker-selftest": {
+   "rc": 0,
+   "summary": "SUMMARY 50/50"
+  }
+ }
+}

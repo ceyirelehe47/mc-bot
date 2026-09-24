@@ -109,3 +109,16 @@
 - **vein_miner 蚀平台**:采矿链会连锁破坏测试平台支撑石,A02/A06 类 place fixture 必须自恢复支撑。
 - **G5 现实约束**:白昼 ~11 分钟 vs 采伐链 ~2.3min/根+合成+挖洞——链速不提速就必死于夜。下轮方向:goto-face 周期压缩(<60s/根)或场景选址贴树。
 - **Verifier 复审两 P1 均值得**:①checker 的 craft 计分只数 args 不核回执权威串——M07 类变异直通;计数类判定必须锚定回执权威数字。②"JUnit 入口不存在"是想当然——fresh 树 479 测试,首轮 15 败全因 git apply 在 Windows 产 CRLF、SourceContract 跨行 indexOf 失配(纯换行伪差);**Windows 上 patch 后必须 LF 规范化(core.autocrlf=input 重检出)**。
+
+## R3D(2026-09-25)
+| 现象 | 根因 | 修复/教训 |
+|---|---|---|
+| D 切片全 409 control_lease_invalid | 平台 tp 至 y130 半空→摔死→body session 翻转→桥清租约(applyBinding) | 诊断 tp ≤4 格落差;play.submit 对租约失效一次重取+observe 对账,失败上抛 session-lost |
+| D 切片感知恒空 | 石平台 289 块全为 STONE_FAMILY 候选,挤占 BLOCK_CANDIDATE_LIMIT=128;且 fill 在未加载区块静默无效 | 诊断平台用 dirt(无类别不跟踪);先 tp 加载区块再 fill;`execute if block` 而非 `data get block`(仅 block entity) |
+| goto 到站位却"面对失败" | goto=宽松到达半径 2.5 格,≠交互站位;单格阻挡无效 | 站位阻挡须盖住 2.5 半径球;真实不可达用 5 高墙/全封闭;技能层以机会出生为准入 |
+| 柱顶原木"第9次采到" | 柱顶与盖之间 log 层水平暴露,贴柱仰角射线掠过柱顶 | 全封闭才真阻断;该轮也证禁令合同(每组合恰 2 次) |
+| R3C I08"上游 dropped connectors" | `[facing=east]` 非法块态→setblock 静默失败,连接器从未放置;真上游限制=1.21 重写缺 cable connector(#381 作者确认) | setblock 必须核回显;toms_diag(候选内只读反射 op)区分"连接器已链/终端聚合 0" |
+| G4 b01/b02 石料预算耗尽 | 全新世界野地使南向站位不可达(旧世界场地被隐性清过) | 受控 fixture 必须连同站位环一起声明(清空+地板);石料不足补诚实 fail_at |
+| IA 多例连败 | 工作区随世界而定;敌怪反复杀 Bob(give 落空) | safe() 标准化工作区(清空+铺板);注入/判定型套件用 peaceful 窗口并在结束时恢复 |
+| G5 S01 失败×2 | ①场景无 minable 石(泥土不在感知类别=合法链不可挖)②树在 4 深坑③板式掩体 S 封口/顶盖 PlaceAction 准星错配(sent=true 打错面) | G5 选址判据:平地树+50 格露头石+缓坡;PlaceAction 支撑面匹配待修(place-diag 已留证) |
+| V05 抖动 | 容器事务太快,并发窗口错过 | 用长导航占槽(deterministic) |

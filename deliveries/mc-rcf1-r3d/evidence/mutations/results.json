@@ -1,0 +1,202 @@
+{
+ "ok_all": false,
+ "results": [
+  {
+   "name": "positive-g4",
+   "accept": true,
+   "reason": "ok"
+  },
+  {
+   "name": "positive-ia",
+   "accept": false,
+   "reason": "case-I08-positive-op-not-proven:deposit/withdraw/container_transfer",
+   "note": "I08 环境阻断(Tom's 网络不收货)——IA 正例预期拒绝;IA 变异组标 INCONCLUSIVE"
+  },
+  {
+   "name": "m01-case-pre-snapshot-removed",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "m11-empty-actions-borrow-next",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "m12-neg-side-effect",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "m13-case-level-fixture-tolerated",
+   "accept": false,
+   "expected": "ACCEPT",
+   "reason": "case-I08-positive-op-not-proven:deposit/withdraw/container_transfer"
+  },
+  {
+   "name": "m14-pre-post-swapped",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "m15-duplicate-identity",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "m16-gain-not-requested",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "m17-eat-witness-zero",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "m18-unknown-case-id",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "m10-unknown-without-reconciliation",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "f01-inv-key-removed",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "f01-status-end-error-object",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "f02-session-flip",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "f02-terminal-jar-swapped",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "f03-move-hotbar-mismatch",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "f04-unknown-reconciliation-removed",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "f04-craft-protected-vanish",
+   "accept": null,
+   "expected": "REJECT",
+   "status": "INCONCLUSIVE(正例被 I08 阻断)"
+  },
+  {
+   "name": "m02-cursor-present-false",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-b01-final-cursor-not-empty",
+   "rc": 1
+  },
+  {
+   "name": "m03-status-end-removed",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-b01-status-end-missing-or-empty",
+   "rc": 1
+  },
+  {
+   "name": "m05-table-oracle-removed",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-b01-table-oracle-facts-missing",
+   "rc": 1
+  },
+  {
+   "name": "m06-candidate-mixed",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "candidate-commit-missing-or-mixed",
+   "rc": 1
+  },
+  {
+   "name": "m08-duplicate-exec",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-b02-duplicate-execution:b6f063af-7169-4168-968c-e183aaa08575",
+   "rc": 1
+  },
+  {
+   "name": "m08-five-from-one-intervals",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-intervals-overlap(evidence-reuse)",
+   "rc": 1
+  },
+  {
+   "name": "m09-expect-downgraded",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "expect-below-controlled-threshold",
+   "rc": 1
+  },
+  {
+   "name": "m04-needs-reconcile",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-b01-needs-reconcile-remaining",
+   "rc": 1
+  },
+  {
+   "name": "m07-craft-args-inflated",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-b01-craft-delta-below-args:minecraft:wooden_pickaxe delta=1<want=2",
+   "rc": 1
+  },
+  {
+   "name": "f02-ended-before-armed",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-b01-ended-before-armed",
+   "rc": 1
+  },
+  {
+   "name": "f01-final-screen-removed",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-b01-final-screen-facts-missing",
+   "rc": 1
+  },
+  {
+   "name": "f05-oracle-not-passed",
+   "accept": true,
+   "expected": "REJECT",
+   "reason": "run-b01-table-block-not-at-target",
+   "rc": 1
+  }
+ ]
+}

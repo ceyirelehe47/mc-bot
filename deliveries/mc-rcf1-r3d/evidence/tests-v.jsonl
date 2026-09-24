@@ -1,0 +1,18 @@
+{"id": "V10", "attempt": 1, "pass": true}
+{"id": "V10", "attempt": 2, "pass": true}
+{"id": "V10", "attempt": 3, "pass": true}
+{"id": "V10", "attempt": 4, "pass": true}
+{"id": "V10", "attempt": 5, "pass": true}
+{"id": "V10", "attempt": 6, "pass": true}
+{"id": "V10", "attempt": 7, "pass": true}
+{"id": "CHK", "attempt": 1, "pass": true}
+{"id": "CHK", "attempt": 2, "pass": true}
+{"id": "V03", "attempt": 1, "pass": true}
+{"id": "V05", "attempt": 1, "pass": true}
+{"id": "V07", "attempt": 1, "pass": true}
+{"id": "V09", "attempt": 1, "pass": true}
+{"id": "V01", "attempt": 1, "pass": true, "reason": "映射自 ia-facts-r3d.json case-V01 (真实动作 ex=3264b0d7-81e3-4a01-833f-1d90529ae3da)"}
+{"id": "V02", "attempt": 1, "pass": true, "reason": "映射自 ia-facts-r3d.json case-V02 (真实动作 ex=35a1ca87-285a-40cd-9727-daa2f9db6e57)"}
+{"id": "V04", "attempt": 1, "pass": true, "reason": "映射自 ia-facts-r3d.json case-V04 (真实动作 ex=3eba41d2-0f4e-4f3b-b317-7cd8282d3a31)"}
+{"id": "V08", "attempt": 1, "pass": true, "reason": "映射自 ia-facts-r3d.json case-A09 (真实动作 ex=9af5182e-dbdd-4798-b611-0843a52f5687)"}
+{"id": "V06", "attempt": 1, "pass": true, "reason": "映射自 c-group C02/C04(取消/断链:输入与路径全停的实跑证据)"}

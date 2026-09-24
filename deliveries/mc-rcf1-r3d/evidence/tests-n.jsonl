@@ -1,0 +1,18 @@
+{"id": "N01", "attempt": 1, "pass": true, "reason": "{\"state\": \"completed\", \"seconds\": 5.1, \"step_elevation\": 1, \"levels_seen\": {\"ground\": 8, \"platform\": 3}, \"sampled\": 11}"}
+{"id": "N01", "attempt": 2, "pass": true, "reason": "{\"state\": \"completed\", \"seconds\": 5.1, \"step_elevation\": 1, \"levels_seen\": {\"ground\": 8, \"platform\": 3}, \"sampled\": 11}"}
+{"id": "N01", "attempt": 3, "pass": true, "reason": "{\"state\": \"completed\", \"seconds\": 5.1, \"step_elevation\": 1, \"levels_seen\": {\"ground\": 8, \"platform\": 3}, \"sampled\": 11}"}
+{"id": "N02", "attempt": 1, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_within_2_5_blocks\", \"seconds\": 5.7, \"pos\": [307.0, 120.0, 299.0], \"track\": []}"}
+{"id": "N02", "attempt": 2, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_within_2_5_blocks\", \"seconds\": 5.7, \"pos\": [307.0, 120.0, 299.0], \"track\": []}"}
+{"id": "N02", "attempt": 3, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_within_2_5_blocks\", \"seconds\": 5.8, \"pos\": [307.0, 120.0, 299.0], \"track\": []}"}
+{"id": "N03", "attempt": 1, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_within_2_5_blocks\", \"seconds\": 4.9, \"pos\": [292.7, 120.0, 302.7], \"track\": []}"}
+{"id": "N03", "attempt": 2, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_within_2_5_blocks\", \"seconds\": 5.0, \"pos\": [292.8, 120.0, 302.7], \"track\": []}"}
+{"id": "N03", "attempt": 3, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_within_2_5_blocks\", \"seconds\": 5.0, \"pos\": [292.7, 120.0, 302.7], \"track\": []}"}
+{"id": "N04", "attempt": 1, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_and_facing_verified\", \"seconds\": 5.0, \"pos\": [302.2, 127.0, 298.5], \"track\": []}"}
+{"id": "N04", "attempt": 2, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_and_facing_verified\", \"seconds\": 4.9, \"pos\": [302.2, 127.0, 298.5], \"track\": []}"}
+{"id": "N04", "attempt": 3, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_and_facing_verified\", \"seconds\": 4.9, \"pos\": [302.2, 127.0, 298.5], \"track\": []}"}
+{"id": "N05", "attempt": 1, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_within_2_5_blocks\", \"seconds\": 4.9, \"pos\": [310.4, 120.0, 300.5], \"track\": []}"}
+{"id": "N05", "attempt": 2, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_within_2_5_blocks\", \"seconds\": 4.9, \"pos\": [310.3, 120.0, 300.5], \"track\": []}"}
+{"id": "N05", "attempt": 3, "pass": true, "reason": "{\"state\": \"completed\", \"reason\": \"server_authoritative_arrival_within_2_5_blocks\", \"seconds\": 4.9, \"pos\": [310.4, 120.0, 300.5], \"track\": []}"}
+{"id": "N06", "attempt": 1, "pass": true, "reason": "{\"state\": \"failed\", \"reason\": \"client_goto_no_progress_stall:dist=4.92 pathing=false\", \"seconds\": 19.6, \"pos\": [303.6, 120.0, 300.5], \"track\": []}"}
+{"id": "N06", "attempt": 2, "pass": true, "reason": "{\"state\": \"failed\", \"reason\": \"client_goto_no_progress_stall:dist=4.92 pathing=false\", \"seconds\": 19.7, \"pos\": [303.6, 120.0, 300.5], \"track\": []}"}
+{"id": "N06", "attempt": 3, "pass": true, "reason": "{\"state\": \"failed\", \"reason\": \"client_goto_no_progress_stall:dist=4.92 pathing=false\", \"seconds\": 19.6, \"pos\": [303.6, 120.0, 300.5], \"track\": []}"}

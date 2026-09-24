@@ -1,0 +1,456 @@
+{
+ "schema": "mc.rcf1r3d.fresh-deployment.v1",
+ "upstream_commit": "a029fa6",
+ "patch_ref": "aibot-dsh-m0/upstream-patches/r3-base-tree.patch",
+ "deployment_root": "D:\\code\\mc-experiment",
+ "server_dir": "D:\\code\\mc-experiment\\rcf1-server-r3d",
+ "client_dir": "D:\\code\\mc-experiment\\rcf1-client-r3d",
+ "client_jar_sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+ "server_jar_sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+ "build_command": "gradlew.bat remapJar --no-daemon -g D:/code/mc-experiment/.gradle-rcf1 (rcf1-rebuild-base, overlay synced via tools/rcf1_sync_overlay.py --build)",
+ "rebuild_started_wall": 1790270557.608025,
+ "deployed_from_empty": true,
+ "world": {
+  "declared": "fresh_generated",
+  "origin": "fresh_generated: first-boot world (seed=178000000001, level.dat sha recorded)",
+  "seed": 178000000001,
+  "level_dat_sha256_ungz": "28fc93046b9dbf44e28bb4491cf8c38f",
+  "scenes": "tools/rcf1_g5_scenes.json @ R3D(自然橡树实测坐标)"
+ },
+ "dependency_cache": [
+  {
+   "path": "rcf1-server-r3d\\fabric-server-launch.jar",
+   "source": "fabric-server-launcher@r3c-dep-cache",
+   "sha256": "9e2522a27fe00b76a0871e7c7084ec1898787fc70b4eacfc68f284a900da62eb",
+   "bytes": 638
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\fasterxml\\jackson\\core\\jackson-annotations\\2.13.4\\jackson-annotations-2.13.4.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "ac5b27a634942391ca113850ee7db01df1499a240174021263501c05fc653b44",
+   "bytes": 75717
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\fasterxml\\jackson\\core\\jackson-core\\2.13.4\\jackson-core-2.13.4.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "4c2e043200edd9ee7ba6fc378bd5c17784a5bf2388e152d208068b51fd0839cf",
+   "bytes": 374895
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\fasterxml\\jackson\\core\\jackson-databind\\2.13.4.2\\jackson-databind-2.13.4.2.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "ba1a368137f9b92f48dd07f299ff7a782a69487b853ef5578215426fcde8f08b",
+   "bytes": 1531681
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\github\\oshi\\oshi-core\\6.4.10\\oshi-core-6.4.10.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "fef001a7a13515c273f30915915580782afbc45273cc07aa15994e51563ef310",
+   "bytes": 979212
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\github\\stephenc\\jcip\\jcip-annotations\\1.0-1\\jcip-annotations-1.0-1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "4fccff8382aafc589962c4edb262f6aa595e34f1e11e61057d1c6a96e8fc7323",
+   "bytes": 4722
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\google\\code\\gson\\gson\\2.10.1\\gson-2.10.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "4241c14a7727c34feea6507ec801318a3d4a90f070e4525681079fb94ee4c593",
+   "bytes": 283367
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\google\\guava\\failureaccess\\1.0.1\\failureaccess-1.0.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "a171ee4c734dd2da837e4b16be9df4661afab72a41adaf31eb84dfdaf936ca26",
+   "bytes": 4617
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\google\\guava\\guava\\32.1.2-jre\\guava-32.1.2-jre.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "bc65dea7cfd9e4dacf8419d8af0e741655857d27885bb35d943d7187fc3a8fce",
+   "bytes": 3041591
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\microsoft\\azure\\msal4j\\1.15.0\\msal4j-1.15.0.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "f2cf58195bd59ca4856ce6a072e2a5c442db65dd4fe71e6833951b82ad994d8e",
+   "bytes": 357082
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\mojang\\authlib\\6.0.55\\authlib-6.0.55.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "c7676b1766e06e57f8284a3bc7f114976b8dfbb467bd59fbb9444203c045a86f",
+   "bytes": 115248
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\mojang\\brigadier\\1.3.10\\brigadier-1.3.10.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "c8ee4136e474ac7723ca2b432ec8d1a2bc88ef7d1ec57c314ba9e33cdc83dd75",
+   "bytes": 80082
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\mojang\\datafixerupper\\8.0.16\\datafixerupper-8.0.16.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "ffc138bc2596c291781b0d5e211ccac51f0f2345f27fc2742f335cedf7e2870d",
+   "bytes": 724313
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\mojang\\jtracy\\1.0.29\\jtracy-1.0.29.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "017dfd1aa6f536cfcb8f643830f6f9f17028e8277417a4741a92c46e47424dda",
+   "bytes": 10382
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\mojang\\logging\\1.4.9\\logging-1.4.9.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "01306cf798c46dba0e72c769a67b96f71cb7492a1572a74ef4d8268e3f9ffb9d",
+   "bytes": 19800
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\nimbusds\\content-type\\2.3\\content-type-2.3.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "60349793e006fba96b532cb0c21e10e969fe0db8d87f91c3b9eaf82ba2998895",
+   "bytes": 8877
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\nimbusds\\lang-tag\\1.7\\lang-tag-1.7.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "e8c1c594e2425bdbea2d860de55c69b69fc5d59454452449a0f0913c2a5b8a31",
+   "bytes": 11170
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\nimbusds\\nimbus-jose-jwt\\9.37.3\\nimbus-jose-jwt-9.37.3.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "12ae4a3a260095d7aeba2adea7ae396e8b9570db8b7b409e09a824c219cc0444",
+   "bytes": 779374
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\com\\nimbusds\\oauth2-oidc-sdk\\11.9.1\\oauth2-oidc-sdk-11.9.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "0820c9690966304d075347b88e81ae490213440fc4d2c84f3d370d41941b2b9c",
+   "bytes": 883761
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\commons-io\\commons-io\\2.15.1\\commons-io-2.15.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "a58af12ee1b68cfd2ebb0c27caef164f084381a00ec81a48cc275fd7ea54e154",
+   "bytes": 501218
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\io\\netty\\netty-buffer\\4.1.97.Final\\netty-buffer-4.1.97.Final.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "a4393f5b395486cc74d0325c9b41311abb9513ba0fd7ef8cf46e9345c3bffbea",
+   "bytes": 306590
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\io\\netty\\netty-codec\\4.1.97.Final\\netty-codec-4.1.97.Final.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "bcc96737a0f912fcf031cf8c45ebda352a90a40437db0832caad3d5a63618b38",
+   "bytes": 345274
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\io\\netty\\netty-common\\4.1.97.Final\\netty-common-4.1.97.Final.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "a8aca0c8e9347acc75c885ecc749195d9775369aa520b9276f2d1128210a6c17",
+   "bytes": 659930
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\io\\netty\\netty-handler\\4.1.97.Final\\netty-handler-4.1.97.Final.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "bd4771d19149cbc9c7464ed2d58035d79cdfed7adb59d38718b0d8e7a3dcc2de",
+   "bytes": 560040
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\io\\netty\\netty-resolver\\4.1.97.Final\\netty-resolver-4.1.97.Final.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "38a018c6d9fb2cb11b72881354782b45080bbd20b9a0ad6cde28b80d431ed0b1",
+   "bytes": 37792
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\io\\netty\\netty-transport\\4.1.97.Final\\netty-transport-4.1.97.Final.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "197fd2d6c6b4afe677d9e95bf2e36b49a0bcabdfce0583683fb73f29a3f5a407",
+   "bytes": 489624
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\io\\netty\\netty-transport-classes-epoll\\4.1.97.Final\\netty-transport-classes-epoll-4.1.97.Final.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "ee65fa17fe65f18fd22269f92bddad85bfb3a263cf65eba01e116a2f30b86ff5",
+   "bytes": 147139
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\io\\netty\\netty-transport-native-epoll\\4.1.97.Final\\netty-transport-native-epoll-4.1.97.Final-linux-aarch_64.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "93b5fe8f3829dcb5e033d8d40d59159366ff4cf8266c903bbd6a4aeed9e59bac",
+   "bytes": 40427
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\io\\netty\\netty-transport-native-epoll\\4.1.97.Final\\netty-transport-native-epoll-4.1.97.Final-linux-x86_64.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "1e83fc9f82e5415cdbb688c6a5c6bbbd7d198e9fdd6fdf64b3dc5d54dd1acfd0",
+   "bytes": 38954
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\io\\netty\\netty-transport-native-unix-common\\4.1.97.Final\\netty-transport-native-unix-common-4.1.97.Final.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "412fe140257c2dda5a5e15bee911298bd61928d03ee6be4db588e82c196c5dc6",
+   "bytes": 43897
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\it\\unimi\\dsi\\fastutil\\8.5.12\\fastutil-8.5.12.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "b5543ee08d062d551cf0a5c9bc0fb70588b0382079029ba48941fa9c9be8a5d4",
+   "bytes": 23326598
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\net\\fabricmc\\fabric-loader\\0.19.5\\fabric-loader-0.19.5.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "93044e4dd46de5d8136701292f05e868da096d2c9fddb4793e4fdbcc63efc695",
+   "bytes": 1984980
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\net\\fabricmc\\intermediary\\1.21.3\\intermediary-1.21.3.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "c595ab903ddac4472aac65bd9883b2fccf9095e1a6a62a52f4d7d0f79eaf730e",
+   "bytes": 693060
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\net\\fabricmc\\sponge-mixin\\0.17.4+mixin.0.8.7\\sponge-mixin-0.17.4+mixin.0.8.7.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "1f0ae44db7295f8626f33b1dc0ad7f043d8954a8d6847247875fcc5dfcecc934",
+   "bytes": 1539080
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\net\\java\\dev\\jna\\jna\\5.14.0\\jna-5.14.0.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "34ed1e1f27fa896bca50dbc4e99cf3732967cec387a7a0d5e3486c09673fe8c6",
+   "bytes": 1878533
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\net\\java\\dev\\jna\\jna-platform\\5.14.0\\jna-platform-5.14.0.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "ae4caceb3840730c2537f9b7fb55a01baba580286b4122951488bcee558c2449",
+   "bytes": 1369287
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\net\\minidev\\accessors-smart\\2.5.0\\accessors-smart-2.5.0.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "12314fc6881d66a413fd66370787adba16e504fbf7e138690b0f3952e3fbd321",
+   "bytes": 29901
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\net\\minidev\\json-smart\\2.5.0\\json-smart-2.5.0.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "432b9e545848c4141b80717b26e367f83bf33f19250a228ce75da6e967da2bc7",
+   "bytes": 120233
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\net\\sf\\jopt-simple\\jopt-simple\\5.0.4\\jopt-simple-5.0.4.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "df26cc58f235f477db07f753ba5a3ab243ebe5789d9f89ecf68dd62ea9a66c28",
+   "bytes": 78146
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\apache\\commons\\commons-lang3\\3.14.0\\commons-lang3-3.14.0.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "7b96bf3ee68949abb5bc465559ac270e0551596fa34523fddf890ec418dde13c",
+   "bytes": 657952
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\apache\\logging\\log4j\\log4j-api\\2.22.1\\log4j-api-2.22.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "5d7beae7ff15d8516d6517121d7f12a79a6ac180df64b5fcec55d5be21056e53",
+   "bytes": 335001
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\apache\\logging\\log4j\\log4j-core\\2.22.1\\log4j-core-2.22.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "46dccecac556623d8e2ce8648496824a82951d139062a4e61148aff1a25ed18d",
+   "bytes": 1900022
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\apache\\logging\\log4j\\log4j-slf4j2-impl\\2.22.1\\log4j-slf4j2-impl-2.22.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "1920cd69d8682c7ef249bb407a3d0685723aa1785867cf4c53258da6bf14da97",
+   "bytes": 27364
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\joml\\joml\\1.10.5\\joml-1.10.5.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "cac9f22f83a7aa33eebda73c16ff5261e3cb4911b6bafcf4c79ea486099d0c9a",
+   "bytes": 712082
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\lz4\\lz4-java\\1.8.0\\lz4-java-1.8.0.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "d74a3334fb35195009b338a951f918203d6bbca3d1d359033dc33edd1cadc9ef",
+   "bytes": 682804
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\ow2\\asm\\asm\\9.10.1\\asm-9.10.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "ed825d10ab1399c8c0cb669e688cf0c8c82629b4c8399b58352b68e92ca10fcb",
+   "bytes": 126151
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\ow2\\asm\\asm\\9.3\\asm-9.3.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "1263369b59e29c943918de11d6d6152e2ec6085ce63e5710516f8c67d368e4bc",
+   "bytes": 122176
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\ow2\\asm\\asm-analysis\\9.10.1\\asm-analysis-9.10.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "dede75a21306b65974ecd8f87114ff6970f09fb794157a4ca09ab25c888c2bfc",
+   "bytes": 35140
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\ow2\\asm\\asm-commons\\9.10.1\\asm-commons-9.10.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "6d0abefb7cbf972ea16edb37ec14835372505063a45f976ab7ea889ed9497895",
+   "bytes": 74840
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\ow2\\asm\\asm-tree\\9.10.1\\asm-tree-9.10.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "3dfb0d5b6a106cd40b5b250e39935fbf2f927f4477546a5369a3ac609cf0506b",
+   "bytes": 51958
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\ow2\\asm\\asm-util\\9.10.1\\asm-util-9.10.1.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "1bb99d091fba2597dc6d51193e9bbcf0d8447e7ed96bd8f0198b18152f09655c",
+   "bytes": 95628
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\libraries\\org\\slf4j\\slf4j-api\\2.0.9\\slf4j-api-2.0.9.jar",
+   "source": "fabric-libraries@r3c-dep-cache",
+   "sha256": "0818930dc8d7debb403204611691da58e49d42c50b6ffcfdce02dadb7c3c2b6c",
+   "bytes": 64579
+  },
+  {
+   "path": "mc-experiment\\rcf1-server-r3d\\versions\\1.21.3\\server-1.21.3.jar",
+   "source": "fabric-versions@r3c-dep-cache",
+   "sha256": "0c03e0748072930d25903798c5b1ece592c461a1060ceca6e1a548de02f75711",
+   "bytes": 18293613
+  },
+  {
+   "path": "rcf1-server-r3d\\server.jar",
+   "source": "dep-cache@server.jar",
+   "sha256": "e153b89b02c0839cdf5e8c1d57c80dd42a3fffb80c60817632080c041bf8afb5",
+   "bytes": 56122038
+  },
+  {
+   "path": "rcf1-server-r3d\\fabric-server-launcher.properties",
+   "source": "dep-cache@fabric-server-launcher.properties",
+   "sha256": "6d540994d22958e44749fc7ec0dda43a82d7f221e88f83cc6a97211d6840c0c8",
+   "bytes": 53
+  },
+  {
+   "path": "rcf1-server-r3d\\mods\\fabric-api-0.114.1%2B1.21.3.jar",
+   "source": "r3c-dep-cache",
+   "sha256": "357a4fe24c7a7248320d2099b8567b65fd2f4271a3faf9c7f369dd2c18ab4157",
+   "bytes": 2380714
+  },
+  {
+   "path": "rcf1-server-r3d\\mods\\appleskin-fabric-mc1.21.3-3.0.6.jar",
+   "source": "r3c-dep-cache",
+   "sha256": "f8f611746df88f1737b62a76615a366f42a331730ea16db97c52d6f5540c58ab",
+   "bytes": 1095505
+  },
+  {
+   "path": "rcf1-server-r3d\\mods\\toms_storage_fabric-1.21.3-2.1.2.jar",
+   "source": ".local-third-party(tom5454/Toms-Storage Modrinth XZNI4Cpy h9IMZ6BE)",
+   "sha256": "25cbec98102fe166a4ecd7e60ec8e31fcc7fe648309df16e1189590d77c82c03",
+   "bytes": 1837305
+  },
+  {
+   "path": "rcf1-server-r3d\\mods\\vein_miner-26.x.jar",
+   "source": "r3c-dep-cache",
+   "sha256": "de21018bb3891d51e352fc4b2093a3211c71c8d9b2535fc34389ac124f0f3184",
+   "bytes": 149362
+  },
+  {
+   "path": "rcf1-server-r3d\\mods\\aibot-0.0.1.jar",
+   "source": "this-build:rcf1-rebuild-base@overlay(locked)",
+   "sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+   "bytes": 2055481
+  },
+  {
+   "path": "rcf1-client-r3d\\mods\\fabric-api-0.114.1%2B1.21.3.jar",
+   "source": "r3c-dep-cache",
+   "sha256": "357a4fe24c7a7248320d2099b8567b65fd2f4271a3faf9c7f369dd2c18ab4157",
+   "bytes": 2380714
+  },
+  {
+   "path": "rcf1-client-r3d\\mods\\toms_storage_fabric-1.21.3-2.1.2.jar",
+   "source": ".local-third-party(Modrinth h9IMZ6BE)",
+   "sha256": "25cbec98102fe166a4ecd7e60ec8e31fcc7fe648309df16e1189590d77c82c03",
+   "bytes": 1837305
+  },
+  {
+   "path": "rcf1-client-r3d\\mods\\baritone-api-fabric-1.12.0.jar",
+   "source": "r3c-dep-cache",
+   "sha256": "b3b36aa3d74c4df053d147ee9254b70c15f4d1e5e11a2766141a146eea3bd60b",
+   "bytes": 4810436
+  },
+  {
+   "path": "rcf1-client-r3d\\mods\\aibot-0.0.1.jar",
+   "source": "this-build:rcf1-rebuild-base@overlay(locked)",
+   "sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+   "bytes": 2055481
+  },
+  {
+   "path": "mc-experiment\\rcf1-client-r3d\\natives\\glfw.dll",
+   "source": "lwjgl-natives@r3c-dep-cache",
+   "sha256": "affa7e54eb0dedce4a5721c327c1a16035edbbd039cd402e08107d6d2d55eb1a",
+   "bytes": 496128
+  },
+  {
+   "path": "mc-experiment\\rcf1-client-r3d\\natives\\jemalloc.dll",
+   "source": "lwjgl-natives@r3c-dep-cache",
+   "sha256": "9abf0095066ebab37b78968e11370a8078313e48cb5be8eda01f67623c6a6248",
+   "bytes": 398336
+  },
+  {
+   "path": "mc-experiment\\rcf1-client-r3d\\natives\\jna15572606087136992596.dll",
+   "source": "lwjgl-natives@r3c-dep-cache",
+   "sha256": "69c45175ecfd25af023f96ac0bb2c45e6a95e3ba8a5a50ee7969ccab14825c44",
+   "bytes": 254464
+  },
+  {
+   "path": "mc-experiment\\rcf1-client-r3d\\natives\\jna15572606087136992596.dll.x",
+   "source": "lwjgl-natives@r3c-dep-cache",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0
+  },
+  {
+   "path": "mc-experiment\\rcf1-client-r3d\\natives\\lwjgl.dll",
+   "source": "lwjgl-natives@r3c-dep-cache",
+   "sha256": "a39adf52947fafd954c2a86ce031abb8c59825f7ee50337ac8c41e4280abe82d",
+   "bytes": 479232
+  },
+  {
+   "path": "mc-experiment\\rcf1-client-r3d\\natives\\lwjgl_opengl.dll",
+   "source": "lwjgl-natives@r3c-dep-cache",
+   "sha256": "fe200dc96ab31237a52facd6345d31f9740ef16dd411e5f9be014eaa30f89fb6",
+   "bytes": 364032
+  },
+  {
+   "path": "mc-experiment\\rcf1-client-r3d\\natives\\lwjgl_stb.dll",
+   "source": "lwjgl-natives@r3c-dep-cache",
+   "sha256": "de03f38f8c7471b4924aa8bdf8724c181d1a7c20428dbce2ed301877e1d387e4",
+   "bytes": 510464
+  },
+  {
+   "path": "mc-experiment\\rcf1-client-r3d\\natives\\OpenAL.dll",
+   "source": "lwjgl-natives@r3c-dep-cache",
+   "sha256": "0630aa42492f78126da1c4d99769632e03c55b2e63b050efe7e3005e07e3e6fc",
+   "bytes": 1338368
+  }
+ ],
+ "content_diffs": [],
+ "note": "空目录安装;依赖逐条 sha256 入账;世界全新生成;不携带旧 journal/日志/运行状态"
+}

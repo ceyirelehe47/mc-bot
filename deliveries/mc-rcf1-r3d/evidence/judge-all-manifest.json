@@ -1,0 +1,14 @@
+{
+ "ia_facts": "D:/mc-rcf1-raw-r3d/ia-facts-r3d.json",
+ "g4_runs": "D:/mc-rcf1-raw-r3d/g4-runs-r3.json",
+ "g5_s01": "D:/mc-rcf1-raw-r3d/g5r3-r3d-s01.jsonl",
+ "g5_s02": "D:/mc-rcf1-raw-r3d/g5r3-r3d-s01b.jsonl",
+ "tests_c": "D:/mc-rcf1-raw-r3d/tests-c.jsonl",
+ "tests_n": "D:/mc-rcf1-raw-r3d/tests-n.jsonl",
+ "tests_v": "D:/mc-rcf1-raw-r3d/tests-v.jsonl",
+ "lifecycle": "D:/mc-rcf1-raw-r3d/lifecycle.jsonl",
+ "i08": "D:/mc-rcf1-raw-r3d/i08-blocked.json",
+ "build": "D:/mc-rcf1-raw-r3d/build-report.json",
+ "fresh_deployment": "D:/mc-rcf1-raw-r3d/fresh-deployment.json",
+ "mutations": "D:/mc-rcf1-raw-r3d/mutations-summary.json"
+}

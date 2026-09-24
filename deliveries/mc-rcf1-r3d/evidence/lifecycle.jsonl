@@ -1,0 +1,20 @@
+{"id": "L01", "attempt": 1, "pass": true, "reason": "{'live': 1, 'codes': [0, 0, 0, 0], 'outs': ['{\"role\": \"server\", \"status\": \"RUNNING\", \"pid\": 39836, \"note\": \"existing verified instance; idempotent start\"}', '{\""}
+{"id": "L01", "attempt": 2, "pass": true, "reason": "{\"role\": \"server\", \"status\": \"RUNNING\", \"pid\": 39836, \"note\": \"existing verified instance; idempotent start\"}"}
+{"id": "L02", "attempt": 1, "pass": true, "reason": "{'live': 1, 'first': '{\"role\": \"server\", \"status\": \"RUNNING\", \"pid\": 37124, \"marker\": \"rcf1fakedb40cdbc-server-624a757da0b4bb74\"}', 'second': '{\"role\": \"server\""}
+{"id": "L03", "attempt": 1, "pass": true, "reason": "{'live': 1, 'status': 'ADOPTED', 'pid': 40004, 'orig': 40004, 'rc': 0, 'out': '{\"role\": \"server\", \"status\": \"RUNNING\", \"pid\": 40004, \"note\": \"existing verified "}
+{"id": "L03", "attempt": 2, "pass": true, "reason": "{'rc': 1, 'live_verified': 0, 'err': 'Traceback (most recent call last):\\n  File \"D:\\\\code\\\\mc-bot\\\\tools\\\\rcf1_lifecycle.py\", line 734, in <module>\\n    sys.ex"}
+{"id": "L04", "attempt": 1, "pass": true, "reason": "Traceback (most recent call last):\n  File \"D:\\code\\mc-bot\\tools\\rcf1_lifecycle.py\", line 195, in _load_json_strict\n    return json.load(fh)\n          "}
+{"id": "L04", "attempt": 2, "pass": true, "reason": "Traceback (most recent call last):\n  File \"D:\\code\\mc-bot\\tools\\rcf1_lifecycle.py\", line 195, in _load_json_strict\n    return json.load(fh)\n          "}
+{"id": "L04", "attempt": 3, "pass": true, "reason": "Traceback (most recent call last):\n  File \"D:\\code\\mc-bot\\tools\\rcf1_lifecycle.py\", line 195, in _load_json_strict\n    return json.load(fh)\n          "}
+{"id": "L04", "attempt": 4, "pass": true, "reason": "Traceback (most recent call last):\n  File \"D:\\code\\mc-bot\\tools\\rcf1_lifecycle.py\", line 195, in _load_json_strict\n    return json.load(fh)\n          "}
+{"id": "L05", "attempt": 1, "pass": true, "reason": "Traceback (most recent call last):\n  File \"D:\\code\\mc-bot\\tools\\rcf1_lifecycle.py\", line 734, in <module>\n    sys.exit(main(sys.argv[1:]))\n           "}
+{"id": "L06", "attempt": 1, "pass": true, "reason": "{'rc': 1, 'err': ' manually\"\\n        % (role, [x[\"pid\"] for x in role_live]))\\nInstanceConflict: untracked server instance(s) in namespace: [34912]; adopt/clea"}
+{"id": "L07", "attempt": 1, "pass": true, "reason": "{'stop_out': '{\"server\": \"STOP_FAILED(unconfirmed;starts blocked until cleared)\"}', 'fails': 1, 'restart_rc': 1}"}
+{"id": "L08", "attempt": 1, "pass": true, "reason": "{'locked1': True, 'locked2': True, 'retry_rc': 1, 'stop': '{\"server\": \"STOPPED(no record; namespace clean)\", \"client\": \"STOPPED(no record; '}"}
+{"id": "L08", "attempt": 2, "pass": true, "reason": "{'unlock_no_reason_rc': 1, 'unlock_rc': 0, 'total': 3, 'consec': 0}"}
+{"id": "L09", "attempt": 1, "pass": true, "reason": "{'revived': False, 'note': '实机 60s 段在 R1-L 实机确认中补'}"}
+{"id": "L10", "attempt": 1, "pass": true, "reason": "{'real_untouched': True, 'ns': 'C:\\\\Users\\\\15027\\\\AppData\\\\Local\\\\Temp\\\\rcf1-ltest-zvuxvr_r'}"}
+{"id": "L11", "attempt": 1, "pass": true, "reason": "{'out': '{\"client\": \"BLOCKED(untracked instances: [20716]; adopt/clear manually)\"}', 'orphan_alive': True, 'extras_seen': [20716]}"}
+{"id": "L12", "attempt": 1, "pass": true, "reason": "{'rc': 1, 'out': '', 'err': 'Traceback (most recent call last):\\n  File \"D:\\\\code\\\\mc-bot\\\\tools\\\\rcf1_lifecycle.py\", line 734, in <module>\\n    sys.exit(m', 'e"}
+{"id": "L13", "attempt": 1, "pass": true, "reason": "{'server_locked': True, 'client_rc': 0, 'server_fails_after': 3}"}
+{"id": "L14", "attempt": 1, "pass": true, "reason": "{'tail_out': '{\"server\": \"BLOCKED(same-role instances remain: [17708])\"}', 'extra_alive': True, 'state': 'STOPPED', 'restop': '{\"server\": \"STOPPED(no record; na"}
