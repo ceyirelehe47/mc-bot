@@ -468,6 +468,22 @@ def main():
             check(fn.__name__, False, "EXC %r" % exc)
     _cleanup_fake_orphans()
     passed = sum(1 for _, ok, _ in RESULTS if ok)
+    # R3D:门行(lifecycle.jsonl;子编号 → 基础 id + attempt)
+    import os as _os
+    import json as _json
+    import re as _re
+    raw_root = _os.environ.get("RCF1_RAW", r"D:\mc-rcf1-raw")
+    attempts = {}
+    with open(_os.path.join(raw_root, "lifecycle.jsonl"), "w",
+              encoding="utf-8") as fh:
+        for tid, ok, detail in RESULTS:
+            m = _re.match(r"(L\d+)([a-z]?)", tid)
+            base = m.group(1) if m else tid
+            attempts[base] = attempts.get(base, 0) + 1
+            fh.write(_json.dumps({
+                "id": base, "attempt": attempts[base],
+                "pass": bool(ok),
+                "reason": detail[:160]}, ensure_ascii=False) + "\n")
     print("SUMMARY %d/%d" % (passed, len(RESULTS)))
     return 0 if passed == len(RESULTS) else 1
 
