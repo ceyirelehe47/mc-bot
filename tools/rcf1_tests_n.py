@@ -343,6 +343,19 @@ def main():
     stamp = time.strftime("%Y%m%d-%H%M%S")
     n_pass = sum(1 for r in results if r.get("pass"))
     out = ev("n-group-%s.json" % stamp, {"run": stamp, "results": results})
+    # R3D:门行(tests-n.jsonl;N×3 各 attempt 独立事件范围)
+    import os as _os
+    raw_root = _os.environ.get("RCF1_RAW", r"D:\mc-rcf1-raw")
+    with open(_os.path.join(raw_root, "tests-n.jsonl"), "w",
+              encoding="utf-8") as fh:
+        for r in results:
+            fh.write(json.dumps({
+                "id": str(r["id"]).upper()[:3],
+                "attempt": int(r.get("run") or 1),
+                "pass": bool(r.get("pass")),
+                "reason": json.dumps(r.get("detail"),
+                                     ensure_ascii=False)[:200]},
+                ensure_ascii=False) + "\n")
     print("SUMMARY %d/%d -> %s" % (n_pass, len(results), out))
     return 0 if n_pass == len(results) else 1
 

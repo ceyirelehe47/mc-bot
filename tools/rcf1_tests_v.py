@@ -175,6 +175,19 @@ def main():
     live_cases()
     scored = [ok for _, ok in RESULTS if ok is not None]
     passed = sum(1 for ok in scored if ok)
+    # R3D:门行(tests-v.jsonl)
+    import os as _os, json as _json
+    raw_root = _os.environ.get("RCF1_RAW", r"D:\mc-rcf1-raw")
+    with open(_os.path.join(raw_root, "tests-v.jsonl"), "w",
+              encoding="utf-8") as fh:
+        for tid, ok in RESULTS:
+            row = {"id": tid, "attempt": 1}
+            if ok is None:
+                row["not_run"] = True
+                row["reason"] = "live harness 未部署(V 离线组)"
+            else:
+                row["pass"] = bool(ok)
+            fh.write(_json.dumps(row, ensure_ascii=False) + "\n")
     print("SUMMARY %d/%d (%d NOT_RUN)"
           % (passed, len(scored), len(RESULTS) - len(scored)))
     return 0 if passed == len(scored) else 1

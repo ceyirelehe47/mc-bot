@@ -356,6 +356,21 @@ def main():
         results.append(r)
     stamp = time.strftime("%Y%m%d-%H%M%S")
     out = ev("c-group-%s.json" % stamp, {"run": stamp, "fixture": fixture, "results": results})
+    # R3D:门行(tests-c.jsonl,RCF1_RAW)——C08 条件项显式 NOT_RUN 带理由
+    raw_root = os.environ.get("RCF1_RAW", r"D:\mc-rcf1-raw")
+    with open(os.path.join(raw_root, "tests-c.jsonl"), "w",
+              encoding="utf-8") as fh:
+        for r in results:
+            fh.write(json.dumps({
+                "id": r["id"], "attempt": 1,
+                "pass": r["verdict"] == "PASS",
+                "reason": str(r.get("reason"))[:160]},
+                ensure_ascii=False) + "\n")
+        fh.write(json.dumps({
+            "id": "C08", "not_run": True,
+            "reason": "无授权真人共存条件(PCL2 属用户,不触碰);"
+                      "条件未满足按 NOT_RUN 显式单列"}, ensure_ascii=False)
+            + "\n")
     n_pass = sum(1 for r in results if r["verdict"] == "PASS")
     print("SUMMARY %d/%d PASS -> %s" % (n_pass, len(results), out))
     return 0 if n_pass == len(results) else 1
