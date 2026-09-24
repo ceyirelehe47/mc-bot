@@ -23,10 +23,12 @@ final class RealClientMvpSourceTest {
             throws Exception {
         String driver=main("realclient/RealClientExecutionDriver.java");
         // R1 起核心链操作集(say/goto/mine/deposit + craft/eat/place/
-        // move_items/container_transfer);smelt 仍然拒绝。
+        // move_items/container_transfer);R3D 增只读诊断 toms_diag
+        //(I08 网络归因;无副作用);smelt 仍然拒绝。
         assertTrue(driver.contains(
                 "Set.of(\"say\",\"goto\",\"mine_opportunity\",\"deposit\",\"craft\",\n"
-                        +"                    \"eat\",\"place\",\"move_items\",\"container_transfer\")"));
+                        +"                    \"eat\",\"place\",\"move_items\",\"container_transfer\",\n"
+                        +"                    \"toms_diag\")"));
         assertFalse(driver.contains("ServerFakePlayerExecutionDriver"));
         assertFalse(driver.contains("TaskManager.INSTANCE.assign"));
         assertTrue(driver.contains(
