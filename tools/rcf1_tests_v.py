@@ -176,6 +176,15 @@ def live_cases():
 
 def main():
     v10_real_strategy()
+    live = (os.environ.get("RCF1_V_LIVE") == "1"
+            or "--live" in sys.argv)
+    if live:
+        import atexit
+        import rcf1_env as _E
+
+        def _restore_difficulty():
+            _E.rcon("difficulty normal")
+        atexit.register(_restore_difficulty)
     checker_consistency()
     live_cases()
     scored = [ok for _, ok in RESULTS if ok is not None]

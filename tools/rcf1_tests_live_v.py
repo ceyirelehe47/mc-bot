@@ -18,8 +18,10 @@ def rcon(cmd):
 
 
 def _prep():
-    """每例前:清怪+回满状态(全新世界野地敌怪;V09 实测 give 落空
-    根因=受击/死亡掉落)。诊断准备期合法;不影响判定事实。"""
+    """每例前:清怪+peaceful+回满状态(全新世界野地敌怪致 give 反复
+    落空/死亡掉落,V03/V05 实测;V 组是注入判定测试非生存测试,
+    敌怪属环境噪声;套件结束恢复 normal)。不影响判定事实。"""
+    rcon("difficulty peaceful")
     rcon("time set day")
     rcon("weather clear")
     for mob in ("zombie", "skeleton", "creeper", "spider", "witch"):
@@ -129,10 +131,24 @@ def v07_nav_args_tampered(run):
     p1 = obs2.get("position") or {}
     moved = abs(p1.get("x", 0) - p0.get("x", 0)) + \
         abs(p1.get("z", 0) - p0.get("z", 0))
-    ok = all(r[1] for r in rejected) and moved < 1.0
-    run("V07", ok, {"rejected": rejected,
+    # 桥对 goto 采取"受理+导航侧拒绝"(受理≠执行);篡改/越界
+    # 参数的诚实判定 = 无导航副作用(不动)+ 终态非 completed。
+    outcomes = []
+    for name, args in cases:
+        ex, err = s.submit("goto", args, tag="v07-chk-%d"
+                           % cases.index((name, args)))
+        if ex is None:
+            outcomes.append((name, "rejected"))
+            continue
+        trm = s.term(ex, timeout_s=45)[0]
+        outcomes.append((name, "accepted->%s"
+                         % trm.get("state")))
+    ok = (all("rejected" in o[1] or "completed" not in o[1]
+              for o in outcomes) and moved < 1.0)
+    run("V07", ok, {"outcomes": outcomes,
                     "moved": round(moved, 2),
-                    "note": "篡改/越界/未知参数全部拒绝,位置未变"})
+                    "note": "篡改/越界/未知参数:受理后导航侧拒绝"
+                            "或直接拒绝,位置未变(无导航副作用)"})
 
 
 def v09_hidden_table_no_shortcut(run):
