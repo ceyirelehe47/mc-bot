@@ -499,6 +499,10 @@ def _judge_ia(evidence):
                 if st not in TERMINAL_OK and st != "outcome_unknown":
                     return False, ("case-%s-unresolved-state:%s"
                                    % (cid, st or "empty"))
+                # R3D:信息类 op(say=感知/扫描辅助,toms_diag=只读
+                # 网络诊断)不参与正负例判定——既不证明也不否证。
+                if str(a.get("op") or "") in ("say", "toms_diag"):
+                    continue
                 # M10:outcome_unknown 保留为合法终态当且仅当带独立
                 # 对账证据(前后物理快照齐全);无证据的裸 unknown 拒绝。
                 if st == "outcome_unknown":
