@@ -231,152 +231,159 @@ def expected_item_of(block_id):
             else block_id)
 
 
+class G4MineEnv(object):
+    """rcf1_mine_skill 核心的 G4 适配(Env 协议;chain 全程记账)。
+
+    R3D/R01:G4 与 G5 共用同一失败驱动控制流——同组合 ≤2 次盲发、
+    goto 失败与机会不出生同权换站位/候选、总预算截断子动作。"""
+
+    def __init__(self, s, chain, block_id, near, label,
+                 pick_block=None, window=None):
+        self.s = s
+        self.chain = chain
+        self.block_id = block_id
+        self.pick_block = pick_block
+        self.near = near
+        self.window = window
+        self.label = label
+        self._last_snap_blocks = None
+
+    # ---- Env 协议 ----
+    def now(self):
+        return time.time()
+
+    def sleep(self, sec):
+        time.sleep(sec)
+
+    def diag(self, what, **data):
+        self.chain.evt("skill-%s" % what, label=self.label, **data)
+
+    def candidates(self):
+        cands = visible_blocks(
+            self.s, self.pick_block or self.block_id, near=self.near,
+            window=self.window, chain=self.chain)
+        if cands is None:
+            return None
+        return [c[1] for c in cands]
+
+    def fingerprint(self):
+        """局部感知几何摘要(遮挡/支撑变化 ⇒ 解除组合禁令)。"""
+        snap = _local_snapshot(self.s, chain=self.chain) or {}
+        blocks = snap.get("blocks") or []
+        if not blocks:
+            return None
+        import hashlib
+        sig = sorted(
+            "%d,%d,%d=%s" % (
+                int((b.get("position") or {}).get("x", 0)),
+                int((b.get("position") or {}).get("y", 0)),
+                int((b.get("position") or {}).get("z", 0)),
+                b.get("block"))
+            for b in blocks)
+        return hashlib.sha256("|".join(sig).encode()).hexdigest()[:16]
+
+    def ground_py(self):
+        _px, py, _pz = player_pos(self.s)
+        return py
+
+    def nav(self, xyz, stance, timeout_s):
+        _name, (dx, dz) = stance
+        _px, py, _pz = player_pos(self.s)
+        return do_op(self.s, self.chain, "goto", {
+            "x": xyz[0] + dx, "y": py, "z": xyz[2] + dz,
+            "face_x": xyz[0], "face_y": xyz[1], "face_z": xyz[2]},
+            timeout=int(timeout_s))
+
+    def opp_wait(self, xyz, wait_s):
+        t0 = time.time()
+        while time.time() - t0 < wait_s:
+            found = opportunities(self.s, block_id=self.block_id,
+                                  at=xyz)
+            if found:
+                return found[0]
+            if self.chain.time_up():
+                return None
+            time.sleep(0.8)
+        return None
+
+    def mine(self, opp, timeout_s):
+        return do_op(self.s, self.chain, "mine_opportunity",
+                     {"id": opp.get("object_id")},
+                     timeout=int(timeout_s))
+
+    def mined_count(self, receipt, xyz):
+        """completed 直计;failed 走 G4 迟效对账(块空+物品入包/
+        走位拾取),对账事实进 events,回执不改写。"""
+        if str(receipt.get("state") or "").lower() == "completed":
+            self.chain.evt("mined", label=self.label, at=list(xyz))
+            return 1
+        item = expected_item_of(self.block_id)
+        inv_before = self._inv_item(item)
+        time.sleep(6)
+        still = any(c[1] == xyz for c in (visible_blocks(
+            self.s, self.pick_block or self.block_id, near=self.near,
+            window=self.window, chain=self.chain) or []))
+        inv_after = self._inv_item(item)
+        if not still and inv_after >= inv_before + 1:
+            self.chain.evt("mined-late-reconciled", label=self.label,
+                           at=list(xyz), inv_delta=inv_after - inv_before)
+            return 1
+        if not still:
+            # 块已空但掉落滞留:走到原格拾取;拾取不到如实记录
+            do_op(self.s, self.chain, "goto", {
+                "x": xyz[0], "y": max(xyz[1] - 2, 60), "z": xyz[2]},
+                timeout=45)
+            time.sleep(2)
+            if self._inv_item(item) >= inv_before + 1:
+                self.chain.evt("mined-drop-picked", label=self.label,
+                               at=list(xyz))
+                return 1
+            self.chain.evt("mine-drop-lost", label=self.label,
+                           at=list(xyz))
+            return 0
+        self.chain.evt("mine-failed", label=self.label,
+                       reason=str(receipt.get("reason"))[:400])
+        return 0
+
+    def _inv_item(self, item):
+        return inventory(self.s).get(item, 0)
+
+    def sweep(self, cap_s):
+        """空候选/全禁时的再感知:回 fixture 锚点 + 短走查。"""
+        if self.near:
+            do_op(self.s, self.chain, "goto", {
+                "x": self.near[0], "y": self.near[1] - 2,
+                "z": self.near[2]}, timeout=60)
+            self.chain.evt("reapproach-fixture")
+        leg = max(10, min(40, int(cap_s // 5)))
+        try:
+            _px, py, _pz = player_pos(self.s)
+        except RuntimeError:
+            return
+        px, pz = _px, _pz
+        for dx, dz in ((0, -5), (5, 0), (0, 5), (-5, 0)):
+            if self.chain.time_up():
+                return
+            do_op(self.s, self.chain, "goto",
+                  {"x": px + dx, "y": py, "z": pz + dz}, timeout=leg)
+        do_op(self.s, self.chain, "goto",
+              {"x": px, "y": py, "z": pz}, timeout=leg)
+
+
 def acquire_and_mine(s, chain, block_id, near, need, label,
                      pick_block=None, window=None):
     """合法链采集:感知选目标 → goto(face) → 等机会出生 → mine。
-    mine 回执失败但物理链迟效完成(块已空+期望物品入包)时,
-    以迟效对账计数并记录事件——receipt 保留 failed,不改写。"""
-    got = 0
-    no_vis = 0
-    inspect_errors = 0
-    deadline = time.time() + 420
-    while got < need and time.time() < deadline and not chain.time_up():
-        cands = visible_blocks(
-            s, pick_block or block_id, near=near, window=window,
-            chain=chain)
-        if cands is None:
-            inspect_errors += 1
-            if inspect_errors >= 10:
-                chain.stop("inspect-loop-errors")
-                return got
-            time.sleep(2)
-            continue
-        inspect_errors = 0
-        if not cands:
-            chain.evt("no-visible-candidate", label=label)
-            no_vis += 1
-            if no_vis >= 5 and near:
-                r = do_op(s, chain, "goto", {
-                    "x": near[0], "y": near[1] - 2, "z": near[2]},
-                    timeout=60)
-                chain.evt("reapproach-fixture", state=r.get("state"))
-                no_vis = 0
-            time.sleep(2)
-            continue
-        no_vis = 0
-        try:
-            _ppx, py_now, _ppz = player_pos(s)
-        except RuntimeError:
-            chain.evt("player-position-unavailable", label=label)
-            time.sleep(2)
-            continue
-        # R3:客户端准星触达(4.5 格)过滤——站位眼高 py+1.6,命中点
-        # 竖直分量 ≤ ~3.7 ⇒ 目标格 y ≤ py+4;更高的格子即使可见也
-        # 无法从地面准入/瞄准(实测 112 顶格 facing_timeout 根因)。
-        cands = [c for c in cands if c[1][1] <= py_now + 4]
-        if not cands:
-            chain.evt("no-reachable-candidate", label=label)
-            time.sleep(2)
-            continue
-        _d, xyz, _oid = cands[0]
-        inv_before = inventory(s).get(expected_item_of(block_id), 0)
-        try:
-            _px, py, _pz = player_pos(s)
-        except RuntimeError:
-            chain.evt("player-position-unavailable", label=label)
-            time.sleep(2)
-            continue
-        # R3:主站位=目标正南 3 格(同 Bob 地面高度)。实测规律:目标
-        # 位于南向(yaw≈0)时 facing/crosshair 全部通过;东/北向在当前
-        # 客户端旋转链路下必败(serverYaw 与 sensor headYaw 分叉)。
-        # 南向站位同时满足柱状目标的可瞄准几何(命中点落在目标格内)。
-        r = do_op(s, chain, "goto", {
-            "x": xyz[0], "y": py, "z": xyz[2] - 3,
-            "face_x": xyz[0], "face_y": xyz[1], "face_z": xyz[2]},
-            timeout=90)
-        if r.get("state") != "completed":
-            chain.evt("goto-face-failed", label=label,
-                      reason=str(r.get("reason"))[:400])
-            time.sleep(2)
-            continue
-        opp = None
-        t0 = time.time()
-        while time.time() - t0 < OPP_WAIT_S:
-            found = opportunities(s, block_id=block_id, at=xyz)
-            if found:
-                opp = found[0]
-                break
-            time.sleep(0.8)
-        if not opp:
-            # R2 行为(R3 重写时丢失,实测高枝机会不出生根因):
-            # 当前站位下客户端准星(4.5 格触达)够不到目标——按
-            # 4 方位邻位轮试重新站位再等机会。
-            for dx, dz in ((0, -2), (0, -3), (0, -4), (0, 2),
-                        (-2, 0), (2, 0)):
-                if chain.time_up():
-                    break
-                try:
-                    _px2, py2, _pz2 = player_pos(s)
-                except RuntimeError:
-                    break
-                r = do_op(s, chain, "goto", {
-                    "x": xyz[0] + dx, "y": py2, "z": xyz[2] + dz,
-                    "face_x": xyz[0], "face_y": xyz[1],
-                    "face_z": xyz[2]}, timeout=60)
-                if r.get("state") != "completed":
-                    continue
-                t1 = time.time()
-                while time.time() - t1 < 6:
-                    found = opportunities(s, block_id=block_id, at=xyz)
-                    if found:
-                        opp = found[0]
-                        break
-                    time.sleep(0.8)
-                if opp:
-                    chain.evt("stance-rotation-born", at=xyz,
-                              stance=[xyz[0] + dx, py2, xyz[2] + dz])
-                    break
-        if not opp:
-            chain.evt("opportunity-not-born", label=label, at=xyz)
-            continue
-        r = do_op(s, chain, "mine_opportunity",
-                  {"id": opp.get("object_id")}, timeout=MINE_TIMEOUT)
-        if r.get("state") == "completed":
-            got += 1
-            chain.evt("mined", label=label, at=xyz, n=got)
-        else:
-            # 迟效对账:回执失败,但块已消失且物品入包(掉落拾取晚于
-            # 回执判定的竞态)——物理完成,receipt 保持 failed。
-            time.sleep(6)
-            still = any(c[1] == xyz for c in (visible_blocks(
-                s, pick_block or block_id, near=near, window=window,
-                chain=chain) or []))
-            inv_after = inventory(s).get(
-                expected_item_of(block_id), 0)
-            if not still and inv_after >= inv_before + 1:
-                got += 1
-                chain.evt("mined-late-reconciled", label=label,
-                          at=xyz, n=got, receipt_state=r.get("state"),
-                          inv_delta=inv_after - inv_before)
-            elif not still:
-                # 块已空但物品未入包(掉落滞留):走到原格拾取,有界
-                # 重查;拾取不到如实记录(物品留在世界)。
-                do_op(s, chain, "goto", {
-                    "x": xyz[0], "y": max(xyz[1] - 2, 60),
-                    "z": xyz[2]}, timeout=45)
-                time.sleep(2)
-                inv_pick = inventory(s).get(
-                    expected_item_of(block_id), 0)
-                if inv_pick >= inv_before + 1:
-                    got += 1
-                    chain.evt("mined-drop-picked", label=label,
-                              at=xyz, n=got)
-                else:
-                    chain.evt("mine-drop-lost", label=label, at=xyz)
-            else:
-                chain.evt("mine-failed", label=label,
-                          reason=str(r.get("reason"))[:400])
-    return got
+    R3D/R01:控制流移交 rcf1_mine_skill 核心(失败驱动候选/站位推进,
+    总预算覆盖嵌套子动作);返回采到的整数数量。"""
+    import rcf1_mine_skill as MS
+    budget = 420
+    if chain.limit_deadline is not None:
+        budget = max(10.0, min(420.0, chain.limit_deadline - time.time()))
+    env = G4MineEnv(s, chain, block_id, near, label,
+                    pick_block=pick_block, window=window)
+    res = MS.run(env, need, budget)
+    chain.evt("skill-result", label=label, result=res)
+    return int(res.get("got") or 0)
 
 def craft(s, chain, item, count):
     r = do_op(s, chain, "craft", {"item": item, "count": count},

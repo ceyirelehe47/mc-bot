@@ -163,15 +163,32 @@ class Session:
         self.keepalive()
         tag = tag or ("play-" + op)
         preempted = False
-        for attempt in range(4):
+        last_kind = None
+        for attempt in range(5):
             r = E.submit(self.lease, op, args, tag)
             if r.get("ok"):
                 return r["data"]["execution_id"], None
             code, kind = _fault(r)
+            last_kind = kind
             if kind in RECONCILE_RETRY:
                 E.observe(self.lease)
                 time.sleep(2)
                 continue
+            if kind == "control_lease_invalid":
+                # R3D/D05:body 会话变化(死亡重生/客户端重启)会即时
+                # 作废租约。有界恢复一次:重新获取租约(不复用旧 token)
+                # + observe 对账(桥侧债务解锁的正规入口);恢复不了就
+                # 上抛,让技能层转 session-lost,不静默烧失败预算。
+                lease = E.acquire_lease(owner=self.owner, wait_s=15,
+                                        reuse=False)
+                if lease:
+                    self.lease = lease
+                    self.renewed = time.time()
+                    o = E.observe(self.lease)
+                    if o.get("ok"):
+                        continue
+                raise RuntimeError(
+                    "session-invalid-after-reconcile:%s" % kind)
             if kind in SLOT_BUSY and preempt and attempt == 0:
                 st = (self.status().get("data") or {})
                 active = st.get("active_execution") or {}
@@ -190,7 +207,7 @@ class Session:
                 continue
             # 其余一切错误:准确失败,不 cancel 不重试
             return None, {"http": code, "error": kind, "preempted": preempted}
-        return None, {"http": code, "error": kind, "preempted": preempted}
+        return None, {"http": code, "error": last_kind, "preempted": preempted}
 
     def poll(self, ex_id):
         """非阻塞查执行状态。"""

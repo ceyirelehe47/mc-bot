@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""MC-RCF-1-R3 G5 技能驱动器:LLM 决策的机械执行层。
+"""MC-RCF-1-R3D G5 技能驱动器:LLM 决策的机械执行层。
 
-每个子命令执行一组语义操作并把 LLM 决策行(model_channel+note+
-完整回执)追加到 g5r3-<run>.jsonl——与 rcf1_g5.py 的 act 行同格式,
-judge_g5 同入口判定。决策由会话 LLM 下达;本层不含隐藏信息通道。
+R3D/R01:mine_blocks 重写为 rcf1_mine_skill 核心的 LIVE 适配层——
+失败驱动的候选/站位推进、同组合 ≤2 次盲发上限、总预算覆盖嵌套
+子动作、会话失效有界上抛。离线回归见 tools/rcf1_mine_skill_tests.py。
 """
 import argparse
 import json
@@ -63,16 +63,25 @@ def _player_yz(s):
     return int(y), int(z)
 
 
-def _visible_candidates(s, block_id, near):
-    """可见方块候选(感知 only,非机会):near 锚点距离排序。"""
+def _local_blocks(s):
+    """inspect_local(10,"all") 原始方块表;感知错误返回 None。"""
     loc = s.inspect_local(10, "all")
     if not loc.get("ok"):
         return None
     snap = ((loc.get("data") or {}).get("snapshot") or {})
     if isinstance(snap, str):
         snap = json.loads(snap)
+    return snap.get("blocks") or []
+
+
+def _visible_candidates(s, block_id, near, blocks=None):
+    """可见方块候选(感知 only,非机会):near 锚点距离排序。"""
+    if blocks is None:
+        blocks = _local_blocks(s)
+        if blocks is None:
+            return None
     cands = []
-    for b in snap.get("blocks") or []:
+    for b in blocks:
         if not str(b.get("block", "")).endswith(
                 block_id.split(":")[-1]):
             continue
@@ -111,120 +120,148 @@ def _opp_at(s, block_id, xyz, wait_s):
     return None
 
 
-def _goto_face(act_, run_id, s, xyz, py, timeout=90):
-    """南向主站位(目标正南 3 格、Bob 地面高)+ goto(face)。
-    返回 goto 终态回执。R3C/S01 修复:站位 y 用 Bob 实际地面高,
-    不再用目标 y-2(嵌坡不可达→Baritone 搜索失败→原地站立→死亡)。
-    """
-    return act_(run_id, s, "goto", {
-        "x": xyz[0], "y": py, "z": xyz[2] - 3,
-        "face_x": xyz[0], "face_y": xyz[1], "face_z": xyz[2]},
-        "goto-face %s 南向站位" % (xyz,), timeout=timeout)
-
-
-def sweep_look(run_id, s, py):
-    """R3C:4 方位转身扫视——跟踪器只收录准星/视野扫过的方块,
-    不转身的新位置感知为空(实测基点树冠遮挡+未扫视=193 次
-    no-reachable-candidate)。转身是正常感知行为,不是透视。"""
+def sweep_look(run_id, s, py, leg_timeout=40):
+    """R3C:4 方位走查扫视——跟踪器只收录准星/视野扫过的方块。
+    转身是正常感知行为,不是透视;每段面向下一路点。"""
     pxz = None
     obs = ((s.observe().get("data") or {}).get("observation") or {})
     pos = obs.get("position") or {}
     px, pz = int(pos.get("x", 0)), int(pos.get("z", 0))
-    # R3C:静态转身只录取最终朝向的视锥;行走环路才能连续扫过
-    # 视野(实测站定扫视仅 3 块,走查 14 块)。4 段短走,每段面向
-    # 下一路点。
+    leg_timeout = max(10, min(40, int(leg_timeout)))
     for dx, dz in ((0, -1), (1, 0), (0, 1), (-1, 0)):
         act(run_id, s, "goto",
             {"x": px + dx * 5, "y": py, "z": pz + dz * 5},
-            "走查扫视 dx=%d dz=%d" % (dx, dz), timeout=40)
+            "走查扫视 dx=%d dz=%d" % (dx, dz), timeout=leg_timeout)
     act(run_id, s, "goto", {"x": px, "y": py, "z": pz},
-        "回到扫视中心", timeout=40)
+        "回到扫视中心", timeout=leg_timeout)
+
+
+# 站位格可通行集合(几何预检;只做"确定占用则跳过"的负向过滤,
+# 不放宽任何真实准入——漏判的占用仍会经 goto 失败进入组合禁令)
+_PASSABLE = {
+    "air", "cave_air", "void_air", "grass", "short_grass", "tall_grass",
+    "fern", "large_fern", "dead_bush", "dandelion", "poppy",
+    "oxeye_daisy", "cornflower", "azure_bluet", "allium", "white_tulip",
+    "red_tulip", "orange_tulip", "pink_tulip", "blue_orchid",
+    "lily_of_the_valley", "torch", "vine", "glow_lichen", "seagrass",
+    "tall_seagrass", "kelp", "kelp_plant", "sugar_cane",
+}
+
+
+class LiveMineEnv(object):
+    """rcf1_mine_skill 核心的 LIVE 适配(Env 协议)。"""
+
+    def __init__(self, run_id, s, block_id, near):
+        self.run_id = run_id
+        self.s = s
+        self.block_id = block_id
+        self.near = near
+        self._blocks = None
+
+    def now(self):
+        return time.time()
+
+    def sleep(self, sec):
+        time.sleep(sec)
+
+    def diag(self, what, **data):
+        G._append(self.run_id, "skill-diag", dict(what=what, **data))
+
+    def candidates(self):
+        blocks = _local_blocks(self.s)
+        if blocks is None:
+            self._blocks = None
+            return None
+        self._blocks = blocks
+        return _visible_candidates(self.s, self.block_id, self.near,
+                                   blocks=blocks)
+
+    def fingerprint(self):
+        """局部几何指纹:全部已感知方块 (xyz,block) 摘要。
+        遮挡/支撑等几何变化 ⇒ 指纹变化 ⇒ 解除组合禁令。"""
+        if not self._blocks:
+            return None
+        import hashlib
+        sig = sorted(
+            "%d,%d,%d=%s" % (
+                int((b.get("position") or {}).get("x", 0)),
+                int((b.get("position") or {}).get("y", 0)),
+                int((b.get("position") or {}).get("z", 0)),
+                b.get("block"))
+            for b in self._blocks)
+        return hashlib.sha256("|".join(sig).encode()).hexdigest()[:16]
+
+    def ground_py(self):
+        py, _pz = _player_yz(self.s)
+        return py
+
+    def _cell_block(self, x, y, z):
+        for b in self._blocks or []:
+            p = b.get("position") or {}
+            if (int(p.get("x", 0)), int(p.get("y", 0)),
+                    int(p.get("z", 0))) == (x, y, z):
+                return str(b.get("block") or "")
+        return None
+
+    def _stance_occupied(self, xyz, stance):
+        _n, (dx, dz) = stance
+        py = self.ground_py()
+        for y in (py, py + 1):
+            blk = self._cell_block(xyz[0] + dx, y, xyz[2] + dz)
+            if blk and blk.split(":")[-1] not in _PASSABLE:
+                return blk
+        return None
+
+    def nav(self, xyz, stance, timeout_s):
+        name, (dx, dz) = stance
+        occ = self._stance_occupied(xyz, stance)
+        if occ:
+            return {"state": "failed",
+                    "reason": "stance-cell-occupied:%s" % occ}
+        py = self.ground_py()
+        return act(self.run_id, self.s, "goto", {
+            "x": xyz[0] + dx, "y": py, "z": xyz[2] + dz,
+            "face_x": xyz[0], "face_y": xyz[1], "face_z": xyz[2]},
+            "goto-face %s 站位%s" % (xyz, name), timeout=timeout_s)
+
+    def opp_wait(self, xyz, wait_s):
+        return _opp_at(self.s, self.block_id, xyz, wait_s)
+
+    def mine(self, opp, timeout_s):
+        return act(self.run_id, self.s, "mine_opportunity",
+                   {"id": opp.get("object_id")},
+                   "挖%s@合法机会" % self.block_id, timeout=timeout_s)
+
+    def mined_count(self, receipt, xyz):
+        return 1 if str(receipt.get("state") or "").lower() \
+            == "completed" else 0
+
+    def sweep(self, cap_s):
+        py = self.ground_py()
+        sweep_look(self.run_id, self.s, py,
+                   leg_timeout=max(10, int(cap_s // 5)))
 
 
 def mine_blocks(run_id, s, block_id, near, need, note, budget_s=420):
-    """goto(face)→机会→mine 循环。R3C:同 rcf1_g4 语义——
-    距离排序候选、触达过滤(目标 y ≤ py+4)、南向主站位(Bob 地面高)、
-    机会不出生时 4 方位轮试、goto 失败换下一候选。"""
-    got = 0
-    t0 = time.time()
-    errors = 0
-    empty_rounds = 0
-    while got < need and time.time() - t0 < budget_s:
-        try:
-            cands = _visible_candidates(s, block_id, near)
-            py, _pz = _player_yz(s)
-        except Exception as exc:  # noqa: BLE001
-            errors += 1
-            G._append(run_id, "skill-diag", {
-                "what": "mine_blocks-percept-error",
-                "error": str(exc)[:120]})
-            if errors >= 10:
-                return got
-            time.sleep(2)
-            continue
-        errors = 0
-        if cands is None:
-            time.sleep(2)
-            continue
-        # 触达过滤:站位眼高 py+1.6,4.5 格准星竖直分量 ≤~3.7
-        # ⇒ 目标格 y ≤ py+4(R3 实测 112 顶格 facing_timeout 根因)
-        cands = [c for c in cands if c[1] <= py + 4]
-        if not cands:
-            G._append(run_id, "skill-diag", {
-                "what": "no-reachable-candidate", "py": py})
-            empty_rounds += 1
-            if empty_rounds % 3 == 1:
-                # 连续空轮:转身扫视再读(正常感知,非透视)
-                sweep_look(run_id, s, py)
-            time.sleep(2)
-            continue
-        empty_rounds = 0
-        xyz = cands[0]
-        r = _goto_face(act, run_id, s, xyz, py)
-        if r.get("state") != "completed":
-            # R3C:facing 超时若因更低格遮挡,换下一候选(不重试同格)
-            G._append(run_id, "skill-diag", {
-                "what": "goto-face-failed", "at": list(xyz),
-                "reason": str(r.get("reason"))[:200]})
-            time.sleep(1)
-            continue
-        opp = _opp_at(s, block_id, xyz, 12)
-        if opp is None:
-            # 4 方位邻位轮试(机会不出生=当前站位准星够不到)
-            for dx, dz in ((0, -2), (0, -4), (0, 2), (-2, 0), (2, 0)):
-                try:
-                    py2, _ = _player_yz(s)
-                except RuntimeError:
-                    break
-                r2 = act(run_id, s, "goto", {
-                    "x": xyz[0] + dx, "y": py2, "z": xyz[2] + dz,
-                    "face_x": xyz[0], "face_y": xyz[1],
-                    "face_z": xyz[2]},
-                    "stance-rotate %s" % (xyz,), timeout=60)
-                if r2.get("state") != "completed":
-                    continue
-                opp = _opp_at(s, block_id, xyz, 6)
-                if opp:
-                    G._append(run_id, "skill-diag", {
-                        "what": "stance-rotation-born", "at": list(xyz)})
-                    break
-        if opp is None:
-            G._append(run_id, "skill-diag", {
-                "what": "opportunity-not-born", "at": list(xyz)})
-            continue
-        r = act(run_id, s, "mine_opportunity",
-                {"id": opp.get("object_id")},
-                "挖%s@%s(合法机会)" % (block_id, xyz), timeout=150)
-        if r.get("state") == "completed":
-            got += 1
-    return got
+    """R3D/R01:采集技能 = rcf1_mine_skill 核心 + LIVE 适配。
+    返回结果 dict(state/got/attempts/phase_s/combo_fails/...);
+    state ∈ completed | blocked | budget | session-lost。"""
+    import rcf1_mine_skill as MS
+    env = LiveMineEnv(run_id, s, block_id, near)
+    res = MS.run(env, need, budget_s)
+    G._append(run_id, "skill-result", {
+        "skill": "mine_blocks", "block": block_id, "need": need,
+        "note": note, "budget_s": budget_s, "result": res})
+    return res
 
 
 def cmd_mine_wood(a):
     s = play.Session("g5r3-%s" % a.run_id)
-    got = mine_blocks(a.run_id, s, a.block, tuple(a.near), a.need,
-                      a.note)
-    print(json.dumps({"mined": got}))
+    res = mine_blocks(a.run_id, s, a.block, tuple(a.near), a.need,
+                      a.note, budget_s=a.budget)
+    print(json.dumps({"mined": res.get("got"), "state": res.get("state"),
+                      "reason": str(res.get("reason", ""))[:200]}))
+    return 0 if res.get("state") == "completed" else 1
 
 
 def cmd_craft(a):
@@ -253,7 +290,7 @@ def main():
     ap.add_argument("--near", nargs=3, type=int,
                     default=[0, 96, -70])
     ap.add_argument("--need", type=int, default=1)
-    ap.add_argument("--item", default="")
+    ap.add_argument("--budget", type=int, default=420)
     ap.add_argument("--count", type=int, default=1)
     ap.add_argument("--args", default="{}")
     ap.add_argument("--timeout", type=int, default=180)
