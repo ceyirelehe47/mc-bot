@@ -24,12 +24,11 @@ REPO = os.path.dirname(HERE)
 # 默认仍是既有受管环境)。世界/配置来源在 BASELINE.md 声明。
 ROOT = os.environ.get(
     "RCF1_ROOT", r"D:\code\mc-experiment")
-SERVER = os.path.join(ROOT, "rcf1-server-r3c"
-                      if os.environ.get("RCF1_ROOT")
-                      else "rcf1-server")
-CLIENT = os.path.join(ROOT, "rcf1-client-r3c"
-                      if os.environ.get("RCF1_ROOT")
-                      else "rcf1-client")
+# R3D:RCF1_SUFFIX 显式覆盖;默认逻辑不变。
+_SUFFIX = os.environ.get("RCF1_SUFFIX") or (
+    "r3c" if os.environ.get("RCF1_ROOT") else "")
+SERVER = os.path.join(ROOT, "rcf1-server" + _SUFFIX)
+CLIENT = os.path.join(ROOT, "rcf1-client" + _SUFFIX)
 RUNLOG = pathlib.Path(os.environ.get(
     "RCF1_RAW", r"D:\mc-rcf1-raw"))  # 仓库外原始日志,脱敏后才进交付
 JAVA = r"D:\mc-server\jdk-21.0.12.1+1\bin\java.exe"
