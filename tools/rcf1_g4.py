@@ -492,6 +492,10 @@ def run_core(run_id, fixture, diagnostic=False):
         chain.stop("run-time-limit")
         return chain
     if stone < fixture["stone_need"]:
+        # R3D 诚实性:石料不足必须 fail_at(与 logs 同语义;旧路径
+        # 静默返回 fail_at=None 被 runner 误计 5/5,judge 7<8 拦下)
+        chain.stop("stone-insufficient:%d/%d"
+                   % (stone, fixture["stone_need"]))
         return chain
     px, py, pz = fixture["table_stand"]
     # R3:回台重试=3 次,先小步挪动(卡位根因:采石坑边缘 pathing
@@ -539,10 +543,17 @@ FIXTURES = {
         + ["setblock %d 114 %d minecraft:oak_leaves" % (8 + dx, 8 + dz)
            for dx in (-1, 0, 1) for dz in (-1, 0, 1)]
         + ["setblock 8 114 8 minecraft:oak_log"]
-        # 石面:受控露头——清出空气后放置自然石(armed 前声明)
+        # 石面:受控露头——清出空气后放置自然石(armed 前声明)。
+        # R3D:站位环同步清空+铺工作地板(全新世界周边野地使南向
+        # 站位不可达,b01/b02 实测 25 组合失败耗尽预算)。
         + ["setblock %d %d %d minecraft:air" % (x, y, z)
            for x in (10, 11, 12) for y in (107, 108, 109)
            for z in (2, 3)]
+        + ["setblock %d %d %d minecraft:air" % (x, y, z)
+           for x in range(9, 15) for y in (107, 108, 109, 110)
+           for z in range(-3, 6)]
+        + ["setblock %d 106 %d minecraft:dirt" % (x, z)
+           for x in range(9, 15) for z in range(-3, 6)]
         + ["setblock %d 106 %d minecraft:dirt" % (x, z)
            for x in (10, 11, 12) for z in (2, 3)]
         + ["setblock %d 107 %d minecraft:stone" % (x, z)
