@@ -606,8 +606,11 @@ def i08_tom_deposit_regression():
              "setblock 306 120 296 minecraft:air",
              "setblock 307 120 296 minecraft:air",
              "setblock %d %d %d minecraft:chest" % (tx + 3, ty, tz),
+             # R3D/I08:2.1.2 inventory_connector 无 facing 属性——
+             # [facing=east] 会让 setblock 静默失败(连接器从未放置,
+             # R3C 五拓扑全灭的真正根因之一);合法状态裸放。
              "setblock %d %d %d toms_storage:inventory_connector"
-             "[facing=east]" % (tx + 2, ty, tz),
+             % (tx + 2, ty, tz),
              "setblock %d %d %d toms_storage:inventory_cable"
              % (tx + 1, ty, tz),
              "setblock %d %d %d toms_storage:storage_terminal"
@@ -630,6 +633,15 @@ def i08_tom_deposit_regression():
         run("I08", False, {"face": fg.get("reason"),
                            "note": "面向终端失败"})
         return
+    # R3D/I08:先采服务端网络诊断(终端聚合总量+连接器链路),
+    # 作为"零转移"归因的原始事实(toms_diag 只读 op)。
+    diag = {}
+    dg = s.do("toms_diag", {"x": tx, "y": ty, "z": tz},
+              timeout_s=60).get("terminal", {})
+    try:
+        diag = json.loads(dg.get("reason") or "{}")
+    except ValueError:
+        diag = {"parse_error": str(dg.get("reason"))[:120]}
     r = s.do("deposit", {}, timeout_s=90).get("terminal", {})
     left = inv_counts().get("minecraft:dirt", 0)
     chest = rcon("data get block %d %d %d Items"
@@ -650,7 +662,10 @@ def i08_tom_deposit_regression():
          "wdr": w.get("state"), "wdr_reason": str(w.get("reason"))[:90],
          "after_withdraw": after_w,
          "terminal": [tx, ty, tz],
-         "note": "真实终端网络:存16入网络(箱子端核验)+取4回包"})
+         "network_diag": diag,
+         "note": "真实终端网络:存16入网络(箱子端核验)+取4回包;"
+                 "R3D:连接器合法放置+诊断事实随证(上游#381:1.21 "
+                 "重写缺 cable connector,终端聚合恒0)"})
 
 
 # ---------- A 组 ----------
