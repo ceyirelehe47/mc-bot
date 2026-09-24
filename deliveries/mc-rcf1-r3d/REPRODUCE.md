@@ -25,7 +25,7 @@
 | 组 | 结果 | 证据 |
 |---|---|---|
 | D01–D06(+b) | 8/8 | evidence/d-slices/g5r3-r3d-d0*.jsonl |
-| 非计分链/封口 | ✓ | evidence/diag/g4-diag-r3.json, place-slice-r3.jsonl |
+| 非计分链/封口 | ✓ | evidence/diag/g4-diag-r3d.json(本部署重跑 235s), place-slice-r3d.jsonl;首跑 g4-diag-r3.json(67.6s,旧部署)存 git 历史 bf67764 |
 | G4 B01–B05 | 5/5 accept | evidence/g4-runs-r3.json |
 | IA I01–I08/A/V | 28/29(I08 阻断) | evidence/ia-facts-r3d.json |
 | C01–C07(+C08 NOT_RUN 带理由) | 7/7 | evidence/tests-c.jsonl + c-group/ |
