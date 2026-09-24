@@ -1,0 +1,10 @@
+{"t": 1790287800.473, "kind": "setup-done", "cells": ["setblock 5 106 4 minecraft:air", "setblock 5 107 4 minecraft:air", "setblock 5 105 4 minecraft:dirt"]}
+{"t": 1790287830.893, "kind": "session-open"}
+{"t": 1790287831.726, "kind": "act", "op": "goto", "note": "走到走廊口", "args": {"x": 5, "y": 106, "z": 5}, "state": "completed", "reason": "server_authoritative_arrival_within_2_5_blocks"}
+{"t": 1790287832.546, "kind": "act", "op": "place", "note": "封上格(先上后下)", "args": {"x": 5, "y": 107, "z": 4, "item": "minecraft:oak_planks"}, "state": "completed", "reason": "server_authoritative_block_placed:minecraft:oak_planks:8->7:at=5, 107, 4:consumed=true:interaction_witnessed=true"}
+{"t": 1790287832.547, "kind": "verify-top", "receipt": true, "block": true}
+{"t": 1790287833.409, "kind": "act", "op": "goto", "note": "退回洞内", "args": {"x": 5, "y": 106, "z": 6}, "state": "completed", "reason": "server_authoritative_arrival_within_2_5_blocks"}
+{"t": 1790287834.243, "kind": "act", "op": "place", "note": "封下格(从洞内)", "args": {"x": 5, "y": 106, "z": 4, "item": "minecraft:oak_planks"}, "state": "completed", "reason": "server_authoritative_block_placed:minecraft:oak_planks:7->6:at=5, 106, 4:consumed=true:interaction_witnessed=true"}
+{"t": 1790287834.26, "kind": "verify-bottom", "receipt": true, "block": true}
+{"t": 1790287834.261, "kind": "final", "pos": {"x": 5.5, "z": 6.5, "y": 106.0}, "inv": {"minecraft:oak_planks": 6}, "health": 20.0}
+{"t": 1790287834.262, "kind": "RESULT", "top_ok": true, "bottom_ok": true, "consecutive": true}

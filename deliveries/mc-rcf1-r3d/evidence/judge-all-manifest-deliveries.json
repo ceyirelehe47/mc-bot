@@ -1,0 +1,14 @@
+{
+ "ia_facts": "D:\\code\\mc-bot\\deliveries\\mc-rcf1-r3d\\evidence\\ia-facts-r3d.json",
+ "g4_runs": "D:\\code\\mc-bot\\deliveries\\mc-rcf1-r3d\\evidence\\g4-runs-r3.json",
+ "g5_s01": "D:/mc-rcf1-raw-r3d/g5r3-r3d-s01.jsonl",
+ "g5_s02": "D:/mc-rcf1-raw-r3d/g5r3-r3d-s01b.jsonl",
+ "tests_c": "D:\\code\\mc-bot\\deliveries\\mc-rcf1-r3d\\evidence\\tests-c.jsonl",
+ "tests_n": "D:\\code\\mc-bot\\deliveries\\mc-rcf1-r3d\\evidence\\tests-n.jsonl",
+ "tests_v": "D:\\code\\mc-bot\\deliveries\\mc-rcf1-r3d\\evidence\\tests-v.jsonl",
+ "lifecycle": "D:\\code\\mc-bot\\deliveries\\mc-rcf1-r3d\\evidence\\lifecycle.jsonl",
+ "i08": "D:\\code\\mc-bot\\deliveries\\mc-rcf1-r3d\\evidence\\i08-blocked.json",
+ "build": "D:\\code\\mc-bot\\deliveries\\mc-rcf1-r3d\\evidence\\build-report.json",
+ "fresh_deployment": "D:\\code\\mc-bot\\deliveries\\mc-rcf1-r3d\\evidence\\fresh-deployment.json",
+ "mutations": "D:\\code\\mc-bot\\deliveries\\mc-rcf1-r3d\\evidence\\mutations-summary.json"
+}

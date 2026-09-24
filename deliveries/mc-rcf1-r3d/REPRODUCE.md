@@ -36,7 +36,7 @@
 | 变异 | g4 组全拒+正例受;ia 组 16 INCONCLUSIVE | evidence/mutations/ |
 | I08 | BLOCKED(上游 #381;8 拓扑+toms_diag 反射) | evidence/i08-blocked.json |
 | G5 S01(×2)/S02 | 失败/失败/未跑 | evidence/g5/*.jsonl |
-| judge-all | 7 绿 + 4 项如实不过 | evidence/judge-all-manifest.json |
+| judge-all | 12 门:7 绿 + 5 项如实不过(ia/g5_s01/g5_s02/i08/mutations) | evidence/judge-all-manifest.json |
 
 ## REPRODUCE(相对仓库根;RCF1_ROOT 等按本机部署路径)
 
@@ -54,7 +54,8 @@ python tools\rcf1_lifecycle.py start client
 python tools\rcf1_mine_skill_tests.py     :: 12/12
 python tools\rcf1_checker_selftest.py     :: 50/50
 
-:: LIVE 矩阵(全部在 r3d 干净部署执行)
+:: LIVE 矩阵(全部在 r3d 干净部署执行;D 切片/非计分链为 verifier
+:: 复核后在同部署重跑的记录)
 python tools\rcf1_d_diag.py all           :: D01-D06
 python tools\rcf1_g4.py                   :: 5/5
 python tools\rcf1_tests_ia.py             :: 28/29(I08 BLOCKED)

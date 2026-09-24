@@ -1,0 +1,1671 @@
+{
+ "schema": "mc.rcf1r3.g4run.v1",
+ "run_id": "diag",
+ "identity": {
+  "collected_for": "g4-diag",
+  "bridge_status_start": {
+   "data": {
+    "protocol_version": 1,
+    "runtime_epoch": "d0040306-df5a-4841-b669-4c4dc87c1693",
+    "event_epoch": "4a9fa8cd-0976-4a33-bffb-06949030e03f",
+    "server_mod_jar_sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+    "event_sequence": 4449,
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "body_ready": true,
+    "needs_reconcile": false,
+    "control_active": true,
+    "fault": "",
+    "stopped": false,
+    "active_execution": null,
+    "operations": [
+     "container_transfer",
+     "craft",
+     "deposit",
+     "eat",
+     "goto",
+     "mine_opportunity",
+     "move_items",
+     "place",
+     "say",
+     "toms_diag"
+    ]
+   },
+   "ok": true,
+   "t_wall": 1790287564.865
+  },
+  "first_observe": {
+   "runtime_epoch": "d0040306-df5a-4841-b669-4c4dc87c1693",
+   "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+   "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+   "snapshot_age_ms": 35,
+   "game_session": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+   "control_session_epoch": "ffce93ee-b7b6-4013-9ea9-8779ef04dc75",
+   "client_mod_jar_sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+   "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+   "name": "Bob",
+   "dimension": "minecraft:overworld",
+   "position": {
+    "x": 8.5,
+    "z": 4.5,
+    "y": 107.0
+   },
+   "health": 20.0,
+   "food": 20,
+   "world_time": 334948,
+   "inventory": {},
+   "screen": {
+    "cursor_count": 0,
+    "cursor_item": "minecraft:air",
+    "present": false
+   },
+   "t_wall": 1790287564.878
+  },
+  "candidate_commit": "bf67764dd9923295bf74b0673760da639b68d503",
+  "run_started_wall": 1790287564.8631606,
+  "run_limit_s": 720,
+  "receipt_count": 33
+ },
+ "events": [
+  {
+   "t": 0.015,
+   "kind": "session-open"
+  },
+  {
+   "t": 0.018,
+   "kind": "initial-inventory",
+   "inv": {}
+  },
+  {
+   "t": 0.018,
+   "kind": "armed-timer-start",
+   "limit_s": 720
+  },
+  {
+   "t": 0.971,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 5.987,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:0->1"
+  },
+  {
+   "t": 5.987,
+   "kind": "mined",
+   "label": "logs",
+   "at": [
+    8,
+    109,
+    8
+   ]
+  },
+  {
+   "t": 5.987,
+   "kind": "skill-mined",
+   "label": "logs",
+   "at": [
+    8,
+    109,
+    8
+   ],
+   "stance": "primary",
+   "n": 1
+  },
+  {
+   "t": 7.791,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 12.03,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:1->2"
+  },
+  {
+   "t": 12.03,
+   "kind": "mined",
+   "label": "logs",
+   "at": [
+    8,
+    108,
+    8
+   ]
+  },
+  {
+   "t": 12.03,
+   "kind": "skill-mined",
+   "label": "logs",
+   "at": [
+    8,
+    108,
+    8
+   ],
+   "stance": "primary",
+   "n": 2
+  },
+  {
+   "t": 12.993,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 17.149,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:2->3"
+  },
+  {
+   "t": 17.149,
+   "kind": "mined",
+   "label": "logs",
+   "at": [
+    8,
+    110,
+    8
+   ]
+  },
+  {
+   "t": 17.149,
+   "kind": "skill-mined",
+   "label": "logs",
+   "at": [
+    8,
+    110,
+    8
+   ],
+   "stance": "primary",
+   "n": 3
+  },
+  {
+   "t": 18.138,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 22.355,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:3->4"
+  },
+  {
+   "t": 22.355,
+   "kind": "mined",
+   "label": "logs",
+   "at": [
+    8,
+    107,
+    8
+   ]
+  },
+  {
+   "t": 22.355,
+   "kind": "skill-mined",
+   "label": "logs",
+   "at": [
+    8,
+    107,
+    8
+   ],
+   "stance": "primary",
+   "n": 4
+  },
+  {
+   "t": 43.0,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "failed",
+   "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+  },
+  {
+   "t": 43.0,
+   "kind": "skill-combo-failed",
+   "label": "logs",
+   "combo": "8,107,8|primary",
+   "cls": "nav",
+   "n": 1,
+   "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+  },
+  {
+   "t": 63.67,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "failed",
+   "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+  },
+  {
+   "t": 63.67,
+   "kind": "skill-combo-failed",
+   "label": "logs",
+   "combo": "8,107,8|s2",
+   "cls": "nav",
+   "n": 1,
+   "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+  },
+  {
+   "t": 85.117,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "failed",
+   "reason": "client_final_facing_timeout:cross=block=8, 107, 9 pathing=false"
+  },
+  {
+   "t": 85.118,
+   "kind": "skill-combo-failed",
+   "label": "logs",
+   "combo": "8,107,8|s4",
+   "cls": "nav",
+   "n": 1,
+   "reason": "client_final_facing_timeout:cross=block=8, 107, 9 pathing=false"
+  },
+  {
+   "t": 106.474,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "failed",
+   "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+  },
+  {
+   "t": 106.474,
+   "kind": "skill-combo-failed",
+   "label": "logs",
+   "combo": "8,107,8|n2",
+   "cls": "nav",
+   "n": 1,
+   "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+  },
+  {
+   "t": 126.996,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "failed",
+   "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+  },
+  {
+   "t": 126.996,
+   "kind": "skill-combo-failed",
+   "label": "logs",
+   "combo": "8,107,8|w2",
+   "cls": "nav",
+   "n": 1,
+   "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+  },
+  {
+   "t": 147.583,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "failed",
+   "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+  },
+  {
+   "t": 147.583,
+   "kind": "skill-combo-failed",
+   "label": "logs",
+   "combo": "8,107,8|e2",
+   "cls": "nav",
+   "n": 1,
+   "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+  },
+  {
+   "t": 149.265,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 153.465,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:4->5"
+  },
+  {
+   "t": 153.465,
+   "kind": "mined",
+   "label": "logs",
+   "at": [
+    8,
+    111,
+    8
+   ]
+  },
+  {
+   "t": 153.465,
+   "kind": "skill-mined",
+   "label": "logs",
+   "at": [
+    8,
+    111,
+    8
+   ],
+   "stance": "primary",
+   "n": 5
+  },
+  {
+   "t": 153.466,
+   "kind": "skill-result",
+   "label": "logs",
+   "result": {
+    "state": "completed",
+    "reason": "",
+    "got": 5,
+    "attempts": 11,
+    "phase_s": {
+     "observe": 0.298,
+     "nav": 131.147,
+     "opp": 0.2,
+     "mine": 21.628,
+     "wait": 0.0
+    },
+    "banned_combos": 0,
+    "bans_lifted": 0,
+    "sweeps": 0,
+    "combo_fails": {
+     "8,107,8|primary": {
+      "n": 1,
+      "classes": [
+       "nav"
+      ],
+      "last_reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+     },
+     "8,107,8|s2": {
+      "n": 1,
+      "classes": [
+       "nav"
+      ],
+      "last_reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+     },
+     "8,107,8|s4": {
+      "n": 1,
+      "classes": [
+       "nav"
+      ],
+      "last_reason": "client_final_facing_timeout:cross=block=8, 107, 9 pathing=false"
+     },
+     "8,107,8|n2": {
+      "n": 1,
+      "classes": [
+       "nav"
+      ],
+      "last_reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+     },
+     "8,107,8|w2": {
+      "n": 1,
+      "classes": [
+       "nav"
+      ],
+      "last_reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+     },
+     "8,107,8|e2": {
+      "n": 1,
+      "classes": [
+       "nav"
+      ],
+      "last_reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false"
+     }
+    }
+   }
+  },
+  {
+   "t": 153.466,
+   "kind": "logs-collected",
+   "n": 5
+  },
+  {
+   "t": 161.723,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->20:delta=20:batches=5:output_per_batch=4:materials=minecraft:oak_log:5->0,"
+  },
+  {
+   "t": 165.852,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:stick:0->8:delta=8:batches=2:output_per_batch=4:materials=minecraft:oak_planks:20->16,"
+  },
+  {
+   "t": 168.371,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:crafting_table:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:oak_planks:16->12,"
+  },
+  {
+   "t": 169.22,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_within_2_5_blocks"
+  },
+  {
+   "t": 170.092,
+   "kind": "receipt",
+   "op": "place",
+   "state": "completed",
+   "reason": "server_authoritative_block_placed:minecraft:crafting_table:1->0:at=8, 107, 2:consumed=true:interaction_witnessed=true"
+  },
+  {
+   "t": 174.261,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:stick:8->6,minecraft:oak_planks:12->9,"
+  },
+  {
+   "t": 195.721,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "failed",
+   "reason": "client_final_facing_timeout:cross=block=10, 107, 2 pathing=false"
+  },
+  {
+   "t": 195.721,
+   "kind": "skill-combo-failed",
+   "label": "stone",
+   "combo": "11,107,2|primary",
+   "cls": "nav",
+   "n": 1,
+   "reason": "client_final_facing_timeout:cross=block=10, 107, 2 pathing=false"
+  },
+  {
+   "t": 216.351,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "failed",
+   "reason": "client_final_facing_timeout:cross=block=10, 107, 2 pathing=false"
+  },
+  {
+   "t": 216.351,
+   "kind": "skill-combo-failed",
+   "label": "stone",
+   "combo": "11,107,2|s2",
+   "cls": "nav",
+   "n": 1,
+   "reason": "client_final_facing_timeout:cross=block=10, 107, 2 pathing=false"
+  },
+  {
+   "t": 217.257,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 219.744,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:0->1"
+  },
+  {
+   "t": 219.744,
+   "kind": "mined",
+   "label": "stone",
+   "at": [
+    11,
+    107,
+    2
+   ]
+  },
+  {
+   "t": 219.744,
+   "kind": "skill-mined",
+   "label": "stone",
+   "at": [
+    11,
+    107,
+    2
+   ],
+   "stance": "s4",
+   "n": 1
+  },
+  {
+   "t": 220.689,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 223.179,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:1->2"
+  },
+  {
+   "t": 223.179,
+   "kind": "mined",
+   "label": "stone",
+   "at": [
+    11,
+    107,
+    2
+   ]
+  },
+  {
+   "t": 223.179,
+   "kind": "skill-mined",
+   "label": "stone",
+   "at": [
+    11,
+    107,
+    2
+   ],
+   "stance": "primary",
+   "n": 2
+  },
+  {
+   "t": 224.14,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_and_facing_verified"
+  },
+  {
+   "t": 226.688,
+   "kind": "receipt",
+   "op": "mine_opportunity",
+   "state": "completed",
+   "reason": "server_authoritative_block_and_inventory_gain_verified:2->3"
+  },
+  {
+   "t": 226.688,
+   "kind": "mined",
+   "label": "stone",
+   "at": [
+    11,
+    107,
+    3
+   ]
+  },
+  {
+   "t": 226.688,
+   "kind": "skill-mined",
+   "label": "stone",
+   "at": [
+    11,
+    107,
+    3
+   ],
+   "stance": "primary",
+   "n": 3
+  },
+  {
+   "t": 226.688,
+   "kind": "skill-result",
+   "label": "stone",
+   "result": {
+    "state": "completed",
+    "reason": "",
+    "got": 3,
+    "attempts": 5,
+    "phase_s": {
+     "observe": 0.128,
+     "nav": 44.67,
+     "opp": 0.077,
+     "mine": 7.447,
+     "wait": 0.0
+    },
+    "banned_combos": 0,
+    "bans_lifted": 0,
+    "sweeps": 0,
+    "combo_fails": {
+     "11,107,2|primary": {
+      "n": 1,
+      "classes": [
+       "nav"
+      ],
+      "last_reason": "client_final_facing_timeout:cross=block=10, 107, 2 pathing=false"
+     },
+     "11,107,2|s2": {
+      "n": 1,
+      "classes": [
+       "nav"
+      ],
+      "last_reason": "client_final_facing_timeout:cross=block=10, 107, 2 pathing=false"
+     }
+    }
+   }
+  },
+  {
+   "t": 227.543,
+   "kind": "receipt",
+   "op": "goto",
+   "state": "completed",
+   "reason": "server_authoritative_arrival_within_2_5_blocks"
+  },
+  {
+   "t": 230.882,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:stone_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:cobblestone:3->0,minecraft:stick:6->4,"
+  },
+  {
+   "t": 235.031,
+   "kind": "receipt",
+   "op": "craft",
+   "state": "completed",
+   "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:1->2:delta=1:batches=1:output_per_batch=1:materials=minecraft:stick:4->2,minecraft:oak_planks:9->6,"
+  },
+  {
+   "t": 235.031,
+   "kind": "final-begin"
+  }
+ ],
+ "receipts": [
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 109,
+    "face_z": 8
+   },
+   "execution_id": "ca1ef76b-302e-4758-a93c-67ae02f70671",
+   "terminal": {
+    "execution_id": "ca1ef76b-302e-4758-a93c-67ae02f70671",
+    "request_id": "rcf1-g4-diag-87564985",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287565.834,
+   "t_rel": 0.971
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_3eb29c9b5436_482f258dcaa34b79"
+   },
+   "execution_id": "f53a2c06-72db-4153-aebe-0a061a0a40cd",
+   "terminal": {
+    "execution_id": "f53a2c06-72db-4153-aebe-0a061a0a40cd",
+    "request_id": "rcf1-g4-diag-87565884",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:0->1",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287570.85,
+   "t_rel": 5.987
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 109,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 108,
+    "face_z": 8
+   },
+   "execution_id": "b8e42dd3-eb60-41c5-8db7-784281a71bc6",
+   "terminal": {
+    "execution_id": "b8e42dd3-eb60-41c5-8db7-784281a71bc6",
+    "request_id": "rcf1-g4-diag-87570938",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287572.654,
+   "t_rel": 7.791
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_ddb37f484553_3dcb550b841d4d82"
+   },
+   "execution_id": "ffb6dc6d-e789-435d-a74e-41d5bd55459b",
+   "terminal": {
+    "execution_id": "ffb6dc6d-e789-435d-a74e-41d5bd55459b",
+    "request_id": "rcf1-g4-diag-87572684",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:1->2",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287576.893,
+   "t_rel": 12.03
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 108,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 110,
+    "face_z": 8
+   },
+   "execution_id": "390f6c55-7665-4bc5-b3ad-2e8ff6176971",
+   "terminal": {
+    "execution_id": "390f6c55-7665-4bc5-b3ad-2e8ff6176971",
+    "request_id": "rcf1-g4-diag-87577002",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287577.856,
+   "t_rel": 12.993
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_c1a4eab67daf_034feea8046f4572"
+   },
+   "execution_id": "ef6ceb5c-43db-4958-943d-14646c4e3e64",
+   "terminal": {
+    "execution_id": "ef6ceb5c-43db-4958-943d-14646c4e3e64",
+    "request_id": "rcf1-g4-diag-87577884",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:2->3",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287582.013,
+   "t_rel": 17.149
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 108,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 107,
+    "face_z": 8
+   },
+   "execution_id": "fa926191-90c6-4521-be9d-2dcb5c880a2a",
+   "terminal": {
+    "execution_id": "fa926191-90c6-4521-be9d-2dcb5c880a2a",
+    "request_id": "rcf1-g4-diag-87582160",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287583.002,
+   "t_rel": 18.138
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_6a7a6e9f39f0_60018b9bece045bd"
+   },
+   "execution_id": "9b60ea0d-e553-4b2c-9dc4-f13dd87a9166",
+   "terminal": {
+    "execution_id": "9b60ea0d-e553-4b2c-9dc4-f13dd87a9166",
+    "request_id": "rcf1-g4-diag-87583035",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:3->4",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287587.218,
+   "t_rel": 22.355
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 107,
+    "face_z": 8
+   },
+   "execution_id": "2a872cbf-efc6-4f83-a7e4-58c8d93613ba",
+   "terminal": {
+    "execution_id": "2a872cbf-efc6-4f83-a7e4-58c8d93613ba",
+    "request_id": "rcf1-g4-diag-87587289",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "failed",
+    "progress": 0.0,
+    "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287607.863,
+   "t_rel": 43.0
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 6,
+    "face_x": 8,
+    "face_y": 107,
+    "face_z": 8
+   },
+   "execution_id": "e5040010-516e-451d-9cd8-dc69756ab6a4",
+   "terminal": {
+    "execution_id": "e5040010-516e-451d-9cd8-dc69756ab6a4",
+    "request_id": "rcf1-g4-diag-87607897",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "failed",
+    "progress": 0.0,
+    "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287628.533,
+   "t_rel": 63.67
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 4,
+    "face_x": 8,
+    "face_y": 107,
+    "face_z": 8
+   },
+   "execution_id": "262dbf97-a49c-4189-aeb5-cf6b594ddde7",
+   "terminal": {
+    "execution_id": "262dbf97-a49c-4189-aeb5-cf6b594ddde7",
+    "request_id": "rcf1-g4-diag-87628564",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "failed",
+    "progress": 0.9183978051905197,
+    "reason": "client_final_facing_timeout:cross=block=8, 107, 9 pathing=false",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287649.981,
+   "t_rel": 85.117
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 10,
+    "face_x": 8,
+    "face_y": 107,
+    "face_z": 8
+   },
+   "execution_id": "e6561502-163c-4148-99c7-8c03202b02ad",
+   "terminal": {
+    "execution_id": "e6561502-163c-4148-99c7-8c03202b02ad",
+    "request_id": "rcf1-g4-diag-87649997",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "failed",
+    "progress": 0.9182114922131676,
+    "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287671.337,
+   "t_rel": 106.474
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 6,
+    "y": 107,
+    "z": 8,
+    "face_x": 8,
+    "face_y": 107,
+    "face_z": 8
+   },
+   "execution_id": "203b916e-4bcf-4fe8-8cd9-4c64f9a91621",
+   "terminal": {
+    "execution_id": "203b916e-4bcf-4fe8-8cd9-4c64f9a91621",
+    "request_id": "rcf1-g4-diag-87671363",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "failed",
+    "progress": 0.0,
+    "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287691.859,
+   "t_rel": 126.996
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 10,
+    "y": 107,
+    "z": 8,
+    "face_x": 8,
+    "face_y": 107,
+    "face_z": 8
+   },
+   "execution_id": "5b27f3f9-ccf8-42c5-92fc-761bd7aaba74",
+   "terminal": {
+    "execution_id": "5b27f3f9-ccf8-42c5-92fc-761bd7aaba74",
+    "request_id": "rcf1-g4-diag-87691881",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "failed",
+    "progress": 0.0,
+    "reason": "client_final_facing_timeout:cross=block=8, 106, 8 pathing=false",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287712.446,
+   "t_rel": 147.583
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 5,
+    "face_x": 8,
+    "face_y": 111,
+    "face_z": 8
+   },
+   "execution_id": "ea261741-70a3-49f3-ace4-d5187e919b85",
+   "terminal": {
+    "execution_id": "ea261741-70a3-49f3-ace4-d5187e919b85",
+    "request_id": "rcf1-g4-diag-87712485",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287714.128,
+   "t_rel": 149.265
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_dac96a141bdb_18fdc37d327647de"
+   },
+   "execution_id": "bd45c530-7330-4871-b875-fc29b8227171",
+   "terminal": {
+    "execution_id": "bd45c530-7330-4871-b875-fc29b8227171",
+    "request_id": "rcf1-g4-diag-87714185",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:4->5",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287718.329,
+   "t_rel": 153.465
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:oak_planks",
+    "count": 20
+   },
+   "execution_id": "ff785fa8-6d03-4ca7-84b4-c9d0cf800034",
+   "terminal": {
+    "execution_id": "ff785fa8-6d03-4ca7-84b4-c9d0cf800034",
+    "request_id": "rcf1-g4-diag-87718330",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:oak_planks:0->20:delta=20:batches=5:output_per_batch=4:materials=minecraft:oak_log:5->0,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287726.586,
+   "t_rel": 161.723
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:stick",
+    "count": 8
+   },
+   "execution_id": "4eba8ad3-a643-434b-a2b6-c7c7be382494",
+   "terminal": {
+    "execution_id": "4eba8ad3-a643-434b-a2b6-c7c7be382494",
+    "request_id": "rcf1-g4-diag-87726585",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:stick:0->8:delta=8:batches=2:output_per_batch=4:materials=minecraft:oak_planks:20->16,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287730.716,
+   "t_rel": 165.852
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:crafting_table",
+    "count": 1
+   },
+   "execution_id": "f562d201-9898-4f75-89d4-2fd341f70407",
+   "terminal": {
+    "execution_id": "f562d201-9898-4f75-89d4-2fd341f70407",
+    "request_id": "rcf1-g4-diag-87730735",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:crafting_table:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:oak_planks:16->12,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287733.234,
+   "t_rel": 168.371
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 3
+   },
+   "execution_id": "854fc7b1-81d3-4d4f-a034-959013899014",
+   "terminal": {
+    "execution_id": "854fc7b1-81d3-4d4f-a034-959013899014",
+    "request_id": "rcf1-g4-diag-87733233",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287734.084,
+   "t_rel": 169.22
+  },
+  {
+   "op": "place",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 2,
+    "item": "minecraft:crafting_table"
+   },
+   "execution_id": "1eb3de1c-eaf0-495f-9ec4-39847163538d",
+   "terminal": {
+    "execution_id": "1eb3de1c-eaf0-495f-9ec4-39847163538d",
+    "request_id": "rcf1-g4-diag-87734083",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "place",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_placed:minecraft:crafting_table:1->0:at=8, 107, 2:consumed=true:interaction_witnessed=true",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287734.955,
+   "t_rel": 170.092
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:wooden_pickaxe",
+    "count": 1
+   },
+   "execution_id": "999b80aa-e4d2-4df0-b631-33897f78d703",
+   "terminal": {
+    "execution_id": "999b80aa-e4d2-4df0-b631-33897f78d703",
+    "request_id": "rcf1-g4-diag-87734956",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:stick:8->6,minecraft:oak_planks:12->9,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287739.124,
+   "t_rel": 174.261
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 11,
+    "y": 107,
+    "z": -1,
+    "face_x": 11,
+    "face_y": 107,
+    "face_z": 2
+   },
+   "execution_id": "e079e883-e811-414c-b113-dc3fdff5d927",
+   "terminal": {
+    "execution_id": "e079e883-e811-414c-b113-dc3fdff5d927",
+    "request_id": "rcf1-g4-diag-87739187",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "failed",
+    "progress": 0.9141044416971826,
+    "reason": "client_final_facing_timeout:cross=block=10, 107, 2 pathing=false",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287760.584,
+   "t_rel": 195.721
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 11,
+    "y": 107,
+    "z": 0,
+    "face_x": 11,
+    "face_y": 107,
+    "face_z": 2
+   },
+   "execution_id": "0f159b2d-2f1e-43d8-b83c-d4ff2024fd14",
+   "terminal": {
+    "execution_id": "0f159b2d-2f1e-43d8-b83c-d4ff2024fd14",
+    "request_id": "rcf1-g4-diag-87760600",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "failed",
+    "progress": 0.0,
+    "reason": "client_final_facing_timeout:cross=block=10, 107, 2 pathing=false",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287781.214,
+   "t_rel": 216.351
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 11,
+    "y": 107,
+    "z": -2,
+    "face_x": 11,
+    "face_y": 107,
+    "face_z": 2
+   },
+   "execution_id": "a0670e24-7ac0-432a-80cc-7c440671af04",
+   "terminal": {
+    "execution_id": "a0670e24-7ac0-432a-80cc-7c440671af04",
+    "request_id": "rcf1-g4-diag-87781249",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287782.12,
+   "t_rel": 217.257
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_ddfcbc3088b4_01907f0f22114862"
+   },
+   "execution_id": "b839bbc7-97c5-4e1f-94d4-4b3d0138f565",
+   "terminal": {
+    "execution_id": "b839bbc7-97c5-4e1f-94d4-4b3d0138f565",
+    "request_id": "rcf1-g4-diag-87782133",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:0->1",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287784.607,
+   "t_rel": 219.744
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 11,
+    "y": 107,
+    "z": -1,
+    "face_x": 11,
+    "face_y": 107,
+    "face_z": 2
+   },
+   "execution_id": "b7803a02-1a43-4df4-8ace-ffa80122db5d",
+   "terminal": {
+    "execution_id": "b7803a02-1a43-4df4-8ace-ffa80122db5d",
+    "request_id": "rcf1-g4-diag-87784704",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287785.552,
+   "t_rel": 220.689
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_b7ab27b628d2_254f52001790499a"
+   },
+   "execution_id": "b5b69221-9c24-4e1c-b19c-8cdb60dbf4b0",
+   "terminal": {
+    "execution_id": "b5b69221-9c24-4e1c-b19c-8cdb60dbf4b0",
+    "request_id": "rcf1-g4-diag-87785585",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:1->2",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287788.042,
+   "t_rel": 223.179
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 11,
+    "y": 107,
+    "z": 0,
+    "face_x": 11,
+    "face_y": 107,
+    "face_z": 3
+   },
+   "execution_id": "bca76d8f-6928-4ebf-a8fd-271d4c7d9ce3",
+   "terminal": {
+    "execution_id": "bca76d8f-6928-4ebf-a8fd-271d4c7d9ce3",
+    "request_id": "rcf1-g4-diag-87788155",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_and_facing_verified",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287789.003,
+   "t_rel": 224.14
+  },
+  {
+   "op": "mine_opportunity",
+   "args": {
+    "id": "rcore_b32f54262227_37a705250a844952"
+   },
+   "execution_id": "b8c5ac15-de5e-4649-b610-ef8e47826278",
+   "terminal": {
+    "execution_id": "b8c5ac15-de5e-4649-b610-ef8e47826278",
+    "request_id": "rcf1-g4-diag-87789034",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "mine_opportunity",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_block_and_inventory_gain_verified:2->3",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287791.551,
+   "t_rel": 226.688
+  },
+  {
+   "op": "goto",
+   "args": {
+    "x": 8,
+    "y": 107,
+    "z": 3
+   },
+   "execution_id": "5d79564f-b22e-4c6e-9c4d-fef0f7dcc7a9",
+   "terminal": {
+    "execution_id": "5d79564f-b22e-4c6e-9c4d-fef0f7dcc7a9",
+    "request_id": "rcf1-g4-diag-87791551",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "goto",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_arrival_within_2_5_blocks",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287792.406,
+   "t_rel": 227.543
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:stone_pickaxe",
+    "count": 1
+   },
+   "execution_id": "bfb3a12c-a44e-4c53-a5fe-f045791d1ddb",
+   "terminal": {
+    "execution_id": "bfb3a12c-a44e-4c53-a5fe-f045791d1ddb",
+    "request_id": "rcf1-g4-diag-87792406",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:stone_pickaxe:0->1:delta=1:batches=1:output_per_batch=1:materials=minecraft:cobblestone:3->0,minecraft:stick:6->4,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287795.745,
+   "t_rel": 230.882
+  },
+  {
+   "op": "craft",
+   "args": {
+    "item": "minecraft:wooden_pickaxe",
+    "count": 1
+   },
+   "execution_id": "90a74f38-4366-4f62-8c35-e85576dafeda",
+   "terminal": {
+    "execution_id": "90a74f38-4366-4f62-8c35-e85576dafeda",
+    "request_id": "rcf1-g4-diag-87795745",
+    "body_id": "bob",
+    "backend_kind": "real_client",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "operation": "craft",
+    "state": "completed",
+    "progress": 1.0,
+    "reason": "server_authoritative_native_craft:minecraft:wooden_pickaxe:1->2:delta=1:batches=1:output_per_batch=1:materials=minecraft:stick:4->2,minecraft:oak_planks:9->6,",
+    "terminal": true,
+    "success_scope": "bounded_body_operation_not_user_goal"
+   },
+   "t_wall": 1790287799.894,
+   "t_rel": 235.031
+  }
+ ],
+ "snapshots": [
+  {
+   "tag": "pre",
+   "facts": {
+    "runtime_epoch": "d0040306-df5a-4841-b669-4c4dc87c1693",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "snapshot_age_ms": 37,
+    "game_session": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "control_session_epoch": "ffce93ee-b7b6-4013-9ea9-8779ef04dc75",
+    "client_mod_jar_sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "x": 8.5,
+     "z": 4.5,
+     "y": 107.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "world_time": 334948,
+    "inventory": {},
+    "screen": {
+     "cursor_count": 0,
+     "cursor_item": "minecraft:air",
+     "present": false
+    },
+    "t_wall": 1790287564.88
+   }
+  },
+  {
+   "tag": "after-logs",
+   "facts": {
+    "runtime_epoch": "d0040306-df5a-4841-b669-4c4dc87c1693",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "snapshot_age_ms": 45,
+    "game_session": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "control_session_epoch": "ffce93ee-b7b6-4013-9ea9-8779ef04dc75",
+    "client_mod_jar_sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "x": 8.49543501068966,
+     "z": 7.649284214693531,
+     "y": 107.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "world_time": 338017,
+    "inventory": {
+     "minecraft:oak_log": 5
+    },
+    "screen": {
+     "cursor_count": 0,
+     "cursor_item": "minecraft:air",
+     "present": false
+    },
+    "t_wall": 1790287718.33
+   }
+  },
+  {
+   "tag": "final",
+   "facts": {
+    "runtime_epoch": "d0040306-df5a-4841-b669-4c4dc87c1693",
+    "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "snapshot_age_ms": 26,
+    "game_session": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+    "control_session_epoch": "ffce93ee-b7b6-4013-9ea9-8779ef04dc75",
+    "client_mod_jar_sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+    "minecraft_profile_uuid": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+    "name": "Bob",
+    "dimension": "minecraft:overworld",
+    "position": {
+     "x": 10.400887913922602,
+     "z": 2.40195194753207,
+     "y": 107.0
+    },
+    "health": 20.0,
+    "food": 20,
+    "world_time": 339649,
+    "inventory": {
+     "minecraft:oak_planks": 6,
+     "minecraft:stick": 2,
+     "minecraft:stone_pickaxe": 1,
+     "minecraft:wooden_pickaxe": 2
+    },
+    "screen": {
+     "cursor_count": 0,
+     "cursor_item": "minecraft:air",
+     "present": false
+    },
+    "t_wall": 1790287799.911
+   }
+  }
+ ],
+ "oracle_blocks": {
+  "table@8,107,2": {
+   "result": "\u0000\u0000\u0000\u0000Test passed",
+   "t_wall": 1790287734.956
+  }
+ },
+ "fail_at": null,
+ "ended_wall": 1790287799.968,
+ "status_end": {
+  "data": {
+   "protocol_version": 1,
+   "runtime_epoch": "d0040306-df5a-4841-b669-4c4dc87c1693",
+   "event_epoch": "4a9fa8cd-0976-4a33-bffb-06949030e03f",
+   "server_mod_jar_sha256": "29d160c37d813b757397c90f41eb21e320c3f33b24aef663fec501a4b30310d9",
+   "event_sequence": 4627,
+   "body_id": "bob",
+   "backend_kind": "real_client",
+   "body_instance_id": "faa5dca3-c3d4-354b-ae1b-dde9e5a14b3b",
+   "body_session_epoch": "c82bf855-63c0-4f95-b6b5-b7422b8a860f",
+   "body_ready": true,
+   "needs_reconcile": false,
+   "control_active": true,
+   "fault": "",
+   "stopped": false,
+   "active_execution": null,
+   "operations": [
+    "container_transfer",
+    "craft",
+    "deposit",
+    "eat",
+    "goto",
+    "mine_opportunity",
+    "move_items",
+    "place",
+    "say",
+    "toms_diag"
+   ]
+  },
+  "ok": true,
+  "t_wall": 1790287799.924
+ }
+}
