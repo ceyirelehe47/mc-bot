@@ -46,6 +46,10 @@ class _RecordingSession(_OrigSession):
     def submit(self, op, args, tag=None, preempt=False):
         # R3C/B2:真正的 pre——准备完成(场景函数已 sleep 同步)后、
         # submit 前采集。旧实现在首个动作终态后才懒采 pre。
+        # R3D:say 是感知/扫描辅助,不作为 case 计分动作记录
+        #(A09 扫描实测混入后 completed-say 无正例规则被 judge 拒)。
+        if op == "say":
+            return super().submit(op, args, tag, preempt)
         pre = None
         if FACTS is not None and _CASE_ID:
             pre = F.observe_facts(self)
