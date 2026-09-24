@@ -64,18 +64,59 @@ class _RecordingSession(_OrigSession):
                 # 回收的最后一拍),准备期与动作效果逐动作分账。
                 time.sleep(F.POST_SETTLE_S)
                 post = F.observe_facts(self)
+                reconciliation = None
+                if str(res.get("state") or "").lower() == \
+                        "outcome_unknown":
+                    # R3D/R02:unknown 不是"两张快照就已解决"——
+                    # 有界采集对账事实:桥 needs_reconcile 解除 +
+                    # 效果归因观察;禁止新副作用。
+                    reconciliation = self._reconcile_unknown(res)
                 try:
                     FACTS.record_action(
                         _CASE_ID, op, args,
                         {"execution_id": ex} if ex
                         else {"error": str(err)[:120]},
-                        res, pre=pre, post=post)
+                        res, pre=pre, post=post,
+                        reconciliation=reconciliation)
                 except ValueError:
                     # 重复计分身份(录制链回归信号)——保留事实并打印,
                     # 不静默吞掉。
                     print(json.dumps({
                         "record-duplicate-identity": ex}), flush=True)
         return res, trail
+
+    def _reconcile_unknown(self, terminal):
+        """outcome_unknown 的有界对账(≤30s):status.needs_reconcile
+        解除 + 终态观察;记录原始事实,不做任何新副作用提交。"""
+        deadline = time.time() + 30
+        status_snap = None
+        while time.time() < deadline:
+            try:
+                st = (self.status().get("data") or {})
+            except Exception:  # noqa: BLE001
+                st = {}
+            status_snap = st
+            if not st.get("needs_reconcile") and st.get("body_ready"):
+                break
+            time.sleep(2)
+        try:
+            obs = F.observe_facts(self)
+        except Exception as exc:  # noqa: BLE001
+            obs = {"error": repr(exc)}
+        resolved = (bool(status_snap)
+                    and not status_snap.get("needs_reconcile")
+                    and (not isinstance(obs, dict)
+                         or not obs.get("error")))
+        return {
+            "resolved": bool(resolved),
+            "needs_reconcile_cleared":
+                bool(status_snap)
+                and not status_snap.get("needs_reconcile"),
+            "active_execution": (status_snap or {}).get(
+                "active_execution"),
+            "terminal_reason": str(terminal.get("reason") or "")[:160],
+            "post_observe_game_session": obs.get("game_session"),
+        }
 
 
 play.Session = _RecordingSession

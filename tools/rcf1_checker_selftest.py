@@ -74,6 +74,8 @@ PLACE_OK = ("server_authoritative_block_placed:minecraft:oak_planks"
             ":interaction_witnessed=true")
 DEP_OK = ("server_authoritative_container_transfer:minecraft:dirt"
           ":deposit:player:4->2:container:0->2")
+WD_OK = ("server_authoritative_container_transfer:minecraft:dirt"
+         ":withdraw:player:2->3:container:5->4")
 GOTO_OK = "server_authoritative_arrival:bounded_goal"
 
 
@@ -100,14 +102,22 @@ def ia_doc():
                                {"minecraft:dirt": 4})],
                   {"minecraft:dirt": 4}, {"minecraft:dirt": 4})
           for cid in ("I02a", "I02b", "I02c", "I02d", "I03")],
-        ia_case("I04", [action("deposit", {}, term_ok(DEP_OK),
+        ia_case("I04", [action("deposit",
+                               {"item": "minecraft:dirt", "count": 2},
+                               term_ok(DEP_OK),
                                {"minecraft:dirt": 4},
                                {"minecraft:dirt": 2})],
                 {"minecraft:dirt": 4}, {"minecraft:dirt": 2}),
-        ia_case("I08", [action("deposit", {}, term_ok(DEP_OK),
-                               {"minecraft:dirt": 4},
-                               {"minecraft:dirt": 2})],
-                {"minecraft:dirt": 4}, {"minecraft:dirt": 2}),
+        ia_case("I08", [
+            action("deposit", {"item": "minecraft:dirt", "count": 2},
+                   term_ok(DEP_OK), {"minecraft:dirt": 4},
+                   {"minecraft:dirt": 2}),
+            action("withdraw",
+                   {"item": "minecraft:dirt", "count": 1,
+                    "direction": "withdraw"},
+                   term_ok(WD_OK), {"minecraft:dirt": 2},
+                   {"minecraft:dirt": 3})],
+                {"minecraft:dirt": 4}, {"minecraft:dirt": 3}),
         ia_case("A01", [action("craft",
                                {"item": "minecraft:oak_planks",
                                 "count": 4}, term_ok(CRAFT_OK),
@@ -580,6 +590,182 @@ def main():
               "data": {"health": 0}})
     ok, reason = C.judge_g5(d, "s01")
     run("ST-G5-DEATH-DURING-NIGHT", not ok, reason)
+
+    # ---------- R3D/F01-F07 补充边界(新合同拒绝面)----------
+    # F01:动作快照缺 inventory 键(≠空库存)
+    d = ia_doc()
+    a0 = d["cases"][0]["actions"][0]
+    a0["pre_action"] = {k: v for k, v in a0["pre_action"].items()
+                        if k != "inventory"}
+    ok, reason = C.judge_ia(d)
+    run("ST-IA-F01-INV-KEY-MISSING", not ok, reason)
+
+    # F02:终态换会话
+    d = ia_doc()
+    for c in d["cases"]:
+        for a in c["actions"]:
+            (a["post_action"] or {}).update({"game_session": "gs-other"})
+    ok, reason = C.judge_ia(d)
+    run("ST-IA-F02-SESSION-CHANGED", not ok, reason)
+
+    # F03:请求取出实际存入
+    d = ia_doc()
+    for c in d["cases"]:
+        for a in c["actions"]:
+            if a["op"] == "deposit" and "count" in (a.get("args") or {}):
+                a["args"] = dict(a["args"], direction="withdraw")
+                break
+    ok, reason = C.judge_ia(d)
+    run("ST-IA-F03-DIR-MISMATCH", not ok, reason)
+
+    # F03:completed 零转移
+    d = ia_doc()
+    zero = ("server_authoritative_container_transfer:minecraft:dirt"
+            ":deposit:player:4->4:container:0->0")
+    for c in d["cases"]:
+        for a in c["actions"]:
+            if a["op"] == "deposit":
+                a["terminal"] = {"state": "completed", "reason": zero}
+                a["post_action"] = dict(a["pre_action"])
+    ok, reason = C.judge_ia(d)
+    run("ST-IA-F03-ZERO-TRANSFER", not ok, reason)
+
+    # F03:请求 200 实际 2
+    d = ia_doc()
+    for c in d["cases"]:
+        for a in c["actions"]:
+            if a["op"] == "deposit" and (a.get("args") or {}).get(
+                    "count") == 2:
+                a["args"] = dict(a["args"], count=200)
+    ok, reason = C.judge_ia(d)
+    run("ST-IA-F03-AMOUNT-BELOW-REQUEST", not ok, reason)
+
+    # F03:hotbar 请求 7 回执 1
+    d = ia_doc()
+    for c in d["cases"]:
+        for a in c["actions"]:
+            if a["op"] == "move_items":
+                a["args"] = dict(a["args"], hotbar=7)
+    ok, reason = C.judge_ia(d)
+    run("ST-IA-F03-HOTBAR-MISMATCH", not ok, reason)
+
+    # F04:outcome_unknown 无对账记录
+    d = ia_doc()
+    unk = action("move_items",
+                 {"item": "minecraft:dirt", "count": 2, "hotbar": 1},
+                 {"state": "outcome_unknown", "reason": "session_flip"},
+                 {"minecraft:dirt": 4}, {"minecraft:dirt": 4})
+    d["cases"].append(ia_case("I05", [unk], {}, {}))
+    ok, reason = C.judge_ia(d)
+    run("ST-IA-F04-UNKNOWN-NO-RECONCILE", not ok, reason)
+
+    # F04:failed craft 受保护物凭空消失
+    d = ia_doc()
+    van = action("craft",
+                 {"item": "minecraft:oak_planks", "count": 4},
+                 term_fail("insufficient_materials"),
+                 {"minecraft:oak_log": 2, "minecraft:diamond": 5},
+                 {"minecraft:oak_log": 2, "minecraft:diamond": 2})
+    d["cases"].append(ia_case("A05", [van],
+                              {"minecraft:oak_log": 2,
+                               "minecraft:diamond": 5},
+                              {"minecraft:oak_log": 2,
+                               "minecraft:diamond": 2}))
+    ok, reason = C.judge_ia(d)
+    run("ST-IA-F04-CRAFT-PROTECTED-VANISH", not ok, reason)
+
+    # F05:G4 oracle 'not passed'
+    d = g4_doc()
+    run0 = d["runs"][0]
+    for k in run0.get("oracle_blocks", {}):
+        run0["oracle_blocks"][k]["result"] = "not passed"
+    ok, reason = C.judge_g4(d)
+    run("ST-G4-F05-ORACLE-NOT-PASSED", not ok, reason)
+
+    # F05:cave_air 围护不算封闭
+    d = copy.deepcopy(rows)
+    for r in d:
+        if r["kind"] == "shelter-facts":
+            f = r["data"]["facts"]
+            for side in f["sides"]:
+                f["sides"][side] = "minecraft:cave_air"
+            f["above"] = "minecraft:void_air"
+    ok, reason = C.judge_g5(d, "s01")
+    run("ST-G5-F05-NAMESPACED-AIR-SIDES", not ok, reason)
+
+    # F05:未知方块按未证处理
+    d = copy.deepcopy(rows)
+    for r in d:
+        if r["kind"] == "shelter-facts":
+            f = r["data"]["facts"]
+            f["sides"]["N"] = "minecraft:modded_glass"
+    ok, reason = C.judge_g5(d, "s01")
+    run("ST-G5-F05-UNKNOWN-BLOCK-UNKNOWN", not ok, reason)
+
+    # R03:同 ID 失败后补 pass 不得覆盖
+    suite = [{"id": "N01", "attempt": 1, "pass": False,
+              "reason": "diag-fail"},
+             {"id": "N01", "attempt": 2, "pass": True},
+             {"id": "N02", "attempt": 1, "pass": True},
+             {"id": "N03", "attempt": 1, "pass": True},
+             {"id": "N04", "attempt": 1, "pass": True},
+             {"id": "N05", "attempt": 1, "pass": True},
+             {"id": "N06", "attempt": 1, "pass": True}]
+    ok, reason = C._gate_suite(suite, {"N01", "N02", "N03", "N04",
+                                       "N05", "N06"}, attempts_required=1)
+    run("ST-GATE-R03-FAIL-THEN-PASS", not ok, reason)
+
+    # R03:N 三次复制同一 attempt
+    suite = [{"id": "N%02d" % i, "attempt": 1, "pass": True}
+             for i in range(1, 7)] + [
+        {"id": "N01", "attempt": 1, "pass": True}] * 2
+    ok, reason = C._gate_suite(suite, {"N%02d" % i for i in range(1, 7)},
+                               attempts_required=3)
+    run("ST-GATE-R03-DUP-ATTEMPT-COPIES", not ok, reason)
+
+    # R03:I08 仅存入不算双向
+    doc08 = {"cases": [{"id": "I08", "actions": [
+        {"op": "deposit", "args": {"item": "minecraft:dirt",
+                                   "count": 2},
+         "terminal": {"state": "completed",
+                      "reason": DEP_OK + " toms_storage_terminal"}}]}]}
+    ok, reason = C._gate_i08(doc08)
+    run("ST-GATE-R03-I08-DEPOSIT-ONLY", not ok, reason)
+
+    # R03:任意 not_applicable 无真实依据
+    bdoc = {"sections": {
+        "junit": {"total": 10, "passed": 10, "command": "gradle test"},
+        "python": {"total": 4, "passed": 4, "command": "python -m ..."},
+        "gametest": {"not_applicable": True, "reason": "no basis"}}}
+    ok, reason = C._gate_build(bdoc)
+    run("ST-GATE-R03-BUILD-NA-NO-BASIS", not ok, reason)
+
+    # R03:总括通配差异不算逐项比较
+    fdoc = {"upstream_commit": "x" * 40, "patch_ref": "refs/heads/x",
+            "deployment_root": "D:\\fresh", "client_jar_sha256": JAR,
+            "server_jar_sha256": SRV, "rebuild_started_wall": 1.0,
+            "content_diffs": [{"path": "*.class", "explained": True,
+                               "reason": "zip timestamps"}],
+            "dependency_cache": [{"name": "tom", "source": "modrinth",
+                                  "sha256": "c" * 64}],
+            "world": {"declared": "snapshot", "sha256": "d" * 64}}
+    ok, reason = C._gate_fresh(fdoc)
+    run("ST-GATE-R03-FRESH-WILDCARD-DIFF", not ok, reason)
+
+    # R03:变异组无正例 → INCONCLUSIVE 可区分
+    mdoc = {"groups": {"ia": {"accepted": 0, "rejected": 9,
+                              "inconclusive": 9}}}
+    ok, reason = C._gate_mutations(mdoc)
+    run("ST-GATE-R03-MUTATION-INCONCLUSIVE",
+        not ok and "INCONCLUSIVE" in reason, reason)
+
+    # R03:未跑行必须带理由
+    suite = [{"id": "C01", "pass": True}] + [
+        {"id": "C%02d" % i, "pass": True} for i in range(2, 8)] + [
+        {"id": "C08", "not_run": True}]
+    ok, reason = C._gate_suite(suite, {"C%02d" % i for i in range(1, 8)},
+                               allow_not_run=("C08",))
+    run("ST-GATE-R03-NOTRUN-WITHOUT-REASON", not ok, reason)
 
     # ---------- judge-all(M24)----------
     man = {"ia_facts": "/nonexistent.json"}

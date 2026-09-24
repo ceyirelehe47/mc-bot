@@ -125,6 +125,70 @@ def generate_ia_mutations(ia, outdir):
         a["terminal"]["state"] = "outcome_unknown"
         a["post_action"] = None
         emit("m10-unknown-without-reconciliation", d)
+
+    # ---------- R3D F01-F04 族(新合同边界)----------
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "I01", op="move_items")
+    if a is not None:
+        a["pre_action"].pop("inventory", None)
+        emit("f01-inv-key-removed", d)
+
+    d = copy.deepcopy(ia)
+    d["identity"]["bridge_status_end"] = {"error": "status-failed"}
+    emit("f01-status-end-error-object", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "I01", op="move_items")
+    if a is not None:
+        a["post_action"]["game_session"] = "gs-mutated"
+        emit("f02-session-flip", d)
+
+    d = copy.deepcopy(ia)
+    d["identity"]["final_observe"]["client_mod_jar_sha256"] = "f" * 64
+    emit("f02-terminal-jar-swapped", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "I04", op="deposit")
+    if a is not None:
+        a["args"]["direction"] = "withdraw"
+        emit("f03-container-dir-flip", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "I04", op="deposit")
+    if a is not None:
+        a["args"]["count"] = 200
+        emit("f03-container-amount-below", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "I01", op="move_items")
+    if a is not None:
+        a["args"]["hotbar"] = 7
+        emit("f03-move-hotbar-mismatch", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "I04", op="deposit")
+    if a is not None:
+        r = str(a["terminal"]["reason"])
+        a["terminal"]["reason"] = r.replace("player:4->2",
+                                            "player:4->4")\
+            .replace("container:0->2", "container:0->0")
+        a["post_action"] = dict(a["pre_action"])
+        emit("f03-container-zero-transfer", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "A11")
+    if a is not None:
+        a["terminal"] = {"state": "outcome_unknown",
+                         "reason": "body_session_changed"}
+        a.pop("reconciliation", None)
+        emit("f04-unknown-reconciliation-removed", d)
+
+    d = copy.deepcopy(ia)
+    a, _ = _first_action(d, "A03", op="craft", state="failed")
+    if a is not None:
+        a["pre_action"]["inventory"]["minecraft:iron_ingot"] = 5
+        a["post_action"]["inventory"]["minecraft:iron_ingot"] = 1
+        emit("f04-craft-protected-vanish", d)
     return out
 
 
@@ -181,6 +245,74 @@ def generate_g4_mutations(runs, outdir):
             rec["args"]["count"] = int(rec["args"]["count"]) + 1
             break
     emit("m07-craft-args-inflated", d)
+
+    # ---------- R3D F01/F02/F05 族 ----------
+    d = copy.deepcopy(runs)
+    d["runs"][0]["ended_wall"] = \
+        d["runs"][0]["identity"]["run_started_wall"] - 200
+    emit("f02-ended-before-armed", d)
+
+    d = copy.deepcopy(runs)
+    for s in d["runs"][0]["snapshots"]:
+        if s.get("tag") == "final":
+            s["facts"].pop("screen", None)
+    emit("f01-final-screen-removed", d)
+
+    d = copy.deepcopy(runs)
+    for k in d["runs"][0].get("oracle_blocks", {}):
+        d["runs"][0]["oracle_blocks"][k]["result"] = "not passed"
+        break
+    emit("f05-oracle-not-passed", d)
+    return out
+
+
+def generate_g5_mutations(rows, outdir, sid):
+    """R3D F05/F06 族:G5 原始行单因素变异。"""
+    out = []
+
+    def emit(name, doc):
+        p = os.path.join(outdir, "g5-%s-%s.json" % (sid, name))
+        _save(p, doc)
+        out.append((name, p))
+
+    import json as _json
+    base = [_json.loads(_json.dumps(r)) for r in rows]
+
+    d = [_json.loads(_json.dumps(r)) for r in base]
+    for r in d:
+        if r.get("kind") == "shelter-facts":
+            for side in r["data"]["facts"]["sides"]:
+                r["data"]["facts"]["sides"][side] = \
+                    "minecraft:cave_air"
+            break
+    emit("f05-cave-air-sides", d)
+
+    d = [_json.loads(_json.dumps(r)) for r in base]
+    for r in d:
+        if r.get("kind") == "shelter-facts":
+            r["data"]["facts"]["sides"]["N"] = "minecraft:modded_glass"
+            break
+    emit("f05-unknown-side-block", d)
+
+    d = [_json.loads(_json.dumps(r)) for r in base]
+    for r in d[1:]:
+        if r.get("kind") == "night":
+            r["data"]["game_session"] = "gs-night-mutated"
+            break
+    emit("f06-night-session-changed", d)
+
+    d = [_json.loads(_json.dumps(r)) for r in base]
+    prev = None
+    for r in d:
+        if r.get("kind") == "night":
+            if prev is not None:
+                # tick 增量 800(<900 跳时阈)但墙钟间隔仅 20s:
+                # 时钟语义不匹配(跳时/睡眠跳夜的另一形态)
+                r["data"]["world_time"] = \
+                    prev["data"]["world_time"] + 800
+                r["t_wall"] = prev["t_wall"] + 20
+            prev = r
+    emit("f06-clock-semantics-mismatch", d)
     return out
 
 
@@ -196,7 +328,17 @@ def _judge(path, mode, extra=()):
     return p.returncode, verdict, p.stderr[-200:]
 
 
-def cmd_generate(ia_path, g4_path, outdir):
+def _load_jsonl(path):
+    rows = []
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if line:
+                rows.append(json.loads(line))
+    return rows
+
+
+def cmd_generate(ia_path, g4_path, outdir, g5_paths=None):
     os.makedirs(outdir, exist_ok=True)
     with open(ia_path, encoding="utf-8") as fh:
         ia = json.load(fh)
@@ -204,13 +346,28 @@ def cmd_generate(ia_path, g4_path, outdir):
         runs = json.load(fh)
     ia_m = generate_ia_mutations(ia, outdir)
     g4_m = generate_g4_mutations(runs, outdir)
+    g5_m = []
+    for g5_path, sid in (g5_paths or []):
+        rows = _load_jsonl(g5_path)
+        for name, path in generate_g5_mutations(rows, outdir, sid):
+            g5_m.append((name, path, sid))
     def _gate_of(path):
-        return "ia" if os.path.basename(path).startswith("ia-") else "g4"
+        b = os.path.basename(path)
+        if b.startswith("ia-"):
+            return "ia"
+        if b.startswith("g5-"):
+            return "g5:" + b.split("-")[1]
+        return "g4"
 
     man = {"positive": {"ia": ia_path, "g4": g4_path},
            "mutations": [{"name": n, "path": os.path.basename(p),
                           "gate": _gate_of(p)}
-                         for n, p in ia_m + g4_m]}
+                         for n, p in ia_m + g4_m]
+                         + [{"name": n, "path": os.path.basename(p),
+                             "gate": "g5:%s" % sid}
+                            for n, p, sid in g5_m]}
+    if g5_paths:
+        man["positive"]["g5"] = {sid: path for path, sid in g5_paths}
     _save(os.path.join(outdir, "manifest.json"), man)
     print(json.dumps({"generated": len(ia_m) + len(g4_m),
                       "outdir": outdir}, ensure_ascii=False))
@@ -235,6 +392,13 @@ def cmd_run(outdir):
                     "reason": v.get("reason"),
                     "note": "I08 环境阻断(Tom's 网络不收货)——"
                             "IA 正例预期拒绝;IA 变异组标 INCONCLUSIVE"})
+    pos_g5 = {}
+    for sid, path in (man["positive"].get("g5") or {}).items():
+        rc, v, err = _judge(path, "judge-g5", (sid,))
+        pos_g5[sid] = bool(v.get("accept"))
+        results.append({"name": "positive-g5-%s" % sid,
+                        "accept": pos_g5[sid],
+                        "reason": v.get("reason")})
     for m in man["mutations"]:
         mode = "judge-" + m["gate"]
         rc, v, err = _judge(os.path.join(outdir, m["path"]), mode)
@@ -250,6 +414,21 @@ def cmd_run(outdir):
             results.append({"name": m["name"], "accept": None,
                             "expected": "REJECT",
                             "status": "INCONCLUSIVE(正例被 I08 阻断)"})
+            continue
+        if m["gate"].startswith("g5:"):
+            sid = m["gate"].split(":", 1)[1]
+            if not pos_g5.get(sid):
+                results.append({"name": m["name"], "accept": None,
+                                "expected": "REJECT",
+                                "status": "INCONCLUSIVE(正例未过)"})
+                continue
+            rc, v, err = _judge(os.path.join(outdir, m["path"]),
+                                "judge-g5", (sid,))
+            rejected = (not v.get("accept")) and rc == 1
+            results.append({"name": m["name"], "accept": rejected,
+                            "expected": "REJECT",
+                            "reason": v.get("reason"), "rc": rc})
+            ok_all &= rejected
             continue
         rejected = (not v.get("accept")) and rc == 1
         results.append({"name": m["name"], "accept": rejected,
@@ -270,10 +449,16 @@ def _load(path):
 
 def main(argv):
     if len(argv) >= 4 and argv[0] == "generate":
-        return cmd_generate(argv[1], argv[2], argv[3])
+        g5_paths = []
+        for pair in argv[4:]:
+            path, sid = pair.rsplit("=", 1)
+            g5_paths.append((path, sid))
+        return cmd_generate(argv[1], argv[2], argv[3],
+                            g5_paths or None)
     if len(argv) >= 2 and argv[0] == "run":
         return cmd_run(argv[1])
-    print("usage: rcf1_mutations.py generate <ia.json> <g4.json> <outdir>"
+    print("usage: rcf1_mutations.py generate <ia.json> <g4.json> "
+          "<outdir> [g5.jsonl=sid ...]"
           "\n       rcf1_mutations.py run <outdir>")
     return 2
 

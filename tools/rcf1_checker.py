@@ -95,6 +95,50 @@ _RX_CONT = re.compile(
 _RX_GAIN = re.compile(
     r"server_authoritative_block_and_inventory_gain_verified:(\d+)->(\d+)")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_RX_CRAFT_MATERIALS = re.compile(
+    r"materials=([a-z0-9_.,: ->]+?)(?:,\s*[a-z0-9_]+[:=]|$)")
+
+# R3D/F05:围护判定改为白名单——不在已知实体/开口集合内的名字按
+# unknown(未证)处理,不再默认"不在黑名单里就是坚固围护"。
+_SOLID_EXACT = {
+    "minecraft:stone", "minecraft:cobblestone", "minecraft:dirt",
+    "minecraft:grass_block", "minecraft:oak_log", "minecraft:birch_log",
+    "minecraft:spruce_log", "minecraft:jungle_log", "minecraft:acacia_log",
+    "minecraft:dark_oak_log", "minecraft:mangrove_log", "minecraft:cherry_log",
+    "minecraft:oak_planks", "minecraft:birch_planks",
+    "minecraft:spruce_planks", "minecraft:jungle_planks",
+    "minecraft:acacia_planks", "minecraft:dark_oak_planks",
+    "minecraft:deepslate", "minecraft:granite", "minecraft:diorite",
+    "minecraft:andesite", "minecraft:tuff", "minecraft:smooth_stone",
+    "minecraft:stone_bricks", "minecraft:bricks", "minecraft:sandstone",
+    "minecraft:dirt_path", "minecraft:podzol", "minecraft:coarse_dirt",
+    "minecraft:rooted_dirt", "minecraft:mud", "minecraft:packed_mud",
+    "minecraft:deepslate_bricks", "minecraft:polished_blackstone",
+    "minecraft:cobbled_deepslate", "minecraft:obsidian",
+    "minecraft:crying_obsidian", "minecraft:netherrack",
+    "minecraft:end_stone", "minecraft:calcite", "minecraft:tuff",
+    "stone", "cobblestone", "dirt", "grass_block",
+}
+_AIR_EXACT = {"minecraft:air", "minecraft:cave_air", "minecraft:void_air",
+              "air", "cave_air", "void_air"}
+
+
+def _oracle_passed(result):
+    """R3D/F05:oracle 结果严格解析——'not passed'/'failed'/空串必须拒。"""
+    s = str(result or "").replace("\x00", "").strip().lower()
+    if not s or "fail" in s or "not passed" in s:
+        return False
+    return s == "passed" or s.endswith("test passed") or \
+        s.endswith("passed")
+
+
+def _craft_material_items(reason):
+    """从 craft 回执 materials= 段解析被合法消耗的材料物品集合。"""
+    m = _RX_CRAFT_MATERIALS.search(str(reason or ""))
+    if not m:
+        return set()
+    seg = m.group(1)
+    return set(re.findall(r"([a-z0-9_.]+:[a-z0-9_.]+)", seg))
 
 
 def _status_fields(status_fact):
@@ -112,9 +156,11 @@ def _inv(snapshot):
     查询失败返回 None:缺失/错误 ≠ 空包(C1)。
     """
     if not isinstance(snapshot, dict):
-        return {}
+        return None
     if snapshot.get("error"):
         return None
+    if "inventory" not in snapshot:
+        return None   # R3D/F01:库存键缺失 ≠ 空库存
     inv = snapshot.get("inventory") or {}
     out = {}
     if isinstance(inv, dict):
@@ -204,6 +250,10 @@ def _positive_proven(case, action):
         want = int(args.get("count") or 0)
         baseline, after, gained = (int(m.group(3)), int(m.group(4)),
                                    int(m.group(5)))
+        want_hotbar = args.get("hotbar")
+        if isinstance(want_hotbar, int) and \
+                int(m.group(2)) != want_hotbar:
+            return "move-receipt-hotbar-not-requested"
         if want == -1:
             # 整堆语义:源堆全量迁移(不可堆叠物=1 件也算);
             # 目标槽增量自洽 + 总量守恒(下方)共同证明。
@@ -219,21 +269,34 @@ def _positive_proven(case, action):
         return True
     if op in ("deposit", "withdraw", "container_transfer"):
         m = _RX_CONT.search(reason)
-        direction = str(args.get("direction") or op)
         if not m:
             return "container-receipt-format-mismatch"
         p0, p1, c0, c1 = (int(m.group(3)), int(m.group(4)),
                           int(m.group(5)), int(m.group(6)))
-        # 方向以回执为准(真实调用名),args 仅为请求
-        direction = m.group(2)
+        # R3D/F03:请求方向必须与回执方向一致(请求取出实际存入=拒)
+        req_dir = str(args.get("direction") or op)
+        rc_dir = m.group(2)
+        if req_dir not in ("deposit", "withdraw"):
+            req_dir = "deposit" if req_dir in ("deposit",) else \
+                ("withdraw" if req_dir == "withdraw" else req_dir)
+        if req_dir != rc_dir:
+            return "container-direction-not-requested:%s!=%s" % (
+                req_dir, rc_dir)
         if (p1 - p0) != -(c1 - c0):
             return "container-conservation-violated"
         item = str(args.get("item") or "")
+        if not item:
+            return "container-args-missing-item"
         moved_player = p1 - p0
-        if item:
-            actual = post.get(item, 0) - pre.get(item, 0)
-            if actual != moved_player:
-                return "container-player-side-mismatch"
+        if moved_player == 0:
+            return "container-completed-zero-transfer"
+        actual = post.get(item, 0) - pre.get(item, 0)
+        if actual != moved_player:
+            return "container-player-side-mismatch"
+        want = int(args.get("count") or 0)
+        if want > 0 and abs(moved_player) < want:
+            return "container-moved-below-request:%d<%d" % (
+                abs(moved_player), want)
         return True
     if op == "mine_opportunity":
         m = _RX_GAIN.search(reason)
@@ -256,7 +319,7 @@ def _positive_proven(case, action):
             return "place-args-missing-target"
         hit = [v for k, v in oracle.items()
                if k == "table@%d,%d,%d" % tgt]
-        if hit and "passed" not in str(hit[0].get("result") or ""):
+        if hit and not _oracle_passed(hit[0].get("result")):
             return "place-oracle-block-not-at-target"
         return True
     if op == "goto":
@@ -278,6 +341,11 @@ def _negative_proven(case, action):
         if (_action_inv(action, "pre_action") is None
                 or _action_inv(action, "post_action") is None):
             return "unknown-without-reconciliation"
+        rec = action.get("reconciliation")
+        if not isinstance(rec, dict) or rec.get("resolved") is not True:
+            return "unknown-reconciliation-missing-or-unresolved"
+        if rec.get("active_execution"):
+            return "unknown-reconciliation-active-remaining"
         return True
     if st not in ("failed", "cancelled", "rejected"):
         return None
@@ -306,9 +374,31 @@ def _negative_proven(case, action):
                     return True
         return "negative-with-inventory-side-effect"
     if op == "craft":
-        # failed/cancelled 的 craft 不做守恒强制:部分产出(V01)、
-        # 材料被外部移走(V01)、grid/光标残料滞留(I05 满包)都是
-        # 合法的诚实失败物理;归因靠回执诚实性,守恒由正例路径承担。
+        # R3D/F04:failed/cancelled craft 允许合法部分产出/网格残料
+        #(回执 materials= 声明的材料、CRAFT_FOLD 配方折算成分与产物
+        # 本身),但受保护的其他物品凭空消失必须解释——否则拒绝。
+        item = str(args.get("item") or "")
+        allowed = _craft_material_items(_reason_of(action))
+        allowed.add(item)
+        for fold_item, _ratio in CRAFT_FOLD.get(item, []):
+            allowed.add(fold_item)
+        for tool_mat in ("minecraft:stick", "minecraft:string"):
+            # 工具类配方的中间材料(stick/string 属于合法折算成分)
+            if any(item.endswith(suffix) for suffix in
+                   ("_pickaxe", "_axe", "_shovel", "_sword", "_hoe",
+                    "_bow", "_crossbow", "_fishing_rod")):
+                allowed.add(tool_mat)
+        plank_kinds = {i for i in allowed if i.endswith("_planks")}
+        for pk in list(plank_kinds):
+            for fold_item, _ratio in CRAFT_FOLD.get(pk, []):
+                allowed.add(fold_item)
+        for k in set(pre) | set(post):
+            if k in allowed:
+                continue
+            if pre.get(k, 0) != post.get(k, 0):
+                return ("failed-craft-unexplained-inventory-change"
+                        ":%s %d->%d" % (k, pre.get(k, 0),
+                                        post.get(k, 0)))
         return True
     if op == "eat":
         if _RX_EAT.search(_reason_of(action)):
@@ -344,6 +434,14 @@ def _judge_ia(evidence):
     real_jars = {j for j in jars if _SHA256.match(j)}
     if not real_jars:
         return False, "identity-missing-runtime-jar-sha"
+    if len(real_jars) != 1:
+        return False, "identity-runtime-jar-mixed:%d-distinct" % len(
+            real_jars)
+    # R3D/F02:body 会话绑定——首观察会话必须存在,且所有动作快照
+    # 的会话与之一致(终态换会话/换人拒绝)。
+    anchor_session = str(first.get("game_session") or "")
+    if not anchor_session:
+        return False, "identity-first-observe-game-session-missing"
     cases = evidence.get("cases")
     if not isinstance(cases, list) or not cases:
         return False, "empty-cases"
@@ -374,6 +472,14 @@ def _judge_ia(evidence):
             if ident in exec_ids:
                 return False, "duplicate-execution-identity:%s" % ident[:40]
             exec_ids.add(ident)
+            # R3D/F02:动作快照会话与首观察一致(换会话=换人拒绝)
+            for snap_key in ("pre_action", "post_action"):
+                snap = a.get(snap_key) or {}
+                sess = str(snap.get("game_session") or "")
+                if sess and sess != anchor_session:
+                    return False, (
+                        "case-%s-action-%s-session-changed"
+                        % (cid, snap_key))
         seen[key] = c
     by_id = {}
     for (cid, att), c in seen.items():
@@ -482,6 +588,16 @@ def _judge_g4(runs_doc):
     jar_pairs = set()
     for r in runs:
         first = (r.get("identity") or {}).get("first_observe") or {}
+        # R3D/F02:run 内快照会话一致(换会话=换人拒绝)
+        g0 = str(first.get("game_session") or "")
+        if not g0:
+            return False, "run-%s-first-observe-session-missing" % r.get(
+                "run_id")
+        for s in r.get("snapshots") or []:
+            gs = str((s.get("facts") or {}).get("game_session") or "")
+            if gs and gs != g0:
+                return False, "run-%s-snapshot-session-changed" % r.get(
+                    "run_id")
         srv = _status_fields(
             (r.get("identity") or {}).get("bridge_status_start"))
         jar_pairs.add((str(first.get("client_mod_jar_sha256") or ""),
@@ -514,6 +630,13 @@ def _judge_g4(runs_doc):
         ended = r.get("ended_wall")
         if not armed or not ended:
             return False, "run-%s-missing-timing-facts" % rid
+        # R3D/F02:结束早于 armed / 时钟无效 → 拒绝
+        if not isinstance(armed, (int, float)) or \
+                not isinstance(ended, (int, float)) or ended <= 0 \
+                or armed <= 0:
+            return False, "run-%s-timing-facts-invalid" % rid
+        if ended < armed:
+            return False, "run-%s-ended-before-armed" % rid
         intervals.append((armed, ended))
         if ended - armed > 720:
             return False, "run-%s-time-limit-exceeded:%ds" % (
@@ -526,8 +649,13 @@ def _judge_g4(runs_doc):
             return False, "run-%s-required-snapshot-missing" % rid
         if (pre_snap or {}).get("error"):
             return False, "run-%s-pre-snapshot-errored" % rid
-        if not isinstance(r.get("status_end"), dict):
-            return False, "run-%s-status-end-missing" % rid
+        st_end_raw = r.get("status_end")
+        if not isinstance(st_end_raw, dict) or not st_end_raw:
+            return False, "run-%s-status-end-missing-or-empty" % rid
+        st_end_chk = _status_fields(st_end_raw)
+        if st_end_chk.get("error") or "active_execution" not in \
+                st_end_chk or "needs_reconcile" not in st_end_chk:
+            return False, "run-%s-status-end-errored-or-incomplete" % rid
         pre_inv = _inv(pre_snap)
         if pre_inv is None:
             return False, "run-%s-pre-snapshot-unreadable" % rid
@@ -607,8 +735,8 @@ def _judge_g4(runs_doc):
         table_keys = [k for k in (r.get("oracle_blocks") or {})
                       if k.split("@")[0] == "table"]
         for key in table_keys:
-            if "passed" not in str(
-                    (r["oracle_blocks"][key].get("result"))):
+            if not _oracle_passed(
+                    r["oracle_blocks"][key].get("result")):
                 return False, "run-%s-table-block-not-at-target" % rid
         # M05:工作台位置事实必须存在(缺失 ≠ 通过)
         if not table_keys:
@@ -620,7 +748,14 @@ def _judge_g4(runs_doc):
         if (inv.get("minecraft:wooden_pickaxe", 0) < 1
                 or inv.get("minecraft:stone_pickaxe", 0) < 1):
             return False, "run-%s-final-pickaxes-missing" % rid
+        # R3D/F01:终态 Screen 事实必须存在(present=false 仍需空光标
+        # 事实;缺失 ≠ 关屏)
+        if "screen" not in final or not isinstance(final.get("screen"),
+                                                  dict):
+            return False, "run-%s-final-screen-facts-missing" % rid
         screen = final.get("screen") or {}
+        if "cursor_count" not in screen:
+            return False, "run-%s-final-cursor-count-missing" % rid
         # M02:present=false 但 cursor 有物同样不可漏检
         if int(screen.get("cursor_count") or 0) > 0:
             return False, "run-%s-final-cursor-not-empty" % rid
@@ -640,16 +775,24 @@ def _judge_g4(runs_doc):
 # ---------- G5:自然过夜事实链 ----------
 
 def _cell_status(block_id):
-    """一格围护状态:closed/open/unknown(与生产语义同源)。"""
+    """一格围护状态:closed/open/unknown(R3D/F05 白名单语义)。
+
+    已知开口(三种命名空间 air、非实体方块)→ open;已知实体
+    (固体白名单)→ closed;其余(未知名、查询失败、未加载、Mod
+    特殊状态)→ unknown——按未证处理,不得默认坚固。
+    """
     if not isinstance(block_id, str) or not block_id \
-            or block_id in ("unknown", "None"):
+            or block_id.strip().lower() in (
+            "unknown", "none", "null", "unloaded", "error"):
         return "unknown"
-    bl = block_id.lower()
-    if bl.endswith(":air") or bl in ("air", "cave_air", "void_air"):
+    bl = block_id.strip().lower()
+    if bl in _AIR_EXACT or bl.endswith(":air"):
         return "open"
     if any(s in bl for s in _UNRELIABLE_SUBSTR):
         return "open"
-    return "closed"
+    if bl in _SOLID_EXACT:
+        return "closed"
+    return "unknown"
 
 
 def _recompute_enclosure(facts):
@@ -722,6 +865,12 @@ def _judge_g5(rows, run_id):
             return False, "session-or-connection-lost-mid-run"
     if len(model_acts) < 3:
         return False, "model-decision-rows-below-minimum"
+    # R3D/R03:模型行必须带非空决策注记(公开调用/选择与简短理由;
+    # 纯字符串通道不算充分证明)
+    for a in model_acts:
+        note = str((a.get("data") or {}).get("decision_note") or "").strip()
+        if not note:
+            return False, "model-decision-note-missing"
     model_ops = {str((a.get("data") or {}).get("op") or "")
                  for a in model_acts}
     if len(model_ops) < 2:
@@ -786,6 +935,12 @@ def _judge_g5(rows, run_id):
     night = [r for r in rows if r.get("kind") == "night"]
     if len(night) < 2:
         return False, "night-continuity-rows-missing"
+    # R3D/F06:整晚会话连续(同一 body 会话;缺失/换人拒绝)
+    prep_sess = str(prep_obs.get("game_session") or "")
+    for r in night:
+        ns = str((r.get("data") or {}).get("game_session") or "")
+        if not ns or ns != prep_sess:
+            return False, "night-session-missing-or-changed"
     # M21:原始世界时间连续、单调(24000 回绕)、无跳跃
     wts = []
     for r in night:
@@ -797,6 +952,16 @@ def _judge_g5(rows, run_id):
         dt = (b - a) % 24000
         if dt > 900:
             return False, "night-world-time-jump:%d" % dt
+    # R3D/R03:时钟语义自检——世界 tick 增量不得显著快于墙钟
+    # (20 tps;跳时/睡眠跳夜会表现为 tick 超前)。tick 只会滞后,
+    # 给 1.35x 宽容(卡顿回落+采样漂移)。
+    for (r1, r2), (a, b) in zip(zip(night, night[1:]),
+                                zip(wts, wts[1:])):
+        dt_tick = (b - a) % 24000
+        dt_wall = r2.get("t_wall", 0) - r1.get("t_wall", 0)
+        if dt_wall > 0 and dt_tick > dt_wall * 20 * 1.35 + 40:
+            return False, "night-clock-semantics-mismatch:%dt/%dw" % (
+                dt_tick, round(dt_wall))
     for r1, r2 in zip(night, night[1:]):
         gap = r2.get("t_wall", 0) - r1.get("t_wall", 0)
         if gap > 90:
@@ -889,6 +1054,7 @@ def _gate_suite(rows, required, attempts_required=None,
     if not isinstance(rows, list) or not rows:
         return False, "rows-empty"
     by_id = {}
+    _seen_attempts = set()
     for r in rows:
         if not isinstance(r, dict) or "id" not in r:
             return False, "row-missing-id"
@@ -896,14 +1062,26 @@ def _gate_suite(rows, required, attempts_required=None,
         if r.get("not_run"):
             if rid not in allow_not_run:
                 return False, "unexpected-not-run:%s" % rid
+            if not str(r.get("reason") or "").strip():
+                return False, "not-run-without-reason:%s" % rid
             continue
         val = r.get("pass", r.get("verdict"))
         if val is None:
             return False, "row-%s-missing-verdict" % rid
-        if val is True:
-            by_id[rid] = by_id.get(rid, 0) + 1
-        else:
-            by_id.setdefault(rid, 0)
+        if val is not True:
+            # R3D/R03:失败不可被同 ID 后补 pass 覆盖
+            return False, "row-%s-failed:%s" % (
+                rid, str(r.get("reason") or "unspecified")[:80])
+        att = r.get("attempt")
+        if attempts_required:
+            if att is None:
+                return False, "row-%s-attempt-missing" % rid
+            key = (rid, str(att))
+            if key in _seen_attempts:
+                return False, ("row-%s-duplicate-attempt:%s"
+                               % (rid, att))
+            _seen_attempts.add(key)
+        by_id[rid] = by_id.get(rid, 0) + 1
     missing = sorted(set(required) - set(by_id))
     if missing:
         return False, "missing-required:%s" % ",".join(missing[:6])
@@ -939,29 +1117,60 @@ def _gate_i08(doc):
     i08 = [c for c in cases if c.get("id") == "I08"]
     if not i08:
         return False, "i08-case-missing"
+    directions = {}
     for c in i08:
         for a in c.get("actions") or []:
-            if str(a.get("op") or "") != "deposit":
+            op = str(a.get("op") or "")
+            if op not in ("deposit", "withdraw",
+                          "container_transfer"):
                 continue
             rc = a.get("terminal") or {}
             if str(rc.get("state") or "") != "completed":
                 continue
-            if "toms_storage_terminal" in str(rc.get("reason") or ""):
-                return True, "ok"
-    return False, "no-completed-toms-terminal-transaction"
+            reason = str(rc.get("reason") or "")
+            if "toms_storage_terminal" not in reason:
+                continue
+            m = _RX_CONT.search(reason)
+            if not m:
+                continue
+            moved = abs(int(m.group(4)) - int(m.group(3)))
+            want = int((a.get("args") or {}).get("count") or 0)
+            if moved <= 0 or (want > 0 and moved < want):
+                continue
+            directions[m.group(2)] = directions.get(m.group(2), 0) + 1
+    if "deposit" not in directions:
+        return False, "no-completed-toms-deposit"
+    if "withdraw" not in directions:
+        return False, "no-completed-toms-withdraw"
+    return True, "ok"
+
+
+_BUILD_REQUIRED_SECTIONS = ("junit", "python")
 
 
 def _gate_build(doc):
-    """构建门:Java/JUnit、Python、GameTest 汇总全过。"""
+    """构建门:必需测试入口(junit/python)实跑全过;GameTest 未跑
+    须给真实依据(R3D/R03:任意 not_applicable 不能替代执行)。"""
     if not isinstance(doc, dict):
         return False, "not-an-object"
     sections = doc.get("sections") or {}
     bad = []
+    for name in _BUILD_REQUIRED_SECTIONS:
+        if name not in sections:
+            return False, "build-section-missing:%s" % name
     for name, sec in sections.items():
         if not isinstance(sec, dict):
             return False, "build-section-malformed:%s" % name
         if sec.get("not_applicable"):
+            reason = str(sec.get("reason") or "").strip()
+            if name in _BUILD_REQUIRED_SECTIONS:
+                return False, "build-section-not-applicable:%s" % name
+            if len(reason) < 20:
+                return False, ("build-na-without-real-basis:%s"
+                               % name)
             continue
+        if not str(sec.get("command") or "").strip():
+            return False, "build-section-command-missing:%s" % name
         total = int(sec.get("total") or 0)
         passed = int(sec.get("passed") or 0)
         if total <= 0 or passed != total:
@@ -987,11 +1196,31 @@ def _gate_fresh(doc):
     if not (_SHA256.match(cj) and _SHA256.match(sj)):
         return False, "fresh-deployment-jar-sha-malformed"
     diffs = doc.get("content_diffs") or []
-    unexplained = [d for d in diffs
-                   if isinstance(d, dict) and not d.get("explained")]
-    if unexplained:
-        return False, "fresh-deployment-unexplained-diffs:%d" % len(
-            unexplained)
+    for d in diffs:
+        if not isinstance(d, dict):
+            return False, "fresh-diff-entry-malformed"
+        path = str(d.get("path") or "")
+        if not path or "*" in path or "?" in path:
+            # R3D/R04:条目级路径;*.class 之类总括不算逐项比较
+            return False, "fresh-diff-wildcard-or-missing-path"
+        if not d.get("explained"):
+            return False, "fresh-deployment-unexplained-diff:%s" % path
+        if not str(d.get("reason") or "").strip():
+            return False, "fresh-diff-reason-missing:%s" % path
+    deps = doc.get("dependency_cache") or []
+    if not isinstance(deps, list) or not deps:
+        return False, "fresh-deployment-dependency-cache-undeclared"
+    for d in deps:
+        if not isinstance(d, dict) or not (
+                _SHA256.match(str(d.get("sha256") or ""))
+                and str(d.get("source") or "")):
+            return False, "fresh-deployment-dependency-entry-invalid"
+    world = doc.get("world") or {}
+    if not (str(world.get("declared") or "") and (
+            _SHA256.match(str(world.get("sha256") or ""))
+            or str(world.get("origin") or "").startswith(
+                "fresh_generated"))):
+        return False, "fresh-deployment-world-undeclared"
     return True, "ok"
 
 
@@ -1047,7 +1276,38 @@ def judge_all(manifest):
     fresh = load("fresh_deployment")
     gates["fresh_deployment"] = _gate_fresh(fresh) if fresh is not None \
         else (False, "evidence-missing")
+    mut = load("mutations")
+    gates["mutations"] = _gate_mutations(mut) if mut is not None else (
+        False, "evidence-missing")
     return gates
+
+
+def _gate_mutations(doc):
+    """R3D/R03:成对变异门——每组:同一正式 CLI 先接受有效原始正例,
+    再单因素变异被拒。无合格正例的组 = INCONCLUSIVE(不算通过)。
+    """
+    if not isinstance(doc, dict):
+        return False, "not-an-object"
+    groups = doc.get("groups") or {}
+    if not groups:
+        return False, "mutation-groups-empty"
+    for name, g in groups.items():
+        if not isinstance(g, dict):
+            return False, "mutation-group-malformed:%s" % name
+        accepted = int(g.get("accepted") or 0)
+        rejected = int(g.get("rejected") or 0)
+        inconclusive = int(g.get("inconclusive") or 0)
+        if accepted < 1:
+            return False, ("INCONCLUSIVE:mutation-group-%s"
+                           "-no-valid-positive" % name)
+        if rejected < 1:
+            return False, ("FAIL:mutation-group-%s"
+                           "-no-rejection" % name)
+        if inconclusive > 0 and int(g.get("required") or 1) > \
+                accepted:
+            return False, ("INCONCLUSIVE:mutation-group-%s"
+                           "-%d-inconclusive" % (name, inconclusive))
+    return True, "ok"
 
 
 # ---------- CLI ----------

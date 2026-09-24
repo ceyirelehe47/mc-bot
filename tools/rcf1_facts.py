@@ -125,12 +125,15 @@ class FactsCollector:
         return self._current
 
     def record_action(self, case_id, op, args, submit_echo, terminal,
-                      pre=None, post=None):
+                      pre=None, post=None, reconciliation=None):
         """记录一个逻辑动作(单一计分身份:execution_id 去重)。
 
         pre/post 由调用方在正确时点采集:pre=submit 前,post=终态落定后。
         同一 execution_id 重复记录 → ValueError(录制链回归须暴露,
         不静默吞掉重复计分)。
+        reconciliation:仅 outcome_unknown 需要——对账结论(债务解除
+        与效果归因的原始事实),由录制层在终态后有界采集;checker
+        要求 unknown 动作携带 resolved=true 的对账记录。
         """
         cur = self._ensure(case_id)
         ident = _action_identity(submit_echo)
@@ -141,7 +144,7 @@ class FactsCollector:
         # case 级 pre = 首个动作的 pre(准备期结束后、首个 submit 前)
         if cur["pre_snapshot"] is None and pre is not None:
             cur["pre_snapshot"] = pre
-        cur["actions"].append({
+        action = {
             "op": op, "args": args,
             "execution_id": ident,
             "submit": _strip_secrets(submit_echo),
@@ -149,7 +152,10 @@ class FactsCollector:
             "pre_action": pre,
             "post_action": post,
             "t_wall": round(time.time(), 3),
-        })
+        }
+        if reconciliation is not None:
+            action["reconciliation"] = reconciliation
+        cur["actions"].append(action)
 
     def oracle_block(self, case_id, tag, x, y, z, result):
         cur = self._ensure(case_id)
