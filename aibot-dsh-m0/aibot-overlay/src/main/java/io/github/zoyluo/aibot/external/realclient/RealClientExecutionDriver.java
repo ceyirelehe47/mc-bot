@@ -34,7 +34,8 @@ public final class RealClientExecutionDriver
         implements PhysicalExecutionDriver {
     public static final Set<String> OPERATIONS=
             Set.of("say","goto","mine_opportunity","deposit","craft",
-                    "eat","place","move_items","container_transfer");
+                    "eat","place","move_items","container_transfer",
+                    "toms_diag");
 
     private static final int MAX_GOTO_DISTANCE=32;
     private static final int EXECUTION_TIMEOUT_TICKS=20*120;
@@ -98,10 +99,34 @@ public final class RealClientExecutionDriver
             case "move_items" ->
                     startMoveItems(
                             request,args,player,startedAt);
+            case "toms_diag" ->
+                    startTomsDiag(
+                            request,args,player,startedAt);
             default -> throw new BridgeFault(
                     409,
                     "operation_not_supported_by_real_client_backend");
         };
+    }
+
+    private BodyBackend.Handle startTomsDiag(
+            Request request,JsonObject args,
+            ServerPlayerEntity player,long startedAt) {
+        // R3D/I08:只读网络诊断——终端 getStacks 总量 + 相邻连接器
+        // 反射状态(connectedInventories/connectors);无副作用。
+        only(args,Set.of("x","y","z"));
+        BlockPos pos=new BlockPos(
+                integer(args,"x",-29999984,29999984),
+                integer(args,"y",player.getServerWorld().getBottomY(),
+                        player.getServerWorld().getBottomY()
+                                +player.getServerWorld().getHeight()-1),
+                integer(args,"z",-29999984,29999984));
+        if(player.getEyePos().distanceTo(pos.toCenterPos())>8D)
+            throw new BridgeFault(409,"toms_diag_too_far");
+        java.util.Map<String,Object> diag=
+                RealClientTomsStorageServerCompat.diagnose(player,pos);
+        final String reason=JsonOutput.encode(diag);
+        return () -> new BodyBackend.Snapshot(
+                "completed",1D,reason);
     }
 
     private BodyBackend.Handle startCraft(

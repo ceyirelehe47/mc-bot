@@ -23,6 +23,9 @@ final class RealClientTomsStorageServerCompat {
             "com.tom.storagemod.block.entity.StorageTerminalBlockEntity";
     static final String STORED_ITEM_CLASS=
             "com.tom.storagemod.inventory.StoredItemStack";
+    static final String BLOCK_ENTITY_CONNECTOR_CLASS=
+            "com.tom.storagemod.block.entity"
+            +".InventoryConnectorBlockEntity";
 
     record Target(BlockEntity blockEntity,BlockPos pos) {}
 
@@ -54,6 +57,54 @@ final class RealClientTomsStorageServerCompat {
         } catch(ReflectiveOperationException | RuntimeException failure) {
             return false;
         }
+    }
+
+    static java.util.Map<String,Object> diagnose(
+            ServerPlayerEntity player,BlockPos pos) {
+        java.util.Map<String,Object> out=new java.util.LinkedHashMap<>();
+        Target target=resolve(player,pos);
+        if(target==null) {
+            out.put("kind","not_a_storage_terminal");
+            return out;
+        }
+        out.put("kind","toms_storage_terminal");
+        out.put("terminal_stacks_total",count(target));
+        // 邻域连接器诊断(只读反射;R3D/I08 网络不组链排查)
+        for(net.minecraft.util.math.Direction d:
+                net.minecraft.util.math.Direction.values()) {
+            BlockPos np=pos.offset(d);
+            var be=player.getServerWorld().getBlockEntity(np);
+            if(be==null)continue;
+            if(!BLOCK_ENTITY_CONNECTOR_CLASS.equals(
+                    be.getClass().getName()))continue;
+            java.util.Map<String,Object> cd=
+                    new java.util.LinkedHashMap<>();
+            try {
+                cd.put("has_connected_inventories",be.getClass()
+                        .getMethod("hasConnectedInventories")
+                        .invoke(be));
+                Object blocks=be.getClass()
+                        .getMethod("getConnectedBlocks").invoke(be);
+                cd.put("connected_blocks",String.valueOf(blocks));
+                Object invs=be.getClass()
+                        .getMethod("getConnectedInventories")
+                        .invoke(be);
+                cd.put("connected_inventories_size",
+                        invs instanceof java.util.Collection<?> c
+                                ?c.size():-1);
+                Object conn=be.getClass()
+                        .getMethod("getConnectedConnectors").invoke(be);
+                cd.put("connected_connectors_size",
+                        conn instanceof java.util.Collection<?> c2
+                                ?c2.size():-1);
+            } catch(ReflectiveOperationException
+                    |RuntimeException failure) {
+                cd.put("reflect_error",failure.toString());
+            }
+            out.put("connector_at_"+np.getX()+","+np.getY()
+                    +","+np.getZ(),cd);
+        }
+        return out;
     }
 
     static long count(Target target) {
