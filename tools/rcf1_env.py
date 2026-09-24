@@ -25,8 +25,9 @@ REPO = os.path.dirname(HERE)
 ROOT = os.environ.get(
     "RCF1_ROOT", r"D:\code\mc-experiment")
 # R3D:RCF1_SUFFIX 显式覆盖;默认逻辑不变。
-_SUFFIX = os.environ.get("RCF1_SUFFIX") or (
-    "r3c" if os.environ.get("RCF1_ROOT") else "")
+_SUFFIX = (("-" + os.environ["RCF1_SUFFIX"])
+           if os.environ.get("RCF1_SUFFIX")
+           else ("-r3c" if os.environ.get("RCF1_ROOT") else ""))
 SERVER = os.path.join(ROOT, "rcf1-server" + _SUFFIX)
 CLIENT = os.path.join(ROOT, "rcf1-client" + _SUFFIX)
 RUNLOG = pathlib.Path(os.environ.get(

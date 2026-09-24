@@ -31,10 +31,12 @@ REPO = os.path.dirname(HERE)
 ROOT = os.environ.get("RCF1_ROOT", r"D:\code\mc-experiment")
 _R3C = bool(os.environ.get("RCF1_ROOT"))
 # R3D:RCF1_SUFFIX 显式覆盖部署后缀(r3d 干净部署);默认逻辑不变。
-_SUFFIX = os.environ.get("RCF1_SUFFIX") or (
-    "rcf1-server-r3c" if _R3C else "rcf1-server")
-_CSUFFIX = os.environ.get("RCF1_SUFFIX") or (
-    "rcf1-client-r3c" if _R3C else "rcf1-client")
+_SUFFIX = ("rcf1-server-" + os.environ["RCF1_SUFFIX"]
+           if os.environ.get("RCF1_SUFFIX")
+           else ("rcf1-server-r3c" if _R3C else "rcf1-server"))
+_CSUFFIX = ("rcf1-client-" + os.environ["RCF1_SUFFIX"]
+            if os.environ.get("RCF1_SUFFIX")
+            else ("rcf1-client-r3c" if _R3C else "rcf1-client"))
 
 NS_ROOT = os.environ.get("RCF1_LIFECYCLE_NS_ROOT") or r"D:\mc-rcf1-raw\lifecycle"
 STATE_DIR = pathlib.Path(NS_ROOT)
