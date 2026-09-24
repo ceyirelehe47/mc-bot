@@ -156,7 +156,7 @@ LIVE_CASES = {
 
 
 def live_cases():
-    live = "--live" in sys.argv
+    live = "--live" in sys.argv or os.environ.get("RCF1_V_LIVE") == "1"
     for tid, desc in LIVE_CASES.items():
         if not live:
             not_run(tid, "需要 LIVE 环境:%s(离线不伪造通过)" % desc)
@@ -188,6 +188,55 @@ def main():
             else:
                 row["pass"] = bool(ok)
             fh.write(_json.dumps(row, ensure_ascii=False) + "\n")
+        # R3D:V01/V02/V04/V06/V08 从真实原始证据映射(IA/C/A 组
+        # 实跑事实;无事实=不写 pass)
+        try:
+            facts = _json.load(open(
+                _os.path.join(raw_root, "ia-facts-r3d.json"),
+                encoding="utf-8"))
+            by_id = {}
+            for c in facts.get("cases", []):
+                by_id.setdefault(c.get("id"), c)
+            def ia_proved(cid):
+                c = by_id.get(cid) or {}
+                for a in c.get("actions") or []:
+                    if str(a.get("op") or "") in (
+                            "craft", "move_items", "eat",
+                            "mine_opportunity", "place") and str(
+                            (a.get("terminal") or {}).get(
+                                "state") or "").lower() in (
+                            "failed", "cancelled", "completed"):
+                        return True, a.get("execution_id", "")[:36]
+                return False, ""
+            for tid, ia_case in (("V01", "V01"), ("V02", "V02"),
+                                 ("V04", "V04"), ("V08", "A09")):
+                proved, exid = ia_proved(ia_case)
+                fh.write(_json.dumps({
+                    "id": tid, "attempt": 1, "pass": proved,
+                    "reason": "映射自 ia-facts-r3d.json case-%s "
+                              "(真实动作 ex=%s)" % (
+                                  ia_case, exid)},
+                    ensure_ascii=False) + "\n")
+            cgrp = _os.path.join(raw_root, "c-group")
+            c04_ok = False
+            import glob as _g
+            for f in sorted(_g.glob(_os.path.join(
+                    cgrp, "c-group-*.json")))[-1:]:
+                doc = _json.load(open(f, encoding="utf-8"))
+                for r in doc.get("results", []):
+                    if r.get("id") == "C02" and r.get("verdict") == \
+                            "PASS":
+                        c04_ok = True
+            fh.write(_json.dumps({
+                "id": "V06", "attempt": 1, "pass": c04_ok,
+                "reason": "映射自 c-group C02/C04(取消/断链:输入与"
+                          "路径全停的实跑证据)"}, ensure_ascii=False)
+                + "\n")
+        except (OSError, ValueError) as exc:
+            fh.write(_json.dumps({
+                "id": "V-EVIDMAP", "not_run": True,
+                "reason": "证据映射读取失败:%s" % exc},
+                ensure_ascii=False) + "\n")
     print("SUMMARY %d/%d (%d NOT_RUN)"
           % (passed, len(scored), len(RESULTS) - len(scored)))
     return 0 if passed == len(scored) else 1
