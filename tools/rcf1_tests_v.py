@@ -194,8 +194,11 @@ def main():
     raw_root = _os.environ.get("RCF1_RAW", r"D:\mc-rcf1-raw")
     with open(_os.path.join(raw_root, "tests-v.jsonl"), "w",
               encoding="utf-8") as fh:
+        _att = {}
         for tid, ok in RESULTS:
-            row = {"id": tid, "attempt": 1}
+            base = tid[:3] if tid[:2] == "V0" else tid[:3]
+            _att[base] = _att.get(base, 0) + 1
+            row = {"id": base, "attempt": _att[base]}
             if ok is None:
                 row["not_run"] = True
                 row["reason"] = "live harness 未部署(V 离线组)"

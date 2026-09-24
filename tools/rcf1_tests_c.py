@@ -302,8 +302,62 @@ def c04_disconnect_unknown_reconcile():
     }
 
 
+
+def c06_unaccepted_submit_no_execution():
+    """C06:提交未受理(参数错误)→ 不产生执行、账不变、后续提交正常。
+    (R3D 按 ACCEPTANCE M13-M15 语义实装;R3C 行为无证据文本的派生行)"""
+    s = play.Session("c06")
+    st0 = (s.status().get("data") or {})
+    seq0 = st0.get("event_sequence")
+    ex, err = s.submit("warp_drive", {}, tag="c06-bad")
+    st1 = (s.status().get("data") or {})
+    ok = (ex is None and err is not None
+          and not st1.get("active_execution")
+          and st1.get("event_sequence") == seq0)
+    # 后续正常提交不受污染
+    ex2, err2 = s.submit("say", {"message": "c06-after"},
+                         tag="c06-after")
+    r2 = s.term(ex2, timeout_s=30)[0] if ex2 else {}
+    ok = ok and ex2 is not None and r2.get("state") == "completed"
+    return {"id": "C06", "verdict": "PASS" if ok else "FAIL",
+            "reason": "未受理提交:无执行/账序不变/后续提交正常 "
+                      "(err=%s, seq %s->%s, after=%s)" % (
+                          (err or {}).get("error"), seq0,
+                          st1.get("event_sequence"), r2.get("state"))}
+
+
+def c07_journal_preserve_and_dedup():
+    """C07:同 request_id 重放 → 账本去重(同一执行不重复执行);
+    租约轮换后旧账仍可查(保留账)。"""
+    import json as _j
+    s = play.Session("c07")
+    rid = "c07-dedup-%d" % int(time.time())
+    r1 = play.E.call("POST", "/v1/executions/say",
+                     s.lease, {"message": "c07-first"},
+                     {"X-Request-Id": rid})
+    ex1 = (r1.get("data") or {}).get("execution_id")
+    s.term(ex1, timeout_s=30)
+    r2 = play.E.call("POST", "/v1/executions/say",
+                     s.lease, {"message": "c07-first"},
+                     {"X-Request-Id": rid})
+    ex2 = (r2.get("data") or {}).get("execution_id")
+    dedup = (ex1 is not None and ex2 == ex1)
+    # 租约轮换(释放→重取)后旧执行仍可查且状态不变
+    s2 = play.Session("c07b")
+    st = s2.status(ex1)
+    preserved = (st.get("data") or {}).get("state") in (
+        "completed", "failed")
+    return {"id": "C07", "verdict": "PASS" if (dedup and preserved)
+            else "FAIL",
+            "reason": "同 id 重放=同一执行(%s==%s);轮换后旧账可查"
+                      "(state=%s)" % (str(ex1)[:8], str(ex2)[:8],
+                                      (st.get("data") or {}).get("state"))}
+
+
+
 TESTS = [c01_param_error_does_not_preempt, c02_cancel_stops_control,
-         c03_idempotency, c05_owner_exclusivity, c04_disconnect_unknown_reconcile]
+         c03_idempotency, c05_owner_exclusivity, c04_disconnect_unknown_reconcile,
+    c06_unaccepted_submit_no_execution, c07_journal_preserve_and_dedup]
 
 
 HOSTILES = ["zombie", "skeleton", "creeper", "spider", "husk", "drowned",
@@ -342,6 +396,9 @@ def _stabilize():
             pass
         _t.sleep(3)
     return False
+
+
+
 
 
 def main():
