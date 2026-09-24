@@ -103,8 +103,8 @@ def v07_nav_args_tampered(run):
         ("y 越界", {"x": 300, "y": 9999, "z": 300}),
     ]
     rejected = []
-    for name, args in cases:
-        ex, err = s.submit("goto", args, tag="v07-%s" % name)
+    for i, (name, args) in enumerate(cases):
+        ex, err = s.submit("goto", args, tag="v07-case%d" % i)
         rejected.append((name, ex is None,
                          str(err)[:60]))
         if ex:
