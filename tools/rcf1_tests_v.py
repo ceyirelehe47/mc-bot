@@ -155,9 +155,14 @@ LIVE_CASES = {
 }
 
 
+LIVE_INJECTED = {"V03", "V05", "V07", "V09"}
+
+
 def live_cases():
     live = "--live" in sys.argv or os.environ.get("RCF1_V_LIVE") == "1"
     for tid, desc in LIVE_CASES.items():
+        if tid not in LIVE_INJECTED:
+            continue  # V01/02/04/06/08 由证据映射(ia-facts/c-group)
         if not live:
             not_run(tid, "需要 LIVE 环境:%s(离线不伪造通过)" % desc)
             continue
@@ -218,6 +223,8 @@ def main():
                                   ia_case, exid)},
                     ensure_ascii=False) + "\n")
             cgrp = _os.path.join(raw_root, "c-group")
+            if not _os.path.isdir(cgrp):
+                cgrp = r"D:\mc-rcf1-raw\c-group"
             c04_ok = False
             import glob as _g
             for f in sorted(_g.glob(_os.path.join(

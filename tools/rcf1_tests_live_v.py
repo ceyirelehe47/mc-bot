@@ -17,6 +17,17 @@ def rcon(cmd):
     return (E.rcon(cmd) or "").strip()
 
 
+def _prep():
+    """每例前:清怪+回满状态(全新世界野地敌怪;V09 实测 give 落空
+    根因=受击/死亡掉落)。诊断准备期合法;不影响判定事实。"""
+    rcon("time set day")
+    rcon("weather clear")
+    for mob in ("zombie", "skeleton", "creeper", "spider", "witch"):
+        rcon("execute positioned 300 120 300 run kill "
+             "@e[type=minecraft:%s,distance=..80]" % mob)
+    rcon("effect give Bob minecraft:instant_health 1 5 true")
+
+
 def _inv(s):
     obs = ((s.observe().get("data") or {}).get("observation") or {})
     inv = obs.get("inventory") or {}
@@ -27,6 +38,7 @@ def _inv(s):
 
 
 def v03_external_preplaced(run):
+    _prep()
     """V03:外部抢先放块 → Bob 的 place 必须失败且无库存消耗;
     不得把外部块归为 Bob 放置成功。"""
     rcon("tp Bob 300.5 119 300.5")
@@ -52,6 +64,7 @@ def v03_external_preplaced(run):
 
 
 def v05_wrong_screen_no_click(run):
+    _prep()
     """V05:执行槽被容器事务占用时提交 craft → 409 拒绝,
     无任何错屏点击(容器两端内容不变性由事务自身回执守恒)。"""
     rcon("tp Bob 300.5 119 300.5")
@@ -87,6 +100,7 @@ def v05_wrong_screen_no_click(run):
 
 
 def v07_nav_args_tampered(run):
+    _prep()
     """V07:导航参数篡改/越界/未知字段 → 精确拒绝且不移动。"""
     rcon("tp Bob 300.5 119 300.5")
     time.sleep(1.5)
@@ -122,6 +136,7 @@ def v07_nav_args_tampered(run):
 
 
 def v09_hidden_table_no_shortcut(run):
+    _prep()
     """V09:工作台在墙后(准星不可达)→ 3x3 合成必须拒绝;
     不得透视/穿墙使用隐藏台。"""
     rcon("tp Bob 300.5 119 300.5")

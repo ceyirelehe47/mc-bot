@@ -14,7 +14,8 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, TOOLS)
 import play  # noqa: E402
 
-RAW = pathlib.Path(r"D:\mc-rcf1-raw\c-group")
+RAW = pathlib.Path(os.environ.get(
+    "RCF1_RAW", r"D:\mc-rcf1-raw")) / "c-group"
 
 
 def ev(name, obj):
