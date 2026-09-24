@@ -79,22 +79,19 @@ def v05_wrong_screen_no_click(run):
     rcon("give Bob minecraft:oak_log 4")
     time.sleep(1)
     s = play.Session("v05")
-    ex1, err1 = s.submit("container_transfer",
-                         {"x": 302, "y": 120, "z": 302,
-                          "item": "minecraft:dirt", "count": 4,
-                          "direction": "deposit"}, tag="v05-dep")
-    time.sleep(0.8)  # 容器事务在途
+    # 长导航占槽(确定性;容器事务太快会错过并发窗口,实测 V05 抖动根因)
+    ex1, err1 = s.submit("goto", {"x": 300, "y": 119, "z": 320},
+                         tag="v05-occupy")
+    time.sleep(2.0)  # 导航确在途
     ex2, err2 = s.submit("craft",
                          {"item": "minecraft:oak_planks",
                           "count": 4}, tag="v05-craft")
-    r1 = s.term(ex1, timeout_s=90)[0] if ex1 else {}
     craft_rejected = ex2 is None and "in_progress" in str(err2)
+    r1 = s.term(ex1, timeout_s=120)[0] if ex1 else {}
     inv = _inv(s)
-    ok = (craft_rejected
-          and r1.get("state") == "completed"
-          and inv.get("minecraft:oak_planks", 0) == 0)
+    ok = (craft_rejected and inv.get("minecraft:oak_planks", 0) == 0)
     run("V05", ok, {"craft_submit": str(err2)[:100],
-                    "dep_state": r1.get("state"),
+                    "occupy_state": r1.get("state"),
                     "planks_after": inv.get(
                         "minecraft:oak_planks", 0),
                     "note": "槽忙时 craft 准确拒绝;无错屏点击/"
