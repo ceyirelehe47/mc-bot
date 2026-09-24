@@ -144,7 +144,12 @@ def safe():
     for mob in ("zombie", "skeleton", "creeper", "spider"):
         rcon("execute positioned 300 120 300 run kill "
              "@e[type=minecraft:%s,distance=..80]" % mob)
-    rcon("tp Bob 300.5 120 300.5")
+    # R3D:工作区标准化(全新世界野地根因——I04/A06/A09/A10 的
+    # 箱柜/放置/矿柱在老世界地形上;清空+地板使各 case 自建
+    # fixture 的局部几何稳定)。幂等;每 case 重建自身 fixture。
+    rcon("fill 292 119 292 312 127 312 minecraft:air")
+    rcon("fill 292 117 292 312 118 312 minecraft:dirt")
+    rcon("tp Bob 300.5 119 300.5")
 
 
 def inv_raw():
