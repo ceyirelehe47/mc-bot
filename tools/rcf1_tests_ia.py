@@ -905,14 +905,26 @@ def _local_opp(block, near=None):
 
 def a09_target_removed():
     # R1: 机会=tracker 持久池(传感器可见注册;setblock 热放不注册——
-    # 多轮实测)。用环境真实可见的 smooth_stone(126 层建筑面)。
+    # 多轮实测)。用环境真实可见的 smooth_stone 声明面(R3D:全新世界
+    # 无旧建筑面——safe() 工作区内自建声明 smooth_stone 柱+走查感知)。
     safe()
     rcon("clear Bob")
     rcon("give Bob minecraft:stone_pickaxe 1")
+    # fixture:smooth_stone 柱(305..306,119..121,305);Bob 站柱南
+    for y in (119, 120, 121):
+        rcon("setblock 305 %d 305 minecraft:smooth_stone" % y)
+        rcon("setblock 306 %d 305 minecraft:smooth_stone" % y)
+    rcon("tp Bob 305.5 119 308.5")
+    time.sleep(2)
+    # 走查使传感器注册机会(静态放置不进 tracker)
+    s_w = play.Session("r1a09w")
+    s_w.do("goto", {"x": 305, "y": 119, "z": 307,
+                    "face_x": 305, "face_y": 120, "face_z": 305},
+           timeout_s=45)
     o = None
     for _ in range(5):
         time.sleep(2)
-        o = _local_opp("minecraft:smooth_stone", near=(300, 126, 305))
+        o = _local_opp("minecraft:smooth_stone", near=(305, 120, 305))
         if o:
             break
     if not o:
@@ -921,7 +933,7 @@ def a09_target_removed():
         s0.do("say", {"message": "scanning"}, timeout_s=30)
         for _ in range(3):
             time.sleep(2.5)
-            o = _local_opp("minecraft:smooth_stone", near=(300, 126, 305))
+            o = _local_opp("minecraft:smooth_stone", near=(305, 120, 305))
             if o:
                 break
     if not o:
